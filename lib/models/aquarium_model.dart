@@ -101,7 +101,35 @@ class WaterChange {
   }
 }
 
-/// Wpis prezentowany w osi czasu dziennika akwarium.
+enum JournalCategory {
+  observation,
+  fishHealth,
+  plantGrowth,
+  algae,
+  equipment,
+  other,
+}
+
+extension JournalCategoryLabel on JournalCategory {
+  String get label {
+    switch (this) {
+      case JournalCategory.observation:
+        return 'Obserwacja';
+      case JournalCategory.fishHealth:
+        return 'Zdrowie ryb';
+      case JournalCategory.plantGrowth:
+        return 'Wzrost roślin';
+      case JournalCategory.algae:
+        return 'Glony';
+      case JournalCategory.equipment:
+        return 'Sprzęt / inwestycje';
+      case JournalCategory.other:
+        return 'Inne';
+    }
+  }
+}
+
+/// Wpis dziennika akwarium. Starsze wpisy testów i podmian zachowują zgodność.
 class JournalEntry {
   const JournalEntry({
     required this.id,
@@ -109,6 +137,10 @@ class JournalEntry {
     required this.title,
     required this.description,
     required this.type,
+    this.imagePaths = const [],
+    this.category = JournalCategory.other,
+    this.tags = const [],
+    this.attachedWaterParameters,
   });
 
   final String id;
@@ -116,6 +148,13 @@ class JournalEntry {
   final String title;
   final String description;
   final String type;
+  final List<String> imagePaths;
+  final JournalCategory category;
+  final List<String> tags;
+  final Map<String, double>? attachedWaterParameters;
+
+  String get notes => description;
+  DateTime get timestamp => date;
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -123,6 +162,10 @@ class JournalEntry {
     'title': title,
     'description': description,
     'type': type,
+    'imagePaths': imagePaths,
+    'category': category.name,
+    'tags': tags,
+    'attachedWaterParameters': attachedWaterParameters,
   };
 
   factory JournalEntry.fromMap(Map<String, dynamic> map) {
@@ -132,8 +175,112 @@ class JournalEntry {
       title: map['title'] as String,
       description: map['description'] as String,
       type: map['type'] as String,
+      imagePaths: List<String>.from(map['imagePaths'] as List? ?? const []),
+      category: JournalCategory.values.byName(
+        map['category'] as String? ?? 'other',
+      ),
+      tags: List<String>.from(map['tags'] as List? ?? const []),
+      attachedWaterParameters: (map['attachedWaterParameters'] as Map?)?.map(
+        (key, value) => MapEntry(key.toString(), (value as num).toDouble()),
+      ),
     );
   }
+}
+
+enum TaskRecurrence { once, daily, everyXDays, weekly, monthly }
+
+class AquariumTask {
+  const AquariumTask({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.recurrence,
+    required this.intervalDays,
+    required this.nextDueDate,
+    this.lastCompletedDate,
+    this.isCompletedToday = false,
+    this.categoryColorHex = '#00E5FF',
+    this.reminderMinutes,
+  });
+
+  final String id;
+  final String title;
+  final String description;
+  final TaskRecurrence recurrence;
+  final int intervalDays;
+  final DateTime nextDueDate;
+  final DateTime? lastCompletedDate;
+  final bool isCompletedToday;
+  final String categoryColorHex;
+  final int? reminderMinutes;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'description': description,
+    'recurrence': recurrence.name,
+    'intervalDays': intervalDays,
+    'nextDueDate': nextDueDate.toIso8601String(),
+    'lastCompletedDate': lastCompletedDate?.toIso8601String(),
+    'isCompletedToday': isCompletedToday,
+    'categoryColorHex': categoryColorHex,
+    'reminderMinutes': reminderMinutes,
+  };
+
+  factory AquariumTask.fromJson(Map<String, dynamic> json) => AquariumTask(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    description: json['description'] as String? ?? '',
+    recurrence: TaskRecurrence.values.byName(json['recurrence'] as String),
+    intervalDays: json['intervalDays'] as int? ?? 1,
+    nextDueDate: DateTime.parse(json['nextDueDate'] as String),
+    lastCompletedDate: json['lastCompletedDate'] == null
+        ? null
+        : DateTime.parse(json['lastCompletedDate'] as String),
+    isCompletedToday: json['isCompletedToday'] as bool? ?? false,
+    categoryColorHex: json['categoryColorHex'] as String? ?? '#00E5FF',
+    reminderMinutes: json['reminderMinutes'] as int?,
+  );
+
+  AquariumTask completed(DateTime completedAt) {
+    final nextDate = switch (recurrence) {
+      TaskRecurrence.once => nextDueDate,
+      TaskRecurrence.daily => completedAt.add(const Duration(days: 1)),
+      TaskRecurrence.everyXDays => completedAt.add(Duration(days: intervalDays)),
+      TaskRecurrence.weekly => completedAt.add(const Duration(days: 7)),
+      TaskRecurrence.monthly => DateTime(
+        completedAt.year,
+        completedAt.month + 1,
+        completedAt.day,
+        completedAt.hour,
+        completedAt.minute,
+      ),
+    };
+    return AquariumTask(
+      id: id,
+      title: title,
+      description: description,
+      recurrence: recurrence,
+      intervalDays: intervalDays,
+      nextDueDate: nextDate,
+      lastCompletedDate: completedAt,
+      isCompletedToday: true,
+      categoryColorHex: categoryColorHex,
+      reminderMinutes: reminderMinutes,
+    );
+  }
+
+  AquariumTask reopened() => AquariumTask(
+    id: id,
+    title: title,
+    description: description,
+    recurrence: recurrence,
+    intervalDays: intervalDays,
+    nextDueDate: lastCompletedDate ?? nextDueDate,
+    lastCompletedDate: null,
+    categoryColorHex: categoryColorHex,
+    reminderMinutes: reminderMinutes,
+  );
 }
 
 /// Stan danych akwarium udostępniany widokom przez pakiet provider.
@@ -141,24 +288,29 @@ class AquariumProvider extends ChangeNotifier {
   static const _waterTestsKey = 'aquarium.water_tests';
   static const _waterChangesKey = 'aquarium.water_changes';
   static const _journalEntriesKey = 'aquarium.journal_entries';
+  static const _tasksKey = 'aquarium.tasks';
 
   AquariumProvider({
     List<WaterTest>? waterTests,
     List<WaterChange>? waterChanges,
     List<JournalEntry>? journalEntries,
+     List<AquariumTask>? tasks,
   }) : _waterTests = List<WaterTest>.of(waterTests ?? const []),
        _waterChanges = List<WaterChange>.of(waterChanges ?? const []),
-       _journalEntries = List<JournalEntry>.of(journalEntries ?? const []);
+       _journalEntries = List<JournalEntry>.of(journalEntries ?? const []),
+       _tasks = List<AquariumTask>.of(tasks ?? const []);
 
   final List<WaterTest> _waterTests;
   final List<WaterChange> _waterChanges;
   final List<JournalEntry> _journalEntries;
+  final List<AquariumTask> _tasks;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
   _waterTestsSubscription;
 
   List<WaterTest> get waterTests => List.unmodifiable(_waterTests);
   List<WaterChange> get waterChanges => List.unmodifiable(_waterChanges);
   List<JournalEntry> get journalEntries => List.unmodifiable(_journalEntries);
+  List<AquariumTask> get tasks => List.unmodifiable(_tasks);
 
   /// Wczytuje dane lokalne, loguje użytkownika anonimowo i uruchamia synchronizację.
   Future<void> initialize() async {
@@ -183,6 +335,7 @@ class AquariumProvider extends ChangeNotifier {
       final savedTests = preferences.getString(_waterTestsKey);
       final savedChanges = preferences.getString(_waterChangesKey);
       final savedEntries = preferences.getString(_journalEntriesKey);
+      final savedTasks = preferences.getString(_tasksKey);
 
       if (savedTests != null) {
         _waterTests
@@ -198,6 +351,11 @@ class AquariumProvider extends ChangeNotifier {
         _journalEntries
           ..clear()
           ..addAll(_decodeList(savedEntries, JournalEntry.fromMap));
+      }
+      if (savedTasks != null) {
+        _tasks
+          ..clear()
+          ..addAll(_decodeList(savedTasks, AquariumTask.fromJson));
       }
 
       notifyListeners();
@@ -228,6 +386,34 @@ class AquariumProvider extends ChangeNotifier {
     notifyListeners();
     _persist();
     _saveWaterTestToFirestore(test);
+  }
+
+  void addJournalEntry(JournalEntry entry) {
+    _journalEntries.insert(0, entry);
+    notifyListeners();
+    _persist();
+  }
+
+  void addTask(AquariumTask task) {
+    _tasks.add(task);
+    notifyListeners();
+    _persist();
+  }
+
+  void completeTask(String taskId) {
+    final index = _tasks.indexWhere((task) => task.id == taskId);
+    if (index == -1) return;
+    _tasks[index] = _tasks[index].completed(DateTime.now());
+    notifyListeners();
+    _persist();
+  }
+
+  void reopenTask(String taskId) {
+    final index = _tasks.indexWhere((task) => task.id == taskId);
+    if (index == -1) return;
+    _tasks[index] = _tasks[index].reopened();
+    notifyListeners();
+    _persist();
   }
 
   void updateWaterTest(WaterTest test) {
@@ -329,6 +515,10 @@ class AquariumProvider extends ChangeNotifier {
           _journalEntriesKey,
           jsonEncode(_journalEntries.map((entry) => entry.toMap()).toList()),
         ),
+        preferences.setString(
+          _tasksKey,
+          jsonEncode(_tasks.map((task) => task.toJson()).toList()),
+        ),
       ]);
     } catch (_) {
       // Błąd pluginu nie może przerwać zapisu do Firestore ani działania UI.
@@ -421,12 +611,14 @@ class AquariumProvider extends ChangeNotifier {
     _waterTests.clear();
     _waterChanges.clear();
     _journalEntries.clear();
+    _tasks.clear();
     try {
       final preferences = await SharedPreferences.getInstance();
       await Future.wait([
         preferences.remove(_waterTestsKey),
         preferences.remove(_waterChangesKey),
         preferences.remove(_journalEntriesKey),
+        preferences.remove(_tasksKey),
       ]);
     } catch (_) {
       // Nie ma czego czyścić, jeśli plugin nie jest zarejestrowany.

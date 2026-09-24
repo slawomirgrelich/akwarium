@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
 import 'fertilizer_screen.dart';
+import 'aquarium_journal_module.dart';
+import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/water_standards.dart';
 import 'water_parameters_chart.dart';
@@ -35,6 +37,7 @@ Future<void> main() async {
   }
 
   runApp(const AkwarystaProApp());
+  await LocalReminderService.instance.initialize();
 }
 
 // ===========================
@@ -243,7 +246,7 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final pages = [
       DashboardPage(aquarium: _aquarium),
-      const JournalPage(),
+      const JournalTimelineView(),
       ToolsPage(aquarium: _aquarium),
       const ProfilePage(),
     ];
