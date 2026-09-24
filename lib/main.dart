@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
-import 'fertilizer_screen.dart';
+import 'aquarium_calculators_screen.dart';
 import 'aquarium_journal_module.dart';
 import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
@@ -655,7 +655,9 @@ class ToolsPage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const FertilizerScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const AquariumCalculatorsScreen(),
+                  ),
                 );
               },
             ),
