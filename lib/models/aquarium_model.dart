@@ -9,6 +9,183 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Typ prowadzonego akwarium.
 enum AquariumType { planted, marine, community }
 
+enum TankType { freshwater, marine, planted, biotope, shrimp }
+
+enum CreatureCategory { fish, shrimp, snail, crab, plant, other }
+
+enum PlantPosition { foreground, midground, background, epiphyte, floating }
+
+extension TankTypeLabel on TankType {
+  String get label {
+    switch (this) {
+      case TankType.freshwater:
+        return 'Słodkowodne';
+      case TankType.marine:
+        return 'Morskie';
+      case TankType.planted:
+        return 'Roślinne / holenderskie';
+      case TankType.biotope:
+        return 'Biotopowe';
+      case TankType.shrimp:
+        return 'Krewetkarium';
+    }
+  }
+}
+
+extension CreatureCategoryLabel on CreatureCategory {
+  String get label {
+    switch (this) {
+      case CreatureCategory.fish:
+        return 'Ryby';
+      case CreatureCategory.shrimp:
+        return 'Krewetki';
+      case CreatureCategory.snail:
+        return 'Ślimaki';
+      case CreatureCategory.crab:
+        return 'Kraby';
+      case CreatureCategory.plant:
+        return 'Rośliny';
+      case CreatureCategory.other:
+        return 'Inne';
+    }
+  }
+}
+
+extension PlantPositionLabel on PlantPosition {
+  String get label {
+    switch (this) {
+      case PlantPosition.foreground:
+        return 'I plan';
+      case PlantPosition.midground:
+        return 'II plan';
+      case PlantPosition.background:
+        return 'III plan';
+      case PlantPosition.epiphyte:
+        return 'Epifit';
+      case PlantPosition.floating:
+        return 'Pływająca';
+    }
+  }
+}
+
+class AquariumProfile {
+  const AquariumProfile({
+    required this.id,
+    required this.name,
+    required this.volumeNetLiters,
+    required this.setupDate,
+    required this.type,
+    this.volumeGrossLiters,
+    this.substrate,
+    this.lighting,
+    this.filtration,
+    this.imagePath,
+    this.isActive = false,
+  });
+
+  final String id;
+  final String name;
+  final double volumeNetLiters;
+  final DateTime setupDate;
+  final TankType type;
+  final double? volumeGrossLiters;
+  final String? substrate;
+  final String? lighting;
+  final String? filtration;
+  final String? imagePath;
+  final bool isActive;
+
+  int get ageInDays => DateTime.now().difference(setupDate).inDays;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'volumeNetLiters': volumeNetLiters,
+    'volumeGrossLiters': volumeGrossLiters,
+    'setupDate': setupDate.toIso8601String(),
+    'type': type.name,
+    'substrate': substrate,
+    'lighting': lighting,
+    'filtration': filtration,
+    'imagePath': imagePath,
+    'isActive': isActive,
+  };
+
+  factory AquariumProfile.fromJson(Map<String, dynamic> json) => AquariumProfile(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    volumeNetLiters: (json['volumeNetLiters'] as num).toDouble(),
+    volumeGrossLiters: (json['volumeGrossLiters'] as num?)?.toDouble(),
+    setupDate: DateTime.parse(json['setupDate'] as String),
+    type: TankType.values.byName(json['type'] as String? ?? 'freshwater'),
+    substrate: json['substrate'] as String?,
+    lighting: json['lighting'] as String?,
+    filtration: json['filtration'] as String?,
+    imagePath: json['imagePath'] as String?,
+    isActive: json['isActive'] as bool? ?? false,
+  );
+}
+
+class Inhabitant {
+  const Inhabitant({
+    required this.id,
+    required this.aquariumId,
+    required this.name,
+    required this.latinName,
+    required this.category,
+    required this.count,
+    required this.addedDate,
+    this.plantPosition,
+    this.status = 'Zdrowe',
+    this.difficulty,
+    this.notes,
+    this.imagePath,
+  });
+
+  final String id;
+  final String aquariumId;
+  final String name;
+  final String latinName;
+  final CreatureCategory category;
+  final int count;
+  final DateTime addedDate;
+  final PlantPosition? plantPosition;
+  final String status;
+  final String? difficulty;
+  final String? notes;
+  final String? imagePath;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'aquariumId': aquariumId,
+    'name': name,
+    'latinName': latinName,
+    'category': category.name,
+    'count': count,
+    'addedDate': addedDate.toIso8601String(),
+    'plantPosition': plantPosition?.name,
+    'status': status,
+    'difficulty': difficulty,
+    'notes': notes,
+    'imagePath': imagePath,
+  };
+
+  factory Inhabitant.fromJson(Map<String, dynamic> json) => Inhabitant(
+    id: json['id'] as String,
+    aquariumId: json['aquariumId'] as String? ?? 'aquarium-001',
+    name: json['name'] as String,
+    latinName: json['latinName'] as String? ?? '',
+    category: CreatureCategory.values.byName(json['category'] as String? ?? 'other'),
+    count: json['count'] as int? ?? 1,
+    addedDate: DateTime.parse(json['addedDate'] as String),
+    plantPosition: json['plantPosition'] == null ? null : PlantPosition.values.byName(json['plantPosition'] as String),
+    status: json['status'] as String? ?? 'Zdrowe',
+    difficulty: json['difficulty'] as String?,
+    notes: json['notes'] as String?,
+    imagePath: json['imagePath'] as String?,
+  );
+}
+
 /// Pomiar parametrów wody gotowy do zapisu w bazie danych.
 class WaterTest {
   const WaterTest({
@@ -21,6 +198,7 @@ class WaterTest {
     required this.kh,
     required this.gh,
     required this.temp,
+    this.aquariumId = 'aquarium-001',
   });
 
   final String id;
@@ -32,6 +210,7 @@ class WaterTest {
   final double kh;
   final double gh;
   final double temp;
+  final String aquariumId;
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -43,6 +222,7 @@ class WaterTest {
     'kh': kh,
     'gh': gh,
     'temp': temp,
+    'aquariumId': aquariumId,
   };
 
   factory WaterTest.fromMap(Map<String, dynamic> map) {
@@ -56,6 +236,7 @@ class WaterTest {
       kh: (map['kh'] as num).toDouble(),
       gh: (map['gh'] as num).toDouble(),
       temp: (map['temp'] as num).toDouble(),
+      aquariumId: map['aquariumId'] as String? ?? 'aquarium-001',
     );
   }
 }
@@ -77,18 +258,21 @@ class WaterChange {
     required this.date,
     required this.volumeLiters,
     this.notes = '',
+    this.aquariumId = 'aquarium-001',
   });
 
   final String id;
   final DateTime date;
   final double volumeLiters;
   final String notes;
+  final String aquariumId;
 
   Map<String, dynamic> toMap() => {
     'id': id,
     'date': date.toIso8601String(),
     'volumeLiters': volumeLiters,
     'notes': notes,
+    'aquariumId': aquariumId,
   };
 
   factory WaterChange.fromMap(Map<String, dynamic> map) {
@@ -97,6 +281,7 @@ class WaterChange {
       date: DateTime.parse(map['date'] as String),
       volumeLiters: (map['volumeLiters'] as num).toDouble(),
       notes: map['notes'] as String? ?? '',
+      aquariumId: map['aquariumId'] as String? ?? 'aquarium-001',
     );
   }
 }
@@ -141,6 +326,7 @@ class JournalEntry {
     this.category = JournalCategory.other,
     this.tags = const [],
     this.attachedWaterParameters,
+    this.aquariumId = 'aquarium-001',
   });
 
   final String id;
@@ -152,6 +338,7 @@ class JournalEntry {
   final JournalCategory category;
   final List<String> tags;
   final Map<String, double>? attachedWaterParameters;
+  final String aquariumId;
 
   String get notes => description;
   DateTime get timestamp => date;
@@ -166,6 +353,7 @@ class JournalEntry {
     'category': category.name,
     'tags': tags,
     'attachedWaterParameters': attachedWaterParameters,
+    'aquariumId': aquariumId,
   };
 
   factory JournalEntry.fromMap(Map<String, dynamic> map) {
@@ -183,6 +371,7 @@ class JournalEntry {
       attachedWaterParameters: (map['attachedWaterParameters'] as Map?)?.map(
         (key, value) => MapEntry(key.toString(), (value as num).toDouble()),
       ),
+      aquariumId: map['aquariumId'] as String? ?? 'aquarium-001',
     );
   }
 }
@@ -201,6 +390,7 @@ class AquariumTask {
     this.isCompletedToday = false,
     this.categoryColorHex = '#00E5FF',
     this.reminderMinutes,
+    this.aquariumId = 'aquarium-001',
   });
 
   final String id;
@@ -213,6 +403,7 @@ class AquariumTask {
   final bool isCompletedToday;
   final String categoryColorHex;
   final int? reminderMinutes;
+  final String aquariumId;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -225,6 +416,7 @@ class AquariumTask {
     'isCompletedToday': isCompletedToday,
     'categoryColorHex': categoryColorHex,
     'reminderMinutes': reminderMinutes,
+    'aquariumId': aquariumId,
   };
 
   factory AquariumTask.fromJson(Map<String, dynamic> json) => AquariumTask(
@@ -240,6 +432,7 @@ class AquariumTask {
     isCompletedToday: json['isCompletedToday'] as bool? ?? false,
     categoryColorHex: json['categoryColorHex'] as String? ?? '#00E5FF',
     reminderMinutes: json['reminderMinutes'] as int?,
+    aquariumId: json['aquariumId'] as String? ?? 'aquarium-001',
   );
 
   AquariumTask completed(DateTime completedAt) {
@@ -267,6 +460,7 @@ class AquariumTask {
       isCompletedToday: true,
       categoryColorHex: categoryColorHex,
       reminderMinutes: reminderMinutes,
+      aquariumId: aquariumId,
     );
   }
 
@@ -280,6 +474,7 @@ class AquariumTask {
     lastCompletedDate: null,
     categoryColorHex: categoryColorHex,
     reminderMinutes: reminderMinutes,
+    aquariumId: aquariumId,
   );
 }
 
@@ -289,28 +484,71 @@ class AquariumProvider extends ChangeNotifier {
   static const _waterChangesKey = 'aquarium.water_changes';
   static const _journalEntriesKey = 'aquarium.journal_entries';
   static const _tasksKey = 'aquarium.tasks';
+  static const _aquariumsKey = 'aquarium.profiles';
+  static const _inhabitantsKey = 'aquarium.inhabitants';
+  static const _activeAquariumKey = 'aquarium.active_id';
 
   AquariumProvider({
     List<WaterTest>? waterTests,
     List<WaterChange>? waterChanges,
     List<JournalEntry>? journalEntries,
-     List<AquariumTask>? tasks,
+    List<AquariumTask>? tasks,
+    List<AquariumProfile>? aquariums,
+    List<Inhabitant>? inhabitants,
+    String? activeAquariumId,
   }) : _waterTests = List<WaterTest>.of(waterTests ?? const []),
        _waterChanges = List<WaterChange>.of(waterChanges ?? const []),
        _journalEntries = List<JournalEntry>.of(journalEntries ?? const []),
-       _tasks = List<AquariumTask>.of(tasks ?? const []);
+       _tasks = List<AquariumTask>.of(tasks ?? const []),
+       _aquariums = List<AquariumProfile>.of(aquariums ?? const []),
+       _inhabitants = List<Inhabitant>.of(inhabitants ?? const []),
+       _activeAquariumId = activeAquariumId ?? 'aquarium-001' {
+    if (_aquariums.isEmpty) {
+      _aquariums.add(
+        AquariumProfile(
+          id: 'aquarium-001',
+          name: 'Akwarium Roślinne',
+          volumeNetLiters: 112,
+          volumeGrossLiters: 125,
+          setupDate: DateTime(2024, 3, 12),
+          type: TankType.planted,
+          isActive: true,
+        ),
+      );
+    }
+  }
 
   final List<WaterTest> _waterTests;
   final List<WaterChange> _waterChanges;
   final List<JournalEntry> _journalEntries;
   final List<AquariumTask> _tasks;
+  final List<AquariumProfile> _aquariums;
+  final List<Inhabitant> _inhabitants;
+  String _activeAquariumId;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
   _waterTestsSubscription;
 
-  List<WaterTest> get waterTests => List.unmodifiable(_waterTests);
-  List<WaterChange> get waterChanges => List.unmodifiable(_waterChanges);
-  List<JournalEntry> get journalEntries => List.unmodifiable(_journalEntries);
-  List<AquariumTask> get tasks => List.unmodifiable(_tasks);
+  String get activeAquariumId => _activeAquariumId;
+  List<AquariumProfile> get aquariums => List.unmodifiable(_aquariums);
+  AquariumProfile get activeAquarium => _aquariums.firstWhere(
+    (aquarium) => aquarium.id == _activeAquariumId,
+    orElse: () => _aquariums.first,
+  );
+  List<WaterTest> get waterTests => List.unmodifiable(
+    _waterTests.where((test) => test.aquariumId == _activeAquariumId),
+  );
+  List<WaterChange> get waterChanges => List.unmodifiable(
+    _waterChanges.where((change) => change.aquariumId == _activeAquariumId),
+  );
+  List<JournalEntry> get journalEntries => List.unmodifiable(
+    _journalEntries.where((entry) => entry.aquariumId == _activeAquariumId),
+  );
+  List<AquariumTask> get tasks => List.unmodifiable(
+    _tasks.where((task) => task.aquariumId == _activeAquariumId),
+  );
+  List<Inhabitant> get inhabitants => List.unmodifiable(
+    _inhabitants.where((item) => item.aquariumId == _activeAquariumId),
+  );
 
   /// Wczytuje dane lokalne, loguje użytkownika anonimowo i uruchamia synchronizację.
   Future<void> initialize() async {
@@ -336,6 +574,9 @@ class AquariumProvider extends ChangeNotifier {
       final savedChanges = preferences.getString(_waterChangesKey);
       final savedEntries = preferences.getString(_journalEntriesKey);
       final savedTasks = preferences.getString(_tasksKey);
+      final savedAquariums = preferences.getString(_aquariumsKey);
+      final savedInhabitants = preferences.getString(_inhabitantsKey);
+      final savedActiveId = preferences.getString(_activeAquariumKey);
 
       if (savedTests != null) {
         _waterTests
@@ -357,6 +598,19 @@ class AquariumProvider extends ChangeNotifier {
           ..clear()
           ..addAll(_decodeList(savedTasks, AquariumTask.fromJson));
       }
+      if (savedAquariums != null) {
+        _aquariums
+          ..clear()
+          ..addAll(_decodeList(savedAquariums, AquariumProfile.fromJson));
+      }
+      if (savedInhabitants != null) {
+        _inhabitants
+          ..clear()
+          ..addAll(_decodeList(savedInhabitants, Inhabitant.fromJson));
+      }
+      if (savedActiveId != null && _aquariums.any((item) => item.id == savedActiveId)) {
+        _activeAquariumId = savedActiveId;
+      }
 
       notifyListeners();
     } on FormatException {
@@ -376,6 +630,7 @@ class AquariumProvider extends ChangeNotifier {
       0,
       JournalEntry(
         id: test.id,
+        aquariumId: test.aquariumId,
         date: test.date,
         title: 'Test parametrów wody',
         description:
@@ -386,6 +641,61 @@ class AquariumProvider extends ChangeNotifier {
     notifyListeners();
     _persist();
     _saveWaterTestToFirestore(test);
+  }
+
+  void selectAquarium(String aquariumId) {
+    if (!_aquariums.any((aquarium) => aquarium.id == aquariumId)) return;
+    _activeAquariumId = aquariumId;
+    notifyListeners();
+    _persist();
+  }
+
+  void addAquarium(AquariumProfile profile) {
+    _aquariums.add(profile);
+    if (_aquariums.length == 1) _activeAquariumId = profile.id;
+    notifyListeners();
+    _persist();
+  }
+
+  void updateAquarium(AquariumProfile profile) {
+    final index = _aquariums.indexWhere((item) => item.id == profile.id);
+    if (index == -1) return;
+    _aquariums[index] = profile;
+    notifyListeners();
+    _persist();
+  }
+
+  void deleteAquarium(String aquariumId) {
+    if (_aquariums.length <= 1) return;
+    _aquariums.removeWhere((item) => item.id == aquariumId);
+    _inhabitants.removeWhere((item) => item.aquariumId == aquariumId);
+    _waterTests.removeWhere((item) => item.aquariumId == aquariumId);
+    _waterChanges.removeWhere((item) => item.aquariumId == aquariumId);
+    _journalEntries.removeWhere((item) => item.aquariumId == aquariumId);
+    _tasks.removeWhere((item) => item.aquariumId == aquariumId);
+    if (_activeAquariumId == aquariumId) _activeAquariumId = _aquariums.first.id;
+    notifyListeners();
+    _persist();
+  }
+
+  void addInhabitant(Inhabitant inhabitant) {
+    _inhabitants.add(inhabitant);
+    notifyListeners();
+    _persist();
+  }
+
+  void updateInhabitant(Inhabitant inhabitant) {
+    final index = _inhabitants.indexWhere((item) => item.id == inhabitant.id);
+    if (index == -1) return;
+    _inhabitants[index] = inhabitant;
+    notifyListeners();
+    _persist();
+  }
+
+  void deleteInhabitant(String inhabitantId) {
+    _inhabitants.removeWhere((item) => item.id == inhabitantId);
+    notifyListeners();
+    _persist();
   }
 
   void addJournalEntry(JournalEntry entry) {
@@ -429,6 +739,7 @@ class AquariumProvider extends ChangeNotifier {
     if (journalIndex != -1) {
       _journalEntries[journalIndex] = JournalEntry(
         id: test.id,
+        aquariumId: test.aquariumId,
         date: test.date,
         title: 'Test parametrów wody',
         description:
@@ -446,6 +757,7 @@ class AquariumProvider extends ChangeNotifier {
       0,
       JournalEntry(
         id: change.id,
+        aquariumId: change.aquariumId,
         date: change.date,
         title: 'Podmiana wody',
         description: [
@@ -472,6 +784,7 @@ class AquariumProvider extends ChangeNotifier {
     if (journalIndex != -1) {
       _journalEntries[journalIndex] = JournalEntry(
         id: change.id,
+        aquariumId: change.aquariumId,
         date: change.date,
         title: 'Podmiana wody',
         description: [
@@ -519,6 +832,15 @@ class AquariumProvider extends ChangeNotifier {
           _tasksKey,
           jsonEncode(_tasks.map((task) => task.toJson()).toList()),
         ),
+        preferences.setString(
+          _aquariumsKey,
+          jsonEncode(_aquariums.map((aquarium) => aquarium.toJson()).toList()),
+        ),
+        preferences.setString(
+          _inhabitantsKey,
+          jsonEncode(_inhabitants.map((item) => item.toJson()).toList()),
+        ),
+        preferences.setString(_activeAquariumKey, _activeAquariumId),
       ]);
     } catch (_) {
       // Błąd pluginu nie może przerwać zapisu do Firestore ani działania UI.
@@ -573,6 +895,7 @@ class AquariumProvider extends ChangeNotifier {
   JournalEntry _journalEntryForTest(WaterTest test) {
     return JournalEntry(
       id: test.id,
+      aquariumId: test.aquariumId,
       date: test.date,
       title: 'Test parametrów wody',
       description:
@@ -612,6 +935,8 @@ class AquariumProvider extends ChangeNotifier {
     _waterChanges.clear();
     _journalEntries.clear();
     _tasks.clear();
+    _aquariums.clear();
+    _inhabitants.clear();
     try {
       final preferences = await SharedPreferences.getInstance();
       await Future.wait([
@@ -619,6 +944,9 @@ class AquariumProvider extends ChangeNotifier {
         preferences.remove(_waterChangesKey),
         preferences.remove(_journalEntriesKey),
         preferences.remove(_tasksKey),
+        preferences.remove(_aquariumsKey),
+        preferences.remove(_inhabitantsKey),
+        preferences.remove(_activeAquariumKey),
       ]);
     } catch (_) {
       // Nie ma czego czyścić, jeśli plugin nie jest zarejestrowany.

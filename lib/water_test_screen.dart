@@ -118,6 +118,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
 
     final test = models.WaterTest(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
+      aquariumId: context.read<models.AquariumProvider>().activeAquariumId,
       date: DateTime.now(),
       ph: _number('pH'),
       no3: _number('NO3'),

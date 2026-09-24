@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
 import 'aquarium_calculators_screen.dart';
+import 'aquarium_management_screen.dart';
 import 'aquarium_journal_module.dart';
 import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
@@ -335,6 +336,14 @@ class DashboardPage extends StatelessWidget {
         ? 0
         : DateTime.now().difference(latestChange.date).inDays;
     final isWaterFresh = latestChange != null && daysSinceChange < 7;
+    final activeAquarium = provider.activeAquarium;
+    final displayedAquarium = Aquarium(
+      id: activeAquarium.id,
+      name: activeAquarium.name,
+      capacityLiters: activeAquarium.volumeNetLiters,
+      setupDate: activeAquarium.setupDate,
+      type: activeAquarium.type.label,
+    );
 
     return _PageContainer(
       child: SingleChildScrollView(
@@ -347,14 +356,20 @@ class DashboardPage extends StatelessWidget {
               title: 'Twój pulpit',
               subtitle: 'Wszystko, co ważne dla Twojego akwarium.',
               greeting: 'Cześć, Sławek! 👋',
-              action: IconButton(
-                tooltip: 'Powiadomienia',
-                onPressed: () =>
-                    _showMessage(context, 'Brak nowych powiadomień'),
-                icon: const Icon(Icons.notifications_none),
+              action: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const TankSwitcher(),
+                  IconButton(
+                    tooltip: 'Powiadomienia',
+                    onPressed: () =>
+                        _showMessage(context, 'Brak nowych powiadomień'),
+                    icon: const Icon(Icons.notifications_none),
+                  ),
+                ],
               ),
             ),
-            _AquariumCard(aquarium: aquarium),
+            _AquariumCard(aquarium: displayedAquarium),
             const SizedBox(height: 20),
             _SectionHeader(title: 'Status akwarium'),
             const SizedBox(height: 12),
@@ -474,6 +489,9 @@ class DashboardPage extends StatelessWidget {
                 context.read<models.AquariumProvider>().addWaterChange(
                   models.WaterChange(
                     id: DateTime.now().microsecondsSinceEpoch.toString(),
+                    aquariumId: context
+                        .read<models.AquariumProvider>()
+                        .activeAquariumId,
                     date: DateTime.now(),
                     volumeLiters: volume,
                     notes: notesController.text.trim(),
@@ -632,6 +650,22 @@ class ToolsPage extends StatelessWidget {
               title: 'Narzędzia',
               subtitle: 'Praktyczne funkcje dla każdego akwarysty.',
             ),
+            _ToolCard(
+              icon: Icons.water_drop_outlined,
+              color: Colors.cyan,
+              title: 'Akwaria i obsada',
+              description: 'Przełącz zbiornik i zarządzaj fauną oraz florą.',
+              buttonLabel: 'Otwórz zarządzanie',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AquariumManagementScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
             _ToolCard(
               icon: Icons.science_outlined,
               color: Colors.teal,

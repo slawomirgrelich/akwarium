@@ -480,6 +480,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     if (firstDue.isBefore(now)) firstDue = firstDue.add(const Duration(days: 1));
     final task = AquariumTask(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
+      aquariumId: context.read<AquariumProvider>().activeAquariumId,
         title: _title.text.trim(),
         description: _description.text.trim(),
         recurrence: _recurrence,
@@ -592,6 +593,7 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
     context.read<AquariumProvider>().addJournalEntry(
       JournalEntry(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
+        aquariumId: context.read<AquariumProvider>().activeAquariumId,
         date: DateTime.now(),
         title: _title.text.trim(),
         description: _notes.text.trim(),
