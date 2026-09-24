@@ -1,0 +1,1495 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+
+import 'fertilizer_screen.dart';
+import 'models/aquarium_model.dart' as models;
+import 'water_test_screen.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: 'AIzaSyAKxDMF1enBLXzkajTVF771dSqp3OtmGKw',
+        authDomain: 'moje-akwarium-40a75.firebaseapp.com',
+        projectId: 'moje-akwarium-40a75',
+        storageBucket: 'moje-akwarium-40a75.firebasestorage.app',
+        messagingSenderId: '768131458678',
+        appId: '1:768131458678:web:da6500af5acf4797113157',
+        measurementId: 'G-YNF2L6Q5P0',
+      ),
+    );
+
+    final auth = FirebaseAuth.instance;
+    await auth.setPersistence(Persistence.LOCAL);
+    if (auth.currentUser == null) {
+      await auth.signInAnonymously();
+    }
+  } catch (error) {
+    debugPrint('Firebase initialization failed: $error');
+  }
+
+  runApp(const AkwarystaProApp());
+}
+
+// ===========================
+// MODELE DANYCH
+// ===========================
+
+class Aquarium {
+  const Aquarium({
+    required this.id,
+    required this.name,
+    required this.capacityLiters,
+    required this.setupDate,
+    required this.type,
+  });
+
+  final String id;
+  final String name;
+  final double capacityLiters;
+  final DateTime setupDate;
+  final String type;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'capacityLiters': capacityLiters,
+      'setupDate': setupDate.toIso8601String(),
+      'type': type,
+    };
+  }
+
+  factory Aquarium.fromMap(Map<String, dynamic> map) {
+    return Aquarium(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      capacityLiters: (map['capacityLiters'] as num).toDouble(),
+      setupDate: DateTime.parse(map['setupDate'] as String),
+      type: map['type'] as String,
+    );
+  }
+}
+
+class WaterTest {
+  const WaterTest({
+    required this.id,
+    required this.timestamp,
+    required this.ph,
+    required this.no3,
+    required this.po4,
+    required this.fe,
+    required this.kh,
+    required this.gh,
+    required this.temp,
+  });
+
+  final String id;
+  final DateTime timestamp;
+  final double ph;
+  final double no3;
+  final double po4;
+  final double fe;
+  final double kh;
+  final double gh;
+  final double temp;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'timestamp': timestamp.toIso8601String(),
+      'ph': ph,
+      'no3': no3,
+      'po4': po4,
+      'fe': fe,
+      'kh': kh,
+      'gh': gh,
+      'temp': temp,
+    };
+  }
+
+  factory WaterTest.fromMap(Map<String, dynamic> map) {
+    return WaterTest(
+      id: map['id'] as String,
+      timestamp: DateTime.parse(map['timestamp'] as String),
+      ph: (map['ph'] as num).toDouble(),
+      no3: (map['no3'] as num).toDouble(),
+      po4: (map['po4'] as num).toDouble(),
+      fe: (map['fe'] as num).toDouble(),
+      kh: (map['kh'] as num).toDouble(),
+      gh: (map['gh'] as num).toDouble(),
+      temp: (map['temp'] as num).toDouble(),
+    );
+  }
+}
+
+class WaterChange {
+  const WaterChange({
+    required this.id,
+    required this.timestamp,
+    required this.volumeLiters,
+    required this.notes,
+  });
+
+  final String id;
+  final DateTime timestamp;
+  final double volumeLiters;
+  final String notes;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'timestamp': timestamp.toIso8601String(),
+      'volumeLiters': volumeLiters,
+      'notes': notes,
+    };
+  }
+
+  factory WaterChange.fromMap(Map<String, dynamic> map) {
+    return WaterChange(
+      id: map['id'] as String,
+      timestamp: DateTime.parse(map['timestamp'] as String),
+      volumeLiters: (map['volumeLiters'] as num).toDouble(),
+      notes: map['notes'] as String? ?? '',
+    );
+  }
+}
+
+// ===========================
+// APLIKACJA
+// ===========================
+
+class AkwarystaProApp extends StatelessWidget {
+  const AkwarystaProApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: Colors.teal,
+      brightness: Brightness.light,
+    );
+
+    return ChangeNotifierProvider<models.AquariumProvider>(
+      create: (_) => models.AquariumProvider()..initialize(),
+      child: MaterialApp(
+        title: 'Akwarysta PRO',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: colorScheme,
+          scaffoldBackgroundColor: const Color(0xFFE0F2F1),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFFF4F6F8),
+            foregroundColor: Color(0xFF123D39),
+            elevation: 0,
+          ),
+          cardTheme: CardThemeData(
+            color: Colors.white,
+            elevation: 2,
+            shadowColor: Colors.black12,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Color(0xFFE0E7E5)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: Colors.teal, width: 2),
+            ),
+          ),
+        ),
+        home: const MainShell(),
+      ),
+    );
+  }
+}
+
+class MainShell extends StatefulWidget {
+  const MainShell({super.key});
+
+  @override
+  State<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<MainShell> {
+  int _currentIndex = 0;
+
+  final Aquarium _aquarium = Aquarium(
+    id: 'aquarium-001',
+    name: 'Akwarium Roślinne',
+    capacityLiters: 112,
+    setupDate: DateTime(2024, 3, 12),
+    type: 'Roślinne',
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      DashboardPage(aquarium: _aquarium),
+      const JournalPage(),
+      ToolsPage(aquarium: _aquarium),
+      const ProfilePage(),
+    ];
+
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFE0F2F1), Color(0xFFE1F5FE)],
+          ),
+        ),
+        child: SizedBox.expand(
+          child: IndexedStack(index: _currentIndex, children: pages),
+        ),
+      ),
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: Colors.teal.shade800,
+          unselectedItemColor: Colors.grey.shade600,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_outlined),
+              activeIcon: Icon(Icons.dashboard),
+              label: 'Pulpit',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.menu_book_outlined),
+              activeIcon: Icon(Icons.menu_book),
+              label: 'Dziennik',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.build_outlined),
+              activeIcon: Icon(Icons.build),
+              label: 'Narzędzia',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profil',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ===========================
+// PULPIT
+// ===========================
+
+class DashboardPage extends StatelessWidget {
+  const DashboardPage({required this.aquarium, super.key});
+
+  final Aquarium aquarium;
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<models.AquariumProvider>();
+    final latestTest = provider.waterTests.isEmpty
+        ? null
+        : provider.waterTests.first;
+    final latestChange = provider.waterChanges.isEmpty
+        ? null
+        : provider.waterChanges.first;
+    final daysSinceChange = latestChange == null
+        ? 0
+        : DateTime.now().difference(latestChange.date).inDays;
+    final isWaterFresh = latestChange != null && daysSinceChange < 7;
+
+    return _PageContainer(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _Header(
+              eyebrow: 'AKWARYSTA PRO',
+              title: 'Twój pulpit',
+              subtitle: 'Wszystko, co ważne dla Twojego akwarium.',
+              greeting: 'Cześć, Sławek! 👋',
+              action: IconButton(
+                tooltip: 'Powiadomienia',
+                onPressed: () =>
+                    _showMessage(context, 'Brak nowych powiadomień'),
+                icon: const Icon(Icons.notifications_none),
+              ),
+            ),
+            _AquariumCard(aquarium: aquarium),
+            const SizedBox(height: 20),
+            _SectionHeader(title: 'Status akwarium'),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.water_drop_outlined,
+                    label: 'Ostatni test',
+                    value: latestTest == null
+                        ? 'Brak danych'
+                        : _formatDate(latestTest.date),
+                    subtitle: latestTest == null
+                        ? 'Dodaj pierwszy test'
+                        : '7 parametrów',
+                    color: Colors.teal.shade700,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.sync,
+                    label: 'Podmiana',
+                    value: '$daysSinceChange dni',
+                    subtitle: isWaterFresh ? 'Woda świeża' : 'Czas na podmianę',
+                    color: isWaterFresh ? Colors.green : Colors.orange,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _WaterStatusCard(
+              daysSinceChange: daysSinceChange,
+              isFresh: isWaterFresh,
+            ),
+            const SizedBox(height: 24),
+            _SectionHeader(title: 'Ostatnie parametry'),
+            const SizedBox(height: 12),
+            _WaterParametersCard(test: latestTest),
+            const SizedBox(height: 24),
+            _SectionHeader(title: 'Szybkie akcje'),
+            const SizedBox(height: 12),
+            _ActionTile(
+              icon: Icons.science_outlined,
+              title: 'Wpisz wyniki testu wody',
+              subtitle: 'Zapisz aktualne parametry zbiornika',
+              accent: true,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WaterTestScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            _ActionTile(
+              icon: Icons.water_drop_outlined,
+              title: 'Dodaj podmianę wody',
+              subtitle: 'Zapisz litraż i notatkę',
+              accent: true,
+              onTap: () => _showWaterChangeDialog(context),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showWaterChangeDialog(BuildContext context) {
+    final volumeController = TextEditingController(text: '30');
+    final notesController = TextEditingController();
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Dodaj podmianę wody'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: volumeController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Objętość',
+                  suffixText: 'litrów',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: notesController,
+                decoration: const InputDecoration(labelText: 'Notatka'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Anuluj'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final volume =
+                    double.tryParse(
+                      volumeController.text.trim().replaceAll(',', '.'),
+                    ) ??
+                    0;
+                if (volume <= 0) {
+                  return;
+                }
+
+                context.read<models.AquariumProvider>().addWaterChange(
+                  models.WaterChange(
+                    id: DateTime.now().microsecondsSinceEpoch.toString(),
+                    date: DateTime.now(),
+                    volumeLiters: volume,
+                    notes: notesController.text.trim(),
+                  ),
+                );
+                Navigator.pop(dialogContext);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Podmiana została zapisana')),
+                );
+              },
+              child: const Text('Zapisz'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+// ===========================
+// DZIENNIK
+// ===========================
+
+class JournalPage extends StatelessWidget {
+  const JournalPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = context
+        .watch<models.AquariumProvider>()
+        .journalEntries
+        .map(_toJournalItem)
+        .toList();
+
+    return _PageContainer(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const _Header(
+              eyebrow: 'HISTORIA ZBIORNIKA',
+              title: 'Dziennik',
+              subtitle: 'Pełna historia opieki nad akwarium.',
+            ),
+            _SectionHeader(title: 'Ostatnie wpisy'),
+            const SizedBox(height: 14),
+            if (entries.isEmpty)
+              const _EmptyJournalState()
+            else
+              ...entries.map(
+                (entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _JournalCard(item: entry),
+                ),
+              ),
+            OutlinedButton.icon(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Wyświetlono wszystkie wpisy')),
+                );
+              },
+              icon: const Icon(Icons.history),
+              label: const Text('Pokaż starsze wpisy'),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  _JournalItem _toJournalItem(models.JournalEntry entry) {
+    final isWaterChange = entry.type == 'waterChange';
+    return _JournalItem(
+      icon: isWaterChange ? Icons.water_drop_outlined : Icons.science_outlined,
+      color: isWaterChange ? Colors.blue : Colors.teal,
+      title: entry.title,
+      description: entry.description,
+      timestamp: entry.date,
+    );
+  }
+}
+
+class _JournalItem {
+  const _JournalItem({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.description,
+    required this.timestamp,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String description;
+  final DateTime timestamp;
+}
+
+class _EmptyJournalState extends StatelessWidget {
+  const _EmptyJournalState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Icon(
+              Icons.menu_book_outlined,
+              color: Colors.teal.shade700,
+              size: 36,
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Dziennik jest jeszcze pusty',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            const Text('Dodaj pierwszy test wody lub podmianę.'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ===========================
+// NARZĘDZIA
+// ===========================
+
+class ToolsPage extends StatelessWidget {
+  const ToolsPage({required this.aquarium, super.key});
+
+  final Aquarium aquarium;
+
+  @override
+  Widget build(BuildContext context) {
+    return _PageContainer(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const _Header(
+              eyebrow: 'CENTRUM NARZĘDZI',
+              title: 'Narzędzia',
+              subtitle: 'Praktyczne funkcje dla każdego akwarysty.',
+            ),
+            _ToolCard(
+              icon: Icons.science_outlined,
+              color: Colors.teal,
+              title: 'Testy wody',
+              description: 'Zapisuj pH, NO3, PO4, Fe, KH, GH i temperaturę.',
+              buttonLabel: 'Otwórz testy',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WaterTestScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _ToolCard(
+              icon: Icons.calculate_outlined,
+              color: Colors.indigo,
+              title: 'Kalkulator nawożenia',
+              description: 'Oblicz dawki dzienne i tygodniowe dla zbiornika.',
+              buttonLabel: 'Otwórz kalkulator',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FertilizerScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _ToolCard(
+              icon: Icons.auto_awesome,
+              color: Colors.deepPurple,
+              title: 'Skaner AI ryb i roślin',
+              description:
+                  'Rozpoznaj gatunek ze zdjęcia i poznaj jego wymagania.',
+              buttonLabel: 'Wypróbuj PRO',
+              premium: true,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AiScannerPage()),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _ToolCard(
+              icon: Icons.eco_outlined,
+              color: Colors.green.shade700,
+              title: 'Asystent glonów',
+              description: 'Zdiagnozuj problem i otrzymaj plan działania.',
+              buttonLabel: 'Rozpocznij diagnozę',
+              onTap: () => _showAlgaeDialog(context),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAlgaeDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Asystent glonów'),
+          content: const Text(
+            'Odpowiedz na kilka pytań o kolorze, strukturze i miejscu występowania glonów, aby otrzymać spersonalizowaną poradę.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Zamknij'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Moduł diagnozy zostanie otwarty'),
+                  ),
+                );
+              },
+              child: const Text('Rozpocznij'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class AiScannerPage extends StatefulWidget {
+  const AiScannerPage({super.key});
+
+  @override
+  State<AiScannerPage> createState() => _AiScannerPageState();
+}
+
+class _AiScannerPageState extends State<AiScannerPage> {
+  bool _showResult = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Skaner AI')),
+      body: _PageContainer(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _PremiumBanner(),
+              const SizedBox(height: 20),
+              Container(
+                height: 260,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE1F2EF),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.photo_camera_outlined,
+                      size: 64,
+                      color: Colors.teal.shade700,
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Dodaj zdjęcie ryby lub rośliny',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Makieta gotowa do podłączenia aparatu',
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showResult = true;
+                  });
+                },
+                icon: const Icon(Icons.auto_awesome),
+                label: const Text('Uruchom rozpoznawanie'),
+              ),
+              if (_showResult) ...[
+                const SizedBox(height: 20),
+                const _ScanResultCard(),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ===========================
+// PROFIL
+// ===========================
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _PageContainer(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const _Header(
+              eyebrow: 'TWOJE KONTO',
+              title: 'Profil i PRO',
+              subtitle: 'Zarządzaj akwarium oraz ustawieniami konta.',
+            ),
+            const _ProCard(),
+            const SizedBox(height: 24),
+            const _SectionHeader(title: 'Aktywne akwarium'),
+            const SizedBox(height: 12),
+            _SettingsTile(
+              icon: Icons.water,
+              title: 'Akwarium Roślinne',
+              subtitle: '112 litrów · Roślinne',
+              onTap: () => _showMessage(
+                context,
+                'Przełączanie akwarium jest gotowe do podłączenia z bazą danych',
+              ),
+            ),
+            const SizedBox(height: 10),
+            _SettingsTile(
+              icon: Icons.add_circle_outline,
+              title: 'Dodaj nowe akwarium',
+              subtitle: 'Plan Free: do 3 zbiorników',
+              onTap: () => _showMessage(
+                context,
+                'Formularz dodawania akwarium zostanie otwarty',
+              ),
+            ),
+            const SizedBox(height: 24),
+            const _SectionHeader(title: 'Ustawienia'),
+            const SizedBox(height: 12),
+            _SettingsTile(
+              icon: Icons.notifications_none,
+              title: 'Powiadomienia',
+              subtitle: 'Przypomnienia o testach i podmianach',
+              onTap: () =>
+                  _showMessage(context, 'Ustawienia powiadomień są aktywne'),
+            ),
+            const SizedBox(height: 10),
+            _SettingsTile(
+              icon: Icons.cloud_outlined,
+              title: 'Synchronizacja danych',
+              subtitle: 'Przygotowane pod Firebase lub Supabase',
+              onTap: () => _showMessage(
+                context,
+                'Synchronizacja zostanie podłączona w kolejnym etapie',
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+// ===========================
+// WSPÓLNE KOMPONENTY UI
+// ===========================
+
+class _PageContainer extends StatelessWidget {
+  const _PageContainer({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final contentWidth = constraints.maxWidth < 600
+            ? constraints.maxWidth
+            : 600.0;
+
+        return SafeArea(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(width: contentWidth, child: child),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header({
+    required this.eyebrow,
+    required this.title,
+    required this.subtitle,
+    this.greeting,
+    this.action,
+  });
+
+  final String eyebrow;
+  final String title;
+  final String subtitle;
+  final String? greeting;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (greeting != null || action != null)
+            Row(
+              children: [
+                if (greeting != null)
+                  Expanded(
+                    child: Text(
+                      greeting!,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )
+                else
+                  const Spacer(),
+                ...?(action == null ? null : <Widget>[action!]),
+              ],
+            ),
+          if (greeting != null || action != null) const SizedBox(height: 12),
+          Text(
+            eyebrow,
+            style: TextStyle(
+              color: Colors.teal.shade700,
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF123D39),
+              fontWeight: FontWeight.w800,
+              fontSize: 28,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: Color(0xFF123D39),
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+      ),
+    );
+  }
+}
+
+class _AquariumCard extends StatelessWidget {
+  const _AquariumCard({required this.aquarium});
+
+  final Aquarium aquarium;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF00695C),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x2800695C),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(35),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.water, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  aquarium.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  '${aquarium.capacityLiters.toStringAsFixed(0)} litrów · ${aquarium.type}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Colors.white70),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.subtitle,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final String subtitle;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color),
+            const SizedBox(height: 14),
+            Text(
+              label,
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Color(0xFF123D39),
+                fontWeight: FontWeight.bold,
+                fontSize: 17,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WaterStatusCard extends StatelessWidget {
+  const _WaterStatusCard({
+    required this.daysSinceChange,
+    required this.isFresh,
+  });
+
+  final int daysSinceChange;
+  final bool isFresh;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isFresh ? Colors.green.shade700 : Colors.orange.shade800;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withAlpha(20),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withAlpha(70)),
+      ),
+      child: Row(
+        children: [
+          Icon(isFresh ? Icons.check_circle : Icons.schedule, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              isFresh
+                  ? 'Woda jest świeża. Ostatnia podmiana była $daysSinceChange dni temu.'
+                  : 'Czas zaplanować kolejną podmianę wody.',
+              style: TextStyle(color: color, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WaterParametersCard extends StatelessWidget {
+  const _WaterParametersCard({required this.test});
+
+  final models.WaterTest? test;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: test == null
+            ? const Text('Brak zapisanych pomiarów. Dodaj pierwszy test wody.')
+            : Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _ParameterChip(label: 'pH', value: test!.ph.toString()),
+                  _ParameterChip(label: 'NO3', value: '${test!.no3} mg/l'),
+                  _ParameterChip(label: 'PO4', value: '${test!.po4} mg/l'),
+                  _ParameterChip(label: 'Fe', value: '${test!.fe} mg/l'),
+                  _ParameterChip(label: 'KH', value: '${test!.kh} dKH'),
+                  _ParameterChip(label: 'GH', value: '${test!.gh} dGH'),
+                  _ParameterChip(label: 'Temp.', value: '${test!.temp}°C'),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+class _ParameterChip extends StatelessWidget {
+  const _ParameterChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F3F1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: RichText(
+        text: TextSpan(
+          style: DefaultTextStyle.of(context).style,
+          children: [
+            TextSpan(
+              text: '$label\n',
+              style: const TextStyle(
+                color: Color(0xFF00796B),
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: value,
+              style: const TextStyle(
+                color: Color(0xFF123D39),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.accent = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        leading: CircleAvatar(
+          backgroundColor: accent
+              ? Colors.teal.shade700
+              : const Color(0xFFE1F2EF),
+          foregroundColor: accent ? Colors.white : Colors.teal.shade800,
+          child: Icon(icon),
+        ),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: accent ? const Color(0xFF00695C) : null,
+          ),
+        ),
+        subtitle: Text(subtitle),
+        trailing: Icon(
+          accent ? Icons.add_circle_outline : Icons.arrow_forward_ios,
+          size: accent ? 26 : 16,
+          color: accent ? Colors.teal.shade700 : null,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _JournalCard extends StatelessWidget {
+  const _JournalCard({required this.item});
+
+  final _JournalItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        leading: CircleAvatar(
+          backgroundColor: item.color.withAlpha(25),
+          foregroundColor: item.color,
+          child: Icon(item.icon),
+        ),
+        title: Text(
+          item.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(item.description),
+        trailing: Text(
+          _formatDateTime(item.timestamp),
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+        ),
+      ),
+    );
+  }
+}
+
+class _ToolCard extends StatelessWidget {
+  const _ToolCard({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.description,
+    required this.buttonLabel,
+    required this.onTap,
+    this.premium = false,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String description;
+  final String buttonLabel;
+  final VoidCallback onTap;
+  final bool premium;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: color.withAlpha(25),
+                  foregroundColor: color,
+                  child: Icon(icon),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                    ),
+                  ),
+                ),
+                if (premium) const _ProBadge(),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(description),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(onPressed: onTap, child: Text(buttonLabel)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        onTap: onTap,
+        leading: Icon(icon, color: Colors.teal.shade700),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+      ),
+    );
+  }
+}
+
+class _ProCard extends StatelessWidget {
+  const _ProCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: const Color(0xFF123D39),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.auto_awesome, color: Color(0xFFFFD166), size: 30),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Akwarysta PRO',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'Odblokuj AI, wykresy i nielimitowane akwaria.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          const _ProBadge(),
+        ],
+      ),
+    );
+  }
+}
+
+class _PremiumBanner extends StatelessWidget {
+  const _PremiumBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _ProCard();
+  }
+}
+
+class _ProBadge extends StatelessWidget {
+  const _ProBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFD166),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Text(
+        'PRO',
+        style: TextStyle(
+          color: Color(0xFF123D39),
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class _ScanResultCard extends StatelessWidget {
+  const _ScanResultCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Rozpoznano: Anubias barteri',
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 14),
+            const Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(label: Text('pH 6,0–7,5')),
+                Chip(label: Text('22–28°C')),
+                Chip(label: Text('Łatwa hodowla')),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Roślina polecana do zbiorników od 40 litrów. '
+              'Rośnie powoli i dobrze znosi zacienienie.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ===========================
+// FORMATOWANIE DAT
+// ===========================
+
+String _formatDate(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  return '$day.$month.${date.year}';
+}
+
+String _formatDateTime(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  final hour = date.hour.toString().padLeft(2, '0');
+  final minute = date.minute.toString().padLeft(2, '0');
+
+  return '$day.$month.${date.year}\n$hour:$minute';
+}
