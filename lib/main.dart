@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 
 import 'fertilizer_screen.dart';
 import 'models/aquarium_model.dart' as models;
+import 'models/water_standards.dart';
+import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 
 Future<void> main() async {
@@ -385,6 +387,10 @@ class DashboardPage extends StatelessWidget {
               daysSinceChange: daysSinceChange,
               isFresh: isWaterFresh,
             ),
+            if (latestWaterAlert(latestTest) case final alert?) ...[
+              const SizedBox(height: 12),
+              _WaterAlertCard(test: latestTest!, alert: alert),
+            ],
             const SizedBox(height: 24),
             _SectionHeader(title: 'Ostatnie parametry'),
             const SizedBox(height: 12),
@@ -515,6 +521,8 @@ class JournalPage extends StatelessWidget {
               title: 'Dziennik',
               subtitle: 'Pełna historia opieki nad akwarium.',
             ),
+            const WaterParametersChart(),
+            const SizedBox(height: 24),
             _SectionHeader(title: 'Ostatnie wpisy'),
             const SizedBox(height: 14),
             if (entries.isEmpty)
@@ -1154,6 +1162,46 @@ class _WaterParametersCard extends StatelessWidget {
                   _ParameterChip(label: 'Temp.', value: '${test!.temp}°C'),
                 ],
               ),
+      ),
+    );
+  }
+}
+
+class _WaterAlertCard extends StatelessWidget {
+  const _WaterAlertCard({required this.test, required this.alert});
+
+  final models.WaterTest test;
+  final WaterAssessment alert;
+
+  @override
+  Widget build(BuildContext context) {
+    final isCritical = alert.status == WaterStatus.critical;
+    final color = isCritical ? Colors.red.shade700 : Colors.orange.shade800;
+    final parameter = WaterParameter.values.firstWhere(
+      (item) => assessWaterValue(item, waterValue(test, item)).message == alert.message,
+      orElse: () => WaterParameter.ph,
+    );
+    final value = waterValue(test, parameter);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withAlpha(18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withAlpha(80)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              '${alert.label}: ${alert.message} (${value.toStringAsFixed(1)})',
+              style: TextStyle(color: color, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }
