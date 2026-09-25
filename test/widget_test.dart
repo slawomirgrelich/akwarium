@@ -11,28 +11,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:akwarium/main.dart';
 
 void main() {
-  testWidgets('pokazuje cztery sekcje aplikacji', (WidgetTester tester) async {
+  testWidgets('pokazuje ekran logowania bez aktywnej sesji', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const AkwarystaProApp());
 
-    expect(find.text('Pulpit'), findsOneWidget);
-    expect(find.text('Dziennik'), findsOneWidget);
-    expect(find.text('Narzędzia'), findsOneWidget);
-    expect(find.text('Profil'), findsOneWidget);
-    expect(find.text('Akwarium Roślinne'), findsOneWidget);
+    expect(find.text('Witaj ponownie'), findsOneWidget);
+    expect(find.text('Zaloguj się'), findsOneWidget);
+    expect(find.text('Zapomniałeś hasła?'), findsOneWidget);
   });
 
-  testWidgets('otwiera formularz testu wody', (WidgetTester tester) async {
+  testWidgets('waliduje formularz logowania', (WidgetTester tester) async {
     await tester.pumpWidget(const AkwarystaProApp());
 
-    final actionTile = find.ancestor(
-      of: find.text('Wpisz wyniki testu wody'),
-      matching: find.byType(ListTile),
-    );
-    await tester.ensureVisible(actionTile);
-    await tester.tap(actionTile);
-    await tester.pumpAndSettle();
+    await tester.tap(find.text('Zaloguj się'));
+    await tester.pump();
 
-    expect(find.text('Test wody'), findsOneWidget);
-    expect(find.text('Parametry wody'), findsOneWidget);
+    expect(find.text('Wpisz adres e-mail.'), findsOneWidget);
+    expect(find.text('Hasło musi mieć co najmniej 6 znaków.'), findsOneWidget);
   });
 }

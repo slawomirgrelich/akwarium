@@ -111,19 +111,20 @@ class AquariumProfile {
     'isActive': isActive,
   };
 
-  factory AquariumProfile.fromJson(Map<String, dynamic> json) => AquariumProfile(
-    id: json['id'] as String,
-    name: json['name'] as String,
-    volumeNetLiters: (json['volumeNetLiters'] as num).toDouble(),
-    volumeGrossLiters: (json['volumeGrossLiters'] as num?)?.toDouble(),
-    setupDate: DateTime.parse(json['setupDate'] as String),
-    type: TankType.values.byName(json['type'] as String? ?? 'freshwater'),
-    substrate: json['substrate'] as String?,
-    lighting: json['lighting'] as String?,
-    filtration: json['filtration'] as String?,
-    imagePath: json['imagePath'] as String?,
-    isActive: json['isActive'] as bool? ?? false,
-  );
+  factory AquariumProfile.fromJson(Map<String, dynamic> json) =>
+      AquariumProfile(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        volumeNetLiters: (json['volumeNetLiters'] as num).toDouble(),
+        volumeGrossLiters: (json['volumeGrossLiters'] as num?)?.toDouble(),
+        setupDate: DateTime.parse(json['setupDate'] as String),
+        type: TankType.values.byName(json['type'] as String? ?? 'freshwater'),
+        substrate: json['substrate'] as String?,
+        lighting: json['lighting'] as String?,
+        filtration: json['filtration'] as String?,
+        imagePath: json['imagePath'] as String?,
+        isActive: json['isActive'] as bool? ?? false,
+      );
 }
 
 class Inhabitant {
@@ -175,10 +176,14 @@ class Inhabitant {
     aquariumId: json['aquariumId'] as String? ?? 'aquarium-001',
     name: json['name'] as String,
     latinName: json['latinName'] as String? ?? '',
-    category: CreatureCategory.values.byName(json['category'] as String? ?? 'other'),
+    category: CreatureCategory.values.byName(
+      json['category'] as String? ?? 'other',
+    ),
     count: json['count'] as int? ?? 1,
     addedDate: DateTime.parse(json['addedDate'] as String),
-    plantPosition: json['plantPosition'] == null ? null : PlantPosition.values.byName(json['plantPosition'] as String),
+    plantPosition: json['plantPosition'] == null
+        ? null
+        : PlantPosition.values.byName(json['plantPosition'] as String),
     status: json['status'] as String? ?? 'Zdrowe',
     difficulty: json['difficulty'] as String?,
     notes: json['notes'] as String?,
@@ -439,7 +444,9 @@ class AquariumTask {
     final nextDate = switch (recurrence) {
       TaskRecurrence.once => nextDueDate,
       TaskRecurrence.daily => completedAt.add(const Duration(days: 1)),
-      TaskRecurrence.everyXDays => completedAt.add(Duration(days: intervalDays)),
+      TaskRecurrence.everyXDays => completedAt.add(
+        Duration(days: intervalDays),
+      ),
       TaskRecurrence.weekly => completedAt.add(const Duration(days: 7)),
       TaskRecurrence.monthly => DateTime(
         completedAt.year,
@@ -550,14 +557,14 @@ class AquariumProvider extends ChangeNotifier {
     _inhabitants.where((item) => item.aquariumId == _activeAquariumId),
   );
 
-  /// Wczytuje dane lokalne, loguje użytkownika anonimowo i uruchamia synchronizację.
+  /// Wczytuje dane lokalne i uruchamia synchronizację dla zalogowanego użytkownika.
   Future<void> initialize() async {
     await loadData();
 
     try {
       final auth = FirebaseAuth.instance;
       await auth.setPersistence(Persistence.LOCAL);
-      final user = auth.currentUser ?? (await auth.signInAnonymously()).user;
+      final user = auth.currentUser;
       if (user != null) {
         _listenToWaterTests(user.uid);
       }
@@ -608,7 +615,8 @@ class AquariumProvider extends ChangeNotifier {
           ..clear()
           ..addAll(_decodeList(savedInhabitants, Inhabitant.fromJson));
       }
-      if (savedActiveId != null && _aquariums.any((item) => item.id == savedActiveId)) {
+      if (savedActiveId != null &&
+          _aquariums.any((item) => item.id == savedActiveId)) {
         _activeAquariumId = savedActiveId;
       }
 
@@ -673,7 +681,8 @@ class AquariumProvider extends ChangeNotifier {
     _waterChanges.removeWhere((item) => item.aquariumId == aquariumId);
     _journalEntries.removeWhere((item) => item.aquariumId == aquariumId);
     _tasks.removeWhere((item) => item.aquariumId == aquariumId);
-    if (_activeAquariumId == aquariumId) _activeAquariumId = _aquariums.first.id;
+    if (_activeAquariumId == aquariumId)
+      _activeAquariumId = _aquariums.first.id;
     notifyListeners();
     _persist();
   }

@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -19,27 +18,26 @@ import 'aquarium_journal_module.dart';
 import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/water_standards.dart';
+import 'screens/auth_wrapper.dart';
+import 'screens/login_screen.dart';
+import 'services/auth_service.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  var firebaseReady = false;
 
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-
-    final auth = FirebaseAuth.instance;
-    await auth.setPersistence(Persistence.LOCAL);
-    if (auth.currentUser == null) {
-      await auth.signInAnonymously();
-    }
+    firebaseReady = true;
   } catch (error) {
     debugPrint('Firebase initialization failed: $error');
   }
 
-  runApp(const AkwarystaProApp());
+  runApp(AkwarystaProApp(firebaseReady: firebaseReady));
   await LocalReminderService.instance.initialize();
 }
 
@@ -172,7 +170,9 @@ class WaterChange {
 // ===========================
 
 class AkwarystaProApp extends StatelessWidget {
-  const AkwarystaProApp({super.key});
+  const AkwarystaProApp({this.firebaseReady = false, super.key});
+
+  final bool firebaseReady;
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +242,9 @@ class AkwarystaProApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const MainShell(),
+        home: firebaseReady
+            ? const AuthWrapper(authenticatedScreen: MainShell())
+            : const LoginScreen(),
       ),
     );
   }
@@ -1509,6 +1511,13 @@ class ProfilePage extends StatelessWidget {
                 'Synchronizacja zostanie podłączona w kolejnym etapie',
               ),
             ),
+            const SizedBox(height: 10),
+            _SettingsTile(
+              icon: Icons.logout,
+              title: 'Wyloguj się',
+              subtitle: 'Zakończ bieżącą sesję na tym urządzeniu',
+              onTap: () => _signOut(context),
+            ),
             const SizedBox(height: 28),
             const AppVersionWidget(),
             const SizedBox(height: 8),
@@ -1521,6 +1530,14 @@ class ProfilePage extends StatelessWidget {
   void _showMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await AuthService().signOut();
+    } on AuthException catch (error) {
+      if (context.mounted) _showMessage(context, error.message);
+    }
   }
 }
 
