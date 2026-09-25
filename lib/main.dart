@@ -19,6 +19,7 @@ import 'models/water_standards.dart';
 import 'screens/auth_wrapper.dart';
 import 'screens/calculators_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
+import 'screens/knowledge_base_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 import 'services/pro_access_service.dart';
@@ -708,6 +709,23 @@ class ToolsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const WaterTestScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _ToolCard(
+              icon: Icons.menu_book_outlined,
+              color: Colors.teal.shade700,
+              title: 'Baza wiedzy i Atlas',
+              description: 'Poznaj ryby, rośliny i sposoby walki z glonami.',
+              buttonLabel: 'Otwórz Atlas',
+              premium: true,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const KnowledgeBaseScreen(),
+                  ),
                 );
               },
             ),

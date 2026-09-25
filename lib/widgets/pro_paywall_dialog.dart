@@ -33,12 +33,14 @@ class ProBadge extends StatelessWidget {
 }
 
 class ProPaywallDialog extends StatelessWidget {
-  const ProPaywallDialog({super.key});
+  const ProPaywallDialog({this.headline, super.key});
 
-  static Future<void> show(BuildContext context) {
+  final String? headline;
+
+  static Future<void> show(BuildContext context, {String? headline}) {
     return showDialog<void>(
       context: context,
-      builder: (_) => const ProPaywallDialog(),
+      builder: (_) => ProPaywallDialog(headline: headline),
     );
   }
 
@@ -47,8 +49,8 @@ class ProPaywallDialog extends StatelessWidget {
     return AlertDialog(
       title: Row(
         children: [
-          const Expanded(
-            child: Text('Odblokuj Pełny Potencjał Akwarysta PRO'),
+          Expanded(
+            child: Text(headline ?? 'Odblokuj Pełny Potencjał Akwarysta PRO'),
           ),
           const SizedBox(width: 8),
           const ProBadge(),
