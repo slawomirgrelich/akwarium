@@ -19,6 +19,16 @@ Uruchomienie z własnym endpointem:
 flutter run --dart-define=AI_SCANNER_ENDPOINT=https://example.com/api/aquarium-scan --dart-define=AI_SCANNER_ALLOW_MOCK=false
 ```
 
+Asystent glonów korzysta z analogicznych zmiennych:
+`ALGAE_ASSISTANT_ENDPOINT` i `ALGAE_ASSISTANT_ALLOW_MOCK`. Endpoint otrzymuje
+parametry `NO3`, `PO4`, `Fe`, `pH`, `KH`, światło, CO2, podłoże oraz opcjonalne
+`image_base64`. Zwraca JSON z polami `glon`, `przyczyna` i tablicą
+`plan_dzialania`. Przykładowe uruchomienie produkcyjne:
+
+```text
+flutter run --dart-define=ALGAE_ASSISTANT_ENDPOINT=https://example.com/api/algae-diagnosis --dart-define=ALGAE_ASSISTANT_ALLOW_MOCK=false
+```
+
 A new Flutter project.
 
 ## Getting Started

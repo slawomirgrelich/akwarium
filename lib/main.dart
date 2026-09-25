@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import 'algae_assistant_service.dart';
 import 'ai_scanner_service.dart';
 import 'aquarium_calculators_screen.dart';
 import 'aquarium_management_screen.dart';
@@ -734,33 +735,211 @@ class ToolsPage extends StatelessWidget {
   }
 
   void _showAlgaeDialog(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Asystent glonów'),
-          content: const Text(
-            'Odpowiedz na kilka pytań o kolorze, strukturze i miejscu występowania glonów, aby otrzymać spersonalizowaną poradę.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Zamknij'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Moduł diagnozy zostanie otwarty'),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AlgaeAssistantPage()),
+    );
+  }
+}
+
+class _AlgaeTypeOption {
+  const _AlgaeTypeOption(this.label, this.icon, this.color);
+
+  final String label;
+  final IconData icon;
+  final Color color;
+}
+
+class AlgaeAssistantPage extends StatefulWidget {
+  const AlgaeAssistantPage({super.key});
+
+  @override
+  State<AlgaeAssistantPage> createState() => _AlgaeAssistantPageState();
+}
+
+class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
+  static const _algaeTypes = [
+    _AlgaeTypeOption('Krasnorosty / BBA', Icons.grass, Colors.deepOrange),
+    _AlgaeTypeOption('Zielenice', Icons.brightness_5, Colors.green),
+    _AlgaeTypeOption('Sinice / cyjanobakterie', Icons.water, Colors.blue),
+    _AlgaeTypeOption('Okrzemki', Icons.blur_on, Colors.brown),
+    _AlgaeTypeOption('Pył na szybie', Icons.blur_circular, Colors.amber),
+    _AlgaeTypeOption('Nitkowate', Icons.linear_scale, Colors.lightGreen),
+  ];
+
+  final _service = AlgaeAssistantService();
+  final _no3 = TextEditingController();
+  final _po4 = TextEditingController();
+  final _fe = TextEditingController();
+  final _ph = TextEditingController();
+  final _kh = TextEditingController();
+  final _lightHours = TextEditingController(text: '8');
+  final _picker = ImagePicker();
+  String _selectedAlgae = _algaeTypes.first.label;
+  String _substrate = 'Żwirek / piasek';
+  bool _hasCo2 = false;
+  Uint8List? _imageBytes;
+  String? _imageMimeType;
+  AlgaeDiagnosticResult? _result;
+  String? _error;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final latest = context.read<models.AquariumProvider>().waterTests.firstOrNull;
+    _no3.text = _formatMeasurement(latest?.no3);
+    _po4.text = _formatMeasurement(latest?.po4);
+    _fe.text = _formatMeasurement(latest?.fe);
+    _ph.text = _formatMeasurement(latest?.ph);
+    _kh.text = _formatMeasurement(latest?.kh);
+  }
+
+  @override
+  void dispose() {
+    for (final controller in [_no3, _po4, _fe, _ph, _kh, _lightHours]) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Asystent glonów')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Co widzisz w akwarium?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _algaeTypes.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisExtent: 88, crossAxisSpacing: 10, mainAxisSpacing: 10),
+              itemBuilder: (context, index) {
+                final option = _algaeTypes[index];
+                final selected = option.label == _selectedAlgae;
+                return InkWell(
+                  onTap: () => setState(() => _selectedAlgae = option.label),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: selected ? option.color.withAlpha(25) : Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: selected ? option.color : Colors.black12, width: selected ? 2 : 1)),
+                    child: Row(children: [Icon(option.icon, color: option.color), const SizedBox(width: 8), Expanded(child: Text(option.label, style: const TextStyle(fontWeight: FontWeight.w600)))],),
                   ),
                 );
               },
-              child: const Text('Rozpocznij'),
             ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(onPressed: _pickImage, icon: const Icon(Icons.photo_camera_outlined), label: Text(_imageBytes == null ? 'Dodaj zdjęcie glonu (opcjonalnie)' : 'Zmień zdjęcie glonu')),
+            if (_imageBytes != null) ...[
+              const SizedBox(height: 10),
+              ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.memory(_imageBytes!, height: 150, fit: BoxFit.cover)),
+            ],
+            const SizedBox(height: 20),
+            Text('Ostatnie parametry wody', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Text('Wartości zostały wczytane z najnowszego testu. Możesz je poprawić przed analizą.', style: TextStyle(color: Colors.grey.shade700)),
+            const SizedBox(height: 12),
+            _measurementFields(),
+            const SizedBox(height: 18),
+            Text('Warunki w akwarium', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            Row(children: [Expanded(child: TextField(controller: _lightHours, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Światło', suffixText: 'h'))), const SizedBox(width: 12), Expanded(child: DropdownButtonFormField<String>(initialValue: _substrate, decoration: const InputDecoration(labelText: 'Podłoże'), items: const ['Żwirek / piasek', 'Soil aktywny', 'Podłoże mineralne', 'Inne'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(), onChanged: (value) => setState(() => _substrate = value!)))],),
+            SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Podawanie CO2'), subtitle: const Text('Uwzględnij instalację CO2 w diagnozie'), value: _hasCo2, onChanged: (value) => setState(() => _hasCo2 = value)),
+            const SizedBox(height: 12),
+            FilledButton.icon(onPressed: _loading ? null : _diagnose, icon: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.auto_awesome), label: Text(_loading ? 'Analizuję warunki...' : 'Zdiagnozuj problem')),
+            if (_loading) const Padding(padding: EdgeInsets.only(top: 18), child: Card(child: Padding(padding: EdgeInsets.all(18), child: Row(children: [CircularProgressIndicator(), SizedBox(width: 14), Expanded(child: Text('Analizuję glony i parametry akwarium...'))])))),
+            if (_error != null) ...[const SizedBox(height: 16), Card(color: Colors.red.shade50, child: Padding(padding: const EdgeInsets.all(14), child: Text(_error!, style: TextStyle(color: Colors.red.shade800))))],
+            if (_result case final result?) ...[
+              const SizedBox(height: 18),
+              _AlgaeResultCard(result: result, onSave: _saveToJournal),
+            ],
           ],
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _measurementFields() {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        _numberField(_no3, 'NO3', 'mg/l'),
+        _numberField(_po4, 'PO4', 'mg/l'),
+        _numberField(_fe, 'Fe', 'mg/l'),
+        _numberField(_ph, 'pH', ''),
+        _numberField(_kh, 'KH', '°dKH'),
+      ],
+    );
+  }
+
+  Widget _numberField(TextEditingController controller, String label, String suffix) {
+    return SizedBox(width: 106, child: TextField(controller: controller, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: label, suffixText: suffix)));
+  }
+
+  Future<void> _pickImage() async {
+    final source = await showModalBottomSheet<ImageSource>(context: context, builder: (context) => SafeArea(child: Wrap(children: [ListTile(leading: const Icon(Icons.camera_alt), title: const Text('Aparat'), onTap: () => Navigator.pop(context, ImageSource.camera)), ListTile(leading: const Icon(Icons.photo_library), title: const Text('Galeria'), onTap: () => Navigator.pop(context, ImageSource.gallery))])));
+    if (source == null) return;
+    final file = await _picker.pickImage(source: source, imageQuality: 80, maxWidth: 1600);
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() { _imageBytes = bytes; _imageMimeType = _mimeFor(file.name); });
+  }
+
+  Future<void> _diagnose() async {
+    final input = AlgaeDiagnosticInput(algaeType: _selectedAlgae, no3: _number(_no3), po4: _number(_po4), fe: _number(_fe), ph: _number(_ph), kh: _number(_kh), lightHours: _number(_lightHours), co2: _hasCo2, substrate: _substrate, imageBytes: _imageBytes, imageMimeType: _imageMimeType);
+    setState(() { _loading = true; _error = null; _result = null; });
+    try {
+      final result = await _service.diagnose(input);
+      if (mounted) setState(() { _result = result; _loading = false; });
+    } on Exception catch (error) {
+      if (mounted) setState(() { _loading = false; _error = error.toString(); });
+    }
+  }
+
+  void _saveToJournal(AlgaeDiagnosticResult result) {
+    final provider = context.read<models.AquariumProvider>();
+    provider.addJournalEntry(models.JournalEntry(id: DateTime.now().microsecondsSinceEpoch.toString(), aquariumId: provider.activeAquariumId, date: DateTime.now(), title: 'Diagnoza glonów: ${result.algaeName}', description: '${result.cause}\n\nPlan działania:\n${result.actions.asMap().entries.map((entry) => '${entry.key + 1}. ${entry.value}').join('\n')}', type: 'algaeDiagnosis', category: models.JournalCategory.algae, tags: const ['glony', 'diagnoza'], attachedWaterParameters: {'NO3': _number(_no3), 'PO4': _number(_po4), 'Fe': _number(_fe), 'pH': _number(_ph), 'KH': _number(_kh)}, imagePaths: _imageBytes == null ? const [] : ['data:${_imageMimeType ?? 'image/jpeg'};base64,${base64Encode(_imageBytes!)}']));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Diagnoza została zapisana w dzienniku')));
+  }
+
+  double _number(TextEditingController controller) => double.tryParse(controller.text.trim().replaceAll(',', '.')) ?? 0;
+
+  String _formatMeasurement(double? value) => value == null ? '' : value.toStringAsFixed(2).replaceFirst(RegExp(r'\.00$'), '');
+
+  String _mimeFor(String name) => name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+}
+
+class _AlgaeResultCard extends StatelessWidget {
+  const _AlgaeResultCard({required this.result, required this.onSave});
+
+  final AlgaeDiagnosticResult result;
+  final ValueChanged<AlgaeDiagnosticResult> onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (result.isMock) const Chip(avatar: Icon(Icons.science_outlined, size: 18), label: Text('Wynik demonstracyjny')),
+          Text('Diagnoza: ${result.algaeName}', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text(result.cause),
+          const SizedBox(height: 18),
+          Text('Plan działania', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          ...result.actions.asMap().entries.map((entry) => Padding(padding: const EdgeInsets.only(bottom: 10), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [CircleAvatar(radius: 12, child: Text('${entry.key + 1}', style: const TextStyle(fontSize: 12))), const SizedBox(width: 10), Expanded(child: Text(entry.value))]))),
+          const SizedBox(height: 8),
+          FilledButton.icon(onPressed: () => onSave(result), icon: const Icon(Icons.bookmark_add_outlined), label: const Text('Zapisz do Dziennika')),
+        ]),
+      ),
     );
   }
 }
