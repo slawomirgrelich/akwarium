@@ -1598,6 +1598,23 @@ class _ScanResultCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (result.isMock) ...[
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.science_outlined, size: 18, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Expanded(child: Text('Wynik demonstracyjny. Endpoint AI nie jest dostępny.')),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

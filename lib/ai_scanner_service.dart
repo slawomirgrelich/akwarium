@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -14,6 +15,7 @@ class AiScanResult {
     required this.difficulty,
     required this.description,
     required this.compatibility,
+    this.isMock = false,
   });
 
   final String polishName;
@@ -25,6 +27,7 @@ class AiScanResult {
   final String difficulty;
   final String description;
   final String compatibility;
+  final bool isMock;
 
   factory AiScanResult.fromJson(Map<String, dynamic> json) {
     final requirements = _asMap(json['wymagania']);
@@ -46,26 +49,40 @@ class AiScannerService {
   AiScannerService({http.Client? client}) : _client = client ?? http.Client();
 
   static const endpoint = String.fromEnvironment('AI_SCANNER_ENDPOINT');
+  static const allowMock = bool.fromEnvironment(
+    'AI_SCANNER_ALLOW_MOCK',
+    defaultValue: true,
+  );
   final http.Client _client;
 
   Future<AiScanResult> analyze(Uint8List imageBytes, String mimeType) async {
     if (endpoint.isEmpty) {
+      if (allowMock) return MockAiScannerService.result;
       throw const AiScannerException(
         'Skaner nie jest jeszcze skonfigurowany. Uruchom aplikację z AI_SCANNER_ENDPOINT wskazującym serwer analizy.',
       );
     }
 
-    final response = await _client
-        .post(
-          Uri.parse(endpoint),
-          headers: const {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'image_base64': base64Encode(imageBytes),
-            'mime_type': mimeType,
-            'system_prompt': _systemPrompt,
-          }),
-        )
-        .timeout(const Duration(seconds: 45));
+    late final http.Response response;
+    try {
+      response = await _client
+          .post(
+            Uri.parse(endpoint),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'image_base64': base64Encode(imageBytes),
+              'mime_type': mimeType,
+              'system_prompt': _systemPrompt,
+            }),
+          )
+          .timeout(const Duration(seconds: 45));
+    } on http.ClientException {
+      if (allowMock) return MockAiScannerService.result;
+      throw const AiScannerException('Brak połączenia z serwerem analizy.');
+    } on TimeoutException {
+      if (allowMock) return MockAiScannerService.result;
+      throw const AiScannerException('Serwer analizy nie odpowiedział na czas.');
+    }
 
     if (response.statusCode == 422) {
       throw const AiScannerException('Nie rozpoznano gatunku. Wybierz wyraźniejsze zdjęcie organizmu.');
@@ -88,6 +105,21 @@ class AiScannerService {
   }
 
   static const _systemPrompt = '''Jesteś ekspertem akwarystyki. Rozpoznaj rybę, roślinę lub inny organizm na zdjęciu. Zwróć wyłącznie poprawny JSON bez markdownu, dokładnie w schemacie: {"nazwa_polska":"...","nazwa_lacinska":"...","typ":"ryba|roślina|inne","wymagania":{"temperatura":{"min":0,"max":0},"pH":{"min":0,"max":0},"min_pojemnosc_akwarium":0,"poziom_trudnosci":"Łatwy|Średni|Trudny"},"opis":"...","zgodnosc":"..."}. Jeśli nie da się rozpoznać organizmu, zwróć błąd HTTP 422. Nie zgaduj pewnego gatunku bez zaznaczenia tego w opisie.''';
+}
+
+class MockAiScannerService {
+  static const result = AiScanResult(
+    polishName: 'Neonek Innesa',
+    latinName: 'Paracheirodon innesi',
+    type: 'ryba',
+    temperature: '20-26',
+    ph: '5.0-7.5',
+    minimumVolume: 60,
+    difficulty: 'Łatwy',
+    description: 'Spokojna ryba ławicowa, która najlepiej prezentuje się w grupie. Preferuje zacienione miejsca i roślinne akwaria.',
+    compatibility: 'Trzymaj minimum 6 sztuk. Unikaj dużych, drapieżnych ryb i zapewnij spokojnych współmieszkańców.',
+    isMock: true,
+  );
 }
 
 class AiScannerException implements Exception {
