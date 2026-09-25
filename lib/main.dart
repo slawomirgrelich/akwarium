@@ -1,4 +1,5 @@
 import 'firebase_options.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -11,6 +12,7 @@ import 'package:provider/provider.dart';
 
 import 'algae_assistant_service.dart';
 import 'ai_scanner_service.dart';
+import 'app_version_widget.dart';
 import 'aquarium_calculators_screen.dart';
 import 'aquarium_management_screen.dart';
 import 'aquarium_journal_module.dart';
@@ -25,7 +27,7 @@ Future<void> main() async {
 
   try {
     await Firebase.initializeApp(
-  options: DefaultFirebaseOptions.currentPlatform,
+      options: DefaultFirebaseOptions.currentPlatform,
     );
 
     final auth = FirebaseAuth.instance;
@@ -463,6 +465,7 @@ class DashboardPage extends StatelessWidget {
       ),
     );
   }
+
   void _showWaterChangeDialog(BuildContext context) {
     final volumeController = TextEditingController(text: '30');
     final notesController = TextEditingController();
@@ -800,7 +803,10 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   @override
   void initState() {
     super.initState();
-    final latest = context.read<models.AquariumProvider>().waterTests.firstOrNull;
+    final latest = context
+        .read<models.AquariumProvider>()
+        .waterTests
+        .firstOrNull;
     _no3.text = _formatMeasurement(latest?.no3);
     _po4.text = _formatMeasurement(latest?.po4);
     _fe.text = _formatMeasurement(latest?.fe);
@@ -825,13 +831,22 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Co widzisz w akwarium?', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Co widzisz w akwarium?',
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _algaeTypes.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisExtent: 88, crossAxisSpacing: 10, mainAxisSpacing: 10),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisExtent: 88,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
               itemBuilder: (context, index) {
                 final option = _algaeTypes[index];
                 final selected = option.label == _selectedAlgae;
@@ -840,33 +855,163 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: selected ? option.color.withAlpha(25) : Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: selected ? option.color : Colors.black12, width: selected ? 2 : 1)),
-                    child: Row(children: [Icon(option.icon, color: option.color), const SizedBox(width: 8), Expanded(child: Text(option.label, style: const TextStyle(fontWeight: FontWeight.w600)))],),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? option.color.withAlpha(25)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: selected ? option.color : Colors.black12,
+                        width: selected ? 2 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(option.icon, color: option.color),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            option.label,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
             ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(onPressed: _pickImage, icon: const Icon(Icons.photo_camera_outlined), label: Text(_imageBytes == null ? 'Dodaj zdjęcie glonu (opcjonalnie)' : 'Zmień zdjęcie glonu')),
+            OutlinedButton.icon(
+              onPressed: _pickImage,
+              icon: const Icon(Icons.photo_camera_outlined),
+              label: Text(
+                _imageBytes == null
+                    ? 'Dodaj zdjęcie glonu (opcjonalnie)'
+                    : 'Zmień zdjęcie glonu',
+              ),
+            ),
             if (_imageBytes != null) ...[
               const SizedBox(height: 10),
-              ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.memory(_imageBytes!, height: 150, fit: BoxFit.cover)),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.memory(
+                  _imageBytes!,
+                  height: 150,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ],
             const SizedBox(height: 20),
-            Text('Ostatnie parametry wody', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Ostatnie parametry wody',
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 6),
-            Text('Wartości zostały wczytane z najnowszego testu. Możesz je poprawić przed analizą.', style: TextStyle(color: Colors.grey.shade700)),
+            Text(
+              'Wartości zostały wczytane z najnowszego testu. Możesz je poprawić przed analizą.',
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
             const SizedBox(height: 12),
             _measurementFields(),
             const SizedBox(height: 18),
-            Text('Warunki w akwarium', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Warunki w akwarium',
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
-            Row(children: [Expanded(child: TextField(controller: _lightHours, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Światło', suffixText: 'h'))), const SizedBox(width: 12), Expanded(child: DropdownButtonFormField<String>(initialValue: _substrate, decoration: const InputDecoration(labelText: 'Podłoże'), items: const ['Żwirek / piasek', 'Soil aktywny', 'Podłoże mineralne', 'Inne'].map((value) => DropdownMenuItem(value: value, child: Text(value))).toList(), onChanged: (value) => setState(() => _substrate = value!)))],),
-            SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Podawanie CO2'), subtitle: const Text('Uwzględnij instalację CO2 w diagnozie'), value: _hasCo2, onChanged: (value) => setState(() => _hasCo2 = value)),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _lightHours,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Światło',
+                      suffixText: 'h',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _substrate,
+                    decoration: const InputDecoration(labelText: 'Podłoże'),
+                    items:
+                        const [
+                              'Żwirek / piasek',
+                              'Soil aktywny',
+                              'Podłoże mineralne',
+                              'Inne',
+                            ]
+                            .map(
+                              (value) => DropdownMenuItem(
+                                value: value,
+                                child: Text(value),
+                              ),
+                            )
+                            .toList(),
+                    onChanged: (value) => setState(() => _substrate = value!),
+                  ),
+                ),
+              ],
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Podawanie CO2'),
+              subtitle: const Text('Uwzględnij instalację CO2 w diagnozie'),
+              value: _hasCo2,
+              onChanged: (value) => setState(() => _hasCo2 = value),
+            ),
             const SizedBox(height: 12),
-            FilledButton.icon(onPressed: _loading ? null : _diagnose, icon: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.auto_awesome), label: Text(_loading ? 'Analizuję warunki...' : 'Zdiagnozuj problem')),
-            if (_loading) const Padding(padding: EdgeInsets.only(top: 18), child: Card(child: Padding(padding: EdgeInsets.all(18), child: Row(children: [CircularProgressIndicator(), SizedBox(width: 14), Expanded(child: Text('Analizuję glony i parametry akwarium...'))])))),
-            if (_error != null) ...[const SizedBox(height: 16), Card(color: Colors.red.shade50, child: Padding(padding: const EdgeInsets.all(14), child: Text(_error!, style: TextStyle(color: Colors.red.shade800))))],
+            FilledButton.icon(
+              onPressed: _loading ? null : _diagnose,
+              icon: _loading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.auto_awesome),
+              label: Text(
+                _loading ? 'Analizuję warunki...' : 'Zdiagnozuj problem',
+              ),
+            ),
+            if (_loading)
+              const Padding(
+                padding: EdgeInsets.only(top: 18),
+                child: Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(18),
+                    child: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            'Analizuję glony i parametry akwarium...',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (_error != null) ...[
+              const SizedBox(height: 16),
+              Card(
+                color: Colors.red.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(color: Colors.red.shade800),
+                  ),
+                ),
+              ),
+            ],
             if (_result case final result?) ...[
               const SizedBox(height: 18),
               _AlgaeResultCard(result: result, onSave: _saveToJournal),
@@ -891,42 +1036,130 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
     );
   }
 
-  Widget _numberField(TextEditingController controller, String label, String suffix) {
-    return SizedBox(width: 106, child: TextField(controller: controller, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: label, suffixText: suffix)));
+  Widget _numberField(
+    TextEditingController controller,
+    String label,
+    String suffix,
+  ) {
+    return SizedBox(
+      width: 106,
+      child: TextField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        decoration: InputDecoration(labelText: label, suffixText: suffix),
+      ),
+    );
   }
 
   Future<void> _pickImage() async {
-    final source = await showModalBottomSheet<ImageSource>(context: context, builder: (context) => SafeArea(child: Wrap(children: [ListTile(leading: const Icon(Icons.camera_alt), title: const Text('Aparat'), onTap: () => Navigator.pop(context, ImageSource.camera)), ListTile(leading: const Icon(Icons.photo_library), title: const Text('Galeria'), onTap: () => Navigator.pop(context, ImageSource.gallery))])));
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Aparat'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Galeria'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
     if (source == null) return;
-    final file = await _picker.pickImage(source: source, imageQuality: 80, maxWidth: 1600);
+    final file = await _picker.pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1600,
+    );
     if (file == null) return;
     final bytes = await file.readAsBytes();
     if (!mounted) return;
-    setState(() { _imageBytes = bytes; _imageMimeType = _mimeFor(file.name); });
+    setState(() {
+      _imageBytes = bytes;
+      _imageMimeType = _mimeFor(file.name);
+    });
   }
 
   Future<void> _diagnose() async {
-    final input = AlgaeDiagnosticInput(algaeType: _selectedAlgae, no3: _number(_no3), po4: _number(_po4), fe: _number(_fe), ph: _number(_ph), kh: _number(_kh), lightHours: _number(_lightHours), co2: _hasCo2, substrate: _substrate, imageBytes: _imageBytes, imageMimeType: _imageMimeType);
-    setState(() { _loading = true; _error = null; _result = null; });
+    final input = AlgaeDiagnosticInput(
+      algaeType: _selectedAlgae,
+      no3: _number(_no3),
+      po4: _number(_po4),
+      fe: _number(_fe),
+      ph: _number(_ph),
+      kh: _number(_kh),
+      lightHours: _number(_lightHours),
+      co2: _hasCo2,
+      substrate: _substrate,
+      imageBytes: _imageBytes,
+      imageMimeType: _imageMimeType,
+    );
+    setState(() {
+      _loading = true;
+      _error = null;
+      _result = null;
+    });
     try {
       final result = await _service.diagnose(input);
-      if (mounted) setState(() { _result = result; _loading = false; });
+      if (mounted)
+        setState(() {
+          _result = result;
+          _loading = false;
+        });
     } on Exception catch (error) {
-      if (mounted) setState(() { _loading = false; _error = error.toString(); });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _error = error.toString();
+        });
     }
   }
 
   void _saveToJournal(AlgaeDiagnosticResult result) {
     final provider = context.read<models.AquariumProvider>();
-    provider.addJournalEntry(models.JournalEntry(id: DateTime.now().microsecondsSinceEpoch.toString(), aquariumId: provider.activeAquariumId, date: DateTime.now(), title: 'Diagnoza glonów: ${result.algaeName}', description: '${result.cause}\n\nPlan działania:\n${result.actions.asMap().entries.map((entry) => '${entry.key + 1}. ${entry.value}').join('\n')}', type: 'algaeDiagnosis', category: models.JournalCategory.algae, tags: const ['glony', 'diagnoza'], attachedWaterParameters: {'NO3': _number(_no3), 'PO4': _number(_po4), 'Fe': _number(_fe), 'pH': _number(_ph), 'KH': _number(_kh)}, imagePaths: _imageBytes == null ? const [] : ['data:${_imageMimeType ?? 'image/jpeg'};base64,${base64Encode(_imageBytes!)}']));
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Diagnoza została zapisana w dzienniku')));
+    provider.addJournalEntry(
+      models.JournalEntry(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        aquariumId: provider.activeAquariumId,
+        date: DateTime.now(),
+        title: 'Diagnoza glonów: ${result.algaeName}',
+        description:
+            '${result.cause}\n\nPlan działania:\n${result.actions.asMap().entries.map((entry) => '${entry.key + 1}. ${entry.value}').join('\n')}',
+        type: 'algaeDiagnosis',
+        category: models.JournalCategory.algae,
+        tags: const ['glony', 'diagnoza'],
+        attachedWaterParameters: {
+          'NO3': _number(_no3),
+          'PO4': _number(_po4),
+          'Fe': _number(_fe),
+          'pH': _number(_ph),
+          'KH': _number(_kh),
+        },
+        imagePaths: _imageBytes == null
+            ? const []
+            : ['data:${_imageMimeType ?? 'image/jpeg'};base64,${base64Encode(_imageBytes!)}'],
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Diagnoza została zapisana w dzienniku')),
+    );
   }
 
-  double _number(TextEditingController controller) => double.tryParse(controller.text.trim().replaceAll(',', '.')) ?? 0;
+  double _number(TextEditingController controller) =>
+      double.tryParse(controller.text.trim().replaceAll(',', '.')) ?? 0;
 
-  String _formatMeasurement(double? value) => value == null ? '' : value.toStringAsFixed(2).replaceFirst(RegExp(r'\.00$'), '');
+  String _formatMeasurement(double? value) => value == null
+      ? ''
+      : value.toStringAsFixed(2).replaceFirst(RegExp(r'\.00$'), '');
 
-  String _mimeFor(String name) => name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+  String _mimeFor(String name) =>
+      name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
 }
 
 class _AlgaeResultCard extends StatelessWidget {
@@ -940,18 +1173,55 @@ class _AlgaeResultCard extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (result.isMock) const Chip(avatar: Icon(Icons.science_outlined, size: 18), label: Text('Wynik demonstracyjny')),
-          Text('Diagnoza: ${result.algaeName}', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text(result.cause),
-          const SizedBox(height: 18),
-          Text('Plan działania', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          ...result.actions.asMap().entries.map((entry) => Padding(padding: const EdgeInsets.only(bottom: 10), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [CircleAvatar(radius: 12, child: Text('${entry.key + 1}', style: const TextStyle(fontSize: 12))), const SizedBox(width: 10), Expanded(child: Text(entry.value))]))),
-          const SizedBox(height: 8),
-          FilledButton.icon(onPressed: () => onSave(result), icon: const Icon(Icons.bookmark_add_outlined), label: const Text('Zapisz do Dziennika')),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (result.isMock)
+              const Chip(
+                avatar: Icon(Icons.science_outlined, size: 18),
+                label: Text('Wynik demonstracyjny'),
+              ),
+            Text(
+              'Diagnoza: ${result.algaeName}',
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(result.cause),
+            const SizedBox(height: 18),
+            Text(
+              'Plan działania',
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...result.actions.asMap().entries.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      child: Text(
+                        '${entry.key + 1}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(entry.value)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: () => onSave(result),
+              icon: const Icon(Icons.bookmark_add_outlined),
+              label: const Text('Zapisz do Dziennika'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -989,43 +1259,99 @@ class _AiScannerPageState extends State<AiScannerPage> {
                 onTap: _chooseSource,
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                height: 260,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE1F2EF),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: _imageBytes == null
-                    ? Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.photo_camera_outlined, size: 64, color: Colors.teal.shade700),
-                          const SizedBox(height: 14),
-                          const Text('Dodaj zdjęcie ryby lub rośliny', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                          const SizedBox(height: 6),
-                          Text('Dotknij, aby wybrać Aparat lub Galerię', style: TextStyle(color: Colors.grey.shade700)),
-                        ],
-                      )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.memory(_imageBytes!, fit: BoxFit.cover, width: double.infinity),
-                      ),
+                  height: 260,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE1F2EF),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: _imageBytes == null
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.photo_camera_outlined,
+                              size: 64,
+                              color: Colors.teal.shade700,
+                            ),
+                            const SizedBox(height: 14),
+                            const Text(
+                              'Dodaj zdjęcie ryby lub rośliny',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Dotknij, aby wybrać Aparat lub Galerię',
+                              style: TextStyle(color: Colors.grey.shade700),
+                            ),
+                          ],
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.memory(
+                            _imageBytes!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: _isLoading ? null : (_imageBytes == null ? _chooseSource : _analyze),
+                onPressed: _isLoading
+                    ? null
+                    : (_imageBytes == null ? _chooseSource : _analyze),
                 icon: _isLoading
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Icon(Icons.auto_awesome),
-                label: Text(_isLoading ? 'Analizuję zdjęcie...' : 'Uruchom rozpoznawanie'),
+                label: Text(
+                  _isLoading ? 'Analizuję zdjęcie...' : 'Uruchom rozpoznawanie',
+                ),
               ),
               if (_isLoading) ...[
                 const SizedBox(height: 20),
-                const Card(child: Padding(padding: EdgeInsets.all(20), child: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Expanded(child: Text('Analizuję zdjęcie ryby/rośliny...'))]))),
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Text('Analizuję zdjęcie ryby/rośliny...'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
               if (_error != null) ...[
                 const SizedBox(height: 20),
-                Card(color: Colors.red.shade50, child: Padding(padding: const EdgeInsets.all(16), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.error_outline, color: Colors.red), const SizedBox(width: 10), Expanded(child: Text(_error!, style: TextStyle(color: Colors.red)))]))),
+                Card(
+                  color: Colors.red.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _error!,
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
               if (_result case final result?) ...[
                 const SizedBox(height: 20),
@@ -1042,15 +1368,29 @@ class _AiScannerPageState extends State<AiScannerPage> {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) => SafeArea(
-        child: Wrap(children: [
-          ListTile(leading: const Icon(Icons.camera_alt_outlined), title: const Text('Aparat'), onTap: () => Navigator.pop(context, ImageSource.camera)),
-          ListTile(leading: const Icon(Icons.photo_library_outlined), title: const Text('Galeria zdjęć'), onTap: () => Navigator.pop(context, ImageSource.gallery)),
-        ]),
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Aparat'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Galeria zdjęć'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
       ),
     );
     if (source == null) return;
     try {
-      final file = await _picker.pickImage(source: source, imageQuality: 85, maxWidth: 1800);
+      final file = await _picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1800,
+      );
       if (file == null) return;
       final bytes = await file.readAsBytes();
       if (!mounted) return;
@@ -1061,27 +1401,48 @@ class _AiScannerPageState extends State<AiScannerPage> {
         _error = null;
       });
     } on Exception catch (error) {
-      if (mounted) setState(() => _error = 'Nie udało się otworzyć zdjęcia: $error');
+      if (mounted)
+        setState(() => _error = 'Nie udało się otworzyć zdjęcia: $error');
     }
   }
 
   Future<void> _analyze() async {
     final image = _imageBytes;
     if (image == null) return;
-    setState(() { _isLoading = true; _error = null; _result = null; });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+      _result = null;
+    });
     try {
       final result = await _service.analyze(image, _mimeType ?? 'image/jpeg');
-      if (mounted) setState(() { _result = result; _isLoading = false; });
+      if (mounted)
+        setState(() {
+          _result = result;
+          _isLoading = false;
+        });
     } on TimeoutException {
-      if (mounted) setState(() { _isLoading = false; _error = 'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.'; });
+      if (mounted)
+        setState(() {
+          _isLoading = false;
+          _error = 'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.';
+        });
     } on Exception catch (error) {
-      if (mounted) setState(() { _isLoading = false; _error = error.toString(); });
+      if (mounted)
+        setState(() {
+          _isLoading = false;
+          _error = error.toString();
+        });
     }
   }
 
   String _mimeFor(String name) {
     final extension = name.split('.').last.toLowerCase();
-    return extension == 'png' ? 'image/png' : extension == 'webp' ? 'image/webp' : 'image/jpeg';
+    return extension == 'png'
+        ? 'image/png'
+        : extension == 'webp'
+        ? 'image/webp'
+        : 'image/jpeg';
   }
 }
 
@@ -1148,7 +1509,9 @@ class ProfilePage extends StatelessWidget {
                 'Synchronizacja zostanie podłączona w kolejnym etapie',
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
+            const AppVersionWidget(),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -1441,14 +1804,29 @@ class _WaterParametersCard extends StatelessWidget {
         child: test == null
             ? Column(
                 children: [
-                  Icon(Icons.science_outlined, color: Colors.teal.shade700, size: 32),
+                  Icon(
+                    Icons.science_outlined,
+                    color: Colors.teal.shade700,
+                    size: 32,
+                  ),
                   const SizedBox(height: 8),
-                  const Text('Brak zapisanych pomiarów', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Brak zapisanych pomiarów',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 4),
-                  const Text('Dodaj pierwszy test, aby śledzić kondycję wody.', textAlign: TextAlign.center),
+                  const Text(
+                    'Dodaj pierwszy test, aby śledzić kondycję wody.',
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WaterTestScreen())),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const WaterTestScreen(),
+                      ),
+                    ),
                     icon: const Icon(Icons.add_chart_outlined),
                     label: const Text('Dodaj test wody'),
                   ),
@@ -1483,7 +1861,9 @@ class _WaterAlertCard extends StatelessWidget {
     final isCritical = alert.status == WaterStatus.critical;
     final color = isCritical ? Colors.red.shade700 : Colors.orange.shade800;
     final parameter = WaterParameter.values.firstWhere(
-      (item) => assessWaterValue(item, waterValue(test, item)).message == alert.message,
+      (item) =>
+          assessWaterValue(item, waterValue(test, item)).message ==
+          alert.message,
       orElse: () => WaterParameter.ph,
     );
     final value = waterValue(test, parameter);
@@ -1813,9 +2193,17 @@ class _ScanResultCard extends StatelessWidget {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.science_outlined, size: 18, color: Colors.orange),
+                    Icon(
+                      Icons.science_outlined,
+                      size: 18,
+                      color: Colors.orange,
+                    ),
                     SizedBox(width: 8),
-                    Expanded(child: Text('Wynik demonstracyjny. Endpoint AI nie jest dostępny.')),
+                    Expanded(
+                      child: Text(
+                        'Wynik demonstracyjny. Endpoint AI nie jest dostępny.',
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1826,16 +2214,31 @@ class _ScanResultCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.memory(imageBytes, width: 72, height: 72, fit: BoxFit.cover),
+                  child: Image.memory(
+                    imageBytes,
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Rozpoznano: ${result.polishName}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Rozpoznano: ${result.polishName}',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
                       const SizedBox(height: 4),
-                      Text('${result.latinName} · ${result.type}', style: TextStyle(color: Colors.grey.shade700, fontStyle: FontStyle.italic)),
+                      Text(
+                        '${result.latinName} · ${result.type}',
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1855,7 +2258,11 @@ class _ScanResultCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(result.description),
             const SizedBox(height: 10),
-            Text('Zgodność z obsadą', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Zgodność z obsadą',
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
             Text(result.compatibility),
             const SizedBox(height: 16),
@@ -1863,24 +2270,31 @@ class _ScanResultCard extends StatelessWidget {
               onPressed: () {
                 final provider = context.read<models.AquariumProvider>();
                 final type = result.type.toLowerCase();
-                final category = type.contains('roślin') || type.contains('roslin')
+                final category =
+                    type.contains('roślin') || type.contains('roslin')
                     ? models.CreatureCategory.plant
                     : type.contains('ryb')
-                        ? models.CreatureCategory.fish
-                        : models.CreatureCategory.other;
-                provider.addInhabitant(models.Inhabitant(
-                  id: DateTime.now().microsecondsSinceEpoch.toString(),
-                  aquariumId: provider.activeAquariumId,
-                  name: result.polishName,
-                  latinName: result.latinName,
-                  category: category,
-                  count: 1,
-                  addedDate: DateTime.now(),
-                  difficulty: result.difficulty,
-                  notes: '${result.description}\n\nZgodność: ${result.compatibility}',
-                  imagePath: 'data:image/jpeg;base64,${base64Encode(imageBytes)}',
-                ));
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gatunek dodano do obsady')));
+                    ? models.CreatureCategory.fish
+                    : models.CreatureCategory.other;
+                provider.addInhabitant(
+                  models.Inhabitant(
+                    id: DateTime.now().microsecondsSinceEpoch.toString(),
+                    aquariumId: provider.activeAquariumId,
+                    name: result.polishName,
+                    latinName: result.latinName,
+                    category: category,
+                    count: 1,
+                    addedDate: DateTime.now(),
+                    difficulty: result.difficulty,
+                    notes:
+                        '${result.description}\n\nZgodność: ${result.compatibility}',
+                    imagePath:
+                        'data:image/jpeg;base64,${base64Encode(imageBytes)}',
+                  ),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Gatunek dodano do obsady')),
+                );
               },
               icon: const Icon(Icons.playlist_add),
               label: const Text('Dodaj do mojego akwarium / obsady'),
