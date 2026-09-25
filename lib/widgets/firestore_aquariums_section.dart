@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/aquarium_firestore_model.dart';
 import '../services/firestore_service.dart';
+import '../screens/water_parameters_chart_screen.dart';
 
 class FirestoreAquariumsSection extends StatefulWidget {
   const FirestoreAquariumsSection({super.key});
@@ -63,6 +64,7 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) => _AquariumFirestoreCard(
                   aquarium: aquariums[index],
+                  onDetails: () => _openChartScreen(context, aquariums[index]),
                   onEdit: () =>
                       _openAquariumForm(context, initial: aquariums[index]),
                   onDelete: () => _deleteAquarium(context, aquariums[index]),
@@ -78,6 +80,14 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
           ],
         );
       },
+    );
+  }
+
+  void _openChartScreen(BuildContext context, AquariumModel aquarium) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WaterParametersChartScreen(aquarium: aquarium),
+      ),
     );
   }
 
@@ -166,64 +176,79 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
 class _AquariumFirestoreCard extends StatelessWidget {
   const _AquariumFirestoreCard({
     required this.aquarium,
+    required this.onDetails,
     required this.onEdit,
     required this.onDelete,
   });
 
   final AquariumModel aquarium;
+  final VoidCallback onDetails;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.teal.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onDetails,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.teal.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.water_drop_outlined,
+                  color: Colors.teal,
+                ),
               ),
-              child: const Icon(Icons.water_drop_outlined, color: Colors.teal),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    aquarium.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${_formatCapacity(aquarium.capacityLiters)} l · ${aquarium.type}',
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-                  ),
-                  Text(
-                    'Założone ${_formatDate(aquarium.setupDate)}',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      aquarium.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_formatCapacity(aquarium.capacityLiters)} l · ${aquarium.type}',
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      'Założone ${_formatDate(aquarium.setupDate)}',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuButton<String>(
+                tooltip: 'Opcje akwarium',
+                onSelected: (value) {
+                  if (value == 'edit') onEdit();
+                  if (value == 'delete') onDelete();
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edytuj')),
+                  PopupMenuItem(value: 'delete', child: Text('Usuń')),
                 ],
               ),
-            ),
-            PopupMenuButton<String>(
-              tooltip: 'Opcje akwarium',
-              onSelected: (value) {
-                if (value == 'edit') onEdit();
-                if (value == 'delete') onDelete();
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edytuj')),
-                PopupMenuItem(value: 'delete', child: Text('Usuń')),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
