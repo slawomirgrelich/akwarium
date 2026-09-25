@@ -13,12 +13,12 @@ import 'algae_assistant_service.dart';
 import 'ai_scanner_service.dart';
 import 'app_version_widget.dart';
 import 'aquarium_management_screen.dart';
-import 'aquarium_journal_module.dart';
 import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/water_standards.dart';
 import 'screens/auth_wrapper.dart';
 import 'screens/calculators_screen.dart';
+import 'screens/journal_and_reminders_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 import 'services/pro_access_service.dart';
@@ -277,7 +277,7 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final pages = [
       DashboardPage(aquarium: _aquarium),
-      const JournalTimelineView(),
+      const JournalAndRemindersScreen(),
       ToolsPage(aquarium: _aquarium),
       const ProfilePage(),
     ];

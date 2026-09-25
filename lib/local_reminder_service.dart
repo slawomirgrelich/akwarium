@@ -22,6 +22,21 @@ class LocalReminderService {
         linux: LinuxInitializationSettings(defaultActionName: 'Otwórz'),
       );
       _ready = await _notifications.initialize(settings) ?? false;
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestNotificationsPermission();
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
     } catch (_) {
       _ready = false;
     }
@@ -47,11 +62,20 @@ class LocalReminderService {
           macOS: DarwinNotificationDetails(),
         ),
         uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+            UILocalNotificationDateInterpretation.absoluteTime,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
     } catch (_) {
       // A missing platform permission must not block offline task creation.
+    }
+  }
+
+  Future<void> cancel(int id) async {
+    if (!_ready) return;
+    try {
+      await _notifications.cancel(id);
+    } catch (_) {
+      // An unavailable platform notification adapter must not block the app.
     }
   }
 }
