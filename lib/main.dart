@@ -206,7 +206,28 @@ class AkwarystaProApp extends StatelessWidget {
             shadowColor: Colors.black12,
             margin: EdgeInsets.zero,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          textTheme: const TextTheme(
+            titleLarge: TextStyle(fontWeight: FontWeight.bold),
+            titleMedium: TextStyle(fontWeight: FontWeight.bold),
+            titleSmall: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          filledButtonTheme: FilledButtonThemeData(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          outlinedButtonTheme: OutlinedButtonThemeData(
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(46),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
           inputDecorationTheme: InputDecorationTheme(
@@ -449,7 +470,6 @@ class DashboardPage extends StatelessWidget {
       ),
     );
   }
-
   void _showWaterChangeDialog(BuildContext context) {
     final volumeController = TextEditingController(text: '30');
     final notesController = TextEditingController();
@@ -1276,7 +1296,7 @@ class _AquariumCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF00695C),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
             color: Color(0x2800695C),
@@ -1426,7 +1446,21 @@ class _WaterParametersCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: test == null
-            ? const Text('Brak zapisanych pomiarów. Dodaj pierwszy test wody.')
+            ? Column(
+                children: [
+                  Icon(Icons.science_outlined, color: Colors.teal.shade700, size: 32),
+                  const SizedBox(height: 8),
+                  const Text('Brak zapisanych pomiarów', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  const Text('Dodaj pierwszy test, aby śledzić kondycję wody.', textAlign: TextAlign.center),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WaterTestScreen())),
+                    icon: const Icon(Icons.add_chart_outlined),
+                    label: const Text('Dodaj test wody'),
+                  ),
+                ],
+              )
             : Wrap(
                 spacing: 10,
                 runSpacing: 10,

@@ -324,7 +324,7 @@ class _CalculatorScroll extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 850),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -371,7 +371,7 @@ class _GlassCard extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: _calculatorPanel.withAlpha(225), borderRadius: BorderRadius.circular(18), border: Border.all(color: _calculatorCyan.withAlpha(35)), boxShadow: [BoxShadow(color: _calculatorCyan.withAlpha(12), blurRadius: 18)]), child: child);
+  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: _calculatorPanel.withAlpha(225), borderRadius: BorderRadius.circular(16), border: Border.all(color: _calculatorCyan.withAlpha(35)), boxShadow: [BoxShadow(color: _calculatorCyan.withAlpha(12), blurRadius: 18)]), child: child);
 }
 
 class _NumberField extends StatelessWidget {

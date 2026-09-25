@@ -237,11 +237,11 @@ class _TankProfileStrip extends StatelessWidget {
           if (index == provider.aquariums.length) {
             return InkWell(
               onTap: onAdd,
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(16),
               child: Container(
                 width: 220,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: _managementCyan.withAlpha(100)),
                 ),
                 child: const Column(
@@ -262,13 +262,13 @@ class _TankProfileStrip extends StatelessWidget {
               .fold<int>(0, (sum, item) => sum + item.count);
           return InkWell(
             onTap: () => provider.selectAquarium(aquarium.id),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             child: Container(
               width: 240,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: _managementPanel,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: active ? _managementCyan : Colors.white12,
                   width: active ? 2 : 1,
