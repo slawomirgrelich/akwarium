@@ -195,6 +195,7 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
           ),
         ),
         _VolumeResult(result: result),
+        const SizedBox(height: 24),
         FilledButton.icon(
           onPressed: () => _saveCapacity(context, result.netLiters),
           icon: const Icon(Icons.bookmark_add_outlined),
@@ -385,7 +386,21 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
               DropdownButtonFormField<SaltRecipe>(
                 initialValue: _recipe,
                 dropdownColor: _calculatorPanel,
-                decoration: const InputDecoration(labelText: 'Sól bazowa'),
+                decoration: const InputDecoration(
+                  labelText: 'Sól bazowa',
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white24),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: _calculatorCyan, width: 2),
+                  ),
+                ),
                 items: saltRecipes
                     .map(
                       (recipe) => DropdownMenuItem(

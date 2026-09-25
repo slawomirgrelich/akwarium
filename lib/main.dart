@@ -969,7 +969,21 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     initialValue: _substrate,
-                    decoration: const InputDecoration(labelText: 'Podłoże'),
+                    decoration: const InputDecoration(
+                      labelText: 'Podłoże',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      border: OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFE0E7E5)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.teal, width: 2),
+                      ),
+                    ),
                     items:
                         const [
                               'Żwirek / piasek',
@@ -1551,6 +1565,7 @@ class ProfilePage extends StatelessWidget {
               subtitle: 'Zakończ bieżącą sesję na tym urządzeniu',
               onTap: () => _signOut(context),
             ),
+            const SizedBox(height: 24),
             const SizedBox(height: 28),
             const AppVersionWidget(),
             const SizedBox(height: 8),
