@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/aquarium_firestore_model.dart';
+import '../screens/aquarium_details_screen.dart';
 import '../services/firestore_service.dart';
-import '../screens/water_parameters_chart_screen.dart';
 
 class FirestoreAquariumsSection extends StatefulWidget {
   const FirestoreAquariumsSection({super.key});
@@ -86,7 +86,7 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
   void _openChartScreen(BuildContext context, AquariumModel aquarium) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => WaterParametersChartScreen(aquarium: aquarium),
+        builder: (_) => AquariumDetailsScreen(aquarium: aquarium),
       ),
     );
   }
