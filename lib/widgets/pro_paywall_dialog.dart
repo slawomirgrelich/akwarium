@@ -10,6 +10,9 @@ class ProBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (context.watch<ProAccessService>().isProUser) {
+      return const SizedBox.shrink();
+    }
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 6 : 8,
@@ -95,7 +98,9 @@ class ProPaywallDialog extends StatelessWidget {
             context.read<ProAccessService>().enableProForDevelopment();
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Tryb PRO został odblokowany testowo.')),
+              const SnackBar(
+                content: Text('Tryb PRO został odblokowany testowo.'),
+              ),
             );
           },
           icon: const Icon(Icons.auto_awesome),

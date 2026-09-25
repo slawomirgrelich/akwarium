@@ -21,11 +21,13 @@ import 'screens/calculators_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
 import 'screens/knowledge_base_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/notification_settings_screen.dart';
 import 'services/auth_service.dart';
 import 'services/pro_access_service.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 import 'widgets/firestore_aquariums_section.dart';
+import 'widgets/pro_paywall_dialog.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -250,6 +252,7 @@ class AkwarystaProApp extends StatelessWidget {
           home: firebaseReady
               ? const AuthWrapper(authenticatedScreen: MainShell())
               : const LoginScreen(),
+          routes: {'/login': (_) => const LoginScreen()},
         ),
       ),
     );
@@ -1508,20 +1511,14 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.water,
               title: 'Akwarium Roślinne',
               subtitle: '112 litrów · Roślinne',
-              onTap: () => _showMessage(
-                context,
-                'Przełączanie akwarium jest gotowe do podłączenia z bazą danych',
-              ),
+              onTap: () => _openAquariumManagement(context),
             ),
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.add_circle_outline,
               title: 'Dodaj nowe akwarium',
               subtitle: 'Plan Free: do 3 zbiorników',
-              onTap: () => _showMessage(
-                context,
-                'Formularz dodawania akwarium zostanie otwarty',
-              ),
+              onTap: () => _openAquariumManagement(context),
             ),
             const SizedBox(height: 24),
             const _SectionHeader(title: 'Ustawienia'),
@@ -1530,8 +1527,12 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.notifications_none,
               title: 'Powiadomienia',
               subtitle: 'Przypomnienia o testach i podmianach',
-              onTap: () =>
-                  _showMessage(context, 'Ustawienia powiadomień są aktywne'),
+              onTap: () => Navigator.push<void>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotificationSettingsScreen(),
+                ),
+              ),
             ),
             const SizedBox(height: 10),
             _SettingsTile(
@@ -1564,9 +1565,20 @@ class ProfilePage extends StatelessWidget {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _openAquariumManagement(BuildContext context) {
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute(builder: (_) => const AquariumManagementScreen()),
+    );
+  }
+
   Future<void> _signOut(BuildContext context) async {
     try {
       await AuthService().signOut();
+      if (context.mounted) {
+        await Navigator.of(context)
+            .pushNamedAndRemoveUntil('/login', (_) => false);
+      }
     } on AuthException catch (error) {
       if (context.mounted) _showMessage(context, error.message);
     }
@@ -2078,6 +2090,8 @@ class _ToolCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showProBadge =
+        premium && !context.watch<ProAccessService>().isProUser;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -2101,7 +2115,7 @@ class _ToolCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (premium) const _ProBadge(),
+                if (showProBadge) const _ProBadge(),
               ],
             ),
             const SizedBox(height: 12),
@@ -2150,38 +2164,52 @@ class _ProCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isProUser = context.watch<ProAccessService>().isProUser;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF123D39),
+        color: isProUser ? const Color(0xFF315B43) : const Color(0xFF123D39),
+        border: isProUser
+            ? Border.all(color: const Color(0xFFFFD166), width: 1.5)
+            : null,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.auto_awesome, color: Color(0xFFFFD166), size: 30),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Akwarysta PRO',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                  ),
-                ),
-                SizedBox(height: 5),
-                Text(
-                  'Odblokuj AI, wykresy i nielimitowane akwaria.',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              ],
+      child: InkWell(
+        onTap: isProUser ? null : () => ProPaywallDialog.show(context),
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
+          children: [
+            Icon(
+              isProUser ? Icons.verified : Icons.auto_awesome,
+              color: const Color(0xFFFFD166),
+              size: 30,
             ),
-          ),
-          const _ProBadge(),
-        ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isProUser ? 'Akwarysta PRO (Aktywny)' : 'Akwarysta PRO',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    isProUser
+                        ? 'Wszystkie funkcje premium są odblokowane'
+                        : 'Odblokuj AI, wykresy i nielimitowane akwaria.',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+            if (!isProUser) const _ProBadge(),
+          ],
+        ),
       ),
     );
   }
