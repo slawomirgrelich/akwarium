@@ -24,6 +24,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Aplikacja używa aparatu, aby rozpoznać ryby i rośliny.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Aplikacja używa galerii, aby wybrać zdjęcie do rozpoznania.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

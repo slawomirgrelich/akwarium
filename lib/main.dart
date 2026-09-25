@@ -1,8 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import 'ai_scanner_service.dart';
 import 'aquarium_calculators_screen.dart';
 import 'aquarium_management_screen.dart';
 import 'aquarium_journal_module.dart';
@@ -767,7 +773,13 @@ class AiScannerPage extends StatefulWidget {
 }
 
 class _AiScannerPageState extends State<AiScannerPage> {
-  bool _showResult = false;
+  final _picker = ImagePicker();
+  final _service = AiScannerService();
+  Uint8List? _imageBytes;
+  String? _mimeType;
+  AiScanResult? _result;
+  String? _error;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -781,55 +793,103 @@ class _AiScannerPageState extends State<AiScannerPage> {
             children: [
               const _PremiumBanner(),
               const SizedBox(height: 20),
-              Container(
+              InkWell(
+                onTap: _chooseSource,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
                 height: 260,
                 decoration: BoxDecoration(
                   color: const Color(0xFFE1F2EF),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.photo_camera_outlined,
-                      size: 64,
-                      color: Colors.teal.shade700,
-                    ),
-                    const SizedBox(height: 14),
-                    const Text(
-                      'Dodaj zdjęcie ryby lub rośliny',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
+                child: _imageBytes == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.photo_camera_outlined, size: 64, color: Colors.teal.shade700),
+                          const SizedBox(height: 14),
+                          const Text('Dodaj zdjęcie ryby lub rośliny', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                          const SizedBox(height: 6),
+                          Text('Dotknij, aby wybrać Aparat lub Galerię', style: TextStyle(color: Colors.grey.shade700)),
+                        ],
+                      )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.memory(_imageBytes!, fit: BoxFit.cover, width: double.infinity),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Makieta gotowa do podłączenia aparatu',
-                      style: TextStyle(color: Colors.grey.shade700),
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showResult = true;
-                  });
-                },
-                icon: const Icon(Icons.auto_awesome),
-                label: const Text('Uruchom rozpoznawanie'),
+                onPressed: _isLoading ? null : (_imageBytes == null ? _chooseSource : _analyze),
+                icon: _isLoading
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.auto_awesome),
+                label: Text(_isLoading ? 'Analizuję zdjęcie...' : 'Uruchom rozpoznawanie'),
               ),
-              if (_showResult) ...[
+              if (_isLoading) ...[
                 const SizedBox(height: 20),
-                const _ScanResultCard(),
+                const Card(child: Padding(padding: EdgeInsets.all(20), child: Row(children: [CircularProgressIndicator(), SizedBox(width: 16), Expanded(child: Text('Analizuję zdjęcie ryby/rośliny...'))]))),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 20),
+                Card(color: Colors.red.shade50, child: Padding(padding: const EdgeInsets.all(16), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.error_outline, color: Colors.red), const SizedBox(width: 10), Expanded(child: Text(_error!, style: TextStyle(color: Colors.red)))]))),
+              ],
+              if (_result case final result?) ...[
+                const SizedBox(height: 20),
+                _ScanResultCard(result: result, imageBytes: _imageBytes!),
               ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _chooseSource() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(children: [
+          ListTile(leading: const Icon(Icons.camera_alt_outlined), title: const Text('Aparat'), onTap: () => Navigator.pop(context, ImageSource.camera)),
+          ListTile(leading: const Icon(Icons.photo_library_outlined), title: const Text('Galeria zdjęć'), onTap: () => Navigator.pop(context, ImageSource.gallery)),
+        ]),
+      ),
+    );
+    if (source == null) return;
+    try {
+      final file = await _picker.pickImage(source: source, imageQuality: 85, maxWidth: 1800);
+      if (file == null) return;
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _imageBytes = bytes;
+        _mimeType = _mimeFor(file.name);
+        _result = null;
+        _error = null;
+      });
+    } on Exception catch (error) {
+      if (mounted) setState(() => _error = 'Nie udało się otworzyć zdjęcia: $error');
+    }
+  }
+
+  Future<void> _analyze() async {
+    final image = _imageBytes;
+    if (image == null) return;
+    setState(() { _isLoading = true; _error = null; _result = null; });
+    try {
+      final result = await _service.analyze(image, _mimeType ?? 'image/jpeg');
+      if (mounted) setState(() { _result = result; _isLoading = false; });
+    } on TimeoutException {
+      if (mounted) setState(() { _isLoading = false; _error = 'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.'; });
+    } on Exception catch (error) {
+      if (mounted) setState(() { _isLoading = false; _error = error.toString(); });
+    }
+  }
+
+  String _mimeFor(String name) {
+    final extension = name.split('.').last.toLowerCase();
+    return extension == 'png' ? 'image/png' : extension == 'webp' ? 'image/webp' : 'image/jpeg';
   }
 }
 
@@ -1525,7 +1585,10 @@ class _ProBadge extends StatelessWidget {
 }
 
 class _ScanResultCard extends StatelessWidget {
-  const _ScanResultCard();
+  const _ScanResultCard({required this.result, required this.imageBytes});
+
+  final AiScanResult result;
+  final Uint8List imageBytes;
 
   @override
   Widget build(BuildContext context) {
@@ -1535,25 +1598,69 @@ class _ScanResultCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Rozpoznano: Anubias barteri',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.memory(imageBytes, width: 72, height: 72, fit: BoxFit.cover),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Rozpoznano: ${result.polishName}', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text('${result.latinName} · ${result.type}', style: TextStyle(color: Colors.grey.shade700, fontStyle: FontStyle.italic)),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 14),
-            const Wrap(
+            Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                Chip(label: Text('pH 6,0–7,5')),
-                Chip(label: Text('22–28°C')),
-                Chip(label: Text('Łatwa hodowla')),
+                Chip(label: Text('pH ${result.ph}')),
+                Chip(label: Text('${result.temperature}°C')),
+                Chip(label: Text(result.difficulty)),
+                Chip(label: Text('od ${result.minimumVolume} l')),
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Roślina polecana do zbiorników od 40 litrów. '
-              'Rośnie powoli i dobrze znosi zacienienie.',
+            Text(result.description),
+            const SizedBox(height: 10),
+            Text('Zgodność z obsadą', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(result.compatibility),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () {
+                final provider = context.read<models.AquariumProvider>();
+                final type = result.type.toLowerCase();
+                final category = type.contains('roślin') || type.contains('roslin')
+                    ? models.CreatureCategory.plant
+                    : type.contains('ryb')
+                        ? models.CreatureCategory.fish
+                        : models.CreatureCategory.other;
+                provider.addInhabitant(models.Inhabitant(
+                  id: DateTime.now().microsecondsSinceEpoch.toString(),
+                  aquariumId: provider.activeAquariumId,
+                  name: result.polishName,
+                  latinName: result.latinName,
+                  category: category,
+                  count: 1,
+                  addedDate: DateTime.now(),
+                  difficulty: result.difficulty,
+                  notes: '${result.description}\n\nZgodność: ${result.compatibility}',
+                  imagePath: 'data:image/jpeg;base64,${base64Encode(imageBytes)}',
+                ));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gatunek dodano do obsady')));
+              },
+              icon: const Icon(Icons.playlist_add),
+              label: const Text('Dodaj do mojego akwarium / obsady'),
             ),
           ],
         ),

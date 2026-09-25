@@ -1,5 +1,18 @@
 # akwarium
 
+## Skaner AI
+
+Skaner wysyła zdjęcie do serwerowego endpointu, dzięki czemu klucz dostawcy AI
+nie znajduje się w aplikacji mobilnej. Endpoint powinien przyjąć JSON:
+`image_base64`, `mime_type` i `system_prompt`, a zwrócić wymagany JSON gatunku
+(opcjonalnie opakowany w pole `result`). Dla nierozpoznanego gatunku zwraca `422`.
+
+Uruchomienie z własnym endpointem:
+
+```text
+flutter run --dart-define=AI_SCANNER_ENDPOINT=https://example.com/api/aquarium-scan
+```
+
 A new Flutter project.
 
 ## Getting Started
