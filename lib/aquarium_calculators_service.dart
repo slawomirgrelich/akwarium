@@ -42,7 +42,11 @@ class FertilizerDoseResult {
 }
 
 class SaltRecipe {
-  const SaltRecipe({required this.name, required this.element, required this.factor});
+  const SaltRecipe({
+    required this.name,
+    required this.element,
+    required this.factor,
+  });
 
   final String name;
   final String element;
@@ -53,6 +57,7 @@ const saltRecipes = <SaltRecipe>[
   SaltRecipe(name: 'KNO3', element: 'NO3', factor: 0.613),
   SaltRecipe(name: 'KH2PO4', element: 'PO4', factor: 0.698),
   SaltRecipe(name: 'K2SO4', element: 'K', factor: 0.448),
+  SaltRecipe(name: 'Fe-EDTA', element: 'Fe', factor: 0.130),
   SaltRecipe(name: 'MgSO4 x 7H2O', element: 'Mg', factor: 0.0986),
 ];
 
@@ -70,7 +75,8 @@ AquariumVolumeResult calculateVolume({
   final innerHeight = math.max(0.0, heightCm - 2 * glassThicknessCm);
   final innerGross = innerLength * innerWidth * innerHeight / 1000;
   final substrate = innerLength * innerWidth * substrateThicknessCm / 1000;
-  final decorations = math.max(0.0, gross - substrate) * decorationPercent / 100;
+  final decorations =
+      math.max(0.0, gross - substrate) * decorationPercent / 100;
   final net = math.max(0.0, innerGross - substrate - decorations).toDouble();
   final glassVolume = math.max(0.0, gross - innerGross).toDouble();
   final glassWeight = glassVolume * 2.5;

@@ -12,13 +12,13 @@ import 'package:provider/provider.dart';
 import 'algae_assistant_service.dart';
 import 'ai_scanner_service.dart';
 import 'app_version_widget.dart';
-import 'aquarium_calculators_screen.dart';
 import 'aquarium_management_screen.dart';
 import 'aquarium_journal_module.dart';
 import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/water_standards.dart';
 import 'screens/auth_wrapper.dart';
+import 'screens/calculators_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 import 'services/pro_access_service.dart';
@@ -188,67 +188,67 @@ class AkwarystaProApp extends StatelessWidget {
       child: ChangeNotifierProvider<models.AquariumProvider>(
         create: (_) => models.AquariumProvider()..initialize(),
         child: MaterialApp(
-        title: 'Akwarysta PRO',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: colorScheme,
-          scaffoldBackgroundColor: const Color(0xFFE0F2F1),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFFF4F6F8),
-            foregroundColor: Color(0xFF123D39),
-            elevation: 0,
-          ),
-          cardTheme: CardThemeData(
-            color: Colors.white,
-            elevation: 2,
-            shadowColor: Colors.black12,
-            margin: EdgeInsets.zero,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+          title: 'Akwarysta PRO',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: colorScheme,
+            scaffoldBackgroundColor: const Color(0xFFE0F2F1),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFFF4F6F8),
+              foregroundColor: Color(0xFF123D39),
+              elevation: 0,
             ),
-          ),
-          textTheme: const TextTheme(
-            titleLarge: TextStyle(fontWeight: FontWeight.bold),
-            titleMedium: TextStyle(fontWeight: FontWeight.bold),
-            titleSmall: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          filledButtonTheme: FilledButtonThemeData(
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
+            cardTheme: CardThemeData(
+              color: Colors.white,
+              elevation: 2,
+              shadowColor: Colors.black12,
+              margin: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(fontWeight: FontWeight.bold),
+              titleMedium: TextStyle(fontWeight: FontWeight.bold),
+              titleSmall: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            filledButtonTheme: FilledButtonThemeData(
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(46),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFE0E7E5)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Colors.teal, width: 2),
               ),
             ),
           ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(46),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Color(0xFFE0E7E5)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Colors.teal, width: 2),
-            ),
-          ),
-        ),
-        home: firebaseReady
-            ? const AuthWrapper(authenticatedScreen: MainShell())
-            : const LoginScreen(),
+          home: firebaseReady
+              ? const AuthWrapper(authenticatedScreen: MainShell())
+              : const LoginScreen(),
         ),
       ),
     );
@@ -718,6 +718,7 @@ class ToolsPage extends StatelessWidget {
               title: 'Kalkulator nawożenia',
               description: 'Oblicz dawki dzienne i tygodniowe dla zbiornika.',
               buttonLabel: 'Otwórz kalkulator',
+              premium: true,
               onTap: () {
                 Navigator.push(
                   context,
@@ -1116,17 +1117,19 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
     });
     try {
       final result = await _service.diagnose(input);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _result = result;
           _loading = false;
         });
+      }
     } on Exception catch (error) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
           _error = error.toString();
         });
+      }
     }
   }
 
@@ -1410,8 +1413,9 @@ class _AiScannerPageState extends State<AiScannerPage> {
         _error = null;
       });
     } on Exception catch (error) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error = 'Nie udało się otworzyć zdjęcia: $error');
+      }
     }
   }
 
@@ -1425,23 +1429,26 @@ class _AiScannerPageState extends State<AiScannerPage> {
     });
     try {
       final result = await _service.analyze(image, _mimeType ?? 'image/jpeg');
-      if (mounted)
+      if (mounted) {
         setState(() {
           _result = result;
           _isLoading = false;
         });
+      }
     } on TimeoutException {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isLoading = false;
           _error = 'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.';
         });
+      }
     } on Exception catch (error) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isLoading = false;
           _error = error.toString();
         });
+      }
     }
   }
 

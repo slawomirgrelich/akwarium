@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 
-import 'aquarium_calculators_service.dart';
+import 'services/aquarium_calculators_service.dart';
 import 'services/pro_access_service.dart';
 import 'widgets/pro_paywall_dialog.dart';
 
@@ -14,7 +14,8 @@ class AquariumCalculatorsScreen extends StatefulWidget {
   const AquariumCalculatorsScreen({super.key});
 
   @override
-  State<AquariumCalculatorsScreen> createState() => _AquariumCalculatorsScreenState();
+  State<AquariumCalculatorsScreen> createState() =>
+      _AquariumCalculatorsScreenState();
 }
 
 class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
@@ -70,9 +71,7 @@ class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
       ),
       body: TabBarView(
         controller: _tabs,
-        physics: isProUser
-            ? null
-            : const NeverScrollableScrollPhysics(),
+        physics: isProUser ? null : const NeverScrollableScrollPhysics(),
         children: const [
           _VolumeCalculator(),
           _Co2Calculator(),
@@ -118,40 +117,107 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
     );
     return _CalculatorScroll(
       children: [
-        const _CalculatorIntro(title: 'Objętość zbiornika', subtitle: 'Porównaj pojemność brutto z realną ilością wody.'),
+        const _CalculatorIntro(
+          title: 'Objętość zbiornika',
+          subtitle: 'Porównaj pojemność brutto z realną ilością wody.',
+        ),
         _GlassCard(
           child: Column(
             children: [
-              Row(children: [
-                Expanded(child: _NumberField(label: 'Długość', unit: 'cm', controller: _length, onChanged: (_) => setState(() {}))),
-                const SizedBox(width: 10),
-                Expanded(child: _NumberField(label: 'Szerokość', unit: 'cm', controller: _width, onChanged: (_) => setState(() {}))),
-              ]),
+              Row(
+                children: [
+                  Expanded(
+                    child: _NumberField(
+                      label: 'Długość',
+                      unit: 'cm',
+                      controller: _length,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _NumberField(
+                      label: 'Szerokość',
+                      unit: 'cm',
+                      controller: _width,
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
-              _NumberField(label: 'Wysokość', unit: 'cm', controller: _height, onChanged: (_) => setState(() {})),
+              _NumberField(
+                label: 'Wysokość',
+                unit: 'cm',
+                controller: _height,
+                onChanged: (_) => setState(() {}),
+              ),
               const SizedBox(height: 12),
-              _NumberField(label: 'Grubość szkła', unit: 'mm', controller: _glass, onChanged: (_) => setState(() {})),
+              _NumberField(
+                label: 'Grubość szkła',
+                unit: 'mm',
+                controller: _glass,
+                onChanged: (_) => setState(() {}),
+              ),
               const SizedBox(height: 12),
-              _NumberField(label: 'Grubość podłoża', unit: 'cm', controller: _substrate, onChanged: (_) => setState(() {})),
+              _NumberField(
+                label: 'Grubość podłoża',
+                unit: 'cm',
+                controller: _substrate,
+                onChanged: (_) => setState(() {}),
+              ),
               const SizedBox(height: 14),
-              Row(children: [const Text('Dekoracje i sprzęt', style: TextStyle(color: Colors.white70)), const Spacer(), Text('${_decorations.round()}%', style: const TextStyle(color: _calculatorCyan, fontWeight: FontWeight.bold))]),
-              Slider(value: _decorations, min: 5, max: 20, divisions: 15, activeColor: _calculatorCyan, onChanged: (value) => setState(() => _decorations = value)),
+              Row(
+                children: [
+                  const Text(
+                    'Dekoracje i sprzęt',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${_decorations.round()}%',
+                    style: const TextStyle(
+                      color: _calculatorCyan,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _decorations,
+                min: 5,
+                max: 20,
+                divisions: 15,
+                activeColor: _calculatorCyan,
+                onChanged: (value) => setState(() => _decorations = value),
+              ),
             ],
           ),
         ),
         _VolumeResult(result: result),
-        FilledButton.icon(onPressed: () => _saveCapacity(context, result.netLiters), icon: const Icon(Icons.bookmark_add_outlined), label: const Text('Zapisz netto jako domyślne')),
+        FilledButton.icon(
+          onPressed: () => _saveCapacity(context, result.netLiters),
+          icon: const Icon(Icons.bookmark_add_outlined),
+          label: const Text('Zapisz netto jako domyślne'),
+        ),
       ],
     );
   }
 
-  double _number(TextEditingController controller) => double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
+  double _number(TextEditingController controller) =>
+      double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
 
   Future<void> _saveCapacity(BuildContext context, double liters) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setDouble('aquarium.default_net_liters', liters);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Zapisano pojemność netto: ${liters.toStringAsFixed(1)} l')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Zapisano pojemność netto: ${liters.toStringAsFixed(1)} l',
+        ),
+      ),
+    );
   }
 }
 
@@ -181,21 +247,74 @@ class _Co2CalculatorState extends State<_Co2Calculator> {
     };
     return _CalculatorScroll(
       children: [
-        const _CalculatorIntro(title: 'Kalkulator CO2', subtitle: 'Wybierz pH i KH, aby sprawdzić stężenie rozpuszczonego CO2.'),
-        _GlassCard(child: Column(children: [
-          _SliderRow(label: 'pH', value: _ph, min: 6, max: 8, divisions: 20, display: _ph.toStringAsFixed(1), onChanged: (value) => setState(() => _ph = value)),
-          _SliderRow(label: 'KH', value: _kh, min: 1, max: 20, divisions: 19, display: '${_kh.round()} dKH', onChanged: (value) => setState(() => _kh = value)),
-        ])),
+        const _CalculatorIntro(
+          title: 'Kalkulator CO2',
+          subtitle:
+              'Wybierz pH i KH, aby sprawdzić stężenie rozpuszczonego CO2.',
+        ),
         _GlassCard(
-          child: Column(children: [
-            Text('${result.mgPerLiter.toStringAsFixed(1)} mg/l', style: TextStyle(color: statusColor, fontSize: 38, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 6),
-            Text(statusText, textAlign: TextAlign.center, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 18),
-            const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('< 15 niedobór', style: TextStyle(color: Colors.amber)), Text('15-30 optimum', style: TextStyle(color: Colors.greenAccent)), Text('> 30 ryzyko', style: TextStyle(color: Colors.redAccent))]),
-            const SizedBox(height: 8),
-            _Co2MatrixMarker(ph: _ph, kh: _kh),
-          ]),
+          child: Column(
+            children: [
+              _SliderRow(
+                label: 'pH',
+                value: _ph,
+                min: 6,
+                max: 8,
+                divisions: 20,
+                display: _ph.toStringAsFixed(1),
+                onChanged: (value) => setState(() => _ph = value),
+              ),
+              _SliderRow(
+                label: 'KH',
+                value: _kh,
+                min: 1,
+                max: 20,
+                divisions: 19,
+                display: '${_kh.round()} dKH',
+                onChanged: (value) => setState(() => _kh = value),
+              ),
+            ],
+          ),
+        ),
+        _GlassCard(
+          child: Column(
+            children: [
+              Text(
+                '${result.mgPerLiter.toStringAsFixed(1)} mg/l',
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 38,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                statusText,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: statusColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 18),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('< 15 niedobór', style: TextStyle(color: Colors.amber)),
+                  Text(
+                    '15-30 optimum',
+                    style: TextStyle(color: Colors.greenAccent),
+                  ),
+                  Text(
+                    '> 30 ryzyko',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _Co2MatrixMarker(ph: _ph, kh: _kh),
+            ],
+          ),
         ),
       ],
     );
@@ -214,7 +333,6 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
   final _solution = TextEditingController(text: '500');
   final _salt = TextEditingController(text: '50');
   final _target = TextEditingController(text: '10');
-  String _element = 'NO3';
   SaltRecipe _recipe = saltRecipes.first;
 
   @override
@@ -279,23 +397,6 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
                 onChanged: (value) => setState(() => _recipe = value!),
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _element,
-                dropdownColor: _calculatorPanel,
-                decoration: const InputDecoration(
-                  labelText: 'Pierwiastek docelowy',
-                ),
-                items: ['NO3', 'PO4', 'K', 'Fe', 'Mg']
-                    .map(
-                      (element) => DropdownMenuItem(
-                        value: element,
-                        child: Text(element),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() => _element = value!),
-              ),
-              const SizedBox(height: 12),
               _NumberField(
                 label: 'Cel tygodniowy',
                 unit: 'mg/l',
@@ -310,7 +411,7 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$_element po 1 ml',
+                '${_recipe.element} po 1 ml',
                 style: const TextStyle(
                   color: _calculatorCyan,
                   fontSize: 16,
@@ -342,7 +443,8 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
     );
   }
 
-  double _number(TextEditingController controller) => double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
+  double _number(TextEditingController controller) =>
+      double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
 }
 
 class _CalculatorScroll extends StatelessWidget {
@@ -402,22 +504,59 @@ class _GlassCard extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: _calculatorPanel.withAlpha(225), borderRadius: BorderRadius.circular(16), border: Border.all(color: _calculatorCyan.withAlpha(35)), boxShadow: [BoxShadow(color: _calculatorCyan.withAlpha(12), blurRadius: 18)]), child: child);
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: _calculatorPanel.withAlpha(225),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: _calculatorCyan.withAlpha(35)),
+      boxShadow: [
+        BoxShadow(color: _calculatorCyan.withAlpha(12), blurRadius: 18),
+      ],
+    ),
+    child: child,
+  );
 }
 
 class _NumberField extends StatelessWidget {
-  const _NumberField({required this.label, required this.unit, required this.controller, required this.onChanged});
+  const _NumberField({
+    required this.label,
+    required this.unit,
+    required this.controller,
+    required this.onChanged,
+  });
   final String label;
   final String unit;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
 
   @override
-  Widget build(BuildContext context) => TextField(controller: controller, onChanged: onChanged, keyboardType: const TextInputType.numberWithOptions(decimal: true), style: const TextStyle(color: Colors.white), decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(color: Colors.white60), suffixText: unit, suffixStyle: const TextStyle(color: _calculatorCyan), filled: true, fillColor: Colors.white.withAlpha(10)));
+  Widget build(BuildContext context) => TextField(
+    controller: controller,
+    onChanged: onChanged,
+    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+    style: const TextStyle(color: Colors.white),
+    decoration: InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white60),
+      suffixText: unit,
+      suffixStyle: const TextStyle(color: _calculatorCyan),
+      filled: true,
+      fillColor: Colors.white.withAlpha(10),
+    ),
+  );
 }
 
 class _SliderRow extends StatelessWidget {
-  const _SliderRow({required this.label, required this.value, required this.min, required this.max, required this.divisions, required this.display, required this.onChanged});
+  const _SliderRow({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.divisions,
+    required this.display,
+    required this.onChanged,
+  });
   final String label;
   final double value;
   final double min;
@@ -427,7 +566,31 @@ class _SliderRow extends StatelessWidget {
   final ValueChanged<double> onChanged;
 
   @override
-  Widget build(BuildContext context) => Column(children: [Row(children: [Text(label, style: const TextStyle(color: Colors.white70)), const Spacer(), Text(display, style: const TextStyle(color: _calculatorCyan, fontWeight: FontWeight.bold))]), Slider(value: value, min: min, max: max, divisions: divisions, activeColor: _calculatorCyan, onChanged: onChanged)]);
+  Widget build(BuildContext context) => Column(
+    children: [
+      Row(
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white70)),
+          const Spacer(),
+          Text(
+            display,
+            style: const TextStyle(
+              color: _calculatorCyan,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+      Slider(
+        value: value,
+        min: min,
+        max: max,
+        divisions: divisions,
+        activeColor: _calculatorCyan,
+        onChanged: onChanged,
+      ),
+    ],
+  );
 }
 
 class _VolumeResult extends StatelessWidget {
@@ -435,17 +598,102 @@ class _VolumeResult extends StatelessWidget {
   final AquariumVolumeResult result;
 
   @override
-  Widget build(BuildContext context) => _GlassCard(child: Column(children: [Text('${result.netLiters.toStringAsFixed(1)} l', style: const TextStyle(color: _calculatorCyan, fontSize: 38, fontWeight: FontWeight.w800)), const Text('Rzeczywista objętość wody', style: TextStyle(color: Colors.white70)), const SizedBox(height: 14), LinearProgressIndicator(value: result.grossLiters <= 0 ? 0 : result.netLiters / result.grossLiters, minHeight: 12, borderRadius: BorderRadius.circular(8), color: _calculatorCyan, backgroundColor: Colors.white12), const SizedBox(height: 12), _BreakdownRow(label: 'Woda netto', value: result.netLiters, color: _calculatorCyan), _BreakdownRow(label: 'Podłoże', value: result.substrateLiters, color: Colors.amber), _BreakdownRow(label: 'Skały / drewno', value: result.decorationsLiters, color: Colors.deepOrangeAccent), _BreakdownRow(label: 'Szkło', value: result.glassVolumeLiters, color: Colors.lightBlueAccent), Text('Brutto: ${result.grossLiters.toStringAsFixed(1)} l', style: const TextStyle(color: Colors.white54)), const SizedBox(height: 12), Text('Szacowany ciężar całkowity: ${result.totalWeightKg.toStringAsFixed(1)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]));
+  Widget build(BuildContext context) => _GlassCard(
+    child: Column(
+      children: [
+        Text(
+          '${result.netLiters.toStringAsFixed(1)} l',
+          style: const TextStyle(
+            color: _calculatorCyan,
+            fontSize: 38,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const Text(
+          'Rzeczywista objętość wody',
+          style: TextStyle(color: Colors.white70),
+        ),
+        const SizedBox(height: 14),
+        LinearProgressIndicator(
+          value: result.grossLiters <= 0
+              ? 0
+              : result.netLiters / result.grossLiters,
+          minHeight: 12,
+          borderRadius: BorderRadius.circular(8),
+          color: _calculatorCyan,
+          backgroundColor: Colors.white12,
+        ),
+        const SizedBox(height: 12),
+        _BreakdownRow(
+          label: 'Woda netto',
+          value: result.netLiters,
+          color: _calculatorCyan,
+        ),
+        _BreakdownRow(
+          label: 'Podłoże',
+          value: result.substrateLiters,
+          color: Colors.amber,
+        ),
+        _BreakdownRow(
+          label: 'Skały / drewno',
+          value: result.decorationsLiters,
+          color: Colors.deepOrangeAccent,
+        ),
+        _BreakdownRow(
+          label: 'Szkło',
+          value: result.glassVolumeLiters,
+          color: Colors.lightBlueAccent,
+        ),
+        Text(
+          'Brutto: ${result.grossLiters.toStringAsFixed(1)} l',
+          style: const TextStyle(color: Colors.white54),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Szacowany ciężar całkowity: ${result.totalWeightKg.toStringAsFixed(1)} kg',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _BreakdownRow extends StatelessWidget {
-  const _BreakdownRow({required this.label, required this.value, required this.color});
+  const _BreakdownRow({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
   final String label;
   final double value;
   final Color color;
 
   @override
-  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Row(children: [Container(width: 9, height: 9, decoration: BoxDecoration(color: color, shape: BoxShape.circle)), const SizedBox(width: 8), Text(label, style: const TextStyle(color: Colors.white70)), const Spacer(), Text('${value.toStringAsFixed(1)} l', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]));
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    child: Row(
+      children: [
+        Container(
+          width: 9,
+          height: 9,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Text(label, style: const TextStyle(color: Colors.white70)),
+        const Spacer(),
+        Text(
+          '${value.toStringAsFixed(1)} l',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _Co2MatrixMarker extends StatelessWidget {
@@ -454,5 +702,25 @@ class _Co2MatrixMarker extends StatelessWidget {
   final double kh;
 
   @override
-  Widget build(BuildContext context) => Container(height: 100, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Colors.amber, Colors.green, Colors.red]), borderRadius: BorderRadius.circular(12)), child: Align(alignment: Alignment(((ph - 6) / 2 * 2) - 1, ((kh - 1) / 19 * 2) - 1), child: Container(width: 18, height: 18, decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: _calculatorBackground, width: 3)))));
+  Widget build(BuildContext context) => Container(
+    height: 100,
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        colors: [Colors.amber, Colors.green, Colors.red],
+      ),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Align(
+      alignment: Alignment(((ph - 6) / 2 * 2) - 1, ((kh - 1) / 19 * 2) - 1),
+      child: Container(
+        width: 18,
+        height: 18,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: _calculatorBackground, width: 3),
+        ),
+      ),
+    ),
+  );
 }

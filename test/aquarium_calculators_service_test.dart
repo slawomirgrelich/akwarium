@@ -18,6 +18,21 @@ void main() {
     expect(result.netLiters, 144);
   });
 
+  test('accounts for glass thickness and estimates total weight', () {
+    final result = calculateVolume(
+      lengthCm: 100,
+      widthCm: 40,
+      heightCm: 45,
+      glassThicknessCm: 0.6,
+      substrateThicknessCm: 5,
+      decorationPercent: 10,
+    );
+
+    expect(result.glassVolumeLiters, greaterThan(0));
+    expect(result.glassWeightKg, greaterThan(0));
+    expect(result.totalWeightKg, greaterThan(result.netLiters));
+  });
+
   test('classifies CO2 zones', () {
     expect(calculateCo2(ph: 7, kh: 5).status, Co2Status.optimal);
     expect(calculateCo2(ph: 8, kh: 1).status, Co2Status.low);
@@ -36,5 +51,24 @@ void main() {
     expect(result.ppmPerMl, closeTo(0.613, 0.00001));
     expect(result.weeklyMl, closeTo(16.31, 0.01));
     expect(result.dailyMl, closeTo(2.33, 0.01));
+  });
+
+  test('supports iron and magnesium salt recipes', () {
+    expect(
+      saltRecipes.map((recipe) => recipe.element),
+      containsAll(['Fe', 'Mg']),
+    );
+    final result = calculateFertilizerDose(
+      aquariumLiters: 100,
+      solutionMl: 500,
+      saltGrams: 50,
+      targetPpm: 1,
+      saltFactor: saltRecipes
+          .firstWhere((recipe) => recipe.element == 'Fe')
+          .factor,
+    );
+
+    expect(result.ppmPerMl, greaterThan(0));
+    expect(result.weeklyMl, greaterThan(0));
   });
 }

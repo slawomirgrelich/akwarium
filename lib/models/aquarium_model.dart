@@ -683,8 +683,9 @@ class AquariumProvider extends ChangeNotifier {
     _waterChanges.removeWhere((item) => item.aquariumId == aquariumId);
     _journalEntries.removeWhere((item) => item.aquariumId == aquariumId);
     _tasks.removeWhere((item) => item.aquariumId == aquariumId);
-    if (_activeAquariumId == aquariumId)
+    if (_activeAquariumId == aquariumId) {
       _activeAquariumId = _aquariums.first.id;
+    }
     notifyListeners();
     _persist();
   }
