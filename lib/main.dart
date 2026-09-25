@@ -1877,7 +1877,7 @@ class _WaterParametersCard extends StatelessWidget {
                       ),
                     ),
                     icon: const Icon(Icons.add_chart_outlined),
-                    label: const Text('Dodaj test wody'),
+                    label: const Text('Dodaj pierwszy pomiar'),
                   ),
                 ],
               )

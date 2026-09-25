@@ -1,15 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AquariumModel {
-  const AquariumModel({
+  AquariumModel({
     required this.id,
-    required this.userId,
+    this.userId = '',
     required this.name,
-    required this.capacityLiters,
-    required this.setupDate,
+    double? capacityLiters,
+    double? netVolumeLiters,
+    DateTime? setupDate,
+    DateTime? establishedAt,
     required this.type,
-    required this.createdAt,
-  });
+    DateTime? createdAt,
+  }) : capacityLiters = capacityLiters ?? netVolumeLiters ?? 0,
+       setupDate = setupDate ?? establishedAt ?? DateTime(1970),
+       createdAt = createdAt ?? DateTime(1970);
 
   final String id;
   final String userId;
@@ -18,6 +22,9 @@ class AquariumModel {
   final DateTime setupDate;
   final String type;
   final DateTime createdAt;
+
+  double get netVolumeLiters => capacityLiters;
+  DateTime get establishedAt => setupDate;
 
   AquariumModel copyWith({
     String? id,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../models/aquarium_firestore_model.dart';
+import '../models/aquarium_model.dart';
 import '../screens/aquarium_details_screen.dart';
 import '../services/firestore_service.dart';
 
@@ -29,6 +30,12 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
       stream: _aquariumsStream,
       builder: (context, snapshot) {
         final aquariums = snapshot.data ?? const <AquariumModel>[];
+        if (aquariums.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            context.read<AquariumProvider>().syncCloudAquariums(aquariums);
+          });
+        }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

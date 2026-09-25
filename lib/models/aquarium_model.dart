@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'aquarium_firestore_model.dart' as firestore_models;
+
 export 'aquarium_firestore_model.dart';
 
 /// Typ prowadzonego akwarium.
@@ -32,6 +34,17 @@ extension TankTypeLabel on TankType {
         return 'Krewetkarium';
     }
   }
+}
+
+TankType _tankTypeFromLabel(String label) {
+  final normalized = label.toLowerCase();
+  if (normalized.contains('morsk')) return TankType.marine;
+  if (normalized.contains('krewet')) return TankType.shrimp;
+  if (normalized.contains('roślin') || normalized.contains('plant')) {
+    return TankType.planted;
+  }
+  if (normalized.contains('biotop')) return TankType.biotope;
+  return TankType.freshwater;
 }
 
 extension CreatureCategoryLabel on CreatureCategory {
@@ -511,7 +524,11 @@ class AquariumProvider extends ChangeNotifier {
        _tasks = List<AquariumTask>.of(tasks ?? const []),
        _aquariums = List<AquariumProfile>.of(aquariums ?? const []),
        _inhabitants = List<Inhabitant>.of(inhabitants ?? const []),
-       _activeAquariumId = activeAquariumId ?? 'aquarium-001' {
+       _activeAquariumId =
+           activeAquariumId ??
+           (aquariums != null && aquariums.isNotEmpty
+               ? aquariums.first.id
+               : 'aquarium-001') {
     if (_aquariums.isEmpty) {
       _aquariums.add(
         AquariumProfile(
@@ -538,6 +555,7 @@ class AquariumProvider extends ChangeNotifier {
   _waterTestsSubscription;
 
   String get activeAquariumId => _activeAquariumId;
+  String get selectedAquariumId => _activeAquariumId;
   List<AquariumProfile> get aquariums => List.unmodifiable(_aquariums);
   AquariumProfile get activeAquarium => _aquariums.firstWhere(
     (aquarium) => aquarium.id == _activeAquariumId,
@@ -658,6 +676,44 @@ class AquariumProvider extends ChangeNotifier {
     _activeAquariumId = aquariumId;
     notifyListeners();
     _persist();
+  }
+
+  void setSelectedAquarium(String aquariumId) => selectAquarium(aquariumId);
+
+  void syncCloudAquariums(List<firestore_models.AquariumModel> cloudAquariums) {
+    if (cloudAquariums.isEmpty) return;
+
+    final mapped = cloudAquariums
+        .map(
+          (aquarium) => AquariumProfile(
+            id: aquarium.id,
+            name: aquarium.name,
+            volumeNetLiters: aquarium.capacityLiters,
+            setupDate: aquarium.setupDate,
+            type: _tankTypeFromLabel(aquarium.type),
+            isActive: aquarium.id == _activeAquariumId,
+          ),
+        )
+        .toList(growable: false);
+    final hasChanged =
+        mapped.length != _aquariums.length ||
+        mapped.asMap().entries.any((entry) {
+          final current = entry.value;
+          final previous = _aquariums[entry.key];
+          return current.id != previous.id ||
+              current.name != previous.name ||
+              current.volumeNetLiters != previous.volumeNetLiters ||
+              current.type != previous.type;
+        });
+    if (!hasChanged) return;
+
+    _aquariums
+      ..clear()
+      ..addAll(mapped);
+    if (!_aquariums.any((aquarium) => aquarium.id == _activeAquariumId)) {
+      _activeAquariumId = _aquariums.first.id;
+    }
+    notifyListeners();
   }
 
   void addAquarium(AquariumProfile profile) {
@@ -964,55 +1020,5 @@ class AquariumProvider extends ChangeNotifier {
       // Nie ma czego czyścić, jeśli plugin nie jest zarejestrowany.
     }
     notifyListeners();
-  }
-}
-
-/// Dane zbiornika gotowe do zapisu w Firebase lub Supabase.
-class AquariumModel {
-  const AquariumModel({
-    required this.id,
-    required this.name,
-    required this.netVolumeLiters,
-    required this.type,
-    required this.establishedAt,
-    this.isActive = true,
-  });
-
-  final String id;
-  final String name;
-  final double netVolumeLiters;
-  final AquariumType type;
-  final DateTime establishedAt;
-  final bool isActive;
-
-  String get typeLabel {
-    switch (type) {
-      case AquariumType.planted:
-        return 'Roślinne';
-      case AquariumType.marine:
-        return 'Morskie';
-      case AquariumType.community:
-        return 'Ogólne';
-    }
-  }
-
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': name,
-    'netVolumeLiters': netVolumeLiters,
-    'type': type.name,
-    'establishedAt': establishedAt.toIso8601String(),
-    'isActive': isActive,
-  };
-
-  factory AquariumModel.fromMap(Map<String, dynamic> map) {
-    return AquariumModel(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      netVolumeLiters: (map['netVolumeLiters'] as num).toDouble(),
-      type: AquariumType.values.byName(map['type'] as String),
-      establishedAt: DateTime.parse(map['establishedAt'] as String),
-      isActive: map['isActive'] as bool? ?? true,
-    );
   }
 }

@@ -41,7 +41,13 @@ class TankSwitcher extends StatelessWidget {
           .toList(),
       child: Chip(
         avatar: const Icon(Icons.water_drop_outlined, size: 18),
-        label: const Text('Zbiornik'),
+        label: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 150),
+          child: Text(
+            provider.activeAquarium.name,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ),
     );
   }
@@ -138,8 +144,12 @@ class _ManagementContentState extends State<_ManagementContent>
           .toLowerCase()
           .contains(query);
     }).toList();
-    final fauna = filtered.where((item) => item.category != CreatureCategory.plant).toList();
-    final flora = filtered.where((item) => item.category == CreatureCategory.plant).toList();
+    final fauna = filtered
+        .where((item) => item.category != CreatureCategory.plant)
+        .toList();
+    final flora = filtered
+        .where((item) => item.category == CreatureCategory.plant)
+        .toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(18),
@@ -249,7 +259,10 @@ class _TankProfileStrip extends StatelessWidget {
                   children: [
                     Icon(Icons.add, color: _managementCyan),
                     SizedBox(height: 6),
-                    Text('Dodaj akwarium', style: TextStyle(color: Colors.white)),
+                    Text(
+                      'Dodaj akwarium',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ],
                 ),
               ),
@@ -274,39 +287,69 @@ class _TankProfileStrip extends StatelessWidget {
                   width: active ? 2 : 1,
                 ),
                 boxShadow: [
-                  BoxShadow(color: _managementCyan.withAlpha(active ? 25 : 5), blurRadius: 16),
+                  BoxShadow(
+                    color: _managementCyan.withAlpha(active ? 25 : 5),
+                    blurRadius: 16,
+                  ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    const Icon(Icons.water, color: _managementCyan),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(aquarium.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                    if (active) const Icon(Icons.check_circle, color: _managementGreen, size: 18),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.white54, size: 18),
-                      onSelected: (action) {
-                        if (action == 'delete') {
-                          provider.deleteAquarium(aquarium.id);
-                        } else {
-                          showDialog<void>(
-                            context: context,
-                            builder: (_) => AddAquariumModal(initial: aquarium),
-                          );
-                        }
-                      },
-                      itemBuilder: (_) => const [
-                        PopupMenuItem(value: 'edit', child: Text('Edytuj')),
-                        PopupMenuItem(value: 'delete', child: Text('Usuń')),
-                      ],
-                    ),
-                  ]),
+                  Row(
+                    children: [
+                      const Icon(Icons.water, color: _managementCyan),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          aquarium.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (active)
+                        const Icon(
+                          Icons.check_circle,
+                          color: _managementGreen,
+                          size: 18,
+                        ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: Colors.white54,
+                          size: 18,
+                        ),
+                        onSelected: (action) {
+                          if (action == 'delete') {
+                            provider.deleteAquarium(aquarium.id);
+                          } else {
+                            showDialog<void>(
+                              context: context,
+                              builder: (_) =>
+                                  AddAquariumModal(initial: aquarium),
+                            );
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(value: 'edit', child: Text('Edytuj')),
+                          PopupMenuItem(value: 'delete', child: Text('Usuń')),
+                        ],
+                      ),
+                    ],
+                  ),
                   const Spacer(),
-                  Text('${aquarium.volumeNetLiters.toStringAsFixed(0)} l netto · ${aquarium.type.label}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(
+                    '${aquarium.volumeNetLiters.toStringAsFixed(0)} l netto · ${aquarium.type.label}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
                   const SizedBox(height: 4),
-                  Text('${aquarium.ageInDays} dni · $count mieszkańców', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text(
+                    '${aquarium.ageInDays} dni · $count mieszkańców',
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -328,20 +371,46 @@ class _StockingSummary extends StatelessWidget {
     final animals = inhabitants
         .where((item) => item.category != CreatureCategory.plant)
         .fold<int>(0, (sum, item) => sum + item.count);
-    final litersPerAnimal = animals == 0 ? double.infinity : provider.activeAquarium.volumeNetLiters / animals;
+    final litersPerAnimal = animals == 0
+        ? double.infinity
+        : provider.activeAquarium.volumeNetLiters / animals;
     final overloaded = litersPerAnimal < 2;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _managementPanel,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: (overloaded ? Colors.redAccent : _managementGreen).withAlpha(90)),
+        border: Border.all(
+          color: (overloaded ? Colors.redAccent : _managementGreen).withAlpha(
+            90,
+          ),
+        ),
       ),
       child: Row(
         children: [
-          Expanded(child: _SummaryMetric(label: 'Gatunki', value: '$species', icon: Icons.category_outlined)),
-          Expanded(child: _SummaryMetric(label: 'Sztuki', value: '$animals', icon: Icons.pets_outlined)),
-          Expanded(child: _SummaryMetric(label: 'L / szt.', value: animals == 0 ? '-' : litersPerAnimal.toStringAsFixed(1), icon: overloaded ? Icons.warning_amber : Icons.check_circle_outline)),
+          Expanded(
+            child: _SummaryMetric(
+              label: 'Gatunki',
+              value: '$species',
+              icon: Icons.category_outlined,
+            ),
+          ),
+          Expanded(
+            child: _SummaryMetric(
+              label: 'Sztuki',
+              value: '$animals',
+              icon: Icons.pets_outlined,
+            ),
+          ),
+          Expanded(
+            child: _SummaryMetric(
+              label: 'L / szt.',
+              value: animals == 0 ? '-' : litersPerAnimal.toStringAsFixed(1),
+              icon: overloaded
+                  ? Icons.warning_amber
+                  : Icons.check_circle_outline,
+            ),
+          ),
         ],
       ),
     );
@@ -349,13 +418,31 @@ class _StockingSummary extends StatelessWidget {
 }
 
 class _SummaryMetric extends StatelessWidget {
-  const _SummaryMetric({required this.label, required this.value, required this.icon});
+  const _SummaryMetric({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
   final String label;
   final String value;
   final IconData icon;
 
   @override
-  Widget build(BuildContext context) => Column(children: [Icon(icon, color: _managementCyan), const SizedBox(height: 5), Text(value, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)), Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11))]);
+  Widget build(BuildContext context) => Column(
+    children: [
+      Icon(icon, color: _managementCyan),
+      const SizedBox(height: 5),
+      Text(
+        value,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+    ],
+  );
 }
 
 class _InhabitantList extends StatelessWidget {
@@ -364,8 +451,18 @@ class _InhabitantList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) return const Center(child: Text('Brak wpisów w tej kategorii.', style: TextStyle(color: Colors.white54)));
-    return ListView.builder(itemCount: items.length, itemBuilder: (context, index) => _InhabitantCard(item: items[index]));
+    if (items.isEmpty) {
+      return const Center(
+        child: Text(
+          'Brak wpisów w tej kategorii.',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) => _InhabitantCard(item: items[index]),
+    );
   }
 }
 
@@ -374,7 +471,37 @@ class _InhabitantCard extends StatelessWidget {
   final Inhabitant item;
 
   @override
-  Widget build(BuildContext context) => Card(color: _managementPanel, child: ListTile(leading: CircleAvatar(backgroundColor: _managementCyan.withAlpha(25), child: Icon(item.category == CreatureCategory.plant ? Icons.local_florist : Icons.pets, color: _managementCyan)), title: Text(item.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), subtitle: Text('${item.latinName} · ${item.count} szt.\n${item.status}${item.plantPosition == null ? '' : ' · ${item.plantPosition!.label}'}', style: const TextStyle(color: Colors.white60)), isThreeLine: true, trailing: IconButton(icon: const Icon(Icons.delete_outline, color: Colors.white54), onPressed: () => context.read<AquariumProvider>().deleteInhabitant(item.id))));
+  Widget build(BuildContext context) => Card(
+    color: _managementPanel,
+    child: ListTile(
+      leading: CircleAvatar(
+        backgroundColor: _managementCyan.withAlpha(25),
+        child: Icon(
+          item.category == CreatureCategory.plant
+              ? Icons.local_florist
+              : Icons.pets,
+          color: _managementCyan,
+        ),
+      ),
+      title: Text(
+        item.name,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      subtitle: Text(
+        '${item.latinName} · ${item.count} szt.\n${item.status}${item.plantPosition == null ? '' : ' · ${item.plantPosition!.label}'}',
+        style: const TextStyle(color: Colors.white60),
+      ),
+      isThreeLine: true,
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline, color: Colors.white54),
+        onPressed: () =>
+            context.read<AquariumProvider>().deleteInhabitant(item.id),
+      ),
+    ),
+  );
 }
 
 class AddAquariumModal extends StatefulWidget {
@@ -399,7 +526,8 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
     if (initial != null) {
       _name.text = initial.name;
       _net.text = initial.volumeNetLiters.toString();
-      _gross.text = (initial.volumeGrossLiters ?? initial.volumeNetLiters).toString();
+      _gross.text = (initial.volumeGrossLiters ?? initial.volumeNetLiters)
+          .toString();
       _type = initial.type;
     }
   }
@@ -413,13 +541,62 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(title: const Text('Nowe akwarium'), content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nazwa')), TextField(controller: _net, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Pojemność netto', suffixText: 'l')), TextField(controller: _gross, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Pojemność brutto', suffixText: 'l')), DropdownButtonFormField<TankType>(initialValue: _type, decoration: const InputDecoration(labelText: 'Typ zbiornika'), items: TankType.values.map((type) => DropdownMenuItem(value: type, child: Text(type.label))).toList(), onChanged: (value) => setState(() => _type = value!))])), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')), FilledButton(onPressed: _save, child: const Text('Dodaj'))]);
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Nowe akwarium'),
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Nazwa'),
+          ),
+          TextField(
+            controller: _net,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Pojemność netto',
+              suffixText: 'l',
+            ),
+          ),
+          TextField(
+            controller: _gross,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Pojemność brutto',
+              suffixText: 'l',
+            ),
+          ),
+          DropdownButtonFormField<TankType>(
+            initialValue: _type,
+            decoration: const InputDecoration(labelText: 'Typ zbiornika'),
+            items: TankType.values
+                .map(
+                  (type) =>
+                      DropdownMenuItem(value: type, child: Text(type.label)),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _type = value!),
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Anuluj'),
+      ),
+      FilledButton(onPressed: _save, child: const Text('Dodaj')),
+    ],
+  );
 
   void _save() {
     if (_name.text.trim().isEmpty) return;
     final provider = context.read<AquariumProvider>();
     final profile = AquariumProfile(
-      id: widget.initial?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      id:
+          widget.initial?.id ??
+          DateTime.now().microsecondsSinceEpoch.toString(),
       name: _name.text.trim(),
       volumeNetLiters: double.tryParse(_net.text.replaceAll(',', '.')) ?? 0,
       volumeGrossLiters: double.tryParse(_gross.text.replaceAll(',', '.')),
@@ -462,19 +639,122 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(title: const Text('Dodaj gatunek'), content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nazwa gatunkowa')), TextField(controller: _latin, decoration: const InputDecoration(labelText: 'Nazwa łacińska')), TextField(controller: _count, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Liczba sztuk')), DropdownButtonFormField<CreatureCategory>(initialValue: _category, decoration: const InputDecoration(labelText: 'Kategoria'), items: CreatureCategory.values.map((category) => DropdownMenuItem(value: category, child: Text(category.label))).toList(), onChanged: (value) => setState(() { _category = value!; if (_category != CreatureCategory.plant) _position = null; })), if (_category == CreatureCategory.plant) DropdownButtonFormField<PlantPosition>(initialValue: _position, decoration: const InputDecoration(labelText: 'Pozycja rośliny'), items: PlantPosition.values.map((position) => DropdownMenuItem(value: position, child: Text(position.label))).toList(), onChanged: (value) => setState(() => _position = value)), TextField(controller: _notes, maxLines: 3, decoration: const InputDecoration(labelText: 'Notatki')), Row(children: [OutlinedButton.icon(onPressed: () => _pickImage(ImageSource.gallery), icon: const Icon(Icons.photo_library_outlined), label: const Text('Galeria')), OutlinedButton.icon(onPressed: () => _pickImage(ImageSource.camera), icon: const Icon(Icons.camera_alt_outlined), label: const Text('Aparat')), if (_image != null) const Expanded(child: Text(' Zdjęcie dodane', style: TextStyle(color: Colors.green)))]),])), actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')), FilledButton(onPressed: _save, child: const Text('Dodaj'))]);
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Dodaj gatunek'),
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Nazwa gatunkowa'),
+          ),
+          TextField(
+            controller: _latin,
+            decoration: const InputDecoration(labelText: 'Nazwa łacińska'),
+          ),
+          TextField(
+            controller: _count,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Liczba sztuk'),
+          ),
+          DropdownButtonFormField<CreatureCategory>(
+            initialValue: _category,
+            decoration: const InputDecoration(labelText: 'Kategoria'),
+            items: CreatureCategory.values
+                .map(
+                  (category) => DropdownMenuItem(
+                    value: category,
+                    child: Text(category.label),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) => setState(() {
+              _category = value!;
+              if (_category != CreatureCategory.plant) _position = null;
+            }),
+          ),
+          if (_category == CreatureCategory.plant)
+            DropdownButtonFormField<PlantPosition>(
+              initialValue: _position,
+              decoration: const InputDecoration(labelText: 'Pozycja rośliny'),
+              items: PlantPosition.values
+                  .map(
+                    (position) => DropdownMenuItem(
+                      value: position,
+                      child: Text(position.label),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) => setState(() => _position = value),
+            ),
+          TextField(
+            controller: _notes,
+            maxLines: 3,
+            decoration: const InputDecoration(labelText: 'Notatki'),
+          ),
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => _pickImage(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library_outlined),
+                label: const Text('Galeria'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => _pickImage(ImageSource.camera),
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: const Text('Aparat'),
+              ),
+              if (_image != null)
+                const Expanded(
+                  child: Text(
+                    ' Zdjęcie dodane',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Anuluj'),
+      ),
+      FilledButton(onPressed: _save, child: const Text('Dodaj')),
+    ],
+  );
 
   Future<void> _pickImage(ImageSource source) async {
     final file = await _picker.pickImage(source: source, imageQuality: 80);
     if (file == null) return;
     final bytes = await file.readAsBytes();
-    if (mounted) setState(() => _image = 'data:image/${file.name.split('.').last};base64,${base64Encode(bytes)}');
+    if (mounted) {
+      setState(
+        () => _image =
+            'data:image/${file.name.split('.').last};base64,${base64Encode(bytes)}',
+      );
+    }
   }
 
   void _save() {
     if (_name.text.trim().isEmpty) return;
     final provider = context.read<AquariumProvider>();
-    provider.addInhabitant(Inhabitant(id: DateTime.now().microsecondsSinceEpoch.toString(), aquariumId: provider.activeAquariumId, name: _name.text.trim(), latinName: _latin.text.trim(), category: _category, count: int.tryParse(_count.text) ?? 1, addedDate: DateTime.now(), plantPosition: _position, notes: _notes.text.trim(), imagePath: _image));
+    provider.addInhabitant(
+      Inhabitant(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        aquariumId: provider.activeAquariumId,
+        name: _name.text.trim(),
+        latinName: _latin.text.trim(),
+        category: _category,
+        count: int.tryParse(_count.text) ?? 1,
+        addedDate: DateTime.now(),
+        plantPosition: _position,
+        notes: _notes.text.trim(),
+        imagePath: _image,
+      ),
+    );
     Navigator.pop(context);
   }
 }

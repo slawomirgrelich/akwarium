@@ -73,4 +73,40 @@ void main() {
     provider.selectAquarium('two');
     expect(provider.inhabitants.single.id, 'shrimp');
   });
+
+  test('selects the first aquarium and syncs the cloud selection', () {
+    final provider = AquariumProvider(
+      aquariums: [
+        AquariumProfile(
+          id: 'first',
+          name: 'Pierwsze',
+          volumeNetLiters: 60,
+          setupDate: DateTime(2026),
+          type: TankType.freshwater,
+        ),
+        AquariumProfile(
+          id: 'second',
+          name: 'Drugie',
+          volumeNetLiters: 30,
+          setupDate: DateTime(2026),
+          type: TankType.shrimp,
+        ),
+      ],
+    );
+
+    expect(provider.selectedAquariumId, 'first');
+
+    provider.syncCloudAquariums([
+      AquariumModel(
+        id: 'cloud-70',
+        name: 'Moje 70 l',
+        netVolumeLiters: 70,
+        establishedAt: DateTime(2026),
+        type: 'Słodkowodne',
+      ),
+    ]);
+
+    expect(provider.selectedAquariumId, 'cloud-70');
+    expect(provider.activeAquarium.volumeNetLiters, 70);
+  });
 }
