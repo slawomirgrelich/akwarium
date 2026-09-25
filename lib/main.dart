@@ -1,3 +1,4 @@
+import 'firebase_options.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -24,15 +25,7 @@ Future<void> main() async {
 
   try {
     await Firebase.initializeApp(
-      options: const FirebaseOptions(
-        apiKey: 'AIzaSyAKxDMF1enBLXzkajTVF771dSqp3OtmGKw',
-        authDomain: 'moje-akwarium-40a75.firebaseapp.com',
-        projectId: 'moje-akwarium-40a75',
-        storageBucket: 'moje-akwarium-40a75.firebasestorage.app',
-        messagingSenderId: '768131458678',
-        appId: '1:768131458678:web:da6500af5acf4797113157',
-        measurementId: 'G-YNF2L6Q5P0',
-      ),
+  options: DefaultFirebaseOptions.currentPlatform,
     );
 
     final auth = FirebaseAuth.instance;

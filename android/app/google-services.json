@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "760131458678",
+    "project_id": "moje-akwarium-40a75",
+    "storage_bucket": "moje-akwarium-40a75.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760131458678:android:f8e04c550b9f6ddf113157",
+        "android_client_info": {
+          "package_name": "com.example.akwarium"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6RN0XYuIMi5eEOIGjkMCbAdFqxaxOqqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
