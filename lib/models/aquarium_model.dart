@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+export 'aquarium_firestore_model.dart';
+
 /// Typ prowadzonego akwarium.
 enum AquariumType { planted, marine, community }
 

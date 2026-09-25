@@ -23,6 +23,7 @@ import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
+import 'widgets/firestore_aquariums_section.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -394,6 +395,8 @@ class DashboardPage extends StatelessWidget {
                 ],
               ),
             ),
+            const FirestoreAquariumsSection(),
+            const SizedBox(height: 24),
             _AquariumCard(aquarium: displayedAquarium),
             const SizedBox(height: 20),
             _SectionHeader(title: 'Status akwarium'),
