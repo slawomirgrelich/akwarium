@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 import 'aquarium_calculators_service.dart';
+import 'services/pro_access_service.dart';
+import 'widgets/pro_paywall_dialog.dart';
 
 const _calculatorBackground = Color(0xFF12181F);
 const _calculatorPanel = Color(0xFF1C2730);
@@ -17,6 +20,7 @@ class AquariumCalculatorsScreen extends StatefulWidget {
 class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(length: 3, vsync: this);
+  int _lastAllowedTab = 0;
 
   @override
   void dispose() {
@@ -26,6 +30,7 @@ class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isProUser = context.watch<ProAccessService>().isProUser;
     return Scaffold(
       backgroundColor: _calculatorBackground,
       appBar: AppBar(
@@ -40,12 +45,34 @@ class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
           tabs: const [
             Tab(icon: Icon(Icons.straighten), text: 'Objętość'),
             Tab(icon: Icon(Icons.bubble_chart), text: 'CO2'),
-            Tab(icon: Icon(Icons.eco_outlined), text: 'Nawozy'),
+            Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.eco_outlined),
+                  SizedBox(width: 6),
+                  Text('Nawozy'),
+                  SizedBox(width: 6),
+                  ProBadge(compact: true),
+                ],
+              ),
+            ),
           ],
+          onTap: (index) {
+            if (index == 2 && !isProUser) {
+              _tabs.animateTo(_lastAllowedTab);
+              ProPaywallDialog.show(context);
+              return;
+            }
+            _lastAllowedTab = index;
+          },
         ),
       ),
       body: TabBarView(
         controller: _tabs,
+        physics: isProUser
+            ? null
+            : const NeverScrollableScrollPhysics(),
         children: const [
           _VolumeCalculator(),
           _Co2Calculator(),
@@ -68,11 +95,12 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
   final _width = TextEditingController(text: '40');
   final _height = TextEditingController(text: '45');
   final _substrate = TextEditingController(text: '5');
+  final _glass = TextEditingController(text: '6');
   double _decorations = 10;
 
   @override
   void dispose() {
-    for (final controller in [_length, _width, _height, _substrate]) {
+    for (final controller in [_length, _width, _height, _substrate, _glass]) {
       controller.dispose();
     }
     super.dispose();
@@ -86,6 +114,7 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
       heightCm: _number(_height),
       substrateThicknessCm: _number(_substrate),
       decorationPercent: _decorations,
+      glassThicknessCm: _number(_glass) / 10,
     );
     return _CalculatorScroll(
       children: [
@@ -100,6 +129,8 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
               ]),
               const SizedBox(height: 12),
               _NumberField(label: 'Wysokość', unit: 'cm', controller: _height, onChanged: (_) => setState(() {})),
+              const SizedBox(height: 12),
+              _NumberField(label: 'Grubość szkła', unit: 'mm', controller: _glass, onChanged: (_) => setState(() {})),
               const SizedBox(height: 12),
               _NumberField(label: 'Grubość podłoża', unit: 'cm', controller: _substrate, onChanged: (_) => setState(() {})),
               const SizedBox(height: 14),
@@ -404,7 +435,7 @@ class _VolumeResult extends StatelessWidget {
   final AquariumVolumeResult result;
 
   @override
-  Widget build(BuildContext context) => _GlassCard(child: Column(children: [Text('${result.netLiters.toStringAsFixed(1)} l', style: const TextStyle(color: _calculatorCyan, fontSize: 38, fontWeight: FontWeight.w800)), const Text('Objętość netto (woda)', style: TextStyle(color: Colors.white70)), const SizedBox(height: 14), LinearProgressIndicator(value: result.grossLiters <= 0 ? 0 : result.netLiters / result.grossLiters, minHeight: 12, borderRadius: BorderRadius.circular(8), color: _calculatorCyan, backgroundColor: Colors.white12), const SizedBox(height: 12), _BreakdownRow(label: 'Woda netto', value: result.netLiters, color: _calculatorCyan), _BreakdownRow(label: 'Podłoże', value: result.substrateLiters, color: Colors.amber), _BreakdownRow(label: 'Skały / drewno', value: result.decorationsLiters, color: Colors.deepOrangeAccent), Text('Brutto: ${result.grossLiters.toStringAsFixed(1)} l', style: const TextStyle(color: Colors.white54))]));
+  Widget build(BuildContext context) => _GlassCard(child: Column(children: [Text('${result.netLiters.toStringAsFixed(1)} l', style: const TextStyle(color: _calculatorCyan, fontSize: 38, fontWeight: FontWeight.w800)), const Text('Rzeczywista objętość wody', style: TextStyle(color: Colors.white70)), const SizedBox(height: 14), LinearProgressIndicator(value: result.grossLiters <= 0 ? 0 : result.netLiters / result.grossLiters, minHeight: 12, borderRadius: BorderRadius.circular(8), color: _calculatorCyan, backgroundColor: Colors.white12), const SizedBox(height: 12), _BreakdownRow(label: 'Woda netto', value: result.netLiters, color: _calculatorCyan), _BreakdownRow(label: 'Podłoże', value: result.substrateLiters, color: Colors.amber), _BreakdownRow(label: 'Skały / drewno', value: result.decorationsLiters, color: Colors.deepOrangeAccent), _BreakdownRow(label: 'Szkło', value: result.glassVolumeLiters, color: Colors.lightBlueAccent), Text('Brutto: ${result.grossLiters.toStringAsFixed(1)} l', style: const TextStyle(color: Colors.white54)), const SizedBox(height: 12), Text('Szacowany ciężar całkowity: ${result.totalWeightKg.toStringAsFixed(1)} kg', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))]));
 }
 
 class _BreakdownRow extends StatelessWidget {

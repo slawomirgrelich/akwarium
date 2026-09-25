@@ -6,12 +6,18 @@ class AquariumVolumeResult {
     required this.substrateLiters,
     required this.decorationsLiters,
     required this.netLiters,
+    required this.glassVolumeLiters,
+    required this.glassWeightKg,
+    required this.totalWeightKg,
   });
 
   final double grossLiters;
   final double substrateLiters;
   final double decorationsLiters;
   final double netLiters;
+  final double glassVolumeLiters;
+  final double glassWeightKg;
+  final double totalWeightKg;
 }
 
 class Co2Result {
@@ -56,16 +62,29 @@ AquariumVolumeResult calculateVolume({
   required double heightCm,
   required double substrateThicknessCm,
   required double decorationPercent,
+  double glassThicknessCm = 0,
 }) {
   final gross = lengthCm * widthCm * heightCm / 1000;
-  final substrate = lengthCm * widthCm * substrateThicknessCm / 1000;
+  final innerLength = math.max(0.0, lengthCm - 2 * glassThicknessCm);
+  final innerWidth = math.max(0.0, widthCm - 2 * glassThicknessCm);
+  final innerHeight = math.max(0.0, heightCm - 2 * glassThicknessCm);
+  final innerGross = innerLength * innerWidth * innerHeight / 1000;
+  final substrate = innerLength * innerWidth * substrateThicknessCm / 1000;
   final decorations = math.max(0.0, gross - substrate) * decorationPercent / 100;
-  final net = math.max(0.0, gross - substrate - decorations).toDouble();
+  final net = math.max(0.0, innerGross - substrate - decorations).toDouble();
+  final glassVolume = math.max(0.0, gross - innerGross).toDouble();
+  final glassWeight = glassVolume * 2.5;
+  final substrateWeight = substrate * 1.5;
+  final decorationsWeight = decorations * 2.0;
+  final totalWeight = net + glassWeight + substrateWeight + decorationsWeight;
   return AquariumVolumeResult(
     grossLiters: gross,
     substrateLiters: substrate,
     decorationsLiters: decorations,
     netLiters: net,
+    glassVolumeLiters: glassVolume,
+    glassWeightKg: glassWeight,
+    totalWeightKg: totalWeight,
   );
 }
 

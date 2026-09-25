@@ -21,6 +21,7 @@ import 'models/water_standards.dart';
 import 'screens/auth_wrapper.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
+import 'services/pro_access_service.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 import 'widgets/firestore_aquariums_section.dart';
@@ -182,9 +183,11 @@ class AkwarystaProApp extends StatelessWidget {
       brightness: Brightness.light,
     );
 
-    return ChangeNotifierProvider<models.AquariumProvider>(
-      create: (_) => models.AquariumProvider()..initialize(),
-      child: MaterialApp(
+    return ChangeNotifierProvider<ProAccessService>(
+      create: (_) => ProAccessService(),
+      child: ChangeNotifierProvider<models.AquariumProvider>(
+        create: (_) => models.AquariumProvider()..initialize(),
+        child: MaterialApp(
         title: 'Akwarysta PRO',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
@@ -246,6 +249,7 @@ class AkwarystaProApp extends StatelessWidget {
         home: firebaseReady
             ? const AuthWrapper(authenticatedScreen: MainShell())
             : const LoginScreen(),
+        ),
       ),
     );
   }
