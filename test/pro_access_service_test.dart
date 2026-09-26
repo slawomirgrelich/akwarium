@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:akwarium/services/pro_access_service.dart';
 
 void main() {
-  test('persists PRO activation and restores it after a restart', () async {
+  test('clears PRO activation when no account is signed in', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final preferences = await SharedPreferences.getInstance();
     final service = ProAccessService(preferences: preferences);
@@ -16,6 +16,6 @@ void main() {
     final restartedService = ProAccessService(preferences: preferences);
     await restartedService.init();
 
-    expect(restartedService.isProUser, isTrue);
+    expect(restartedService.isProUser, isFalse);
   });
 }
