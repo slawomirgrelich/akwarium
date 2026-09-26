@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthException implements Exception {
   const AuthException(this.message);
@@ -27,6 +28,10 @@ class AuthService {
         password: password,
       );
     } on FirebaseAuthException catch (error) {
+      debugPrint(
+        'Firebase Auth sign-in failed: code=${error.code}, '
+        'message=${error.message}',
+      );
       throw AuthException(_messageForCode(error.code));
     }
   }
@@ -41,6 +46,10 @@ class AuthService {
         password: password,
       );
     } on FirebaseAuthException catch (error) {
+      debugPrint(
+        'Firebase Auth registration failed: code=${error.code}, '
+        'message=${error.message}',
+      );
       throw AuthException(_messageForCode(error.code));
     }
   }
@@ -49,6 +58,10 @@ class AuthService {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email.trim());
     } on FirebaseAuthException catch (error) {
+      debugPrint(
+        'Firebase Auth password reset failed: code=${error.code}, '
+        'message=${error.message}',
+      );
       throw AuthException(_messageForCode(error.code));
     }
   }
@@ -57,6 +70,10 @@ class AuthService {
     try {
       await _firebaseAuth.signOut();
     } on FirebaseAuthException catch (error) {
+      debugPrint(
+        'Firebase Auth sign-out failed: code=${error.code}, '
+        'message=${error.message}',
+      );
       throw AuthException(_messageForCode(error.code));
     }
   }

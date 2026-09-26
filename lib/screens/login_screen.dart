@@ -265,6 +265,9 @@ class _LoginScreenState extends State<LoginScreen> {
           email: _emailController.text,
           password: _passwordController.text,
         );
+        if (mounted) {
+          _showMessage('Konto utworzone. Trwa otwieranie pulpitu.');
+        }
       } else {
         await _auth.signInWithEmailAndPassword(
           email: _emailController.text,
@@ -272,10 +275,15 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } on AuthException catch (error) {
-      if (mounted) setState(() => _errorMessage = error.message);
+      if (mounted) {
+        setState(() => _errorMessage = error.message);
+        _showMessage(error.message, error: true);
+      }
     } catch (_) {
       if (mounted) {
-        setState(() => _errorMessage = 'Nie udało się połączyć z Firebase.');
+        const message = 'Nie udało się połączyć z Firebase.';
+        setState(() => _errorMessage = message);
+        _showMessage(message, error: true);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -326,8 +334,20 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } on AuthException catch (error) {
-      if (mounted) setState(() => _errorMessage = error.message);
+      if (mounted) {
+        setState(() => _errorMessage = error.message);
+        _showMessage(error.message, error: true);
+      }
     }
+  }
+
+  void _showMessage(String message, {bool error = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: error ? Colors.red.shade700 : null,
+      ),
+    );
   }
 }
 
