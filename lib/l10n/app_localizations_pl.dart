@@ -455,4 +455,75 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get unlockPremium => 'Odblokuj AI, wykresy i nielimitowane akwaria.';
+
+  @override
+  String get proPlanUnlimitedAquariums =>
+      'Plan PRO: nielimitowana liczba akwariów';
+
+  @override
+  String get knowledgeBaseTitle => 'Baza wiedzy i Atlas';
+
+  @override
+  String get knowledgeBaseDesc =>
+      'Poznaj ryby, rośliny i metody zwalczania glonów.';
+
+  @override
+  String get fertilizerCalcTitle => 'Kalkulator nawozów';
+
+  @override
+  String get fertilizerCalcDesc =>
+      'Oblicz dzienne i tygodniowe dawki dla swojego akwarium.';
+
+  @override
+  String get aquaristProActive => 'Akwarysta PRO (Aktywny)';
+
+  @override
+  String get allFeaturesUnlocked => 'Wszystkie funkcje premium są odblokowane';
+
+  @override
+  String get navTools => 'Narzędzia';
+
+  @override
+  String get navJournal => 'Dziennik';
+
+  @override
+  String get navDashboard => 'Pulpit';
+
+  @override
+  String get aiScannerTitle => 'Skaner AI ryb i roślin';
+
+  @override
+  String get aiScannerDesc =>
+      'Rozpoznaj gatunek ze zdjęcia i poznaj jego wymagania.';
+
+  @override
+  String get tryPro => 'Wypróbuj PRO';
+
+  @override
+  String get algaeAssistantTitle => 'Asystent glonów';
+
+  @override
+  String get algaeAssistantDesc =>
+      'Zdiagnozuj problem i otrzymaj plan działania.';
+
+  @override
+  String get startDiagnosis => 'Rozpocznij diagnozę';
+
+  @override
+  String get timeline => 'Oś czasu';
+
+  @override
+  String get calendar => 'Kalendarz';
+
+  @override
+  String get allEntries => 'Wszystkie';
+
+  @override
+  String get noEntriesForFilter => 'Brak wpisów dla wybranego filtra.';
+
+  @override
+  String get searchAtlas => 'Szukaj w Atlasie';
+
+  @override
+  String get knowledgeForStableTank => 'Wiedza dla stabilnego zbiornika';
 }

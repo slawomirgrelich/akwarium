@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../data/aquarium_knowledge_base.dart';
 import '../models/aquarium_model.dart';
 import '../services/aquarium_diagnostic_service.dart';
@@ -20,16 +21,17 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isPro = context.watch<ProAccessService>().isProUser;
     final aquarium = context.watch<AquariumProvider>().activeAquarium;
     final provider = context.watch<AquariumProvider>();
     final latestTest = provider.waterTests.isEmpty
-      ? null
-      : provider.waterTests.first;
+        ? null
+        : provider.waterTests.first;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Baza wiedzy i Atlas'),
+        title: Text(l10n.knowledgeBaseTitle),
         actions: [
           IconButton(
             tooltip: 'Diagnoza PRO',
@@ -52,8 +54,8 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
                       children: [
                         TextField(
                           onChanged: (value) => setState(() => _query = value),
-                          decoration: const InputDecoration(
-                            labelText: 'Szukaj w Atlasie',
+                          decoration: InputDecoration(
+                            labelText: l10n.searchAtlas,
                             hintText: 'np. neon, anubias, zielenice',
                             prefixIcon: Icon(Icons.search),
                           ),
@@ -78,9 +80,9 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Text(
-                                'Wiedza dla stabilnego zbiornika',
+                                l10n.knowledgeForStableTank,
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -159,7 +161,8 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
   }
 
   bool _matches(String text) =>
-      _query.trim().isEmpty || text.toLowerCase().contains(_query.toLowerCase());
+      _query.trim().isEmpty ||
+      text.toLowerCase().contains(_query.toLowerCase());
 
   bool _isCompatible(
     FishSpeciesModel fish,
@@ -200,19 +203,14 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
   }
 
   void _showFishDetails(BuildContext context, FishSpeciesModel fish) {
-    _showDetails(
-      context,
-      fish.polishName,
-      fish.latinName,
-      [
-        'pH: ${fish.phMin}–${fish.phMax}',
-        'Temperatura: ${fish.temperatureMin}–${fish.temperatureMax}°C',
-        'GH: ${fish.ghMin}–${fish.ghMax}',
-        'Minimum: ${fish.minimumLiters} l',
-        'Trudność: ${fish.difficulty}',
-        'Usposobienie: ${fish.temperament}',
-      ],
-    );
+    _showDetails(context, fish.polishName, fish.latinName, [
+      'pH: ${fish.phMin}–${fish.phMax}',
+      'Temperatura: ${fish.temperatureMin}–${fish.temperatureMax}°C',
+      'GH: ${fish.ghMin}–${fish.ghMax}',
+      'Minimum: ${fish.minimumLiters} l',
+      'Trudność: ${fish.difficulty}',
+      'Usposobienie: ${fish.temperament}',
+    ]);
   }
 
   void _showPlantDetails(BuildContext context, PlantSpeciesModel plant) {
@@ -277,7 +275,11 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
 }
 
 class _FishCard extends StatelessWidget {
-  const _FishCard({required this.fish, required this.compatible, required this.onTap});
+  const _FishCard({
+    required this.fish,
+    required this.compatible,
+    required this.onTap,
+  });
 
   final FishSpeciesModel fish;
   final bool compatible;
@@ -299,19 +301,37 @@ class _FishCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(fish.polishName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    Text(fish.latinName, style: TextStyle(color: Colors.grey.shade700, fontStyle: FontStyle.italic)),
+                    Text(
+                      fish.polishName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      fish.latinName,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    Text('pH ${fish.phMin}–${fish.phMax} · min. ${fish.minimumLiters} l'),
+                    Text(
+                      'pH ${fish.phMin}–${fish.phMax} · min. ${fish.minimumLiters} l',
+                    ),
                     if (compatible)
                       Text(
                         'Idealne do Twojego akwarium',
-                        style: TextStyle(color: Colors.teal.shade700, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: TextStyle(
+                          color: Colors.teal.shade700,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                   ],
                 ),
               ),
-              Icon(compatible ? Icons.check_circle : Icons.chevron_right, color: compatible ? Colors.teal : null),
+              Icon(
+                compatible ? Icons.check_circle : Icons.chevron_right,
+                color: compatible ? Colors.teal : null,
+              ),
             ],
           ),
         ),
@@ -333,7 +353,9 @@ class _PlantCard extends StatelessWidget {
         onTap: onTap,
         leading: const CircleAvatar(child: Icon(Icons.eco_outlined)),
         title: Text(plant.name),
-        subtitle: Text('${plant.position} · Światło: ${plant.lightRequirements}'),
+        subtitle: Text(
+          '${plant.position} · Światło: ${plant.lightRequirements}',
+        ),
         trailing: const Icon(Icons.chevron_right),
       ),
     );
@@ -361,13 +383,18 @@ class _AlgaeCard extends StatelessWidget {
 }
 
 class AquariumDiagnosticScreen extends StatefulWidget {
-  const AquariumDiagnosticScreen({required this.aquarium, this.latestTest, super.key});
+  const AquariumDiagnosticScreen({
+    required this.aquarium,
+    this.latestTest,
+    super.key,
+  });
 
   final AquariumProfile aquarium;
   final WaterTest? latestTest;
 
   @override
-  State<AquariumDiagnosticScreen> createState() => _AquariumDiagnosticScreenState();
+  State<AquariumDiagnosticScreen> createState() =>
+      _AquariumDiagnosticScreenState();
 }
 
 class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
@@ -404,12 +431,17 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Inteligentna diagnoza'),
-        actions: const [Padding(padding: EdgeInsets.only(right: 12), child: ProBadge())],
+        actions: const [
+          Padding(padding: EdgeInsets.only(right: 12), child: ProBadge()),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         children: [
-          Text(widget.aquarium.name, style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            widget.aquarium.name,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: 4),
           const Text('Wprowadź aktualne dane, aby otrzymać plan działania.'),
           const SizedBox(height: 18),
@@ -423,14 +455,31 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 children: [
-                  Row(children: [const Text('Czas świecenia'), const Spacer(), Text('${_lightHours.toStringAsFixed(0)} h')]),
-                  Slider(value: _lightHours, min: 4, max: 12, divisions: 8, label: '${_lightHours.toStringAsFixed(0)} h', onChanged: (value) => setState(() => _lightHours = value)),
+                  Row(
+                    children: [
+                      const Text('Czas świecenia'),
+                      const Spacer(),
+                      Text('${_lightHours.toStringAsFixed(0)} h'),
+                    ],
+                  ),
+                  Slider(
+                    value: _lightHours,
+                    min: 4,
+                    max: 12,
+                    divisions: 8,
+                    label: '${_lightHours.toStringAsFixed(0)} h',
+                    onChanged: (value) => setState(() => _lightHours = value),
+                  ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 10),
-          FilledButton.icon(onPressed: _diagnose, icon: const Icon(Icons.auto_awesome), label: const Text('Uruchom diagnozę PRO')),
+          FilledButton.icon(
+            onPressed: _diagnose,
+            icon: const Icon(Icons.auto_awesome),
+            label: const Text('Uruchom diagnozę PRO'),
+          ),
           if (_result != null) ...[
             const SizedBox(height: 20),
             _DiagnosticResultCard(result: _result!),
@@ -510,7 +559,10 @@ class _DiagnosticResultCard extends StatelessWidget {
               ),
             ),
             const Divider(),
-            const Text('Plan działania', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Plan działania',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             ...result.actionPlan.indexed.map(
               (item) => Padding(

@@ -399,17 +399,17 @@ class _MainShellState extends State<MainShell> {
             BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_outlined),
               activeIcon: Icon(Icons.dashboard),
-              label: l10n.dashboard,
+              label: l10n.navDashboard,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.menu_book_outlined),
               activeIcon: Icon(Icons.menu_book),
-              label: l10n.journal,
+              label: l10n.navJournal,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.build_outlined),
               activeIcon: Icon(Icons.build),
-              label: l10n.tools,
+              label: l10n.navTools,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
@@ -799,8 +799,8 @@ class ToolsPage extends StatelessWidget {
             _ToolCard(
               icon: Icons.menu_book_outlined,
               color: Colors.teal.shade700,
-              title: l10n.knowledgeBase,
-              description: l10n.knowledgeBaseDescription,
+              title: l10n.knowledgeBaseTitle,
+              description: l10n.knowledgeBaseDesc,
               buttonLabel: l10n.openAtlas,
               premium: true,
               onTap: () {
@@ -816,8 +816,8 @@ class ToolsPage extends StatelessWidget {
             _ToolCard(
               icon: Icons.calculate_outlined,
               color: Colors.indigo,
-              title: l10n.fertilizerCalculator,
-              description: l10n.fertilizerDescription,
+              title: l10n.fertilizerCalcTitle,
+              description: l10n.fertilizerCalcDesc,
               buttonLabel: l10n.openCalculator,
               premium: true,
               onTap: () {
@@ -833,10 +833,9 @@ class ToolsPage extends StatelessWidget {
             _ToolCard(
               icon: Icons.auto_awesome,
               color: Colors.deepPurple,
-              title: 'Skaner AI ryb i roślin',
-              description:
-                  'Rozpoznaj gatunek ze zdjęcia i poznaj jego wymagania.',
-              buttonLabel: 'Wypróbuj PRO',
+              title: l10n.aiScannerTitle,
+              description: l10n.aiScannerDesc,
+              buttonLabel: l10n.tryPro,
               premium: true,
               onTap: () {
                 Navigator.push(
@@ -849,9 +848,9 @@ class ToolsPage extends StatelessWidget {
             _ToolCard(
               icon: Icons.eco_outlined,
               color: Colors.green.shade700,
-              title: 'Asystent glonów',
-              description: 'Zdiagnozuj problem i otrzymaj plan działania.',
-              buttonLabel: 'Rozpocznij diagnozę',
+              title: l10n.algaeAssistantTitle,
+              description: l10n.algaeAssistantDesc,
+              buttonLabel: l10n.startDiagnosis,
               onTap: () => _showAlgaeDialog(context),
             ),
             const SizedBox(height: 24),
@@ -1613,7 +1612,7 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.add_circle_outline,
               title: 'Dodaj nowe akwarium',
               subtitle: context.watch<ProAccessService>().isProUser
-                  ? l10n.proPlan
+                  ? l10n.proPlanUnlimitedAquariums
                   : l10n.freePlan,
               onTap: () => _openAquariumManagement(context),
             ),
@@ -2362,7 +2361,7 @@ class _ProCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isProUser ? l10n.proActive : l10n.proName,
+                    isProUser ? l10n.aquaristProActive : l10n.proName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -2371,7 +2370,7 @@ class _ProCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    isProUser ? l10n.allPremiumUnlocked : l10n.unlockPremium,
+                    isProUser ? l10n.allFeaturesUnlocked : l10n.unlockPremium,
                     style: const TextStyle(color: Colors.white70),
                   ),
                 ],

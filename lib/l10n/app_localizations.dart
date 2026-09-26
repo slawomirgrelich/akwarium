@@ -955,6 +955,138 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Odblokuj AI, wykresy i nielimitowane akwaria.'**
   String get unlockPremium;
+
+  /// No description provided for @proPlanUnlimitedAquariums.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plan PRO: nielimitowana liczba akwariów'**
+  String get proPlanUnlimitedAquariums;
+
+  /// No description provided for @knowledgeBaseTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Baza wiedzy i Atlas'**
+  String get knowledgeBaseTitle;
+
+  /// No description provided for @knowledgeBaseDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poznaj ryby, rośliny i metody zwalczania glonów.'**
+  String get knowledgeBaseDesc;
+
+  /// No description provided for @fertilizerCalcTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalkulator nawozów'**
+  String get fertilizerCalcTitle;
+
+  /// No description provided for @fertilizerCalcDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oblicz dzienne i tygodniowe dawki dla swojego akwarium.'**
+  String get fertilizerCalcDesc;
+
+  /// No description provided for @aquaristProActive.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwarysta PRO (Aktywny)'**
+  String get aquaristProActive;
+
+  /// No description provided for @allFeaturesUnlocked.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie funkcje premium są odblokowane'**
+  String get allFeaturesUnlocked;
+
+  /// No description provided for @navTools.
+  ///
+  /// In pl, this message translates to:
+  /// **'Narzędzia'**
+  String get navTools;
+
+  /// No description provided for @navJournal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dziennik'**
+  String get navJournal;
+
+  /// No description provided for @navDashboard.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pulpit'**
+  String get navDashboard;
+
+  /// No description provided for @aiScannerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skaner AI ryb i roślin'**
+  String get aiScannerTitle;
+
+  /// No description provided for @aiScannerDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozpoznaj gatunek ze zdjęcia i poznaj jego wymagania.'**
+  String get aiScannerDesc;
+
+  /// No description provided for @tryPro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wypróbuj PRO'**
+  String get tryPro;
+
+  /// No description provided for @algaeAssistantTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Asystent glonów'**
+  String get algaeAssistantTitle;
+
+  /// No description provided for @algaeAssistantDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdiagnozuj problem i otrzymaj plan działania.'**
+  String get algaeAssistantDesc;
+
+  /// No description provided for @startDiagnosis.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozpocznij diagnozę'**
+  String get startDiagnosis;
+
+  /// No description provided for @timeline.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oś czasu'**
+  String get timeline;
+
+  /// No description provided for @calendar.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalendarz'**
+  String get calendar;
+
+  /// No description provided for @allEntries.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie'**
+  String get allEntries;
+
+  /// No description provided for @noEntriesForFilter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wpisów dla wybranego filtra.'**
+  String get noEntriesForFilter;
+
+  /// No description provided for @searchAtlas.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szukaj w Atlasie'**
+  String get searchAtlas;
+
+  /// No description provided for @knowledgeForStableTank.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wiedza dla stabilnego zbiornika'**
+  String get knowledgeForStableTank;
 }
 
 class _AppLocalizationsDelegate

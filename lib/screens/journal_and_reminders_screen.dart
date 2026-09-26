@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../local_reminder_service.dart';
+import '../l10n/app_localizations.dart';
 import '../models/aquarium_model.dart';
 import '../services/aquarium_journal_service.dart';
 import '../services/pro_access_service.dart';
@@ -24,6 +25,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AquariumProvider>();
     final aquariumId = provider.activeAquariumId;
     return StreamBuilder<List<JournalEntryModel>>(
@@ -59,12 +61,12 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                 length: 2,
                 child: Column(
                   children: [
-                    const TabBar(
+                    TabBar(
                       tabs: [
-                        Tab(icon: Icon(Icons.timeline), text: 'Oś czasu'),
+                        Tab(icon: Icon(Icons.timeline), text: l10n.timeline),
                         Tab(
                           icon: Icon(Icons.calendar_month),
-                          text: 'Kalendarz',
+                          text: l10n.calendar,
                         ),
                       ],
                     ),
@@ -307,6 +309,7 @@ class _TimelineTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final filtered = entries
         .where((entry) => filter == null || entry.entryType == filter)
         .toList();
@@ -318,7 +321,7 @@ class _TimelineTab extends StatelessWidget {
           child: Row(
             children: [
               ChoiceChip(
-                label: const Text('Wszystkie'),
+                label: Text(l10n.allEntries),
                 selected: filter == null,
                 onSelected: (_) => onFilterChanged(null),
               ),
@@ -337,10 +340,7 @@ class _TimelineTab extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         if (filtered.isEmpty)
-          const _JournalEmpty(
-            icon: Icons.timeline,
-            text: 'Brak wpisów dla wybranego filtra.',
-          )
+          _JournalEmpty(icon: Icons.timeline, text: l10n.noEntriesForFilter)
         else
           ...filtered.map((entry) => _JournalTimelineCard(entry: entry)),
       ],

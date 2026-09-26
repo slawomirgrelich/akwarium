@@ -456,4 +456,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unlockPremium => 'Unlock AI, charts and unlimited aquariums.';
+
+  @override
+  String get proPlanUnlimitedAquariums => 'PRO plan: unlimited aquariums';
+
+  @override
+  String get knowledgeBaseTitle => 'Knowledge base and Atlas';
+
+  @override
+  String get knowledgeBaseDesc => 'Learn about fish, plants and algae control.';
+
+  @override
+  String get fertilizerCalcTitle => 'Fertilizer calculator';
+
+  @override
+  String get fertilizerCalcDesc =>
+      'Calculate daily and weekly doses for your tank.';
+
+  @override
+  String get aquaristProActive => 'Aquarist PRO (Active)';
+
+  @override
+  String get allFeaturesUnlocked => 'All premium features are unlocked';
+
+  @override
+  String get navTools => 'Tools';
+
+  @override
+  String get navJournal => 'Journal';
+
+  @override
+  String get navDashboard => 'Dashboard';
+
+  @override
+  String get aiScannerTitle => 'AI fish and plant scanner';
+
+  @override
+  String get aiScannerDesc =>
+      'Identify a species from a photo and learn its needs.';
+
+  @override
+  String get tryPro => 'Try PRO';
+
+  @override
+  String get algaeAssistantTitle => 'Algae assistant';
+
+  @override
+  String get algaeAssistantDesc =>
+      'Diagnose the problem and get an action plan.';
+
+  @override
+  String get startDiagnosis => 'Start diagnosis';
+
+  @override
+  String get timeline => 'Timeline';
+
+  @override
+  String get calendar => 'Calendar';
+
+  @override
+  String get allEntries => 'All';
+
+  @override
+  String get noEntriesForFilter => 'No entries for selected filter.';
+
+  @override
+  String get searchAtlas => 'Search the Atlas';
+
+  @override
+  String get knowledgeForStableTank => 'Knowledge for a stable tank';
 }
