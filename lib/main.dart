@@ -11,6 +11,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'l10n/app_localizations.dart';
+
 import 'algae_assistant_service.dart';
 import 'ai_scanner_service.dart';
 import 'app_version_widget.dart';
@@ -27,6 +29,7 @@ import 'screens/notification_settings_screen.dart';
 import 'services/auth_service.dart';
 import 'services/pro_access_service.dart';
 import 'services/theme_controller.dart';
+import 'services/locale_controller.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 import 'widgets/pro_paywall_dialog.dart';
@@ -229,93 +232,99 @@ class AkwarystaProApp extends StatelessWidget {
       create: (_) => ProAccessService(preferences: proPreferences)..init(),
       child: ChangeNotifierProvider<ThemeController>(
         create: (_) => ThemeController(preferences: proPreferences)..init(),
-        child: ChangeNotifierProvider<models.AquariumProvider>(
-          create: (_) => models.AquariumProvider()..initialize(),
-          child: Builder(
-            builder: (context) => MaterialApp(
-              title: 'Akwarysta PRO',
-              debugShowCheckedModeBanner: false,
-              themeMode: context.watch<ThemeController>().themeMode,
-              theme: ThemeData.light(useMaterial3: true).copyWith(
-                colorScheme: colorScheme,
-                scaffoldBackgroundColor: const Color(0xFFF2F8F6),
-                appBarTheme: const AppBarTheme(
-                  backgroundColor: Color(0xFFF9FBFB),
-                  foregroundColor: Color(0xFF0F2D2A),
-                  elevation: 0,
-                ),
-                cardTheme: CardThemeData(
-                  color: Colors.white,
-                  elevation: 1,
-                  shadowColor: Color(0x180F2D2A),
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: Color(0x240F2D2A)),
+        child: ChangeNotifierProvider<LocaleController>(
+          create: (_) => LocaleController(preferences: proPreferences)..init(),
+          child: ChangeNotifierProvider<models.AquariumProvider>(
+            create: (_) => models.AquariumProvider()..initialize(),
+            child: Builder(
+              builder: (context) => MaterialApp(
+                title: 'Akwarysta PRO',
+                debugShowCheckedModeBanner: false,
+                locale: context.watch<LocaleController>().locale,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                themeMode: context.watch<ThemeController>().themeMode,
+                theme: ThemeData.light(useMaterial3: true).copyWith(
+                  colorScheme: colorScheme,
+                  scaffoldBackgroundColor: const Color(0xFFF2F8F6),
+                  appBarTheme: const AppBarTheme(
+                    backgroundColor: Color(0xFFF9FBFB),
+                    foregroundColor: Color(0xFF0F2D2A),
+                    elevation: 0,
                   ),
-                ),
-                dividerTheme: const DividerThemeData(
-                  color: Color(0x180F2D2A),
-                  space: 1,
-                ),
-                textTheme: const TextTheme(
-                  bodyLarge: TextStyle(color: Color(0xFF1A202C)),
-                  bodyMedium: TextStyle(color: Color(0xFF4A5568)),
-                  titleLarge: TextStyle(
-                    color: Color(0xFF0F2D2A),
-                    fontWeight: FontWeight.bold,
-                  ),
-                  titleMedium: TextStyle(
-                    color: Color(0xFF0F2D2A),
-                    fontWeight: FontWeight.bold,
-                  ),
-                  titleSmall: TextStyle(
-                    color: Color(0xFF0F2D2A),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                filledButtonTheme: FilledButtonThemeData(
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(48),
+                  cardTheme: CardThemeData(
+                    color: Colors.white,
+                    elevation: 1,
+                    shadowColor: Color(0x180F2D2A),
+                    margin: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: Color(0x240F2D2A)),
                     ),
                   ),
-                ),
-                outlinedButtonTheme: OutlinedButtonThemeData(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(46),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  dividerTheme: const DividerThemeData(
+                    color: Color(0x180F2D2A),
+                    space: 1,
+                  ),
+                  textTheme: const TextTheme(
+                    bodyLarge: TextStyle(color: Color(0xFF1A202C)),
+                    bodyMedium: TextStyle(color: Color(0xFF4A5568)),
+                    titleLarge: TextStyle(
+                      color: Color(0xFF0F2D2A),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    titleMedium: TextStyle(
+                      color: Color(0xFF0F2D2A),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    titleSmall: TextStyle(
+                      color: Color(0xFF0F2D2A),
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                inputDecorationTheme: _inputDecorationTheme(dark: false),
-              ),
-              darkTheme: ThemeData(
-                useMaterial3: true,
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: Colors.teal,
-                  brightness: Brightness.dark,
-                ),
-                scaffoldBackgroundColor: const Color(0xFF0F172A),
-                cardTheme: CardThemeData(
-                  color: const Color(0xFF1E293B),
-                  elevation: 1,
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                  filledButtonTheme: FilledButtonThemeData(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
+                  outlinedButtonTheme: OutlinedButtonThemeData(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(46),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  inputDecorationTheme: _inputDecorationTheme(dark: false),
                 ),
-                inputDecorationTheme: _inputDecorationTheme(dark: true),
+                darkTheme: ThemeData(
+                  useMaterial3: true,
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: Colors.teal,
+                    brightness: Brightness.dark,
+                  ),
+                  scaffoldBackgroundColor: const Color(0xFF0F172A),
+                  cardTheme: CardThemeData(
+                    color: const Color(0xFF1E293B),
+                    elevation: 1,
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  inputDecorationTheme: _inputDecorationTheme(dark: true),
+                ),
+                home: firebaseReady
+                    ? const AuthWrapper(authenticatedScreen: MainShell())
+                    : const LoginScreen(),
+                routes: {
+                  '/login': (_) => const LoginScreen(),
+                  '/dashboard': (_) => const MainShell(),
+                },
               ),
-              home: firebaseReady
-                  ? const AuthWrapper(authenticatedScreen: MainShell())
-                  : const LoginScreen(),
-              routes: {
-                '/login': (_) => const LoginScreen(),
-                '/dashboard': (_) => const MainShell(),
-              },
             ),
           ),
         ),
@@ -344,6 +353,7 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final pages = [
       DashboardPage(aquarium: _aquarium),
       const JournalAndRemindersScreen(),
@@ -385,26 +395,26 @@ class _MainShellState extends State<MainShell> {
               _currentIndex = index;
             });
           },
-          items: const [
+          items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_outlined),
               activeIcon: Icon(Icons.dashboard),
-              label: 'Pulpit',
+              label: l10n.dashboard,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.menu_book_outlined),
               activeIcon: Icon(Icons.menu_book),
-              label: 'Dziennik',
+              label: l10n.journal,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.build_outlined),
               activeIcon: Icon(Icons.build),
-              label: 'Narzędzia',
+              label: l10n.tools,
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
               activeIcon: Icon(Icons.person),
-              label: 'Profil',
+              label: l10n.profile,
             ),
           ],
         ),
@@ -1561,6 +1571,7 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final proService = context.watch<ProAccessService>();
     if (proService.trialExpired) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1595,8 +1606,8 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.add_circle_outline,
               title: 'Dodaj nowe akwarium',
               subtitle: context.watch<ProAccessService>().isProUser
-                  ? 'Plan PRO: nielimitowana liczba zbiorników'
-                  : 'Plan Free: do 3 zbiorników',
+                  ? l10n.proPlan
+                  : l10n.freePlan,
               onTap: () => _openAquariumManagement(context),
             ),
             const SizedBox(height: 24),
@@ -1615,6 +1626,8 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const _ThemeModeTile(),
+            const SizedBox(height: 10),
+            const _LocaleTile(),
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.cloud_outlined,
@@ -2246,15 +2259,16 @@ class _ThemeModeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<ThemeController>();
     return Card(
       child: ListTile(
-        leading: Icon(Icons.brightness_6_outlined, color: Colors.teal.shade700),
-        title: const Text(
-          'Motyw aplikacji',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        leading: Icon(
+          Icons.brightness_6_outlined,
+          color: Theme.of(context).primaryColor,
         ),
-        subtitle: const Text('Systemowy, jasny lub ciemny'),
+        title: Text(l10n.theme, style: TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('${l10n.system}, ${l10n.light}, ${l10n.dark}'),
         trailing: DropdownButtonHideUnderline(
           child: DropdownButton<ThemeMode>(
             value: controller.themeMode,
@@ -2262,13 +2276,49 @@ class _ThemeModeTile extends StatelessWidget {
             onChanged: (mode) {
               if (mode != null) controller.setThemeMode(mode);
             },
-            items: const [
+            items: [
               DropdownMenuItem(
                 value: ThemeMode.system,
-                child: Text('Systemowy'),
+                child: Text(l10n.system),
               ),
-              DropdownMenuItem(value: ThemeMode.light, child: Text('Jasny')),
-              DropdownMenuItem(value: ThemeMode.dark, child: Text('Ciemny')),
+              DropdownMenuItem(value: ThemeMode.light, child: Text(l10n.light)),
+              DropdownMenuItem(value: ThemeMode.dark, child: Text(l10n.dark)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LocaleTile extends StatelessWidget {
+  const _LocaleTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final controller = context.watch<LocaleController>();
+    final selected = controller.locale?.languageCode == 'en' ? 'en' : 'pl';
+    return Card(
+      child: ListTile(
+        leading: Icon(Icons.language, color: Theme.of(context).primaryColor),
+        title: Text(
+          l10n.language,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(selected == 'en' ? l10n.english : l10n.polish),
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: selected,
+            isDense: true,
+            onChanged: (languageCode) {
+              if (languageCode != null) {
+                controller.setLocale(Locale(languageCode));
+              }
+            },
+            items: [
+              DropdownMenuItem(value: 'pl', child: Text(l10n.polish)),
+              DropdownMenuItem(value: 'en', child: Text(l10n.english)),
             ],
           ),
         ),

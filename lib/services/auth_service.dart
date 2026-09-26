@@ -4,9 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthException implements Exception {
-  const AuthException(this.message);
+  const AuthException(this.message, {this.code});
 
   final String message;
+  final String? code;
 
   @override
   String toString() => message;
@@ -41,7 +42,7 @@ class AuthService {
         'Firebase Auth sign-in failed: code=${error.code}, '
         'message=${error.message}',
       );
-      throw AuthException(_messageForCode(error.code));
+      throw AuthException(_messageForCode(error.code), code: error.code);
     }
   }
 
@@ -72,7 +73,7 @@ class AuthService {
         'Firebase Auth registration failed: code=${error.code}, '
         'message=${error.message}',
       );
-      throw AuthException(_messageForCode(error.code));
+      throw AuthException(_messageForCode(error.code), code: error.code);
     }
   }
 
@@ -104,7 +105,7 @@ class AuthService {
         'Firebase Auth password reset failed: code=${error.code}, '
         'message=${error.message}',
       );
-      throw AuthException(_messageForCode(error.code));
+      throw AuthException(_messageForCode(error.code), code: error.code);
     }
   }
 
@@ -118,7 +119,7 @@ class AuthService {
         'Firebase Auth sign-out failed: code=${error.code}, '
         'message=${error.message}',
       );
-      throw AuthException(_messageForCode(error.code));
+      throw AuthException(_messageForCode(error.code), code: error.code);
     }
   }
 

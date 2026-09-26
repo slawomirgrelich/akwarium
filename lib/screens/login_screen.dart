@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -34,6 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -60,7 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           _buildBrandMark(),
                           const SizedBox(height: 22),
                           Text(
-                            _isRegistering ? 'Utwórz konto' : 'Witaj ponownie',
+                            _isRegistering
+                                ? l10n.createAccount
+                                : l10n.loginWelcome,
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(
@@ -71,8 +75,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 8),
                           Text(
                             _isRegistering
-                                ? 'Zacznij spokojnie dbać o swoje akwarium.'
-                                : 'Zaloguj się, aby wrócić do swojego akwarium.',
+                                ? l10n.registerSubtitle
+                                : l10n.loginSubtitle,
                             textAlign: TextAlign.center,
                             style: TextStyle(color: Colors.grey.shade700),
                           ),
@@ -86,8 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.email],
-                            decoration: const InputDecoration(
-                              labelText: 'Adres e-mail',
+                            decoration: InputDecoration(
+                              labelText: l10n.email,
                               prefixIcon: Icon(Icons.email_outlined),
                             ),
                             validator: _validateEmail,
@@ -101,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : TextInputAction.done,
                             autofillHints: const [AutofillHints.password],
                             decoration: InputDecoration(
-                              labelText: 'Hasło',
+                              labelText: l10n.password,
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 tooltip: _obscurePassword
@@ -129,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               obscureText: _obscureConfirmPassword,
                               textInputAction: TextInputAction.done,
                               decoration: InputDecoration(
-                                labelText: 'Powtórz hasło',
+                                labelText: l10n.confirmPassword,
                                 prefixIcon: const Icon(Icons.lock_reset),
                                 suffixIcon: IconButton(
                                   tooltip: _obscureConfirmPassword
@@ -148,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               validator: (value) {
                                 if (value != _passwordController.text) {
-                                  return 'Hasła muszą być identyczne.';
+                                  return l10n.passwordsMustMatch;
                                 }
                                 return null;
                               },
@@ -169,15 +173,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                   )
                                 : Text(
                                     _isRegistering
-                                        ? 'Utwórz konto'
-                                        : 'Zaloguj się',
+                                        ? l10n.createAccount
+                                        : l10n.login,
                                   ),
                           ),
                           if (!_isRegistering) ...[
                             const SizedBox(height: 8),
                             TextButton(
                               onPressed: _isLoading ? null : _resetPassword,
-                              child: const Text('Zapomniałeś hasła?'),
+                              child: Text(l10n.forgotPassword),
                             ),
                           ],
                           const SizedBox(height: 8),
@@ -185,8 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: _isLoading ? null : _toggleMode,
                             child: Text(
                               _isRegistering
-                                  ? 'Mam już konto'
-                                  : 'Utwórz nowe konto',
+                                  ? l10n.alreadyHaveAccount
+                                  : l10n.createNewAccount,
                             ),
                           ),
                         ],
@@ -230,14 +234,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _validateEmail(String? value) {
     final email = value?.trim() ?? '';
-    if (email.isEmpty) return 'Wpisz adres e-mail.';
+    final l10n = AppLocalizations.of(context)!;
+    if (email.isEmpty) return l10n.emailRequired;
     final isValid = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email);
-    return isValid ? null : 'Wpisz poprawny adres e-mail.';
+    return isValid ? null : l10n.invalidEmail;
   }
 
   String? _validatePassword(String? value) {
     if ((value ?? '').length < 6) {
-      return 'Hasło musi mieć co najmniej 6 znaków.';
+      return AppLocalizations.of(context)!.passwordTooShort;
     }
     return null;
   }
@@ -279,8 +284,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on AuthException catch (error) {
       if (mounted) {
-        setState(() => _errorMessage = error.message);
-        _showMessage(error.message, error: true);
+        final message = _authErrorMessage(error);
+        setState(() => _errorMessage = message);
+        _showMessage(message, error: true);
       }
     } catch (_) {
       if (mounted) {
@@ -338,8 +344,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on AuthException catch (error) {
       if (mounted) {
-        setState(() => _errorMessage = error.message);
-        _showMessage(error.message, error: true);
+        final message = _authErrorMessage(error);
+        setState(() => _errorMessage = message);
+        _showMessage(message, error: true);
       }
     }
   }
@@ -351,6 +358,20 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: error ? Colors.red.shade700 : null,
       ),
     );
+  }
+
+  String _authErrorMessage(AuthException error) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (error.code) {
+      'invalid-email' => l10n.invalidEmail,
+      'user-disabled' => l10n.userDisabled,
+      'user-not-found' ||
+      'invalid-credential' ||
+      'wrong-password' => l10n.invalidCredentials,
+      'email-already-in-use' => l10n.emailAlreadyInUse,
+      'network-request-failed' => l10n.networkError,
+      _ => l10n.authError,
+    };
   }
 }
 
