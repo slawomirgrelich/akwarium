@@ -229,28 +229,44 @@ class AkwarystaProApp extends StatelessWidget {
         child: MaterialApp(
           title: 'Akwarysta PRO',
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            useMaterial3: true,
+          themeMode: ThemeMode.light,
+          theme: ThemeData.light(useMaterial3: true).copyWith(
             colorScheme: colorScheme,
-            scaffoldBackgroundColor: const Color(0xFFE0F2F1),
+            scaffoldBackgroundColor: const Color(0xFFF2F8F6),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFFF4F6F8),
-              foregroundColor: Color(0xFF123D39),
+              backgroundColor: Color(0xFFF9FBFB),
+              foregroundColor: Color(0xFF0F2D2A),
               elevation: 0,
             ),
             cardTheme: CardThemeData(
               color: Colors.white,
-              elevation: 2,
-              shadowColor: Colors.black12,
+              elevation: 1,
+              shadowColor: Color(0x180F2D2A),
               margin: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Color(0x240F2D2A)),
               ),
             ),
+            dividerTheme: const DividerThemeData(
+              color: Color(0x180F2D2A),
+              space: 1,
+            ),
             textTheme: const TextTheme(
-              titleLarge: TextStyle(fontWeight: FontWeight.bold),
-              titleMedium: TextStyle(fontWeight: FontWeight.bold),
-              titleSmall: TextStyle(fontWeight: FontWeight.bold),
+              bodyLarge: TextStyle(color: Color(0xFF1A202C)),
+              bodyMedium: TextStyle(color: Color(0xFF4A5568)),
+              titleLarge: TextStyle(
+                color: Color(0xFF0F2D2A),
+                fontWeight: FontWeight.bold,
+              ),
+              titleMedium: TextStyle(
+                color: Color(0xFF0F2D2A),
+                fontWeight: FontWeight.bold,
+              ),
+              titleSmall: TextStyle(
+                color: Color(0xFF0F2D2A),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             filledButtonTheme: FilledButtonThemeData(
               style: FilledButton.styleFrom(

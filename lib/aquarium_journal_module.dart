@@ -8,10 +8,13 @@ import 'package:table_calendar/table_calendar.dart';
 import 'models/aquarium_model.dart';
 import 'local_reminder_service.dart';
 
-const _ink = Color(0xFF12181F);
-const _cyan = Color(0xFF00E5FF);
-const _green = Color(0xFF00E676);
-const _coral = Color(0xFFFF5252);
+const _ink = Color(0xFFF2F8F6);
+const _surface = Color(0xFFFFFFFF);
+const _textPrimary = Color(0xFF0F2D2A);
+const _textSecondary = Color(0xFF4A5568);
+const _cyan = Color(0xFF00897B);
+const _green = Color(0xFF2E7D5B);
+const _coral = Color(0xFFC62828);
 
 class JournalTimelineView extends StatefulWidget {
   const JournalTimelineView({super.key});
@@ -46,8 +49,8 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
     return Scaffold(
       backgroundColor: _ink,
       appBar: AppBar(
-        backgroundColor: _ink,
-        foregroundColor: Colors.white,
+        backgroundColor: _surface,
+        foregroundColor: _textPrimary,
         title: const Text('Dziennik akwarysty'),
         actions: [
           IconButton(
@@ -148,13 +151,13 @@ class _JournalContent extends StatelessWidget {
           TextField(
             controller: searchController,
             onChanged: (_) => onSearch(),
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: _textPrimary),
             decoration: InputDecoration(
               hintText: 'Szukaj wpisów, tagów i obserwacji',
-              hintStyle: const TextStyle(color: Colors.white54),
+              hintStyle: const TextStyle(color: _textSecondary),
               prefixIcon: const Icon(Icons.search, color: _cyan),
               filled: true,
-              fillColor: Colors.white.withAlpha(15),
+              fillColor: _surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -223,7 +226,7 @@ class _TimelineEntry extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Card(
-              color: Colors.white.withAlpha(15),
+              color: _surface,
               elevation: 0,
               child: Padding(
                 padding: const EdgeInsets.all(14),
@@ -236,7 +239,7 @@ class _TimelineEntry extends StatelessWidget {
                           child: Text(
                             entry.title,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: _textPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -244,7 +247,7 @@ class _TimelineEntry extends StatelessWidget {
                         Text(
                           _date(entry.date),
                           style: const TextStyle(
-                            color: Colors.white54,
+                            color: _textSecondary,
                             fontSize: 12,
                           ),
                         ),
@@ -255,7 +258,7 @@ class _TimelineEntry extends StatelessWidget {
                       entry.description,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.white70),
+                      style: const TextStyle(color: _textSecondary),
                     ),
                     if (entry.imagePaths.isNotEmpty) ...[
                       const SizedBox(height: 10),
@@ -318,8 +321,8 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
       appBar: widget.compact
           ? null
           : AppBar(
-              backgroundColor: _ink,
-              foregroundColor: Colors.white,
+              backgroundColor: _surface,
+              foregroundColor: _textPrimary,
               title: const Text('Kalendarz zadań'),
               actions: [
                 IconButton(
@@ -348,7 +351,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
               ),
             if (!widget.compact) const SizedBox(height: 12),
             Card(
-              color: Colors.white.withAlpha(15),
+              color: _surface,
               child: TableCalendar<AquariumTask>(
                 locale: 'pl_PL',
                 firstDay: DateTime.utc(2020),
@@ -363,15 +366,15 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
                     .where((task) => isSameDay(task.nextDueDate, day))
                     .toList(),
                 calendarStyle: const CalendarStyle(
-                  defaultTextStyle: TextStyle(color: Colors.white),
+                  defaultTextStyle: TextStyle(color: _textPrimary),
                   weekendTextStyle: TextStyle(color: _cyan),
-                  outsideTextStyle: TextStyle(color: Colors.white24),
+                  outsideTextStyle: TextStyle(color: Colors.black26),
                   selectedDecoration: BoxDecoration(
                     color: _cyan,
                     shape: BoxShape.circle,
                   ),
                   todayDecoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: Color(0xFFB2DFDB),
                     shape: BoxShape.circle,
                   ),
                   markerDecoration: BoxDecoration(
@@ -381,7 +384,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
                 ),
                 headerStyle: const HeaderStyle(
                   titleTextStyle: TextStyle(
-                    color: Colors.white,
+                    color: _textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                   formatButtonVisible: false,
@@ -396,7 +399,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
                   ? 'Na dziś'
                   : 'Wybrany dzień',
               style: const TextStyle(
-                color: Colors.white,
+                color: _textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -405,7 +408,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
             if (dayTasks.isEmpty)
               const Text(
                 'Brak zadań na ten dzień.',
-                style: TextStyle(color: Colors.white54),
+                style: TextStyle(color: _textSecondary),
               )
             else
               ...dayTasks.map((task) => _TaskTile(task: task)),
@@ -414,7 +417,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
               const Text(
                 'Nadchodzące',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: _textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -439,7 +442,7 @@ class _TaskTile extends StatelessWidget {
     final overdue =
         task.nextDueDate.isBefore(DateTime.now()) && !task.isCompletedToday;
     return Card(
-      color: Colors.white.withAlpha(15),
+      color: _surface,
       child: ListTile(
         leading: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
@@ -469,13 +472,13 @@ class _TaskTile extends StatelessWidget {
         title: Text(
           task.title,
           style: const TextStyle(
-            color: Colors.white,
+            color: _textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
           '${task.description}\n${_date(task.nextDueDate)}',
-          style: TextStyle(color: overdue ? _coral : Colors.white60),
+          style: TextStyle(color: overdue ? _coral : _textSecondary),
         ),
         isThreeLine: true,
       ),
@@ -786,8 +789,8 @@ class _ImageGrowthComparerState extends State<ImageGrowthComparer> {
     return Scaffold(
       backgroundColor: _ink,
       appBar: AppBar(
-        backgroundColor: _ink,
-        foregroundColor: Colors.white,
+        backgroundColor: _surface,
+        foregroundColor: _textPrimary,
         title: const Text('Porównywarka Przed / Po'),
       ),
       body: Center(
@@ -822,8 +825,8 @@ class _ImageGrowthComparerState extends State<ImageGrowthComparer> {
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('PRZED', style: TextStyle(color: Colors.white70)),
-                  Text('PO', style: TextStyle(color: Colors.white70)),
+                  Text('PRZED', style: TextStyle(color: _textSecondary)),
+                  Text('PO', style: TextStyle(color: _textSecondary)),
                 ],
               ),
             ],
@@ -863,7 +866,7 @@ class _ImageSource extends StatelessWidget {
       fit: BoxFit.contain,
       errorBuilder: (_, _, _) => const Icon(
         Icons.image_not_supported,
-        color: Colors.white54,
+        color: _textSecondary,
         size: 48,
       ),
     );
@@ -887,8 +890,11 @@ class _DarkTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Chip(
-    label: Text(label, style: const TextStyle(fontSize: 11)),
-    backgroundColor: _cyan.withAlpha(30),
+    label: Text(
+      label,
+      style: const TextStyle(fontSize: 11, color: _textPrimary),
+    ),
+    backgroundColor: const Color(0xFFE0F2F1),
     side: BorderSide.none,
     visualDensity: VisualDensity.compact,
   );
@@ -903,7 +909,7 @@ class _DarkEmptyState extends StatelessWidget {
     child: Center(
       child: Text(
         'Brak wpisów. Dodaj pierwszą obserwację.',
-        style: TextStyle(color: Colors.white54),
+        style: TextStyle(color: _textSecondary),
       ),
     ),
   );
