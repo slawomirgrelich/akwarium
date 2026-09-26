@@ -29,7 +29,7 @@
   "activeAquarium": "Aktywne akwarium",
   "addNewAquarium": "Dodaj nowe akwarium",
   "freePlan": "Plan Free: do 3 zbiorników",
-  "proPlan": "Plan PRO: nielimitowana liczba zbiorników",
+  "proPlan": "Plan PRO: nielimitowana liczba akwariów",
   "aquariumManagement": "Akwaria i obsada",
   "fauna": "Fauna",
   "flora": "Flora",
@@ -128,4 +128,23 @@
   ,"noSavedMeasurements": "Brak zapisanych pomiarów"
   ,"addFirstTestTrack": "Dodaj pierwszy test, aby śledzić kondycję wody."
   ,"addFirstMeasurement": "Dodaj pierwszy pomiar"
+  ,"actualWaterVolume": "Rzeczywista objętość wody"
+  ,"netWater": "Woda netto"
+  ,"substrate": "Podłoże"
+  ,"grossVolume": "Brutto: {value} l"
+  ,"@grossVolume": {"placeholders": {"value": {"type": "String"}}}
+  ,"rocksWood": "Skały / drewno"
+  ,"glass": "Szkło"
+  ,"estimatedTotalWeight": "Szacowany ciężar całkowity: {value} kg"
+  ,"@estimatedTotalWeight": {"placeholders": {"value": {"type": "String"}}}
+  ,"co2Low": "Niedobór CO2 - słaby wzrost roślin"
+  ,"co2Optimal": "Poziom optymalny - bezpieczny dla ryb"
+  ,"co2High": "Nadmiar CO2 - ryzyko przyduchy dla ryb"
+  ,"co2Deficit": "niedobór"
+  ,"co2Optimum": "optimum"
+  ,"co2Risk": "ryzyko"
+  ,"proActive": "Akwarysta PRO (Aktywny)"
+  ,"proName": "Akwarysta PRO"
+  ,"allPremiumUnlocked": "Wszystkie funkcje premium są odblokowane"
+  ,"unlockPremium": "Odblokuj AI, wykresy i nielimitowane akwaria."
 }

@@ -2335,6 +2335,7 @@ class _ProCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isProUser = context.watch<ProAccessService>().isProUser;
     return Container(
       padding: const EdgeInsets.all(18),
@@ -2361,7 +2362,7 @@ class _ProCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isProUser ? 'Akwarysta PRO (Aktywny)' : 'Akwarysta PRO',
+                    isProUser ? l10n.proActive : l10n.proName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -2370,9 +2371,7 @@ class _ProCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    isProUser
-                        ? 'Wszystkie funkcje premium są odblokowane'
-                        : 'Odblokuj AI, wykresy i nielimitowane akwaria.',
+                    isProUser ? l10n.allPremiumUnlocked : l10n.unlockPremium,
                     style: const TextStyle(color: Colors.white70),
                   ),
                 ],

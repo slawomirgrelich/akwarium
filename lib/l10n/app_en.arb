@@ -128,4 +128,23 @@
   ,"noSavedMeasurements": "No saved measurements"
   ,"addFirstTestTrack": "Add your first test to track water condition."
   ,"addFirstMeasurement": "Add first measurement"
+  ,"actualWaterVolume": "Actual water volume"
+  ,"netWater": "Net water"
+  ,"substrate": "Substrate"
+  ,"grossVolume": "Gross: {value} l"
+  ,"@grossVolume": {"placeholders": {"value": {"type": "String"}}}
+  ,"rocksWood": "Rocks / wood"
+  ,"glass": "Glass"
+  ,"estimatedTotalWeight": "Estimated total weight: {value} kg"
+  ,"@estimatedTotalWeight": {"placeholders": {"value": {"type": "String"}}}
+  ,"co2Low": "Low CO2 - weak plant growth"
+  ,"co2Optimal": "Optimal level - safe for fish"
+  ,"co2High": "High CO2 - risk of oxygen depletion"
+  ,"co2Deficit": "deficit"
+  ,"co2Optimum": "optimal"
+  ,"co2Risk": "risk"
+  ,"proActive": "Aquarist PRO (Active)"
+  ,"proName": "Aquarist PRO"
+  ,"allPremiumUnlocked": "All premium features are unlocked"
+  ,"unlockPremium": "Unlock AI, charts and unlimited aquariums."
 }

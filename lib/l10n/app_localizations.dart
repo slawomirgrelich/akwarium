@@ -275,7 +275,7 @@ abstract class AppLocalizations {
   /// No description provided for @proPlan.
   ///
   /// In pl, this message translates to:
-  /// **'Plan PRO: nielimitowana liczba zbiorników'**
+  /// **'Plan PRO: nielimitowana liczba akwariów'**
   String get proPlan;
 
   /// No description provided for @aquariumManagement.
@@ -853,6 +853,108 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Dodaj pierwszy pomiar'**
   String get addFirstMeasurement;
+
+  /// No description provided for @actualWaterVolume.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rzeczywista objętość wody'**
+  String get actualWaterVolume;
+
+  /// No description provided for @netWater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Woda netto'**
+  String get netWater;
+
+  /// No description provided for @substrate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podłoże'**
+  String get substrate;
+
+  /// No description provided for @grossVolume.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brutto: {value} l'**
+  String grossVolume(String value);
+
+  /// No description provided for @rocksWood.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skały / drewno'**
+  String get rocksWood;
+
+  /// No description provided for @glass.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szkło'**
+  String get glass;
+
+  /// No description provided for @estimatedTotalWeight.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szacowany ciężar całkowity: {value} kg'**
+  String estimatedTotalWeight(String value);
+
+  /// No description provided for @co2Low.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niedobór CO2 - słaby wzrost roślin'**
+  String get co2Low;
+
+  /// No description provided for @co2Optimal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poziom optymalny - bezpieczny dla ryb'**
+  String get co2Optimal;
+
+  /// No description provided for @co2High.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nadmiar CO2 - ryzyko przyduchy dla ryb'**
+  String get co2High;
+
+  /// No description provided for @co2Deficit.
+  ///
+  /// In pl, this message translates to:
+  /// **'niedobór'**
+  String get co2Deficit;
+
+  /// No description provided for @co2Optimum.
+  ///
+  /// In pl, this message translates to:
+  /// **'optimum'**
+  String get co2Optimum;
+
+  /// No description provided for @co2Risk.
+  ///
+  /// In pl, this message translates to:
+  /// **'ryzyko'**
+  String get co2Risk;
+
+  /// No description provided for @proActive.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwarysta PRO (Aktywny)'**
+  String get proActive;
+
+  /// No description provided for @proName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwarysta PRO'**
+  String get proName;
+
+  /// No description provided for @allPremiumUnlocked.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie funkcje premium są odblokowane'**
+  String get allPremiumUnlocked;
+
+  /// No description provided for @unlockPremium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odblokuj AI, wykresy i nielimitowane akwaria.'**
+  String get unlockPremium;
 }
 
 class _AppLocalizationsDelegate

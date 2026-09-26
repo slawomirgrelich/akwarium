@@ -233,6 +233,7 @@ class _Co2CalculatorState extends State<_Co2Calculator> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final result = calculateCo2(ph: _ph, kh: _kh);
     final statusColor = switch (result.status) {
       Co2Status.low => Colors.amber,
@@ -240,16 +241,15 @@ class _Co2CalculatorState extends State<_Co2Calculator> {
       Co2Status.high => Colors.redAccent,
     };
     final statusText = switch (result.status) {
-      Co2Status.low => 'Niedobór CO2 - słaby wzrost roślin',
-      Co2Status.optimal => 'Poziom optymalny - bezpieczny dla ryb',
-      Co2Status.high => 'Nadmiar CO2 - ryzyko przyduchy dla ryb',
+      Co2Status.low => l10n.co2Low,
+      Co2Status.optimal => l10n.co2Optimal,
+      Co2Status.high => l10n.co2High,
     };
     return _CalculatorScroll(
       children: [
-        const _CalculatorIntro(
-          title: 'Kalkulator CO2',
-          subtitle:
-              'Wybierz pH i KH, aby sprawdzić stężenie rozpuszczonego CO2.',
+        _CalculatorIntro(
+          title: l10n.co2Calculator,
+          subtitle: l10n.co2CalculatorSubtitle,
         ),
         _GlassCard(
           child: Column(
@@ -296,16 +296,19 @@ class _Co2CalculatorState extends State<_Co2Calculator> {
                 ),
               ),
               const SizedBox(height: 18),
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('< 15 niedobór', style: TextStyle(color: Colors.amber)),
                   Text(
-                    '15-30 optimum',
+                    '< 15 ${l10n.co2Deficit}',
+                    style: TextStyle(color: Colors.amber),
+                  ),
+                  Text(
+                    '15-30 ${l10n.co2Optimum}',
                     style: TextStyle(color: Colors.greenAccent),
                   ),
                   Text(
-                    '> 30 ryzyko',
+                    '> 30 ${l10n.co2Risk}',
                     style: TextStyle(color: Colors.redAccent),
                   ),
                 ],
@@ -656,6 +659,7 @@ class _VolumeResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return _GlassCard(
       child: Column(
         children: [
@@ -668,7 +672,7 @@ class _VolumeResult extends StatelessWidget {
             ),
           ),
           Text(
-            'Rzeczywista objętość wody',
+            l10n.actualWaterVolume,
             style: TextStyle(color: theme.textTheme.bodyMedium?.color),
           ),
           const SizedBox(height: 14),
@@ -683,32 +687,32 @@ class _VolumeResult extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _BreakdownRow(
-            label: 'Woda netto',
+            label: l10n.netWater,
             value: result.netLiters,
             color: theme.primaryColor,
           ),
           _BreakdownRow(
-            label: 'Podłoże',
+            label: l10n.substrate,
             value: result.substrateLiters,
             color: Colors.amber,
           ),
           _BreakdownRow(
-            label: 'Skały / drewno',
+            label: l10n.rocksWood,
             value: result.decorationsLiters,
             color: Colors.deepOrangeAccent,
           ),
           _BreakdownRow(
-            label: 'Szkło',
+            label: l10n.glass,
             value: result.glassVolumeLiters,
             color: Colors.lightBlueAccent,
           ),
           Text(
-            'Brutto: ${result.grossLiters.toStringAsFixed(1)} l',
+            l10n.grossVolume(result.grossLiters.toStringAsFixed(1)),
             style: TextStyle(color: theme.textTheme.bodyMedium?.color),
           ),
           const SizedBox(height: 12),
           Text(
-            'Szacowany ciężar całkowity: ${result.totalWeightKg.toStringAsFixed(1)} kg',
+            l10n.estimatedTotalWeight(result.totalWeightKg.toStringAsFixed(1)),
             style: TextStyle(
               color: theme.textTheme.bodyLarge?.color,
               fontWeight: FontWeight.bold,

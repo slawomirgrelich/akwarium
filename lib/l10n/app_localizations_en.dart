@@ -401,4 +401,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addFirstMeasurement => 'Add first measurement';
+
+  @override
+  String get actualWaterVolume => 'Actual water volume';
+
+  @override
+  String get netWater => 'Net water';
+
+  @override
+  String get substrate => 'Substrate';
+
+  @override
+  String grossVolume(String value) {
+    return 'Gross: $value l';
+  }
+
+  @override
+  String get rocksWood => 'Rocks / wood';
+
+  @override
+  String get glass => 'Glass';
+
+  @override
+  String estimatedTotalWeight(String value) {
+    return 'Estimated total weight: $value kg';
+  }
+
+  @override
+  String get co2Low => 'Low CO2 - weak plant growth';
+
+  @override
+  String get co2Optimal => 'Optimal level - safe for fish';
+
+  @override
+  String get co2High => 'High CO2 - risk of oxygen depletion';
+
+  @override
+  String get co2Deficit => 'deficit';
+
+  @override
+  String get co2Optimum => 'optimal';
+
+  @override
+  String get co2Risk => 'risk';
+
+  @override
+  String get proActive => 'Aquarist PRO (Active)';
+
+  @override
+  String get proName => 'Aquarist PRO';
+
+  @override
+  String get allPremiumUnlocked => 'All premium features are unlocked';
+
+  @override
+  String get unlockPremium => 'Unlock AI, charts and unlimited aquariums.';
 }

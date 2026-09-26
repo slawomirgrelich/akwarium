@@ -97,7 +97,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get freePlan => 'Plan Free: do 3 zbiorników';
 
   @override
-  String get proPlan => 'Plan PRO: nielimitowana liczba zbiorników';
+  String get proPlan => 'Plan PRO: nielimitowana liczba akwariów';
 
   @override
   String get aquariumManagement => 'Akwaria i obsada';
@@ -400,4 +400,59 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get addFirstMeasurement => 'Dodaj pierwszy pomiar';
+
+  @override
+  String get actualWaterVolume => 'Rzeczywista objętość wody';
+
+  @override
+  String get netWater => 'Woda netto';
+
+  @override
+  String get substrate => 'Podłoże';
+
+  @override
+  String grossVolume(String value) {
+    return 'Brutto: $value l';
+  }
+
+  @override
+  String get rocksWood => 'Skały / drewno';
+
+  @override
+  String get glass => 'Szkło';
+
+  @override
+  String estimatedTotalWeight(String value) {
+    return 'Szacowany ciężar całkowity: $value kg';
+  }
+
+  @override
+  String get co2Low => 'Niedobór CO2 - słaby wzrost roślin';
+
+  @override
+  String get co2Optimal => 'Poziom optymalny - bezpieczny dla ryb';
+
+  @override
+  String get co2High => 'Nadmiar CO2 - ryzyko przyduchy dla ryb';
+
+  @override
+  String get co2Deficit => 'niedobór';
+
+  @override
+  String get co2Optimum => 'optimum';
+
+  @override
+  String get co2Risk => 'ryzyko';
+
+  @override
+  String get proActive => 'Akwarysta PRO (Aktywny)';
+
+  @override
+  String get proName => 'Akwarysta PRO';
+
+  @override
+  String get allPremiumUnlocked => 'Wszystkie funkcje premium są odblokowane';
+
+  @override
+  String get unlockPremium => 'Odblokuj AI, wykresy i nielimitowane akwaria.';
 }
