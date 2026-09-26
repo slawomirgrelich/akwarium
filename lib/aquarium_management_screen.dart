@@ -6,11 +6,6 @@ import 'package:provider/provider.dart';
 
 import 'models/aquarium_model.dart';
 
-const _managementInk = Color(0xFF12181F);
-const _managementPanel = Color(0xFF1C2730);
-const _managementCyan = Color(0xFF00E5FF);
-const _managementGreen = Color(0xFF00E676);
-
 class TankSwitcher extends StatelessWidget {
   const TankSwitcher({super.key});
 
@@ -30,7 +25,7 @@ class TankSwitcher extends StatelessWidget {
                     aquarium.id == provider.activeAquariumId
                         ? Icons.radio_button_checked
                         : Icons.radio_button_unchecked,
-                    color: Colors.teal,
+                    color: Theme.of(context).primaryColor,
                   ),
                   const SizedBox(width: 8),
                   Text(aquarium.name),
@@ -59,10 +54,10 @@ class AquariumManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _managementInk,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: _managementInk,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         title: const Text('Akwaria i obsada'),
         actions: [
           IconButton(
@@ -163,25 +158,32 @@ class _ManagementContentState extends State<_ManagementContent>
           TextField(
             controller: _search,
             onChanged: (_) => setState(() {}),
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
             decoration: InputDecoration(
               hintText: 'Szukaj gatunku lub odmiany',
-              hintStyle: const TextStyle(color: Colors.white54),
-              prefixIcon: const Icon(Icons.search, color: _managementCyan),
+              hintStyle: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+              prefixIcon: Icon(
+                Icons.search,
+                color: Theme.of(context).primaryColor,
+              ),
               filled: true,
-              fillColor: Colors.white.withAlpha(12),
+              fillColor: Theme.of(context).cardColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(color: Theme.of(context).dividerColor),
               ),
             ),
           ),
           const SizedBox(height: 12),
           TabBar(
             controller: _tabs,
-            indicatorColor: _managementCyan,
-            labelColor: _managementCyan,
-            unselectedLabelColor: Colors.white60,
+            indicatorColor: Theme.of(context).primaryColor,
+            labelColor: Theme.of(context).primaryColor,
+            unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
             tabs: [
               Tab(text: 'Fauna (${fauna.length})'),
               Tab(text: 'Flora (${flora.length})'),
@@ -252,17 +254,16 @@ class _TankProfileStrip extends StatelessWidget {
                 width: 220,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: _managementCyan.withAlpha(100)),
+                  border: Border.all(
+                    color: Theme.of(context).primaryColor.withAlpha(100),
+                  ),
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add, color: _managementCyan),
+                    Icon(Icons.add),
                     SizedBox(height: 6),
-                    Text(
-                      'Dodaj akwarium',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    Text('Dodaj akwarium'),
                   ],
                 ),
               ),
@@ -280,15 +281,18 @@ class _TankProfileStrip extends StatelessWidget {
               width: 240,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: _managementPanel,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: active ? _managementCyan : Colors.white12,
+                  color: active
+                      ? Theme.of(context).primaryColor
+                      : Theme.of(context).dividerColor,
                   width: active ? 2 : 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: _managementCyan.withAlpha(active ? 25 : 5),
+                    color: Theme.of(context).primaryColor
+                        .withAlpha(active ? 25 : 5),
                     blurRadius: 16,
                   ),
                 ],
@@ -298,28 +302,28 @@ class _TankProfileStrip extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.water, color: _managementCyan),
+                      Icon(Icons.water, color: Theme.of(context).primaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           aquarium.name,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
                             fontWeight: FontWeight.bold,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (active)
-                        const Icon(
+                        Icon(
                           Icons.check_circle,
-                          color: _managementGreen,
+                          color: Theme.of(context).colorScheme.secondary,
                           size: 18,
                         ),
                       PopupMenuButton<String>(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.more_vert,
-                          color: Colors.white54,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
                           size: 18,
                         ),
                         onSelected: (action) {
@@ -343,12 +347,18 @@ class _TankProfileStrip extends StatelessWidget {
                   const Spacer(),
                   Text(
                     '${aquarium.volumeNetLiters.toStringAsFixed(0)} l netto · ${aquarium.type.label}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${aquarium.ageInDays} dni · $count mieszkańców',
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -378,12 +388,14 @@ class _StockingSummary extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _managementPanel,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: (overloaded ? Colors.redAccent : _managementGreen).withAlpha(
-            90,
-          ),
+          color:
+              (overloaded
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.secondary)
+                  .withAlpha(90),
         ),
       ),
       child: Row(
@@ -430,17 +442,23 @@ class _SummaryMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      Icon(icon, color: _managementCyan),
+      Icon(icon, color: Theme.of(context).primaryColor),
       const SizedBox(height: 5),
       Text(
         value,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.bodyLarge?.color,
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
-      Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+      Text(
+        label,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.bodyMedium?.color,
+          fontSize: 11,
+        ),
+      ),
     ],
   );
 }
@@ -452,10 +470,12 @@ class _InhabitantList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'Brak wpisów w tej kategorii.',
-          style: TextStyle(color: Colors.white54),
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
         ),
       );
     }
@@ -472,31 +492,34 @@ class _InhabitantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    color: _managementPanel,
+    color: Theme.of(context).cardColor,
     child: ListTile(
       leading: CircleAvatar(
-        backgroundColor: _managementCyan.withAlpha(25),
+        backgroundColor: Theme.of(context).primaryColor.withAlpha(25),
         child: Icon(
           item.category == CreatureCategory.plant
               ? Icons.local_florist
               : Icons.pets,
-          color: _managementCyan,
+          color: Theme.of(context).primaryColor,
         ),
       ),
       title: Text(
         item.name,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.bodyLarge?.color,
           fontWeight: FontWeight.bold,
         ),
       ),
       subtitle: Text(
         '${item.latinName} · ${item.count} szt.\n${item.status}${item.plantPosition == null ? '' : ' · ${item.plantPosition!.label}'}',
-        style: const TextStyle(color: Colors.white60),
+        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
       ),
       isThreeLine: true,
       trailing: IconButton(
-        icon: const Icon(Icons.delete_outline, color: Colors.white54),
+        icon: Icon(
+          Icons.delete_outline,
+          color: Theme.of(context).textTheme.bodyMedium?.color,
+        ),
         onPressed: () =>
             context.read<AquariumProvider>().deleteInhabitant(item.id),
       ),
