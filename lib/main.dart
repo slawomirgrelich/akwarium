@@ -27,7 +27,6 @@ import 'services/auth_service.dart';
 import 'services/pro_access_service.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
-import 'widgets/firestore_aquariums_section.dart';
 import 'widgets/pro_paywall_dialog.dart';
 
 InputDecorationTheme _inputDecorationTheme({required bool dark}) {
@@ -433,8 +432,6 @@ class DashboardPage extends StatelessWidget {
                 ],
               ),
             ),
-            const FirestoreAquariumsSection(),
-            const SizedBox(height: 24),
             _AquariumCard(aquarium: displayedAquarium),
             const SizedBox(height: 20),
             _SectionHeader(title: 'Status akwarium'),
@@ -1553,7 +1550,9 @@ class ProfilePage extends StatelessWidget {
             _SettingsTile(
               icon: Icons.add_circle_outline,
               title: 'Dodaj nowe akwarium',
-              subtitle: 'Plan Free: do 3 zbiorników',
+              subtitle: context.watch<ProAccessService>().isProUser
+                  ? 'Plan PRO: nielimitowana liczba zbiorników'
+                  : 'Plan Free: do 3 zbiorników',
               onTap: () => _openAquariumManagement(context),
             ),
             const SizedBox(height: 24),

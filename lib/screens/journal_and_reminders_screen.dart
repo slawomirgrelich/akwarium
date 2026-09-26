@@ -24,7 +24,8 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final aquariumId = context.watch<AquariumProvider>().activeAquariumId;
+    final provider = context.watch<AquariumProvider>();
+    final aquariumId = provider.activeAquariumId;
     return StreamBuilder<List<JournalEntryModel>>(
       stream: _service.getJournalEntries(aquariumId),
       builder: (context, journalSnapshot) {
@@ -40,7 +41,10 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
               );
             }
 
-            final journal = journalSnapshot.data ?? const <JournalEntryModel>[];
+            final journal = _mergeJournalEntries(
+              journalSnapshot.data ?? const <JournalEntryModel>[],
+              provider.journalEntries,
+            );
             final reminders = reminderSnapshot.data ?? const <ReminderModel>[];
             final error = journalSnapshot.error ?? reminderSnapshot.error;
             if (error != null && journal.isEmpty && reminders.isEmpty) {
@@ -105,6 +109,33 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
         );
       },
     );
+  }
+
+  List<JournalEntryModel> _mergeJournalEntries(
+    List<JournalEntryModel> cloudEntries,
+    List<JournalEntry> localEntries,
+  ) {
+    final entriesById = <String, JournalEntryModel>{
+      for (final entry in cloudEntries) entry.id: entry,
+    };
+    for (final entry in localEntries) {
+      entriesById[entry.id] = JournalEntryModel(
+        id: entry.id,
+        aquariumId: entry.aquariumId,
+        timestamp: entry.timestamp,
+        entryType: switch (entry.type) {
+          'waterChange' => JournalEntryType.waterChange,
+          'filter' => JournalEntryType.filter,
+          'trimming' => JournalEntryType.trimming,
+          'medication' => JournalEntryType.medication,
+          _ => JournalEntryType.cleaning,
+        },
+        title: entry.title,
+        notes: entry.description,
+      );
+    }
+    return entriesById.values.toList()
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   Future<void> _openEntryForm(BuildContext context, String aquariumId) async {
@@ -402,6 +433,7 @@ class _CalendarTab extends StatelessWidget {
         const SizedBox(height: 8),
         Card(
           child: TableCalendar<ReminderModel>(
+            locale: 'pl_PL',
             firstDay: DateTime.utc(2020),
             lastDay: DateTime.utc(2035),
             focusedDay: focusedDay,

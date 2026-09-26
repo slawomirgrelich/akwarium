@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -34,12 +35,12 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
     final provider = context.watch<AquariumProvider>();
     final query = _searchController.text.toLowerCase();
     final entries = provider.journalEntries.where((entry) {
-      final matchesQuery = query.isEmpty ||
+      final matchesQuery =
+          query.isEmpty ||
           '${entry.title} ${entry.description} ${entry.tags.join(' ')}'
               .toLowerCase()
               .contains(query);
-      return matchesQuery &&
-          (_category == null || entry.category == _category);
+      return matchesQuery && (_category == null || entry.category == _category);
     }).toList();
 
     return Scaffold(
@@ -106,14 +107,17 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
     final images = entries.expand((entry) => entry.imagePaths).toList();
     if (images.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dodaj co najmniej dwa zdjęcia do dziennika.')),
+        const SnackBar(
+          content: Text('Dodaj co najmniej dwa zdjęcia do dziennika.'),
+        ),
       );
       return;
     }
     Navigator.push<void>(
       context,
       MaterialPageRoute(
-        builder: (_) => ImageGrowthComparer(before: images[0], after: images[1]),
+        builder: (_) =>
+            ImageGrowthComparer(before: images[0], after: images[1]),
       ),
     );
   }
@@ -208,7 +212,10 @@ class _TimelineEntry extends StatelessWidget {
               Container(
                 width: 12,
                 height: 12,
-                decoration: const BoxDecoration(color: _cyan, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: _cyan,
+                  shape: BoxShape.circle,
+                ),
               ),
               Container(width: 2, height: 110, color: _cyan.withAlpha(70)),
             ],
@@ -226,13 +233,30 @@ class _TimelineEntry extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(entry.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            entry.title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                        Text(_date(entry.date), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        Text(
+                          _date(entry.date),
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(entry.description, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70)),
+                    Text(
+                      entry.description,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                     if (entry.imagePaths.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       SizedBox(
@@ -241,7 +265,8 @@ class _TimelineEntry extends StatelessWidget {
                           scrollDirection: Axis.horizontal,
                           itemCount: entry.imagePaths.length,
                           separatorBuilder: (_, _) => const SizedBox(width: 8),
-                          itemBuilder: (_, index) => _JournalImage(source: entry.imagePaths[index]),
+                          itemBuilder: (_, index) =>
+                              _JournalImage(source: entry.imagePaths[index]),
                         ),
                       ),
                     ],
@@ -282,7 +307,9 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
   @override
   Widget build(BuildContext context) {
     final tasks = context.watch<AquariumProvider>().tasks;
-    final dayTasks = tasks.where((task) => isSameDay(task.nextDueDate, _selectedDay)).toList();
+    final dayTasks = tasks
+        .where((task) => isSameDay(task.nextDueDate, _selectedDay))
+        .toList();
     final upcoming = tasks.where((task) => !task.isCompletedToday).toList()
       ..sort((a, b) => a.nextDueDate.compareTo(b.nextDueDate));
 
@@ -297,7 +324,10 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
               actions: [
                 IconButton(
                   tooltip: 'Dodaj zadanie',
-                  onPressed: () => showDialog<void>(context: context, builder: (_) => const AddTaskModal()),
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (_) => const AddTaskModal(),
+                  ),
                   icon: const Icon(Icons.add_task),
                 ),
               ],
@@ -309,7 +339,10 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
           children: [
             if (!widget.compact)
               FilledButton.icon(
-                onPressed: () => showDialog<void>(context: context, builder: (_) => const AddTaskModal()),
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => const AddTaskModal(),
+                ),
                 icon: const Icon(Icons.add),
                 label: const Text('Dodaj zadanie'),
               ),
@@ -317,6 +350,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
             Card(
               color: Colors.white.withAlpha(15),
               child: TableCalendar<AquariumTask>(
+                locale: 'pl_PL',
                 firstDay: DateTime.utc(2020),
                 lastDay: DateTime.utc(2035),
                 focusedDay: _focusedDay,
@@ -325,17 +359,31 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
                   _selectedDay = selected;
                   _focusedDay = focused;
                 }),
-                eventLoader: (day) => tasks.where((task) => isSameDay(task.nextDueDate, day)).toList(),
+                eventLoader: (day) => tasks
+                    .where((task) => isSameDay(task.nextDueDate, day))
+                    .toList(),
                 calendarStyle: const CalendarStyle(
                   defaultTextStyle: TextStyle(color: Colors.white),
                   weekendTextStyle: TextStyle(color: _cyan),
                   outsideTextStyle: TextStyle(color: Colors.white24),
-                  selectedDecoration: BoxDecoration(color: _cyan, shape: BoxShape.circle),
-                  todayDecoration: BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
-                  markerDecoration: BoxDecoration(color: _green, shape: BoxShape.circle),
+                  selectedDecoration: BoxDecoration(
+                    color: _cyan,
+                    shape: BoxShape.circle,
+                  ),
+                  todayDecoration: BoxDecoration(
+                    color: Colors.white24,
+                    shape: BoxShape.circle,
+                  ),
+                  markerDecoration: BoxDecoration(
+                    color: _green,
+                    shape: BoxShape.circle,
+                  ),
                 ),
                 headerStyle: const HeaderStyle(
-                  titleTextStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  titleTextStyle: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                   formatButtonVisible: false,
                   leftChevronIcon: Icon(Icons.chevron_left, color: _cyan),
                   rightChevronIcon: Icon(Icons.chevron_right, color: _cyan),
@@ -343,15 +391,34 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
               ),
             ),
             const SizedBox(height: 18),
-            Text(isSameDay(_selectedDay, DateTime.now()) ? 'Na dziś' : 'Wybrany dzień', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              isSameDay(_selectedDay, DateTime.now())
+                  ? 'Na dziś'
+                  : 'Wybrany dzień',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 10),
             if (dayTasks.isEmpty)
-              const Text('Brak zadań na ten dzień.', style: TextStyle(color: Colors.white54))
+              const Text(
+                'Brak zadań na ten dzień.',
+                style: TextStyle(color: Colors.white54),
+              )
             else
               ...dayTasks.map((task) => _TaskTile(task: task)),
             if (upcoming.isNotEmpty) ...[
               const SizedBox(height: 18),
-              const Text('Nadchodzące', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Nadchodzące',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 10),
               ...upcoming.take(5).map((task) => _TaskTile(task: task)),
             ],
@@ -369,7 +436,8 @@ class _TaskTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final overdue = task.nextDueDate.isBefore(DateTime.now()) && !task.isCompletedToday;
+    final overdue =
+        task.nextDueDate.isBefore(DateTime.now()) && !task.isCompletedToday;
     return Card(
       color: Colors.white.withAlpha(15),
       child: ListTile(
@@ -377,8 +445,17 @@ class _TaskTile extends StatelessWidget {
           duration: const Duration(milliseconds: 250),
           child: IconButton(
             key: ValueKey(task.isCompletedToday),
-            tooltip: task.isCompletedToday ? 'Odznacz jako zrobione' : 'Oznacz jako wykonane',
-            icon: Icon(task.isCompletedToday ? Icons.check_circle : Icons.radio_button_unchecked, color: task.isCompletedToday ? _green : (overdue ? _coral : _cyan)),
+            tooltip: task.isCompletedToday
+                ? 'Odznacz jako zrobione'
+                : 'Oznacz jako wykonane',
+            icon: Icon(
+              task.isCompletedToday
+                  ? Icons.check_circle
+                  : Icons.radio_button_unchecked,
+              color: task.isCompletedToday
+                  ? _green
+                  : (overdue ? _coral : _cyan),
+            ),
             onPressed: () {
               final provider = context.read<AquariumProvider>();
               if (task.isCompletedToday) {
@@ -389,8 +466,17 @@ class _TaskTile extends StatelessWidget {
             },
           ),
         ),
-        title: Text(task.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        subtitle: Text('${task.description}\n${_date(task.nextDueDate)}', style: TextStyle(color: overdue ? _coral : Colors.white60)),
+        title: Text(
+          task.title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          '${task.description}\n${_date(task.nextDueDate)}',
+          style: TextStyle(color: overdue ? _coral : Colors.white60),
+        ),
         isThreeLine: true,
       ),
     );
@@ -426,17 +512,38 @@ class _AddTaskModalState extends State<AddTaskModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _title, decoration: const InputDecoration(labelText: 'Tytuł')),
-            TextField(controller: _description, decoration: const InputDecoration(labelText: 'Opis')),
+            TextField(
+              controller: _title,
+              decoration: const InputDecoration(labelText: 'Tytuł'),
+            ),
+            TextField(
+              controller: _description,
+              decoration: const InputDecoration(labelText: 'Opis'),
+            ),
             DropdownButtonFormField<TaskRecurrence>(
               initialValue: _recurrence,
               decoration: const InputDecoration(labelText: 'Powtarzanie'),
               items: const [
-                DropdownMenuItem(value: TaskRecurrence.once, child: Text('Jednorazowe')),
-                DropdownMenuItem(value: TaskRecurrence.daily, child: Text('Codziennie')),
-                DropdownMenuItem(value: TaskRecurrence.everyXDays, child: Text('Co X dni')),
-                DropdownMenuItem(value: TaskRecurrence.weekly, child: Text('Co tydzień')),
-                DropdownMenuItem(value: TaskRecurrence.monthly, child: Text('Co miesiąc')),
+                DropdownMenuItem(
+                  value: TaskRecurrence.once,
+                  child: Text('Jednorazowe'),
+                ),
+                DropdownMenuItem(
+                  value: TaskRecurrence.daily,
+                  child: Text('Codziennie'),
+                ),
+                DropdownMenuItem(
+                  value: TaskRecurrence.everyXDays,
+                  child: Text('Co X dni'),
+                ),
+                DropdownMenuItem(
+                  value: TaskRecurrence.weekly,
+                  child: Text('Co tydzień'),
+                ),
+                DropdownMenuItem(
+                  value: TaskRecurrence.monthly,
+                  child: Text('Co miesiąc'),
+                ),
               ],
               onChanged: (value) => setState(() => _recurrence = value!),
             ),
@@ -453,7 +560,10 @@ class _AddTaskModalState extends State<AddTaskModal> {
               subtitle: Text(_reminder.format(context)),
               trailing: const Icon(Icons.notifications_outlined),
               onTap: () async {
-                final value = await showTimePicker(context: context, initialTime: _reminder);
+                final value = await showTimePicker(
+                  context: context,
+                  initialTime: _reminder,
+                );
                 if (value != null) setState(() => _reminder = value);
               },
             ),
@@ -461,7 +571,10 @@ class _AddTaskModalState extends State<AddTaskModal> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Anuluj'),
+        ),
         FilledButton(onPressed: _save, child: const Text('Zapisz')),
       ],
     );
@@ -477,16 +590,18 @@ class _AddTaskModalState extends State<AddTaskModal> {
       _reminder.hour,
       _reminder.minute,
     );
-    if (firstDue.isBefore(now)) firstDue = firstDue.add(const Duration(days: 1));
+    if (firstDue.isBefore(now)) {
+      firstDue = firstDue.add(const Duration(days: 1));
+    }
     final task = AquariumTask(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
       aquariumId: context.read<AquariumProvider>().activeAquariumId,
-        title: _title.text.trim(),
-        description: _description.text.trim(),
-        recurrence: _recurrence,
-        intervalDays: _recurrence == TaskRecurrence.everyXDays ? _interval : 1,
-        nextDueDate: firstDue,
-        reminderMinutes: _reminder.hour * 60 + _reminder.minute,
+      title: _title.text.trim(),
+      description: _description.text.trim(),
+      recurrence: _recurrence,
+      intervalDays: _recurrence == TaskRecurrence.everyXDays ? _interval : 1,
+      nextDueDate: firstDue,
+      reminderMinutes: _reminder.hour * 60 + _reminder.minute,
     );
     context.read<AquariumProvider>().addTask(task);
     LocalReminderService.instance.schedule(
@@ -533,19 +648,37 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _title, decoration: const InputDecoration(labelText: 'Tytuł')),
-            TextField(controller: _notes, maxLines: 4, decoration: const InputDecoration(labelText: 'Notatka')),
+            TextField(
+              controller: _title,
+              decoration: const InputDecoration(labelText: 'Tytuł'),
+            ),
+            TextField(
+              controller: _notes,
+              maxLines: 4,
+              decoration: const InputDecoration(labelText: 'Notatka'),
+            ),
             DropdownButtonFormField<JournalCategory>(
               initialValue: _category,
               decoration: const InputDecoration(labelText: 'Kategoria'),
-              items: JournalCategory.values.map((item) => DropdownMenuItem(value: item, child: Text(item.label))).toList(),
+              items: JournalCategory.values
+                  .map(
+                    (item) =>
+                        DropdownMenuItem(value: item, child: Text(item.label)),
+                  )
+                  .toList(),
               onChanged: (value) => setState(() => _category = value!),
             ),
-            TextField(controller: _tags, decoration: const InputDecoration(labelText: 'Tagi, oddziel przecinkami')),
+            TextField(
+              controller: _tags,
+              decoration: const InputDecoration(
+                labelText: 'Tagi, oddziel przecinkami',
+              ),
+            ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               value: _attachWater,
-              onChanged: (value) => setState(() => _attachWater = value ?? false),
+              onChanged: (value) =>
+                  setState(() => _attachWater = value ?? false),
               title: const Text('Podepnij ostatni pomiar wody'),
             ),
             Align(
@@ -553,17 +686,29 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
               child: Wrap(
                 spacing: 8,
                 children: [
-                  OutlinedButton.icon(onPressed: () => _pickImages(ImageSource.gallery), icon: const Icon(Icons.photo_library_outlined), label: const Text('Galeria')),
-                  OutlinedButton.icon(onPressed: () => _pickImages(ImageSource.camera), icon: const Icon(Icons.camera_alt_outlined), label: const Text('Aparat')),
+                  OutlinedButton.icon(
+                    onPressed: () => _pickImages(ImageSource.gallery),
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: const Text('Galeria'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _pickImages(ImageSource.camera),
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: const Text('Aparat'),
+                  ),
                 ],
               ),
             ),
-            if (_images.isNotEmpty) Text('${_images.length} zdjęć gotowych do zapisu'),
+            if (_images.isNotEmpty)
+              Text('${_images.length} zdjęć gotowych do zapisu'),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Anuluj'),
+        ),
         FilledButton(onPressed: _save, child: const Text('Zapisz wpis')),
       ],
     );
@@ -571,14 +716,16 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
 
   Future<void> _pickImages(ImageSource source) async {
     final cameraImage = source == ImageSource.camera
-      ? await _picker.pickImage(source: source, imageQuality: 82)
-      : null;
+        ? await _picker.pickImage(source: source, imageQuality: 82)
+        : null;
     final selected = source == ImageSource.camera
-      ? (cameraImage == null ? <XFile>[] : [cameraImage])
-      : await _picker.pickMultiImage(imageQuality: 82);
+        ? (cameraImage == null ? <XFile>[] : [cameraImage])
+        : await _picker.pickMultiImage(imageQuality: 82);
     for (final file in selected) {
       final bytes = await file.readAsBytes();
-      _images.add('data:image/${file.name.split('.').last};base64,${base64Encode(bytes)}');
+      _images.add(
+        'data:image/${file.name.split('.').last};base64,${base64Encode(bytes)}',
+      );
     }
     if (mounted) setState(() {});
   }
@@ -588,7 +735,12 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
     final tests = context.read<AquariumProvider>().waterTests;
     final latest = tests.isEmpty ? null : tests.first;
     final attached = _attachWater && latest != null
-        ? {'pH': latest.ph, 'NO3': latest.no3, 'PO4': latest.po4, 'Fe': latest.fe}
+        ? {
+            'pH': latest.ph,
+            'NO3': latest.no3,
+            'PO4': latest.po4,
+            'Fe': latest.fe,
+          }
         : null;
     context.read<AquariumProvider>().addJournalEntry(
       JournalEntry(
@@ -600,7 +752,11 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
         type: 'journal',
         imagePaths: List.unmodifiable(_images),
         category: _category,
-        tags: _tags.text.split(',').map((tag) => tag.trim()).where((tag) => tag.isNotEmpty).toList(),
+        tags: _tags.text
+            .split(',')
+            .map((tag) => tag.trim())
+            .where((tag) => tag.isNotEmpty)
+            .toList(),
         attachedWaterParameters: attached,
       ),
     );
@@ -609,7 +765,11 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
 }
 
 class ImageGrowthComparer extends StatefulWidget {
-  const ImageGrowthComparer({required this.before, required this.after, super.key});
+  const ImageGrowthComparer({
+    required this.before,
+    required this.after,
+    super.key,
+  });
 
   final String before;
   final String after;
@@ -625,7 +785,11 @@ class _ImageGrowthComparerState extends State<ImageGrowthComparer> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _ink,
-      appBar: AppBar(backgroundColor: _ink, foregroundColor: Colors.white, title: const Text('Porównywarka Przed / Po')),
+      appBar: AppBar(
+        backgroundColor: _ink,
+        foregroundColor: Colors.white,
+        title: const Text('Porównywarka Przed / Po'),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -642,13 +806,26 @@ class _ImageGrowthComparerState extends State<ImageGrowthComparer> {
                         clipper: _RightClipper(_split),
                         child: _ImageSource(source: widget.before),
                       ),
-                      Align(alignment: Alignment(_split * 2 - 1, 0), child: Container(width: 3, color: _cyan)),
+                      Align(
+                        alignment: Alignment(_split * 2 - 1, 0),
+                        child: Container(width: 3, color: _cyan),
+                      ),
                     ],
                   ),
                 ),
               ),
-              Slider(value: _split, onChanged: (value) => setState(() => _split = value), activeColor: _cyan),
-              const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('PRZED', style: TextStyle(color: Colors.white70)), Text('PO', style: TextStyle(color: Colors.white70))]),
+              Slider(
+                value: _split,
+                onChanged: (value) => setState(() => _split = value),
+                activeColor: _cyan,
+              ),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('PRZED', style: TextStyle(color: Colors.white70)),
+                  Text('PO', style: TextStyle(color: Colors.white70)),
+                ],
+              ),
             ],
           ),
         ),
@@ -662,7 +839,8 @@ class _RightClipper extends CustomClipper<Rect> {
   final double split;
 
   @override
-  Rect getClip(Size size) => Rect.fromLTWH(0, 0, size.width * split, size.height);
+  Rect getClip(Size size) =>
+      Rect.fromLTWH(0, 0, size.width * split, size.height);
 
   @override
   bool shouldReclip(_RightClipper oldClipper) => oldClipper.split != split;
@@ -675,9 +853,20 @@ class _ImageSource extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (source.startsWith('data:')) {
-      return Image.memory(base64Decode(source.split(',').last), fit: BoxFit.contain);
+      return Image.memory(
+        base64Decode(source.split(',').last),
+        fit: BoxFit.contain,
+      );
     }
-    return Image.network(source, fit: BoxFit.contain, errorBuilder: (_, _, _) => const Icon(Icons.image_not_supported, color: Colors.white54, size: 48));
+    return Image.network(
+      source,
+      fit: BoxFit.contain,
+      errorBuilder: (_, _, _) => const Icon(
+        Icons.image_not_supported,
+        color: Colors.white54,
+        size: 48,
+      ),
+    );
   }
 }
 
@@ -686,7 +875,10 @@ class _JournalImage extends StatelessWidget {
   final String source;
 
   @override
-  Widget build(BuildContext context) => ClipRRect(borderRadius: BorderRadius.circular(8), child: SizedBox(width: 68, child: _ImageSource(source: source)));
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(8),
+    child: SizedBox(width: 68, child: _ImageSource(source: source)),
+  );
 }
 
 class _DarkTag extends StatelessWidget {
@@ -694,14 +886,28 @@ class _DarkTag extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) => Chip(label: Text(label, style: const TextStyle(fontSize: 11)), backgroundColor: _cyan.withAlpha(30), side: BorderSide.none, visualDensity: VisualDensity.compact);
+  Widget build(BuildContext context) => Chip(
+    label: Text(label, style: const TextStyle(fontSize: 11)),
+    backgroundColor: _cyan.withAlpha(30),
+    side: BorderSide.none,
+    visualDensity: VisualDensity.compact,
+  );
 }
 
 class _DarkEmptyState extends StatelessWidget {
   const _DarkEmptyState();
 
   @override
-  Widget build(BuildContext context) => const Padding(padding: EdgeInsets.all(32), child: Center(child: Text('Brak wpisów. Dodaj pierwszą obserwację.', style: TextStyle(color: Colors.white54))));
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.all(32),
+    child: Center(
+      child: Text(
+        'Brak wpisów. Dodaj pierwszą obserwację.',
+        style: TextStyle(color: Colors.white54),
+      ),
+    ),
+  );
 }
 
-String _date(DateTime date) => '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+String _date(DateTime date) =>
+    '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
