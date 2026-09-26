@@ -135,4 +135,182 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get passwordsMustMatch => 'Hasła muszą być identyczne.';
+
+  @override
+  String get yourDashboard => 'Twój pulpit';
+
+  @override
+  String get dashboardSubtitle => 'Wszystko, co ważne dla Twojego akwarium.';
+
+  @override
+  String get helloUser => 'Cześć, Sławek! 👋';
+
+  @override
+  String get noNewNotifications => 'Brak nowych powiadomień';
+
+  @override
+  String get aquariumStatus => 'Status akwarium';
+
+  @override
+  String get lastTest => 'Ostatni test';
+
+  @override
+  String get noData => 'Brak danych';
+
+  @override
+  String get addFirstTest => 'Dodaj pierwszy test';
+
+  @override
+  String get parametersCount => '7 parametrów';
+
+  @override
+  String get waterChange => 'Podmiana';
+
+  @override
+  String daysCount(int count) {
+    return '$count dni';
+  }
+
+  @override
+  String get freshWater => 'Woda świeża';
+
+  @override
+  String get timeForWaterChange => 'Czas na podmianę';
+
+  @override
+  String get recentParameters => 'Ostatnie parametry';
+
+  @override
+  String get quickActions => 'Szybkie akcje';
+
+  @override
+  String get enterWaterTest => 'Wpisz wyniki testu wody';
+
+  @override
+  String get saveTankParameters => 'Zapisz aktualne parametry zbiornika';
+
+  @override
+  String get addWaterChange => 'Dodaj podmianę wody';
+
+  @override
+  String get saveVolumeAndNote => 'Zapisz litraż i notatkę';
+
+  @override
+  String get historyOfTank => 'HISTORIA ZBIORNIKA';
+
+  @override
+  String get journalSubtitle => 'Pełna historia opieki nad akwarium.';
+
+  @override
+  String get recentEntries => 'Ostatnie wpisy';
+
+  @override
+  String get showOlderEntries => 'Pokaż starsze wpisy';
+
+  @override
+  String get journalEmpty => 'Dziennik jest jeszcze pusty';
+
+  @override
+  String get addFirstWaterEntry => 'Dodaj pierwszy test wody lub podmianę.';
+
+  @override
+  String get toolsCenter => 'CENTRUM NARZĘDZI';
+
+  @override
+  String get toolsSubtitle => 'Praktyczne funkcje dla każdego akwarysty.';
+
+  @override
+  String get account => 'TWOJE KONTO';
+
+  @override
+  String get profileTitle => 'Profil i PRO';
+
+  @override
+  String get profileSubtitle => 'Zarządzaj akwarium oraz ustawieniami konta.';
+
+  @override
+  String get aquariumName => 'Akwarium Roślinne';
+
+  @override
+  String get tankDetails => '112 litrów · Roślinne';
+
+  @override
+  String get notificationsSubtitle => 'Przypomnienia o testach i podmianach';
+
+  @override
+  String get syncData => 'Synchronizacja danych';
+
+  @override
+  String get syncSubtitle => 'Przygotowane pod Firebase lub Supabase';
+
+  @override
+  String get syncComingSoon =>
+      'Synchronizacja zostanie podłączona w kolejnym etapie';
+
+  @override
+  String get logOut => 'Wyloguj się';
+
+  @override
+  String get logOutSubtitle => 'Zakończ bieżącą sesję na tym urządzeniu';
+
+  @override
+  String get cancel => 'Anuluj';
+
+  @override
+  String get save => 'Zapisz';
+
+  @override
+  String get volume => 'Objętość';
+
+  @override
+  String get note => 'Notatka';
+
+  @override
+  String get liters => 'litrów';
+
+  @override
+  String get diagnosisSaved => 'Diagnoza została zapisana w dzienniku';
+
+  @override
+  String get saveToJournal => 'Zapisz do Dziennika';
+
+  @override
+  String get tanksAndStock => 'Akwaria i obsada';
+
+  @override
+  String get tanksAndStockDescription =>
+      'Przełącz zbiornik i zarządzaj fauną oraz florą.';
+
+  @override
+  String get openManagement => 'Otwórz zarządzanie';
+
+  @override
+  String get waterTests => 'Testy wody';
+
+  @override
+  String get waterTestsDescription =>
+      'Zapisuj pH, NO3, PO4, Fe, KH, GH i temperaturę.';
+
+  @override
+  String get openTests => 'Otwórz testy';
+
+  @override
+  String get knowledgeBase => 'Baza wiedzy i Atlas';
+
+  @override
+  String get knowledgeBaseDescription =>
+      'Poznaj ryby, rośliny i sposoby walki z glonami.';
+
+  @override
+  String get openAtlas => 'Otwórz Atlas';
+
+  @override
+  String get fertilizerCalculator => 'Kalkulator nawożenia';
+
+  @override
+  String get fertilizerDescription =>
+      'Oblicz dawki dzienne i tygodniowe dla zbiornika.';
+
+  @override
+  String get openCalculator => 'Otwórz kalkulator';
 }

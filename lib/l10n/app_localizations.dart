@@ -349,6 +349,348 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Hasła muszą być identyczne.'**
   String get passwordsMustMatch;
+
+  /// No description provided for @yourDashboard.
+  ///
+  /// In pl, this message translates to:
+  /// **'Twój pulpit'**
+  String get yourDashboard;
+
+  /// No description provided for @dashboardSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystko, co ważne dla Twojego akwarium.'**
+  String get dashboardSubtitle;
+
+  /// No description provided for @helloUser.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cześć, Sławek! 👋'**
+  String get helloUser;
+
+  /// No description provided for @noNewNotifications.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak nowych powiadomień'**
+  String get noNewNotifications;
+
+  /// No description provided for @aquariumStatus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Status akwarium'**
+  String get aquariumStatus;
+
+  /// No description provided for @lastTest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatni test'**
+  String get lastTest;
+
+  /// No description provided for @noData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak danych'**
+  String get noData;
+
+  /// No description provided for @addFirstTest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwszy test'**
+  String get addFirstTest;
+
+  /// No description provided for @parametersCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'7 parametrów'**
+  String get parametersCount;
+
+  /// No description provided for @waterChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podmiana'**
+  String get waterChange;
+
+  /// No description provided for @daysCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} dni'**
+  String daysCount(int count);
+
+  /// No description provided for @freshWater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Woda świeża'**
+  String get freshWater;
+
+  /// No description provided for @timeForWaterChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czas na podmianę'**
+  String get timeForWaterChange;
+
+  /// No description provided for @recentParameters.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnie parametry'**
+  String get recentParameters;
+
+  /// No description provided for @quickActions.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szybkie akcje'**
+  String get quickActions;
+
+  /// No description provided for @enterWaterTest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz wyniki testu wody'**
+  String get enterWaterTest;
+
+  /// No description provided for @saveTankParameters.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz aktualne parametry zbiornika'**
+  String get saveTankParameters;
+
+  /// No description provided for @addWaterChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj podmianę wody'**
+  String get addWaterChange;
+
+  /// No description provided for @saveVolumeAndNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz litraż i notatkę'**
+  String get saveVolumeAndNote;
+
+  /// No description provided for @historyOfTank.
+  ///
+  /// In pl, this message translates to:
+  /// **'HISTORIA ZBIORNIKA'**
+  String get historyOfTank;
+
+  /// No description provided for @journalSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pełna historia opieki nad akwarium.'**
+  String get journalSubtitle;
+
+  /// No description provided for @recentEntries.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnie wpisy'**
+  String get recentEntries;
+
+  /// No description provided for @showOlderEntries.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokaż starsze wpisy'**
+  String get showOlderEntries;
+
+  /// No description provided for @journalEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dziennik jest jeszcze pusty'**
+  String get journalEmpty;
+
+  /// No description provided for @addFirstWaterEntry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwszy test wody lub podmianę.'**
+  String get addFirstWaterEntry;
+
+  /// No description provided for @toolsCenter.
+  ///
+  /// In pl, this message translates to:
+  /// **'CENTRUM NARZĘDZI'**
+  String get toolsCenter;
+
+  /// No description provided for @toolsSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Praktyczne funkcje dla każdego akwarysty.'**
+  String get toolsSubtitle;
+
+  /// No description provided for @account.
+  ///
+  /// In pl, this message translates to:
+  /// **'TWOJE KONTO'**
+  String get account;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Profil i PRO'**
+  String get profileTitle;
+
+  /// No description provided for @profileSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zarządzaj akwarium oraz ustawieniami konta.'**
+  String get profileSubtitle;
+
+  /// No description provided for @aquariumName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwarium Roślinne'**
+  String get aquariumName;
+
+  /// No description provided for @tankDetails.
+  ///
+  /// In pl, this message translates to:
+  /// **'112 litrów · Roślinne'**
+  String get tankDetails;
+
+  /// No description provided for @notificationsSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienia o testach i podmianach'**
+  String get notificationsSubtitle;
+
+  /// No description provided for @syncData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Synchronizacja danych'**
+  String get syncData;
+
+  /// No description provided for @syncSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przygotowane pod Firebase lub Supabase'**
+  String get syncSubtitle;
+
+  /// No description provided for @syncComingSoon.
+  ///
+  /// In pl, this message translates to:
+  /// **'Synchronizacja zostanie podłączona w kolejnym etapie'**
+  String get syncComingSoon;
+
+  /// No description provided for @logOut.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyloguj się'**
+  String get logOut;
+
+  /// No description provided for @logOutSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakończ bieżącą sesję na tym urządzeniu'**
+  String get logOutSubtitle;
+
+  /// No description provided for @cancel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Anuluj'**
+  String get cancel;
+
+  /// No description provided for @save.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz'**
+  String get save;
+
+  /// No description provided for @volume.
+  ///
+  /// In pl, this message translates to:
+  /// **'Objętość'**
+  String get volume;
+
+  /// No description provided for @note.
+  ///
+  /// In pl, this message translates to:
+  /// **'Notatka'**
+  String get note;
+
+  /// No description provided for @liters.
+  ///
+  /// In pl, this message translates to:
+  /// **'litrów'**
+  String get liters;
+
+  /// No description provided for @diagnosisSaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Diagnoza została zapisana w dzienniku'**
+  String get diagnosisSaved;
+
+  /// No description provided for @saveToJournal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz do Dziennika'**
+  String get saveToJournal;
+
+  /// No description provided for @tanksAndStock.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwaria i obsada'**
+  String get tanksAndStock;
+
+  /// No description provided for @tanksAndStockDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przełącz zbiornik i zarządzaj fauną oraz florą.'**
+  String get tanksAndStockDescription;
+
+  /// No description provided for @openManagement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwórz zarządzanie'**
+  String get openManagement;
+
+  /// No description provided for @waterTests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Testy wody'**
+  String get waterTests;
+
+  /// No description provided for @waterTestsDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisuj pH, NO3, PO4, Fe, KH, GH i temperaturę.'**
+  String get waterTestsDescription;
+
+  /// No description provided for @openTests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwórz testy'**
+  String get openTests;
+
+  /// No description provided for @knowledgeBase.
+  ///
+  /// In pl, this message translates to:
+  /// **'Baza wiedzy i Atlas'**
+  String get knowledgeBase;
+
+  /// No description provided for @knowledgeBaseDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poznaj ryby, rośliny i sposoby walki z glonami.'**
+  String get knowledgeBaseDescription;
+
+  /// No description provided for @openAtlas.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwórz Atlas'**
+  String get openAtlas;
+
+  /// No description provided for @fertilizerCalculator.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalkulator nawożenia'**
+  String get fertilizerCalculator;
+
+  /// No description provided for @fertilizerDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oblicz dawki dzienne i tygodniowe dla zbiornika.'**
+  String get fertilizerDescription;
+
+  /// No description provided for @openCalculator.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwórz kalkulator'**
+  String get openCalculator;
 }
 
 class _AppLocalizationsDelegate

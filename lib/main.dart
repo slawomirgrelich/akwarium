@@ -434,6 +434,7 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<models.AquariumProvider>();
     final latestTest = provider.waterTests.isEmpty
         ? null
@@ -462,17 +463,17 @@ class DashboardPage extends StatelessWidget {
           children: [
             _Header(
               eyebrow: 'AKWARYSTA PRO',
-              title: 'Twój pulpit',
-              subtitle: 'Wszystko, co ważne dla Twojego akwarium.',
-              greeting: 'Cześć, Sławek! 👋',
+              title: l10n.yourDashboard,
+              subtitle: l10n.dashboardSubtitle,
+              greeting: l10n.helloUser,
               action: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const TankSwitcher(),
                   IconButton(
-                    tooltip: 'Powiadomienia',
+                    tooltip: l10n.notifications,
                     onPressed: () =>
-                        _showMessage(context, 'Brak nowych powiadomień'),
+                        _showMessage(context, l10n.noNewNotifications),
                     icon: const Icon(Icons.notifications_none),
                   ),
                 ],
@@ -480,20 +481,20 @@ class DashboardPage extends StatelessWidget {
             ),
             _AquariumCard(aquarium: displayedAquarium),
             const SizedBox(height: 20),
-            _SectionHeader(title: 'Status akwarium'),
+            _SectionHeader(title: l10n.aquariumStatus),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: _StatCard(
                     icon: Icons.water_drop_outlined,
-                    label: 'Ostatni test',
+                    label: l10n.lastTest,
                     value: latestTest == null
-                        ? 'Brak danych'
+                        ? l10n.noData
                         : _formatDate(latestTest.date),
                     subtitle: latestTest == null
-                        ? 'Dodaj pierwszy test'
-                        : '7 parametrów',
+                        ? l10n.addFirstTest
+                        : l10n.parametersCount,
                     color: Colors.teal.shade700,
                   ),
                 ),
@@ -501,9 +502,11 @@ class DashboardPage extends StatelessWidget {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.sync,
-                    label: 'Podmiana',
-                    value: '$daysSinceChange dni',
-                    subtitle: isWaterFresh ? 'Woda świeża' : 'Czas na podmianę',
+                    label: l10n.waterChange,
+                    value: l10n.daysCount(daysSinceChange),
+                    subtitle: isWaterFresh
+                        ? l10n.freshWater
+                        : l10n.timeForWaterChange,
                     color: isWaterFresh ? Colors.green : Colors.orange,
                   ),
                 ),
@@ -519,16 +522,16 @@ class DashboardPage extends StatelessWidget {
               _WaterAlertCard(test: latestTest!, alert: alert),
             ],
             const SizedBox(height: 24),
-            _SectionHeader(title: 'Ostatnie parametry'),
+            _SectionHeader(title: l10n.recentParameters),
             const SizedBox(height: 12),
             _WaterParametersCard(test: latestTest),
             const SizedBox(height: 24),
-            _SectionHeader(title: 'Szybkie akcje'),
+            _SectionHeader(title: l10n.quickActions),
             const SizedBox(height: 12),
             _ActionTile(
               icon: Icons.science_outlined,
-              title: 'Wpisz wyniki testu wody',
-              subtitle: 'Zapisz aktualne parametry zbiornika',
+              title: l10n.enterWaterTest,
+              subtitle: l10n.saveTankParameters,
               accent: true,
               onTap: () {
                 Navigator.push(
@@ -540,8 +543,8 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(height: 10),
             _ActionTile(
               icon: Icons.water_drop_outlined,
-              title: 'Dodaj podmianę wody',
-              subtitle: 'Zapisz litraż i notatkę',
+              title: l10n.addWaterChange,
+              subtitle: l10n.saveVolumeAndNote,
               accent: true,
               onTap: () => _showWaterChangeDialog(context),
             ),
@@ -553,6 +556,7 @@ class DashboardPage extends StatelessWidget {
   }
 
   void _showWaterChangeDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final volumeController = TextEditingController(text: '30');
     final notesController = TextEditingController();
 
@@ -560,29 +564,29 @@ class DashboardPage extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Dodaj podmianę wody'),
+          title: Text(l10n.addWaterChange),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: volumeController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Objętość',
-                  suffixText: 'litrów',
+                decoration: InputDecoration(
+                  labelText: l10n.volume,
+                  suffixText: l10n.liters,
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: notesController,
-                decoration: const InputDecoration(labelText: 'Notatka'),
+                decoration: InputDecoration(labelText: l10n.note),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Anuluj'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () {
@@ -608,10 +612,10 @@ class DashboardPage extends StatelessWidget {
                 );
                 Navigator.pop(dialogContext);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Podmiana została zapisana')),
+                  SnackBar(content: Text(l10n.saveTankParameters)),
                 );
               },
-              child: const Text('Zapisz'),
+              child: Text(l10n.save),
             ),
           ],
         );
@@ -634,6 +638,7 @@ class JournalPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final entries = context
         .watch<models.AquariumProvider>()
         .journalEntries
@@ -646,14 +651,14 @@ class JournalPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _Header(
-              eyebrow: 'HISTORIA ZBIORNIKA',
-              title: 'Dziennik',
-              subtitle: 'Pełna historia opieki nad akwarium.',
+            _Header(
+              eyebrow: l10n.historyOfTank,
+              title: l10n.journal,
+              subtitle: l10n.journalSubtitle,
             ),
             const WaterParametersChart(),
             const SizedBox(height: 24),
-            _SectionHeader(title: 'Ostatnie wpisy'),
+            _SectionHeader(title: l10n.recentEntries),
             const SizedBox(height: 14),
             if (entries.isEmpty)
               const _EmptyJournalState()
@@ -666,12 +671,12 @@ class JournalPage extends StatelessWidget {
               ),
             OutlinedButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Wyświetlono wszystkie wpisy')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(l10n.showOlderEntries)));
               },
               icon: const Icon(Icons.history),
-              label: const Text('Pokaż starsze wpisy'),
+              label: Text(l10n.showOlderEntries),
             ),
             const SizedBox(height: 24),
           ],
@@ -713,6 +718,7 @@ class _EmptyJournalState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -724,12 +730,12 @@ class _EmptyJournalState extends StatelessWidget {
               size: 36,
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Dziennik jest jeszcze pusty',
+            Text(
+              l10n.journalEmpty,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            const Text('Dodaj pierwszy test wody lub podmianę.'),
+            Text(l10n.addFirstWaterEntry),
           ],
         ),
       ),
@@ -748,23 +754,24 @@ class ToolsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return _PageContainer(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _Header(
-              eyebrow: 'CENTRUM NARZĘDZI',
-              title: 'Narzędzia',
-              subtitle: 'Praktyczne funkcje dla każdego akwarysty.',
+            _Header(
+              eyebrow: l10n.toolsCenter,
+              title: l10n.tools,
+              subtitle: l10n.toolsSubtitle,
             ),
             _ToolCard(
               icon: Icons.water_drop_outlined,
               color: Colors.cyan,
-              title: 'Akwaria i obsada',
-              description: 'Przełącz zbiornik i zarządzaj fauną oraz florą.',
-              buttonLabel: 'Otwórz zarządzanie',
+              title: l10n.tanksAndStock,
+              description: l10n.tanksAndStockDescription,
+              buttonLabel: l10n.openManagement,
               onTap: () {
                 Navigator.push(
                   context,
@@ -778,9 +785,9 @@ class ToolsPage extends StatelessWidget {
             _ToolCard(
               icon: Icons.science_outlined,
               color: Colors.teal,
-              title: 'Testy wody',
-              description: 'Zapisuj pH, NO3, PO4, Fe, KH, GH i temperaturę.',
-              buttonLabel: 'Otwórz testy',
+              title: l10n.waterTests,
+              description: l10n.waterTestsDescription,
+              buttonLabel: l10n.openTests,
               onTap: () {
                 Navigator.push(
                   context,
@@ -792,9 +799,9 @@ class ToolsPage extends StatelessWidget {
             _ToolCard(
               icon: Icons.menu_book_outlined,
               color: Colors.teal.shade700,
-              title: 'Baza wiedzy i Atlas',
-              description: 'Poznaj ryby, rośliny i sposoby walki z glonami.',
-              buttonLabel: 'Otwórz Atlas',
+              title: l10n.knowledgeBase,
+              description: l10n.knowledgeBaseDescription,
+              buttonLabel: l10n.openAtlas,
               premium: true,
               onTap: () {
                 Navigator.push(
@@ -809,9 +816,9 @@ class ToolsPage extends StatelessWidget {
             _ToolCard(
               icon: Icons.calculate_outlined,
               color: Colors.indigo,
-              title: 'Kalkulator nawożenia',
-              description: 'Oblicz dawki dzienne i tygodniowe dla zbiornika.',
-              buttonLabel: 'Otwórz kalkulator',
+              title: l10n.fertilizerCalculator,
+              description: l10n.fertilizerDescription,
+              buttonLabel: l10n.openCalculator,
               premium: true,
               onTap: () {
                 Navigator.push(
@@ -1259,7 +1266,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
       ),
     );
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Diagnoza została zapisana w dzienniku')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.diagnosisSaved)),
     );
   }
 
@@ -1330,7 +1337,7 @@ class _AlgaeResultCard extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => onSave(result),
               icon: const Icon(Icons.bookmark_add_outlined),
-              label: const Text('Zapisz do Dziennika'),
+              label: Text(AppLocalizations.of(context)!.saveToJournal),
             ),
           ],
         ),
@@ -1586,10 +1593,10 @@ class ProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const _Header(
-              eyebrow: 'TWOJE KONTO',
-              title: 'Profil i PRO',
-              subtitle: 'Zarządzaj akwarium oraz ustawieniami konta.',
+            _Header(
+              eyebrow: l10n.account,
+              title: l10n.profileTitle,
+              subtitle: l10n.profileSubtitle,
             ),
             const _ProCard(),
             const SizedBox(height: 24),
@@ -1597,8 +1604,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 12),
             _SettingsTile(
               icon: Icons.water,
-              title: 'Akwarium Roślinne',
-              subtitle: '112 litrów · Roślinne',
+              title: l10n.aquariumName,
+              subtitle: l10n.tankDetails,
               onTap: () => _openAquariumManagement(context),
             ),
             const SizedBox(height: 10),
@@ -1611,12 +1618,12 @@ class ProfilePage extends StatelessWidget {
               onTap: () => _openAquariumManagement(context),
             ),
             const SizedBox(height: 24),
-            const _SectionHeader(title: 'Ustawienia'),
+            _SectionHeader(title: l10n.settings),
             const SizedBox(height: 12),
             _SettingsTile(
               icon: Icons.notifications_none,
-              title: 'Powiadomienia',
-              subtitle: 'Przypomnienia o testach i podmianach',
+              title: l10n.notifications,
+              subtitle: l10n.notificationsSubtitle,
               onTap: () => Navigator.push<void>(
                 context,
                 MaterialPageRoute(
@@ -1631,18 +1638,15 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.cloud_outlined,
-              title: 'Synchronizacja danych',
-              subtitle: 'Przygotowane pod Firebase lub Supabase',
-              onTap: () => _showMessage(
-                context,
-                'Synchronizacja zostanie podłączona w kolejnym etapie',
-              ),
+              title: l10n.syncData,
+              subtitle: l10n.syncSubtitle,
+              onTap: () => _showMessage(context, l10n.syncComingSoon),
             ),
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.logout,
-              title: 'Wyloguj się',
-              subtitle: 'Zakończ bieżącą sesję na tym urządzeniu',
+              title: l10n.logOut,
+              subtitle: l10n.logOutSubtitle,
               onTap: () => _signOut(context),
             ),
             const SizedBox(height: 24),

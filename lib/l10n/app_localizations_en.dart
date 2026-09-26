@@ -136,4 +136,182 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passwordsMustMatch => 'Passwords must match.';
+
+  @override
+  String get yourDashboard => 'Your Dashboard';
+
+  @override
+  String get dashboardSubtitle => 'Everything important for your aquarium.';
+
+  @override
+  String get helloUser => 'Hello, Slawek! 👋';
+
+  @override
+  String get noNewNotifications => 'No new notifications';
+
+  @override
+  String get aquariumStatus => 'Aquarium status';
+
+  @override
+  String get lastTest => 'Latest test';
+
+  @override
+  String get noData => 'No data';
+
+  @override
+  String get addFirstTest => 'Add your first test';
+
+  @override
+  String get parametersCount => '7 parameters';
+
+  @override
+  String get waterChange => 'Water change';
+
+  @override
+  String daysCount(int count) {
+    return '$count days';
+  }
+
+  @override
+  String get freshWater => 'Water is fresh';
+
+  @override
+  String get timeForWaterChange => 'Time for a water change';
+
+  @override
+  String get recentParameters => 'Recent parameters';
+
+  @override
+  String get quickActions => 'Quick actions';
+
+  @override
+  String get enterWaterTest => 'Enter water test results';
+
+  @override
+  String get saveTankParameters => 'Save current tank parameters';
+
+  @override
+  String get addWaterChange => 'Add a water change';
+
+  @override
+  String get saveVolumeAndNote => 'Save volume and note';
+
+  @override
+  String get historyOfTank => 'TANK HISTORY';
+
+  @override
+  String get journalSubtitle => 'The complete history of aquarium care.';
+
+  @override
+  String get recentEntries => 'Recent entries';
+
+  @override
+  String get showOlderEntries => 'Show older entries';
+
+  @override
+  String get journalEmpty => 'The journal is still empty';
+
+  @override
+  String get addFirstWaterEntry => 'Add your first water test or water change.';
+
+  @override
+  String get toolsCenter => 'TOOLS CENTER';
+
+  @override
+  String get toolsSubtitle => 'Practical tools for every aquarist.';
+
+  @override
+  String get account => 'YOUR ACCOUNT';
+
+  @override
+  String get profileTitle => 'Profile and PRO';
+
+  @override
+  String get profileSubtitle => 'Manage your aquarium and account settings.';
+
+  @override
+  String get aquariumName => 'Planted Aquarium';
+
+  @override
+  String get tankDetails => '112 liters · Planted';
+
+  @override
+  String get notificationsSubtitle => 'Reminders for tests and water changes';
+
+  @override
+  String get syncData => 'Data synchronization';
+
+  @override
+  String get syncSubtitle => 'Prepared for Firebase or Supabase';
+
+  @override
+  String get syncComingSoon =>
+      'Synchronization will be connected in a later stage';
+
+  @override
+  String get logOut => 'Log out';
+
+  @override
+  String get logOutSubtitle => 'End the current session on this device';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get volume => 'Volume';
+
+  @override
+  String get note => 'Note';
+
+  @override
+  String get liters => 'liters';
+
+  @override
+  String get diagnosisSaved => 'Diagnosis saved to the journal';
+
+  @override
+  String get saveToJournal => 'Save to Journal';
+
+  @override
+  String get tanksAndStock => 'Aquariums and stock';
+
+  @override
+  String get tanksAndStockDescription =>
+      'Switch tanks and manage fauna and flora.';
+
+  @override
+  String get openManagement => 'Open management';
+
+  @override
+  String get waterTests => 'Water tests';
+
+  @override
+  String get waterTestsDescription =>
+      'Record pH, NO3, PO4, Fe, KH, GH and temperature.';
+
+  @override
+  String get openTests => 'Open tests';
+
+  @override
+  String get knowledgeBase => 'Knowledge base and Atlas';
+
+  @override
+  String get knowledgeBaseDescription =>
+      'Learn about fish, plants and algae control.';
+
+  @override
+  String get openAtlas => 'Open Atlas';
+
+  @override
+  String get fertilizerCalculator => 'Fertilizer calculator';
+
+  @override
+  String get fertilizerDescription =>
+      'Calculate daily and weekly doses for your tank.';
+
+  @override
+  String get openCalculator => 'Open calculator';
 }
