@@ -9,7 +9,7 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     final service = ProAccessService(preferences: preferences);
 
-    await service.enableProForDevelopment();
+    await service.activateFreeTrial();
 
     expect(preferences.getBool(ProAccessService.proStatusKey), isTrue);
 

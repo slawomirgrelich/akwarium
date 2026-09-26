@@ -35,5 +35,5 @@ class ProAccessService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> enableProForDevelopment() => setProUser(true);
+  Future<void> activateFreeTrial() => setProUser(true);
 }

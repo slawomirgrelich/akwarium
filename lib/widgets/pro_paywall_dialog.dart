@@ -95,13 +95,11 @@ class ProPaywallDialog extends StatelessWidget {
         ),
         FilledButton.icon(
           onPressed: () async {
-            await context.read<ProAccessService>().enableProForDevelopment();
+            await context.read<ProAccessService>().activateFreeTrial();
             if (!context.mounted) return;
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Tryb PRO został odblokowany testowo.'),
-              ),
+              const SnackBar(content: Text('Aktywowano pakiet Akwarysta PRO.')),
             );
           },
           icon: const Icon(Icons.auto_awesome),
