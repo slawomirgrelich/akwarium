@@ -63,10 +63,10 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                   children: [
                     TabBar(
                       tabs: [
-                        Tab(icon: Icon(Icons.timeline), text: l10n.timeline),
+                        Tab(icon: Icon(Icons.timeline), text: l10n.tabTimeline),
                         Tab(
                           icon: Icon(Icons.calendar_month),
-                          text: l10n.calendar,
+                          text: l10n.tabCalendar,
                         ),
                       ],
                     ),
@@ -404,6 +404,7 @@ class _CalendarTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final selected = reminders
         .where((reminder) => isSameDay(reminder.nextDueDate, selectedDay))
         .toList();
@@ -467,7 +468,9 @@ class _CalendarTab extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          isSameDay(selectedDay, DateTime.now()) ? 'Na dziś' : 'Wybrany dzień',
+          isSameDay(selectedDay, DateTime.now())
+              ? l10n.forToday
+              : l10n.selectedDay,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),

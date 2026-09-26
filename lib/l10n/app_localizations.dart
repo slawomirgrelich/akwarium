@@ -1016,6 +1016,36 @@ abstract class AppLocalizations {
   /// **'Pulpit'**
   String get navDashboard;
 
+  /// No description provided for @navProfile.
+  ///
+  /// In pl, this message translates to:
+  /// **'Profil'**
+  String get navProfile;
+
+  /// No description provided for @tabTimeline.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oś czasu'**
+  String get tabTimeline;
+
+  /// No description provided for @tabCalendar.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalendarz'**
+  String get tabCalendar;
+
+  /// No description provided for @forToday.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na dziś'**
+  String get forToday;
+
+  /// No description provided for @selectedDay.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybrany dzień'**
+  String get selectedDay;
+
   /// No description provided for @aiScannerTitle.
   ///
   /// In pl, this message translates to:

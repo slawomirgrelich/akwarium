@@ -489,6 +489,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navDashboard => 'Dashboard';
 
   @override
+  String get navProfile => 'Profile';
+
+  @override
+  String get tabTimeline => 'Timeline';
+
+  @override
+  String get tabCalendar => 'Calendar';
+
+  @override
+  String get forToday => 'For today';
+
+  @override
+  String get selectedDay => 'Selected day';
+
+  @override
   String get aiScannerTitle => 'AI fish and plant scanner';
 
   @override

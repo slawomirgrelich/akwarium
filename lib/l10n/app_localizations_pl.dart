@@ -490,6 +490,21 @@ class AppLocalizationsPl extends AppLocalizations {
   String get navDashboard => 'Pulpit';
 
   @override
+  String get navProfile => 'Profil';
+
+  @override
+  String get tabTimeline => 'Oś czasu';
+
+  @override
+  String get tabCalendar => 'Kalendarz';
+
+  @override
+  String get forToday => 'Na dziś';
+
+  @override
+  String get selectedDay => 'Wybrany dzień';
+
+  @override
   String get aiScannerTitle => 'Skaner AI ryb i roślin';
 
   @override

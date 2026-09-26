@@ -414,7 +414,7 @@ class _MainShellState extends State<MainShell> {
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
               activeIcon: Icon(Icons.person),
-              label: l10n.profile,
+              label: l10n.navProfile,
             ),
           ],
         ),
