@@ -312,7 +312,10 @@ class AkwarystaProApp extends StatelessWidget {
               home: firebaseReady
                   ? const AuthWrapper(authenticatedScreen: MainShell())
                   : const LoginScreen(),
-              routes: {'/login': (_) => const LoginScreen()},
+              routes: {
+                '/login': (_) => const LoginScreen(),
+                '/dashboard': (_) => const MainShell(),
+              },
             ),
           ),
         ),

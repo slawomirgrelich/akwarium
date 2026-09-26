@@ -266,13 +266,16 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text,
         );
         if (mounted) {
-          _showMessage('Konto utworzone. Trwa otwieranie pulpitu.');
+          await Navigator.of(context).pushReplacementNamed('/dashboard');
         }
       } else {
         await _auth.signInWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
+        if (mounted) {
+          await Navigator.of(context).pushReplacementNamed('/dashboard');
+        }
       }
     } on AuthException catch (error) {
       if (mounted) {
