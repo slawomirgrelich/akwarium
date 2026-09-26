@@ -107,7 +107,7 @@ class ProPaywallDialog extends StatelessWidget {
                 trialError ??
                     'Potwierdź adres e-mail, aby aktywować okres próbny PRO.',
               TrialActivationResult.temporaryEmail => 'Okres próbny nie jest dostępny dla tymczasowych adresów e-mail.',
-              TrialActivationResult.alreadyUsed => 'Darmowy okres próbny został już wykorzystany na tym urządzeniu. Wybierz pakiet PRO, aby odblokować pełen dostęp.',
+              TrialActivationResult.alreadyUsed => 'Darmowy 7-dniowy okres próbny został już wykorzystany. Wybierz płatny pakiet PRO.',
               TrialActivationResult.unavailable => trialError ?? 'Nie udało się aktywować okresu próbnego. Spróbuj ponownie później.',
             };
             ScaffoldMessenger.of(context)

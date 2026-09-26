@@ -26,6 +26,8 @@ class ProAccessService extends ChangeNotifier {
   }) : _user = user ?? const UserDataModel(uid: '');
 
   static const proStatusKey = 'is_pro_active';
+  static const _hasUsedTrialKey = 'has_used_trial';
+  static const _hasUsedTrialFirestoreKey = 'has_used_trial_v1';
   static const _deviceIdKey = 'trial_device_id';
   static const _trialCollection = 'trial_registrations';
   static const _trialDuration = Duration(days: 7);
@@ -116,37 +118,66 @@ class ProAccessService extends ChangeNotifier {
     }
 
     try {
+      final storedPreferences = await _getPreferences();
+      if (storedPreferences.getBool(_hasUsedTrialKey) ?? false) {
+        await _setFreeForCurrentUser();
+        return TrialActivationResult.alreadyUsed;
+      }
+
       final deviceId = await _getDeviceId();
+      final emailKey = email.replaceAll(RegExp(r'[^a-z0-9]'), '_');
+      final userReference = firestore.collection('users').doc(currentUser.uid);
       final accountReference = firestore
           .collection(_trialCollection)
           .doc('account_${currentUser.uid}');
       final deviceReference = firestore
           .collection(_trialCollection)
           .doc('device_$deviceId');
+      final emailReference = firestore
+          .collection(_trialCollection)
+          .doc('email_$emailKey');
       final trialEndsAt = DateTime.now().toUtc().add(_trialDuration);
+      final trialActivatedAt = DateTime.now().toUtc();
       final registration = {
         'uid': currentUser.uid,
         'email': email,
         'deviceId': deviceId,
         'registeredAt': FieldValue.serverTimestamp(),
+        _hasUsedTrialFirestoreKey: true,
+        'trialActivatedAt': Timestamp.fromDate(trialActivatedAt),
         'trialEndsAt': Timestamp.fromDate(trialEndsAt),
       };
       await firestore.runTransaction((transaction) async {
+        final user = await transaction.get(userReference);
         final account = await transaction.get(accountReference);
         final device = await transaction.get(deviceReference);
-        if (account.exists || device.exists) {
+        final emailRegistration = await transaction.get(emailReference);
+        final userData = user.data() ?? const <String, dynamic>{};
+        final profileUsed =
+            userData['hasUsedTrial'] == true ||
+            userData[_hasUsedTrialFirestoreKey] == true ||
+            userData['trialActivatedAt'] != null;
+        if (profileUsed ||
+            account.exists ||
+            device.exists ||
+            emailRegistration.exists) {
           throw const _TrialAlreadyUsed();
         }
         transaction.set(accountReference, registration);
         transaction.set(deviceReference, registration);
+        transaction.set(emailReference, registration);
       });
-      await firestore.collection('users').doc(currentUser.uid).set({
+      await userReference.set({
         'uid': currentUser.uid,
         'isPro': true,
         'subscriptionStatus': 'trial',
+        'hasUsedTrial': true,
+        _hasUsedTrialFirestoreKey: true,
+        'trialActivatedAt': Timestamp.fromDate(trialActivatedAt),
         'trialEndsAt': Timestamp.fromDate(trialEndsAt),
       }, SetOptions(merge: true));
       _trialExpired = false;
+      await storedPreferences.setBool(_hasUsedTrialKey, true);
       await _applyStatus(
         uid: currentUser.uid,
         isPro: true,
@@ -213,6 +244,8 @@ class ProAccessService extends ChangeNotifier {
             'email': firebaseUser.email,
             'isPro': false,
             'subscriptionStatus': 'free',
+            'hasUsedTrial': false,
+            _hasUsedTrialFirestoreKey: false,
             'createdAt': FieldValue.serverTimestamp(),
           });
         } else {
@@ -304,17 +337,26 @@ class ProAccessService extends ChangeNotifier {
   Future<void> _setFreeForCurrentUser() async {
     final currentUser = _tryGetAuth()?.currentUser;
     final firestore = _tryGetFirestore();
-    if (currentUser != null && firestore != null) {
+    final storedPreferences = await _getPreferences();
+    await storedPreferences.setBool(_hasUsedTrialKey, true);
+    if (currentUser == null || firestore == null) return;
+
+    try {
       await firestore.collection('users').doc(currentUser.uid).set({
         'isPro': false,
         'subscriptionStatus': 'free',
+        'hasUsedTrial': true,
+        _hasUsedTrialFirestoreKey: true,
         'trialEndsAt': FieldValue.delete(),
       }, SetOptions(merge: true));
       await _applyStatus(
         uid: currentUser.uid,
         isPro: false,
-        preferences: await _getPreferences(),
+        preferences: storedPreferences,
       );
+    } catch (error) {
+      _lastTrialError = _messageForFirebaseError(error);
+      debugPrint('Free plan fallback failed: $error');
     }
   }
 

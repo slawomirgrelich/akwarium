@@ -130,6 +130,8 @@ class AuthService {
         'email': user.email,
         'isPro': false,
         'subscriptionStatus': 'free',
+        'hasUsedTrial': false,
+        'has_used_trial_v1': false,
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: false));
     } catch (error) {
