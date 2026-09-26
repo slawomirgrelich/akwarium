@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,6 +26,7 @@ import 'screens/login_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'services/auth_service.dart';
 import 'services/pro_access_service.dart';
+import 'services/theme_controller.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 import 'widgets/pro_paywall_dialog.dart';
@@ -71,6 +73,7 @@ Future<void> main() async {
   }
 
   final preferences = await SharedPreferences.getInstance();
+  await initializeDateFormatting('pl_PL', null);
   runApp(
     AkwarystaProApp(firebaseReady: firebaseReady, proPreferences: preferences),
   );
@@ -224,80 +227,94 @@ class AkwarystaProApp extends StatelessWidget {
 
     return ChangeNotifierProvider<ProAccessService>(
       create: (_) => ProAccessService(preferences: proPreferences)..init(),
-      child: ChangeNotifierProvider<models.AquariumProvider>(
-        create: (_) => models.AquariumProvider()..initialize(),
-        child: MaterialApp(
-          title: 'Akwarysta PRO',
-          debugShowCheckedModeBanner: false,
-          themeMode: ThemeMode.light,
-          theme: ThemeData.light(useMaterial3: true).copyWith(
-            colorScheme: colorScheme,
-            scaffoldBackgroundColor: const Color(0xFFF2F8F6),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFFF9FBFB),
-              foregroundColor: Color(0xFF0F2D2A),
-              elevation: 0,
-            ),
-            cardTheme: CardThemeData(
-              color: Colors.white,
-              elevation: 1,
-              shadowColor: Color(0x180F2D2A),
-              margin: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: Color(0x240F2D2A)),
-              ),
-            ),
-            dividerTheme: const DividerThemeData(
-              color: Color(0x180F2D2A),
-              space: 1,
-            ),
-            textTheme: const TextTheme(
-              bodyLarge: TextStyle(color: Color(0xFF1A202C)),
-              bodyMedium: TextStyle(color: Color(0xFF4A5568)),
-              titleLarge: TextStyle(
-                color: Color(0xFF0F2D2A),
-                fontWeight: FontWeight.bold,
-              ),
-              titleMedium: TextStyle(
-                color: Color(0xFF0F2D2A),
-                fontWeight: FontWeight.bold,
-              ),
-              titleSmall: TextStyle(
-                color: Color(0xFF0F2D2A),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            filledButtonTheme: FilledButtonThemeData(
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      child: ChangeNotifierProvider<ThemeController>(
+        create: (_) => ThemeController(preferences: proPreferences)..init(),
+        child: ChangeNotifierProvider<models.AquariumProvider>(
+          create: (_) => models.AquariumProvider()..initialize(),
+          child: Builder(
+            builder: (context) => MaterialApp(
+              title: 'Akwarysta PRO',
+              debugShowCheckedModeBanner: false,
+              themeMode: context.watch<ThemeController>().themeMode,
+              theme: ThemeData.light(useMaterial3: true).copyWith(
+                colorScheme: colorScheme,
+                scaffoldBackgroundColor: const Color(0xFFF2F8F6),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Color(0xFFF9FBFB),
+                  foregroundColor: Color(0xFF0F2D2A),
+                  elevation: 0,
                 ),
-              ),
-            ),
-            outlinedButtonTheme: OutlinedButtonThemeData(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(46),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                cardTheme: CardThemeData(
+                  color: Colors.white,
+                  elevation: 1,
+                  shadowColor: Color(0x180F2D2A),
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Color(0x240F2D2A)),
+                  ),
                 ),
+                dividerTheme: const DividerThemeData(
+                  color: Color(0x180F2D2A),
+                  space: 1,
+                ),
+                textTheme: const TextTheme(
+                  bodyLarge: TextStyle(color: Color(0xFF1A202C)),
+                  bodyMedium: TextStyle(color: Color(0xFF4A5568)),
+                  titleLarge: TextStyle(
+                    color: Color(0xFF0F2D2A),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  titleMedium: TextStyle(
+                    color: Color(0xFF0F2D2A),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  titleSmall: TextStyle(
+                    color: Color(0xFF0F2D2A),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                filledButtonTheme: FilledButtonThemeData(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                outlinedButtonTheme: OutlinedButtonThemeData(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(46),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                inputDecorationTheme: _inputDecorationTheme(dark: false),
               ),
+              darkTheme: ThemeData(
+                useMaterial3: true,
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: Colors.teal,
+                  brightness: Brightness.dark,
+                ),
+                scaffoldBackgroundColor: const Color(0xFF0F172A),
+                cardTheme: CardThemeData(
+                  color: const Color(0xFF1E293B),
+                  elevation: 1,
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                inputDecorationTheme: _inputDecorationTheme(dark: true),
+              ),
+              home: firebaseReady
+                  ? const AuthWrapper(authenticatedScreen: MainShell())
+                  : const LoginScreen(),
+              routes: {'/login': (_) => const LoginScreen()},
             ),
-            inputDecorationTheme: _inputDecorationTheme(dark: false),
           ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.teal,
-              brightness: Brightness.dark,
-            ),
-            inputDecorationTheme: _inputDecorationTheme(dark: true),
-          ),
-          home: firebaseReady
-              ? const AuthWrapper(authenticatedScreen: MainShell())
-              : const LoginScreen(),
-          routes: {'/login': (_) => const LoginScreen()},
         ),
       ),
     );
@@ -1586,6 +1603,8 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
+            const _ThemeModeTile(),
+            const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.cloud_outlined,
               title: 'Synchronizacja danych',
@@ -2206,6 +2225,42 @@ class _SettingsTile extends StatelessWidget {
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
+      ),
+    );
+  }
+}
+
+class _ThemeModeTile extends StatelessWidget {
+  const _ThemeModeTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = context.watch<ThemeController>();
+    return Card(
+      child: ListTile(
+        leading: Icon(Icons.brightness_6_outlined, color: Colors.teal.shade700),
+        title: const Text(
+          'Motyw aplikacji',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: const Text('Systemowy, jasny lub ciemny'),
+        trailing: DropdownButtonHideUnderline(
+          child: DropdownButton<ThemeMode>(
+            value: controller.themeMode,
+            isDense: true,
+            onChanged: (mode) {
+              if (mode != null) controller.setThemeMode(mode);
+            },
+            items: const [
+              DropdownMenuItem(
+                value: ThemeMode.system,
+                child: Text('Systemowy'),
+              ),
+              DropdownMenuItem(value: ThemeMode.light, child: Text('Jasny')),
+              DropdownMenuItem(value: ThemeMode.dark, child: Text('Ciemny')),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -433,23 +433,36 @@ class _CalendarTab extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Card(
-          child: TableCalendar<ReminderModel>(
-            locale: 'pl_PL',
-            firstDay: DateTime.utc(2020),
-            lastDay: DateTime.utc(2035),
-            focusedDay: focusedDay,
-            selectedDayPredicate: (day) => isSameDay(day, selectedDay),
-            onDaySelected: onDaySelected,
-            eventLoader: (day) => reminders
-                .where((reminder) => isSameDay(reminder.nextDueDate, day))
-                .toList(),
-            calendarStyle: const CalendarStyle(
-              markerDecoration: BoxDecoration(
-                color: Colors.teal,
-                shape: BoxShape.circle,
-              ),
+          child: SizedBox(
+            height: 360,
+            child: Builder(
+              builder: (context) {
+                try {
+                  return TableCalendar<ReminderModel>(
+                    locale: 'pl_PL',
+                    firstDay: DateTime.utc(2020),
+                    lastDay: DateTime.utc(2035),
+                    focusedDay: focusedDay,
+                    selectedDayPredicate: (day) => isSameDay(day, selectedDay),
+                    onDaySelected: onDaySelected,
+                    eventLoader: (day) => reminders
+                        .where(
+                          (reminder) => isSameDay(reminder.nextDueDate, day),
+                        )
+                        .toList(),
+                    calendarStyle: const CalendarStyle(
+                      markerDecoration: BoxDecoration(
+                        color: Colors.teal,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    headerStyle: const HeaderStyle(formatButtonVisible: false),
+                  );
+                } catch (error) {
+                  return _CalendarFallback(error: error);
+                }
+              },
             ),
-            headerStyle: const HeaderStyle(formatButtonVisible: false),
           ),
         ),
         const SizedBox(height: 16),
@@ -489,6 +502,26 @@ class _CalendarTab extends StatelessWidget {
               ),
         ],
       ],
+    );
+  }
+}
+
+class _CalendarFallback extends StatelessWidget {
+  const _CalendarFallback({required this.error});
+
+  final Object error;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          'Nie udało się wczytać kalendarza. Spróbuj ponownie później.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey.shade700),
+        ),
+      ),
     );
   }
 }
