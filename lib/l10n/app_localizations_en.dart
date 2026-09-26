@@ -314,4 +314,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openCalculator => 'Open calculator';
+
+  @override
+  String get calculatorsTitle => 'Aquarium calculators';
+
+  @override
+  String get volumeTab => 'Volume';
+
+  @override
+  String get co2Tab => 'CO2';
+
+  @override
+  String get fertilizersTab => 'Fertilizers';
+
+  @override
+  String get volumeCalculator => 'Tank volume';
+
+  @override
+  String get volumeCalculatorSubtitle =>
+      'Compare gross capacity with the actual water volume.';
+
+  @override
+  String get length => 'Length';
+
+  @override
+  String get width => 'Width';
+
+  @override
+  String get height => 'Height';
+
+  @override
+  String get glassThickness => 'Glass thickness';
+
+  @override
+  String get substrateThickness => 'Substrate thickness';
+
+  @override
+  String get decorationsAndEquipment => 'Decorations and equipment';
+
+  @override
+  String get saveNetDefault => 'Save net volume as default';
+
+  @override
+  String get co2Calculator => 'CO2 calculator';
+
+  @override
+  String get co2CalculatorSubtitle =>
+      'Choose pH and KH to check dissolved CO2 concentration.';
+
+  @override
+  String get fertilizerCalculatorTitle => 'Fertilizer dosing';
+
+  @override
+  String get fertilizerCalculatorSubtitle =>
+      'Check how much nutrient each milliliter of solution adds.';
+
+  @override
+  String get netCapacity => 'Net capacity';
+
+  @override
+  String get solutionCapacity => 'Solution capacity';
+
+  @override
+  String get saltAmount => 'Added salt';
+
+  @override
+  String get baseSalt => 'Base salt';
+
+  @override
+  String get weeklyTarget => 'Weekly target';
+
+  @override
+  String freshWaterLastChange(int count) {
+    return 'Water is fresh. The last change was $count days ago.';
+  }
+
+  @override
+  String get scheduleNextChange => 'Time to schedule the next water change.';
+
+  @override
+  String get noSavedMeasurements => 'No saved measurements';
+
+  @override
+  String get addFirstTestTrack =>
+      'Add your first test to track water condition.';
+
+  @override
+  String get addFirstMeasurement => 'Add first measurement';
 }

@@ -1924,6 +1924,7 @@ class _WaterStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final color = isFresh ? Colors.green.shade700 : Colors.orange.shade800;
 
     return Container(
@@ -1940,8 +1941,8 @@ class _WaterStatusCard extends StatelessWidget {
           Expanded(
             child: Text(
               isFresh
-                  ? 'Woda jest świeża. Ostatnia podmiana była $daysSinceChange dni temu.'
-                  : 'Czas zaplanować kolejną podmianę wody.',
+                  ? l10n.freshWaterLastChange(daysSinceChange)
+                  : l10n.scheduleNextChange,
               style: TextStyle(color: color, fontWeight: FontWeight.w600),
             ),
           ),
@@ -1958,6 +1959,7 @@ class _WaterParametersCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1970,15 +1972,12 @@ class _WaterParametersCard extends StatelessWidget {
                     size: 32,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Brak zapisanych pomiarów',
+                  Text(
+                    l10n.noSavedMeasurements,
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Dodaj pierwszy test, aby śledzić kondycję wody.',
-                    textAlign: TextAlign.center,
-                  ),
+                  Text(l10n.addFirstTestTrack, textAlign: TextAlign.center),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: () => Navigator.push(
@@ -1988,7 +1987,7 @@ class _WaterParametersCard extends StatelessWidget {
                       ),
                     ),
                     icon: const Icon(Icons.add_chart_outlined),
-                    label: const Text('Dodaj pierwszy pomiar'),
+                    label: Text(l10n.addFirstMeasurement),
                   ),
                 ],
               )

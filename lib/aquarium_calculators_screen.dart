@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 
+import 'l10n/app_localizations.dart';
 import 'services/aquarium_calculators_service.dart';
 import 'services/pro_access_service.dart';
 import 'widgets/pro_paywall_dialog.dart';
-
-const _calculatorBackground = Color(0xFF12181F);
-const _calculatorPanel = Color(0xFF1C2730);
-const _calculatorCyan = Color(0xFF00E5FF);
 
 class AquariumCalculatorsScreen extends StatefulWidget {
   const AquariumCalculatorsScreen({super.key});
@@ -32,29 +29,31 @@ class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
   @override
   Widget build(BuildContext context) {
     final isProUser = context.watch<ProAccessService>().isProUser;
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: _calculatorBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: _calculatorBackground,
-        foregroundColor: Colors.white,
-        title: const Text('Kalkulatory akwarystyczne'),
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        foregroundColor: theme.appBarTheme.foregroundColor,
+        title: Text(l10n.calculatorsTitle),
         bottom: TabBar(
           controller: _tabs,
-          indicatorColor: _calculatorCyan,
-          labelColor: _calculatorCyan,
-          unselectedLabelColor: Colors.white60,
-          tabs: const [
-            Tab(icon: Icon(Icons.straighten), text: 'Objętość'),
-            Tab(icon: Icon(Icons.bubble_chart), text: 'CO2'),
+          indicatorColor: theme.primaryColor,
+          labelColor: theme.primaryColor,
+          unselectedLabelColor: theme.textTheme.bodyMedium?.color,
+          tabs: [
+            Tab(icon: const Icon(Icons.straighten), text: l10n.volumeTab),
+            Tab(icon: const Icon(Icons.bubble_chart), text: l10n.co2Tab),
             Tab(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.eco_outlined),
-                  SizedBox(width: 6),
-                  Text('Nawozy'),
-                  SizedBox(width: 6),
-                  ProBadge(compact: true),
+                  const Icon(Icons.eco_outlined),
+                  const SizedBox(width: 6),
+                  Text(l10n.fertilizersTab),
+                  const SizedBox(width: 6),
+                  const ProBadge(compact: true),
                 ],
               ),
             ),
@@ -107,6 +106,8 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final result = calculateVolume(
       lengthCm: _number(_length),
       widthCm: _number(_width),
@@ -117,9 +118,9 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
     );
     return _CalculatorScroll(
       children: [
-        const _CalculatorIntro(
-          title: 'Objętość zbiornika',
-          subtitle: 'Porównaj pojemność brutto z realną ilością wody.',
+        _CalculatorIntro(
+          title: l10n.volumeCalculator,
+          subtitle: l10n.volumeCalculatorSubtitle,
         ),
         _GlassCard(
           child: Column(
@@ -128,7 +129,7 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
                 children: [
                   Expanded(
                     child: _NumberField(
-                      label: 'Długość',
+                      label: l10n.length,
                       unit: 'cm',
                       controller: _length,
                       onChanged: (_) => setState(() {}),
@@ -137,7 +138,7 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _NumberField(
-                      label: 'Szerokość',
+                      label: l10n.width,
                       unit: 'cm',
                       controller: _width,
                       onChanged: (_) => setState(() {}),
@@ -147,21 +148,21 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
               ),
               const SizedBox(height: 16),
               _NumberField(
-                label: 'Wysokość',
+                label: l10n.height,
                 unit: 'cm',
                 controller: _height,
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 16),
               _NumberField(
-                label: 'Grubość szkła',
+                label: l10n.glassThickness,
                 unit: 'mm',
                 controller: _glass,
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 12),
               _NumberField(
-                label: 'Grubość podłoża',
+                label: l10n.substrateThickness,
                 unit: 'cm',
                 controller: _substrate,
                 onChanged: (_) => setState(() {}),
@@ -169,15 +170,12 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
               const SizedBox(height: 14),
               Row(
                 children: [
-                  const Text(
-                    'Dekoracje i sprzęt',
-                    style: TextStyle(color: Colors.white70),
-                  ),
+                  Text(l10n.decorationsAndEquipment),
                   const Spacer(),
                   Text(
                     '${_decorations.round()}%',
-                    style: const TextStyle(
-                      color: _calculatorCyan,
+                    style: TextStyle(
+                      color: theme.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -188,7 +186,7 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
                 min: 5,
                 max: 20,
                 divisions: 15,
-                activeColor: _calculatorCyan,
+                activeColor: theme.primaryColor,
                 onChanged: (value) => setState(() => _decorations = value),
               ),
             ],
@@ -199,7 +197,7 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
         FilledButton.icon(
           onPressed: () => _saveCapacity(context, result.netLiters),
           icon: const Icon(Icons.bookmark_add_outlined),
-          label: const Text('Zapisz netto jako domyślne'),
+          label: Text(l10n.saveNetDefault),
         ),
       ],
     );
@@ -353,31 +351,33 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
       targetPpm: _number(_target),
       saltFactor: _recipe.factor,
     );
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return _CalculatorScroll(
       children: [
-        const _CalculatorIntro(
-          title: 'Dawkowanie nawozów',
-          subtitle: 'Sprawdź, ile pierwiastka wnosi każdy mililitr roztworu.',
+        _CalculatorIntro(
+          title: l10n.fertilizerCalculatorTitle,
+          subtitle: l10n.fertilizerCalculatorSubtitle,
         ),
         _GlassCard(
           child: Column(
             children: [
               _NumberField(
-                label: 'Pojemność netto',
+                label: l10n.netCapacity,
                 unit: 'l',
                 controller: _volume,
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 16),
               _NumberField(
-                label: 'Pojemność roztworu',
+                label: l10n.solutionCapacity,
                 unit: 'ml',
                 controller: _solution,
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: 16),
               _NumberField(
-                label: 'Wsypana sól',
+                label: l10n.saltAmount,
                 unit: 'g',
                 controller: _salt,
                 onChanged: (_) => setState(() {}),
@@ -386,27 +386,27 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
               DropdownButtonFormField<SaltRecipe>(
                 initialValue: _recipe,
                 isExpanded: true,
-                dropdownColor: _calculatorPanel,
-                decoration: const InputDecoration(
-                  labelText: 'Sól bazowa',
+                dropdownColor: theme.cardColor,
+                decoration: InputDecoration(
+                  labelText: l10n.baseSalt,
                   floatingLabelBehavior: FloatingLabelBehavior.always,
                   filled: true,
-                  fillColor: _calculatorPanel,
+                  fillColor: theme.cardColor,
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: Colors.white24),
+                    borderSide: BorderSide(color: theme.dividerColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: Colors.white24),
+                    borderSide: BorderSide(color: theme.dividerColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: _calculatorCyan, width: 2),
+                    borderSide: BorderSide(color: theme.primaryColor, width: 2),
                   ),
                 ),
                 items: saltRecipes
@@ -421,7 +421,7 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
               ),
               const SizedBox(height: 16),
               _NumberField(
-                label: 'Cel tygodniowy',
+                label: l10n.weeklyTarget,
                 unit: 'mg/l',
                 controller: _target,
                 onChanged: (_) => setState(() {}),
@@ -435,8 +435,8 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
             children: [
               Text(
                 '${_recipe.element} po 1 ml',
-                style: const TextStyle(
-                  color: _calculatorCyan,
+                style: TextStyle(
+                  color: theme.primaryColor,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -444,8 +444,8 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
               const SizedBox(height: 8),
               Text(
                 '${result.ppmPerMl.toStringAsFixed(3)} mg/l',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: theme.textTheme.bodyLarge?.color,
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
                 ),
@@ -453,11 +453,11 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
               const SizedBox(height: 14),
               Text(
                 'Dawka dzienna: ${result.dailyMl.toStringAsFixed(2)} ml',
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               ),
               Text(
                 'Dawka tygodniowa: ${result.weeklyMl.toStringAsFixed(2)} ml',
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               ),
             ],
           ),
@@ -504,19 +504,23 @@ class _CalculatorIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: theme.textTheme.headlineSmall?.color,
             fontSize: 26,
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 5),
-        Text(subtitle, style: const TextStyle(color: Colors.white60)),
+        Text(
+          subtitle,
+          style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+        ),
       ],
     );
   }
@@ -527,18 +531,21 @@ class _GlassCard extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: _calculatorPanel.withAlpha(225),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: _calculatorCyan.withAlpha(35)),
-      boxShadow: [
-        BoxShadow(color: _calculatorCyan.withAlpha(12), blurRadius: 18),
-      ],
-    ),
-    child: child,
-  );
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.primaryColor.withAlpha(35)),
+        boxShadow: [
+          BoxShadow(color: theme.primaryColor.withAlpha(12), blurRadius: 18),
+        ],
+      ),
+      child: child,
+    );
+  }
 }
 
 class _NumberField extends StatelessWidget {
@@ -554,34 +561,40 @@ class _NumberField extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   @override
-  Widget build(BuildContext context) => TextField(
-    controller: controller,
-    onChanged: onChanged,
-    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-    style: const TextStyle(color: Colors.white),
-    decoration: InputDecoration(
-      labelText: label,
-      labelStyle: const TextStyle(color: Colors.white60),
-      suffixText: unit,
-      suffixStyle: const TextStyle(color: _calculatorCyan),
-      floatingLabelBehavior: FloatingLabelBehavior.always,
-      filled: true,
-      fillColor: _calculatorPanel,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(color: Colors.white24),
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: theme.textTheme.bodyMedium?.color),
+        suffixText: unit,
+        suffixStyle: TextStyle(color: theme.primaryColor),
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        filled: true,
+        fillColor: theme.cardColor,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          borderSide: BorderSide(color: theme.dividerColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          borderSide: BorderSide(color: theme.dividerColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          borderSide: BorderSide(color: theme.primaryColor, width: 2),
+        ),
       ),
-      enabledBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(color: Colors.white24),
-      ),
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(color: _calculatorCyan, width: 2),
-      ),
-    ),
-  );
+    );
+  }
 }
 
 class _SliderRow extends StatelessWidget {
@@ -603,31 +616,37 @@ class _SliderRow extends StatelessWidget {
   final ValueChanged<double> onChanged;
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Row(
-        children: [
-          Text(label, style: const TextStyle(color: Colors.white70)),
-          const Spacer(),
-          Text(
-            display,
-            style: const TextStyle(
-              color: _calculatorCyan,
-              fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(color: theme.textTheme.bodyMedium?.color),
             ),
-          ),
-        ],
-      ),
-      Slider(
-        value: value,
-        min: min,
-        max: max,
-        divisions: divisions,
-        activeColor: _calculatorCyan,
-        onChanged: onChanged,
-      ),
-    ],
-  );
+            const Spacer(),
+            Text(
+              display,
+              style: TextStyle(
+                color: theme.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: value,
+          min: min,
+          max: max,
+          divisions: divisions,
+          activeColor: theme.primaryColor,
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
 }
 
 class _VolumeResult extends StatelessWidget {
@@ -635,67 +654,70 @@ class _VolumeResult extends StatelessWidget {
   final AquariumVolumeResult result;
 
   @override
-  Widget build(BuildContext context) => _GlassCard(
-    child: Column(
-      children: [
-        Text(
-          '${result.netLiters.toStringAsFixed(1)} l',
-          style: const TextStyle(
-            color: _calculatorCyan,
-            fontSize: 38,
-            fontWeight: FontWeight.w800,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return _GlassCard(
+      child: Column(
+        children: [
+          Text(
+            '${result.netLiters.toStringAsFixed(1)} l',
+            style: TextStyle(
+              color: theme.primaryColor,
+              fontSize: 38,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-        ),
-        const Text(
-          'Rzeczywista objętość wody',
-          style: TextStyle(color: Colors.white70),
-        ),
-        const SizedBox(height: 14),
-        LinearProgressIndicator(
-          value: result.grossLiters <= 0
-              ? 0
-              : result.netLiters / result.grossLiters,
-          minHeight: 12,
-          borderRadius: BorderRadius.circular(8),
-          color: _calculatorCyan,
-          backgroundColor: Colors.white12,
-        ),
-        const SizedBox(height: 12),
-        _BreakdownRow(
-          label: 'Woda netto',
-          value: result.netLiters,
-          color: _calculatorCyan,
-        ),
-        _BreakdownRow(
-          label: 'Podłoże',
-          value: result.substrateLiters,
-          color: Colors.amber,
-        ),
-        _BreakdownRow(
-          label: 'Skały / drewno',
-          value: result.decorationsLiters,
-          color: Colors.deepOrangeAccent,
-        ),
-        _BreakdownRow(
-          label: 'Szkło',
-          value: result.glassVolumeLiters,
-          color: Colors.lightBlueAccent,
-        ),
-        Text(
-          'Brutto: ${result.grossLiters.toStringAsFixed(1)} l',
-          style: const TextStyle(color: Colors.white54),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Szacowany ciężar całkowity: ${result.totalWeightKg.toStringAsFixed(1)} kg',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+          Text(
+            'Rzeczywista objętość wody',
+            style: TextStyle(color: theme.textTheme.bodyMedium?.color),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 14),
+          LinearProgressIndicator(
+            value: result.grossLiters <= 0
+                ? 0
+                : result.netLiters / result.grossLiters,
+            minHeight: 12,
+            borderRadius: BorderRadius.circular(8),
+            color: theme.primaryColor,
+            backgroundColor: theme.dividerColor,
+          ),
+          const SizedBox(height: 12),
+          _BreakdownRow(
+            label: 'Woda netto',
+            value: result.netLiters,
+            color: theme.primaryColor,
+          ),
+          _BreakdownRow(
+            label: 'Podłoże',
+            value: result.substrateLiters,
+            color: Colors.amber,
+          ),
+          _BreakdownRow(
+            label: 'Skały / drewno',
+            value: result.decorationsLiters,
+            color: Colors.deepOrangeAccent,
+          ),
+          _BreakdownRow(
+            label: 'Szkło',
+            value: result.glassVolumeLiters,
+            color: Colors.lightBlueAccent,
+          ),
+          Text(
+            'Brutto: ${result.grossLiters.toStringAsFixed(1)} l',
+            style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Szacowany ciężar całkowity: ${result.totalWeightKg.toStringAsFixed(1)} kg',
+            style: TextStyle(
+              color: theme.textTheme.bodyLarge?.color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _BreakdownRow extends StatelessWidget {
@@ -709,28 +731,34 @@ class _BreakdownRow extends StatelessWidget {
   final Color color;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
-    child: Row(
-      children: [
-        Container(
-          width: 9,
-          height: 9,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 8),
-        Text(label, style: const TextStyle(color: Colors.white70)),
-        const Spacer(),
-        Text(
-          '${value.toStringAsFixed(1)} l',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+          ),
+          const Spacer(),
+          Text(
+            '${value.toStringAsFixed(1)} l',
+            style: TextStyle(
+              color: theme.textTheme.bodyLarge?.color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Co2MatrixMarker extends StatelessWidget {
@@ -739,25 +767,28 @@ class _Co2MatrixMarker extends StatelessWidget {
   final double kh;
 
   @override
-  Widget build(BuildContext context) => Container(
-    height: 100,
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [Colors.amber, Colors.green, Colors.red],
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      height: 100,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Colors.amber, Colors.green, Colors.red],
+        ),
+        borderRadius: BorderRadius.circular(12),
       ),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Align(
-      alignment: Alignment(((ph - 6) / 2 * 2) - 1, ((kh - 1) / 19 * 2) - 1),
-      child: Container(
-        width: 18,
-        height: 18,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          border: Border.all(color: _calculatorBackground, width: 3),
+      child: Align(
+        alignment: Alignment(((ph - 6) / 2 * 2) - 1, ((kh - 1) / 19 * 2) - 1),
+        child: Container(
+          width: 18,
+          height: 18,
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            shape: BoxShape.circle,
+            border: Border.all(color: theme.primaryColor, width: 3),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

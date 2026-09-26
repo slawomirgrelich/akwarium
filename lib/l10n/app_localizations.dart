@@ -691,6 +691,168 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Otwórz kalkulator'**
   String get openCalculator;
+
+  /// No description provided for @calculatorsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalkulatory akwarystyczne'**
+  String get calculatorsTitle;
+
+  /// No description provided for @volumeTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'Objętość'**
+  String get volumeTab;
+
+  /// No description provided for @co2Tab.
+  ///
+  /// In pl, this message translates to:
+  /// **'CO2'**
+  String get co2Tab;
+
+  /// No description provided for @fertilizersTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nawozy'**
+  String get fertilizersTab;
+
+  /// No description provided for @volumeCalculator.
+  ///
+  /// In pl, this message translates to:
+  /// **'Objętość zbiornika'**
+  String get volumeCalculator;
+
+  /// No description provided for @volumeCalculatorSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Porównaj pojemność brutto z realną ilością wody.'**
+  String get volumeCalculatorSubtitle;
+
+  /// No description provided for @length.
+  ///
+  /// In pl, this message translates to:
+  /// **'Długość'**
+  String get length;
+
+  /// No description provided for @width.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szerokość'**
+  String get width;
+
+  /// No description provided for @height.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wysokość'**
+  String get height;
+
+  /// No description provided for @glassThickness.
+  ///
+  /// In pl, this message translates to:
+  /// **'Grubość szkła'**
+  String get glassThickness;
+
+  /// No description provided for @substrateThickness.
+  ///
+  /// In pl, this message translates to:
+  /// **'Grubość podłoża'**
+  String get substrateThickness;
+
+  /// No description provided for @decorationsAndEquipment.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dekoracje i sprzęt'**
+  String get decorationsAndEquipment;
+
+  /// No description provided for @saveNetDefault.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz netto jako domyślne'**
+  String get saveNetDefault;
+
+  /// No description provided for @co2Calculator.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalkulator CO2'**
+  String get co2Calculator;
+
+  /// No description provided for @co2CalculatorSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz pH i KH, aby sprawdzić stężenie rozpuszczonego CO2.'**
+  String get co2CalculatorSubtitle;
+
+  /// No description provided for @fertilizerCalculatorTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dawkowanie nawozów'**
+  String get fertilizerCalculatorTitle;
+
+  /// No description provided for @fertilizerCalculatorSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź, ile pierwiastka wnosi każdy mililitr roztworu.'**
+  String get fertilizerCalculatorSubtitle;
+
+  /// No description provided for @netCapacity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pojemność netto'**
+  String get netCapacity;
+
+  /// No description provided for @solutionCapacity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pojemność roztworu'**
+  String get solutionCapacity;
+
+  /// No description provided for @saltAmount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wsypana sól'**
+  String get saltAmount;
+
+  /// No description provided for @baseSalt.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sól bazowa'**
+  String get baseSalt;
+
+  /// No description provided for @weeklyTarget.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cel tygodniowy'**
+  String get weeklyTarget;
+
+  /// No description provided for @freshWaterLastChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Woda jest świeża. Ostatnia podmiana była {count} dni temu.'**
+  String freshWaterLastChange(int count);
+
+  /// No description provided for @scheduleNextChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czas zaplanować kolejną podmianę wody.'**
+  String get scheduleNextChange;
+
+  /// No description provided for @noSavedMeasurements.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak zapisanych pomiarów'**
+  String get noSavedMeasurements;
+
+  /// No description provided for @addFirstTestTrack.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwszy test, aby śledzić kondycję wody.'**
+  String get addFirstTestTrack;
+
+  /// No description provided for @addFirstMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwszy pomiar'**
+  String get addFirstMeasurement;
 }
 
 class _AppLocalizationsDelegate
