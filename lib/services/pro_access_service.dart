@@ -51,10 +51,12 @@ class ProAccessService extends ChangeNotifier {
   SharedPreferences? _loadedPreferences;
   StreamSubscription<User?>? _authSubscription;
   bool _trialExpired = false;
+  String? _lastTrialError;
 
   bool get isProUser => _user.isProUser;
   UserDataModel get user => _user;
   bool get trialExpired => _trialExpired;
+  String? get lastTrialError => _lastTrialError;
 
   bool consumeTrialExpired() {
     if (!_trialExpired) return false;
@@ -76,9 +78,29 @@ class ProAccessService extends ChangeNotifier {
   }
 
   Future<TrialActivationResult> startFreeTrial() async {
-    final currentUser = _tryGetAuth()?.currentUser;
+    _lastTrialError = null;
+    final auth = _tryGetAuth();
+    var currentUser = auth?.currentUser;
     if (currentUser == null) return TrialActivationResult.unavailable;
+
+    try {
+      await currentUser.reload();
+      currentUser = auth?.currentUser;
+    } on FirebaseAuthException catch (error) {
+      _lastTrialError = _messageForFirebaseError(error);
+      debugPrint(
+        'Firebase Auth trial user refresh failed: code=${error.code}, '
+        'message=${error.message}',
+      );
+      return TrialActivationResult.unavailable;
+    }
+
+    if (currentUser == null) {
+      _lastTrialError = 'Sesja wygasła. Zaloguj się ponownie.';
+      return TrialActivationResult.unavailable;
+    }
     if (!currentUser.emailVerified) {
+      _lastTrialError = 'Potwierdź adres e-mail, a następnie odśwież konto i spróbuj ponownie.';
       return TrialActivationResult.emailNotVerified;
     }
 
@@ -88,7 +110,10 @@ class ProAccessService extends ChangeNotifier {
     }
 
     final firestore = _tryGetFirestore();
-    if (firestore == null) return TrialActivationResult.unavailable;
+    if (firestore == null) {
+      _lastTrialError = 'Firebase Firestore nie jest dostępny.';
+      return TrialActivationResult.unavailable;
+    }
 
     try {
       final deviceId = await _getDeviceId();
@@ -132,6 +157,7 @@ class ProAccessService extends ChangeNotifier {
       await _setFreeForCurrentUser();
       return TrialActivationResult.alreadyUsed;
     } catch (error) {
+      _lastTrialError = _messageForFirebaseError(error);
       debugPrint('Free PRO trial activation failed: $error');
       return TrialActivationResult.unavailable;
     }
@@ -225,6 +251,35 @@ class ProAccessService extends ChangeNotifier {
     final atIndex = email.lastIndexOf('@');
     if (atIndex == -1) return true;
     return _temporaryEmailDomains.contains(email.substring(atIndex + 1));
+  }
+
+  String _messageForFirebaseError(Object error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'user-token-expired':
+        case 'requires-recent-login':
+          return 'Sesja wygasła. Zaloguj się ponownie i spróbuj jeszcze raz.';
+        case 'network-request-failed':
+          return 'Brak połączenia z internetem. Spróbuj ponownie.';
+        default:
+          return error.message ?? 'Nie udało się odświeżyć danych konta.';
+      }
+    }
+    if (error is FirebaseException) {
+      switch (error.code) {
+        case 'permission-denied':
+          return 'Brak uprawnień do zapisu trialu w Firestore. Sprawdź reguły bezpieczeństwa.';
+        case 'unauthenticated':
+          return 'Sesja wygasła. Zaloguj się ponownie.';
+        case 'unavailable':
+          return 'Firestore jest chwilowo niedostępny. Spróbuj ponownie.';
+        case 'network-request-failed':
+          return 'Brak połączenia z internetem. Spróbuj ponownie.';
+        default:
+          return 'Firestore zwrócił błąd: ${error.code}.';
+      }
+    }
+    return 'Nie udało się zapisać aktywacji trialu: $error';
   }
 
   DateTime? _readTimestamp(dynamic value) {
