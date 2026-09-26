@@ -94,8 +94,9 @@ class ProPaywallDialog extends StatelessWidget {
           child: const Text('Później'),
         ),
         FilledButton.icon(
-          onPressed: () {
-            context.read<ProAccessService>().enableProForDevelopment();
+          onPressed: () async {
+            await context.read<ProAccessService>().enableProForDevelopment();
+            if (!context.mounted) return;
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(

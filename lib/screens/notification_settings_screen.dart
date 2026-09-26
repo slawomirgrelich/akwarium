@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../services/pro_access_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -16,6 +19,7 @@ class _NotificationSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isProUser = context.watch<ProAccessService>().isProUser;
     return Scaffold(
       appBar: AppBar(title: const Text('Ustawienia powiadomień')),
       body: ListView(
@@ -27,30 +31,33 @@ class _NotificationSettingsScreenState
                 SwitchListTile(
                   title: const Text('Przypomnienia o zadaniach'),
                   subtitle: const Text('Podmiany, filtr i pielęgnacja'),
-                  value: _remindersEnabled,
-                  onChanged: (value) =>
-                      setState(() => _remindersEnabled = value),
+                  value: isProUser && _remindersEnabled,
+                  onChanged: isProUser
+                      ? (value) => setState(() => _remindersEnabled = value)
+                      : null,
                 ),
                 SwitchListTile(
                   title: const Text('Pomiary wody'),
                   subtitle: const Text('Przypomnienie o regularnym teście'),
-                  value: _waterTestsEnabled,
-                  onChanged: (value) =>
-                      setState(() => _waterTestsEnabled = value),
+                  value: isProUser && _waterTestsEnabled,
+                  onChanged: isProUser
+                      ? (value) => setState(() => _waterTestsEnabled = value)
+                      : null,
                 ),
                 SwitchListTile(
                   title: const Text('Tygodniowe podsumowanie'),
                   subtitle: const Text('Najważniejsze zmiany w akwarium'),
-                  value: _weeklySummaryEnabled,
-                  onChanged: (value) =>
-                      setState(() => _weeklySummaryEnabled = value),
+                  value: isProUser && _weeklySummaryEnabled,
+                  onChanged: isProUser
+                      ? (value) => setState(() => _weeklySummaryEnabled = value)
+                      : null,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            'Powiadomienia push i cykliczne harmonogramy wymagają aktywnego planu PRO.',
+            isProUser ? 'Powiadomienia PRO są aktywne dla tego urządzenia.' : 'Powiadomienia push i cykliczne harmonogramy wymagają aktywnego planu PRO.',
             style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
           ),
         ],

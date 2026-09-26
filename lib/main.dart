@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'algae_assistant_service.dart';
 import 'ai_scanner_service.dart';
@@ -42,7 +43,10 @@ Future<void> main() async {
     debugPrint('Firebase initialization failed: $error');
   }
 
-  runApp(AkwarystaProApp(firebaseReady: firebaseReady));
+  final preferences = await SharedPreferences.getInstance();
+  runApp(
+    AkwarystaProApp(firebaseReady: firebaseReady, proPreferences: preferences),
+  );
   await LocalReminderService.instance.initialize();
 }
 
@@ -175,9 +179,14 @@ class WaterChange {
 // ===========================
 
 class AkwarystaProApp extends StatelessWidget {
-  const AkwarystaProApp({this.firebaseReady = false, super.key});
+  const AkwarystaProApp({
+    this.firebaseReady = false,
+    this.proPreferences,
+    super.key,
+  });
 
   final bool firebaseReady;
+  final SharedPreferences? proPreferences;
 
   @override
   Widget build(BuildContext context) {
@@ -187,7 +196,7 @@ class AkwarystaProApp extends StatelessWidget {
     );
 
     return ChangeNotifierProvider<ProAccessService>(
-      create: (_) => ProAccessService(),
+      create: (_) => ProAccessService(preferences: proPreferences)..init(),
       child: ChangeNotifierProvider<models.AquariumProvider>(
         create: (_) => models.AquariumProvider()..initialize(),
         child: MaterialApp(
