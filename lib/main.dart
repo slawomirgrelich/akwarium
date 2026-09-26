@@ -30,6 +30,34 @@ import 'water_test_screen.dart';
 import 'widgets/firestore_aquariums_section.dart';
 import 'widgets/pro_paywall_dialog.dart';
 
+InputDecorationTheme _inputDecorationTheme({required bool dark}) {
+  final borderColor = dark ? Colors.white24 : const Color(0xFFD7E2DF);
+  final fillColor = dark ? const Color(0xFF1C2730) : Colors.white;
+  final labelColor = dark ? Colors.white70 : const Color(0xFF49635E);
+  final focusedColor = dark ? const Color(0xFF00E5FF) : Colors.teal;
+
+  return InputDecorationTheme(
+    filled: true,
+    fillColor: fillColor,
+    floatingLabelBehavior: FloatingLabelBehavior.always,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    labelStyle: TextStyle(color: labelColor),
+    floatingLabelStyle: TextStyle(color: focusedColor),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borderColor),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borderColor),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: focusedColor, width: 2),
+    ),
+  );
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   var firebaseReady = false;
@@ -241,22 +269,15 @@ class AkwarystaProApp extends StatelessWidget {
                 ),
               ),
             ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Color(0xFFE0E7E5)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: Colors.teal, width: 2),
-              ),
+            inputDecorationTheme: _inputDecorationTheme(dark: false),
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.teal,
+              brightness: Brightness.dark,
             ),
+            inputDecorationTheme: _inputDecorationTheme(dark: true),
           ),
           home: firebaseReady
               ? const AuthWrapper(authenticatedScreen: MainShell())
@@ -971,6 +992,8 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                     decoration: const InputDecoration(
                       labelText: 'Światło',
                       suffixText: 'h',
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      filled: true,
                     ),
                   ),
                 ),
@@ -981,17 +1004,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                     decoration: const InputDecoration(
                       labelText: 'Podłoże',
                       floatingLabelBehavior: FloatingLabelBehavior.always,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                      border: OutlineInputBorder(),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFFE0E7E5)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.teal, width: 2),
-                      ),
+                      filled: true,
                     ),
                     items:
                         const [

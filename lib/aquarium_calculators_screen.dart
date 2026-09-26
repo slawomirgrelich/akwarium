@@ -145,14 +145,14 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _NumberField(
                 label: 'Wysokość',
                 unit: 'cm',
                 controller: _height,
                 onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _NumberField(
                 label: 'Grubość szkła',
                 unit: 'mm',
@@ -368,36 +368,44 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
                 controller: _volume,
                 onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _NumberField(
                 label: 'Pojemność roztworu',
                 unit: 'ml',
                 controller: _solution,
                 onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _NumberField(
                 label: 'Wsypana sól',
                 unit: 'g',
                 controller: _salt,
                 onChanged: (_) => setState(() {}),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               DropdownButtonFormField<SaltRecipe>(
                 initialValue: _recipe,
+                isExpanded: true,
                 dropdownColor: _calculatorPanel,
                 decoration: const InputDecoration(
                   labelText: 'Sól bazowa',
                   floatingLabelBehavior: FloatingLabelBehavior.always,
+                  filled: true,
+                  fillColor: _calculatorPanel,
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 16,
                   ),
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide(color: Colors.white24),
+                  ),
                   enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide(color: Colors.white24),
                   ),
                   focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
                     borderSide: BorderSide(color: _calculatorCyan, width: 2),
                   ),
                 ),
@@ -411,7 +419,7 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
                     .toList(),
                 onChanged: (value) => setState(() => _recipe = value!),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               _NumberField(
                 label: 'Cel tygodniowy',
                 unit: 'mg/l',
@@ -556,8 +564,22 @@ class _NumberField extends StatelessWidget {
       labelStyle: const TextStyle(color: Colors.white60),
       suffixText: unit,
       suffixStyle: const TextStyle(color: _calculatorCyan),
+      floatingLabelBehavior: FloatingLabelBehavior.always,
       filled: true,
-      fillColor: Colors.white.withAlpha(10),
+      fillColor: _calculatorPanel,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: Colors.white24),
+      ),
+      enabledBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: Colors.white24),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        borderSide: BorderSide(color: _calculatorCyan, width: 2),
+      ),
     ),
   );
 }
