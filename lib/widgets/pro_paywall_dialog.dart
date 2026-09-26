@@ -95,12 +95,22 @@ class ProPaywallDialog extends StatelessWidget {
         ),
         FilledButton.icon(
           onPressed: () async {
-            await context.read<ProAccessService>().activateFreeTrial();
+            final result = await context
+                .read<ProAccessService>()
+                .startFreeTrial();
             if (!context.mounted) return;
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Aktywowano pakiet Akwarysta PRO.')),
-            );
+            final message = switch (result) {
+              TrialActivationResult.activated =>
+                'Aktywowano 7-dniowy okres próbny Akwarysta PRO.',
+              TrialActivationResult.emailNotVerified =>
+                'Potwierdź adres e-mail, aby aktywować okres próbny PRO.',
+              TrialActivationResult.temporaryEmail => 'Okres próbny nie jest dostępny dla tymczasowych adresów e-mail.',
+              TrialActivationResult.alreadyUsed => 'Darmowy okres próbny został już wykorzystany na tym urządzeniu. Wybierz pakiet PRO, aby odblokować pełen dostęp.',
+              TrialActivationResult.unavailable => 'Nie udało się aktywować okresu próbnego. Spróbuj ponownie później.',
+            };
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(message)));
           },
           icon: const Icon(Icons.auto_awesome),
           label: const Text('Wypróbuj PRO przez 7 dni za darmo'),

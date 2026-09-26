@@ -1561,6 +1561,14 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final proService = context.watch<ProAccessService>();
+    if (proService.trialExpired) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted || !proService.consumeTrialExpired()) return;
+        ProPaywallDialog.show(context);
+      });
+    }
+
     return _PageContainer(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),

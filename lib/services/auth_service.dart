@@ -49,13 +49,23 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    if (_isTemporaryEmail(normalizedEmail)) {
+      throw const AuthException(
+        'Użyj stałego adresu e-mail, aby utworzyć konto.',
+      );
+    }
+
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email.trim(),
+        email: normalizedEmail,
         password: password,
       );
       final user = credential.user;
-      if (user != null) await _createUserProfile(user);
+      if (user != null) {
+        await user.sendEmailVerification();
+        await _createUserProfile(user);
+      }
       return credential;
     } on FirebaseAuthException catch (error) {
       debugPrint(
@@ -64,6 +74,26 @@ class AuthService {
       );
       throw AuthException(_messageForCode(error.code));
     }
+  }
+
+  bool _isTemporaryEmail(String email) {
+    const blockedDomains = {
+      '10minutemail.com',
+      '10minutemail.net',
+      'dispostable.com',
+      'guerrillamail.com',
+      'maildrop.cc',
+      'mailinator.com',
+      'inboxkitten.com',
+      'sharklasers.com',
+      'temp-mail.org',
+      'tempmail.com',
+      'tempmail.dev',
+      'yopmail.com',
+    };
+    final atIndex = email.lastIndexOf('@');
+    return atIndex == -1 ||
+        blockedDomains.contains(email.substring(atIndex + 1));
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
