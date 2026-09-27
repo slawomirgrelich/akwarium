@@ -208,6 +208,8 @@ class FirestoreService {
     required String phRange,
     required String tempRange,
     required int minTankVolume,
+    DateTime? addedAt,
+    String notes = '',
     String? photoUrl,
   }) async {
     final userId = _requireUserId();
@@ -226,11 +228,37 @@ class FirestoreService {
         'phRange': phRange,
         'tempRange': tempRange,
         'minTankVolume': minTankVolume,
-        'addedAt': FieldValue.serverTimestamp(),
+        'addedAt': addedAt == null
+          ? FieldValue.serverTimestamp()
+          : Timestamp.fromDate(addedAt),
+        'notes': notes,
         'photoUrl': ?photoUrl,
       });
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> getLivestock(String aquariumId) {
+    try {
+      final userId = _requireUserId();
+      return _livestock(userId, aquariumId)
+          .orderBy('addedAt', descending: true)
+          .snapshots()
+          .map(
+            (snapshot) => snapshot.docs
+                .map((document) => {'id': document.id, ...document.data()})
+                .toList(growable: false),
+          )
+          .handleError((Object error) {
+            throw FirestoreServiceException(_messageFor(error));
+          });
+    } catch (error) {
+      return Stream<List<Map<String, dynamic>>>.error(
+        error is FirestoreServiceException
+            ? error
+            : FirestoreServiceException(_messageFor(error)),
+      );
     }
   }
 
