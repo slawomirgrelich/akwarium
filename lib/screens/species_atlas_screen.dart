@@ -249,7 +249,10 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
   ) async {
     final provider = context.read<local_models.AquariumProvider>();
     final localAquariums = provider.aquariums;
-    final activeAquariumId = provider.activeAquariumId;
+    final providerAquariumId = provider.activeAquariumId.trim();
+    final activeAquariumId = providerAquariumId.isNotEmpty
+      ? providerAquariumId
+      : widget.tankId.trim();
     final options = <String, _AquariumOption>{};
     try {
       final cloudAquariums = await firestore.getAquariums().first;

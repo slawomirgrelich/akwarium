@@ -87,6 +87,10 @@ class FirestoreService {
         aquarium.copyWith(id: reference.id, userId: userId).toMap(),
       );
       await FirestoreSyncStatus.recordSuccessfulSync();
+    } on FirebaseException catch (error) {
+      throw FirestoreServiceException(
+        'FirebaseException (${error.code}): ${error.message ?? error.toString()}',
+      );
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
     }
