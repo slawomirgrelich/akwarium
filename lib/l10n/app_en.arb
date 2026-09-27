@@ -27,7 +27,7 @@
   "polish": "Polski (PL)",
   "english": "English (EN)",
   "activeAquarium": "Active aquarium",
-  "addNewAquarium": "Add a new aquarium",
+  "addNewAquarium": "Add new aquarium",
   "freePlan": "Free plan: up to 3 aquariums",
   "proPlan": "PRO plan: unlimited aquariums",
   "aquariumManagement": "Aquariums and stock",
@@ -52,7 +52,7 @@
   "addFirstTest": "Add your first test",
   "parametersCount": "7 parameters",
   "waterChange": "Water change",
-  "daysCount": "{count} days",
+  "daysCount": "{count, plural, =1{1 day} other{{count} days}}",
   "@daysCount": {"placeholders": {"count": {"type": "int"}}},
   "freshWater": "Water is fresh",
   "timeForWaterChange": "Time for a water change",
@@ -73,7 +73,7 @@
   "account": "YOUR ACCOUNT",
   "profileTitle": "Profile and PRO",
   "profileSubtitle": "Manage your aquarium and account settings.",
-  "aquariumName": "Planted Aquarium",
+  "aquariumName": "Name",
   "tankDetails": "112 liters · Planted",
   "notificationsSubtitle": "Reminders for tests and water changes",
   "syncData": "Data synchronization",
@@ -82,6 +82,19 @@
   "logOut": "Log out",
   "logOutSubtitle": "End the current session on this device",
   "cancel": "Cancel",
+  "add": "Add",
+  "netVolume": "Net volume",
+  "grossVolume": "Gross volume",
+  "tankType": "Tank type",
+  "freshwater": "Freshwater",
+  "saltwater": "Saltwater",
+  "brackish": "Brackish",
+  "netVolumeShort": "{volume} L net",
+  "@netVolumeShort": {"placeholders": {"volume": {"type": "num"}}},
+  "litersCount": "{volume} liters",
+  "@litersCount": {"placeholders": {"volume": {"type": "num"}}},
+  "inhabitantsCount": "{count, plural, =0{0 inhabitants} =1{1 inhabitant} other{{count} inhabitants}}",
+  "@inhabitantsCount": {"placeholders": {"count": {"type": "int"}}},
   "save": "Save",
   "volume": "Volume",
   "note": "Note",
@@ -131,8 +144,8 @@
   ,"actualWaterVolume": "Actual water volume"
   ,"netWater": "Net water"
   ,"substrate": "Substrate"
-  ,"grossVolume": "Gross: {value} l"
-  ,"@grossVolume": {"placeholders": {"value": {"type": "String"}}}
+  ,"grossVolumeValue": "Gross: {value} l"
+  ,"@grossVolumeValue": {"placeholders": {"value": {"type": "String"}}}
   ,"rocksWood": "Rocks / wood"
   ,"glass": "Glass"
   ,"estimatedTotalWeight": "Estimated total weight: {value} kg"

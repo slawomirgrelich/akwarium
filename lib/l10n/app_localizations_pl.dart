@@ -168,7 +168,13 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String daysCount(int count) {
-    return '$count dni';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dni',
+      one: '1 dzień',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -229,7 +235,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get profileSubtitle => 'Zarządzaj akwarium oraz ustawieniami konta.';
 
   @override
-  String get aquariumName => 'Akwarium Roślinne';
+  String get aquariumName => 'Nazwa';
 
   @override
   String get tankDetails => '112 litrów · Roślinne';
@@ -255,6 +261,51 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get cancel => 'Anuluj';
+
+  @override
+  String get add => 'Dodaj';
+
+  @override
+  String get netVolume => 'Pojemność netto';
+
+  @override
+  String get grossVolume => 'Pojemność brutto';
+
+  @override
+  String get tankType => 'Typ zbiornika';
+
+  @override
+  String get freshwater => 'Słodkowodne';
+
+  @override
+  String get saltwater => 'Morskie';
+
+  @override
+  String get brackish => 'Brackawe';
+
+  @override
+  String netVolumeShort(num volume) {
+    return '$volume l netto';
+  }
+
+  @override
+  String litersCount(num volume) {
+    return '$volume litrów';
+  }
+
+  @override
+  String inhabitantsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mieszkańców',
+      many: '$count mieszkańców',
+      few: '$count mieszkańców',
+      one: '1 mieszkańiec',
+      zero: '0 mieszkańców',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get save => 'Zapisz';
@@ -411,7 +462,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get substrate => 'Podłoże';
 
   @override
-  String grossVolume(String value) {
+  String grossVolumeValue(String value) {
     return 'Brutto: $value l';
   }
 

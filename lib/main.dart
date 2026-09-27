@@ -1655,7 +1655,7 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.add_circle_outline,
-              title: 'Dodaj nowe akwarium',
+              title: l10n.addNewAquarium,
               subtitle: context.watch<ProAccessService>().isProUser
                   ? l10n.proPlanUnlimitedAquariums
                   : l10n.freePlan,
@@ -1852,6 +1852,7 @@ class _AquariumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1890,7 +1891,7 @@ class _AquariumCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '${aquarium.capacityLiters.toStringAsFixed(0)} litrów · ${aquarium.type}',
+                  '${l10n.litersCount(aquarium.capacityLiters.round())} · ${_localizedAquariumType(l10n, aquarium.type)}',
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
@@ -1901,6 +1902,18 @@ class _AquariumCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _localizedAquariumType(AppLocalizations l10n, String type) {
+  final normalized = type.toLowerCase();
+  if (normalized.contains('słod') || normalized.contains('fresh')) {
+    return l10n.freshwater;
+  }
+  if (normalized.contains('morsk') || normalized.contains('salt')) {
+    return l10n.saltwater;
+  }
+  if (normalized.contains('brack')) return l10n.brackish;
+  return type;
 }
 
 class _StatCard extends StatelessWidget {

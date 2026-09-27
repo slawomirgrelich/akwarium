@@ -52,7 +52,7 @@
   ,"addFirstTest": "Dodaj pierwszy test"
   ,"parametersCount": "7 parametrów"
   ,"waterChange": "Podmiana"
-  ,"daysCount": "{count} dni"
+  ,"daysCount": "{count, plural, =1{1 dzień} other{{count} dni}}"
   ,"@daysCount": {"placeholders": {"count": {"type": "int"}}}
   ,"freshWater": "Woda świeża"
   ,"timeForWaterChange": "Czas na podmianę"
@@ -73,7 +73,7 @@
   ,"account": "TWOJE KONTO"
   ,"profileTitle": "Profil i PRO"
   ,"profileSubtitle": "Zarządzaj akwarium oraz ustawieniami konta."
-  ,"aquariumName": "Akwarium Roślinne"
+  ,"aquariumName": "Nazwa"
   ,"tankDetails": "112 litrów · Roślinne"
   ,"notificationsSubtitle": "Przypomnienia o testach i podmianach"
   ,"syncData": "Synchronizacja danych"
@@ -82,6 +82,19 @@
   ,"logOut": "Wyloguj się"
   ,"logOutSubtitle": "Zakończ bieżącą sesję na tym urządzeniu"
   ,"cancel": "Anuluj"
+  ,"add": "Dodaj"
+  ,"netVolume": "Pojemność netto"
+  ,"grossVolume": "Pojemność brutto"
+  ,"tankType": "Typ zbiornika"
+  ,"freshwater": "Słodkowodne"
+  ,"saltwater": "Morskie"
+  ,"brackish": "Brackawe"
+  ,"netVolumeShort": "{volume} l netto"
+  ,"@netVolumeShort": {"placeholders": {"volume": {"type": "num"}}}
+  ,"litersCount": "{volume} litrów"
+  ,"@litersCount": {"placeholders": {"volume": {"type": "num"}}}
+  ,"inhabitantsCount": "{count, plural, =0{0 mieszkańców} =1{1 mieszkańiec} few{{count} mieszkańców} many{{count} mieszkańców} other{{count} mieszkańców}}"
+  ,"@inhabitantsCount": {"placeholders": {"count": {"type": "int"}}}
   ,"save": "Zapisz"
   ,"volume": "Objętość"
   ,"note": "Notatka"
@@ -131,8 +144,8 @@
   ,"actualWaterVolume": "Rzeczywista objętość wody"
   ,"netWater": "Woda netto"
   ,"substrate": "Podłoże"
-  ,"grossVolume": "Brutto: {value} l"
-  ,"@grossVolume": {"placeholders": {"value": {"type": "String"}}}
+  ,"grossVolumeValue": "Brutto: {value} l"
+  ,"@grossVolumeValue": {"placeholders": {"value": {"type": "String"}}}
   ,"rocksWood": "Skały / drewno"
   ,"glass": "Szkło"
   ,"estimatedTotalWeight": "Szacowany ciężar całkowity: {value} kg"

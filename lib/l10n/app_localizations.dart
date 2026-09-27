@@ -413,7 +413,7 @@ abstract class AppLocalizations {
   /// No description provided for @daysCount.
   ///
   /// In pl, this message translates to:
-  /// **'{count} dni'**
+  /// **'{count, plural, =1{1 dzień} other{{count} dni}}'**
   String daysCount(int count);
 
   /// No description provided for @freshWater.
@@ -533,7 +533,7 @@ abstract class AppLocalizations {
   /// No description provided for @aquariumName.
   ///
   /// In pl, this message translates to:
-  /// **'Akwarium Roślinne'**
+  /// **'Nazwa'**
   String get aquariumName;
 
   /// No description provided for @tankDetails.
@@ -583,6 +583,66 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Anuluj'**
   String get cancel;
+
+  /// No description provided for @add.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj'**
+  String get add;
+
+  /// No description provided for @netVolume.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pojemność netto'**
+  String get netVolume;
+
+  /// No description provided for @grossVolume.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pojemność brutto'**
+  String get grossVolume;
+
+  /// No description provided for @tankType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Typ zbiornika'**
+  String get tankType;
+
+  /// No description provided for @freshwater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Słodkowodne'**
+  String get freshwater;
+
+  /// No description provided for @saltwater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Morskie'**
+  String get saltwater;
+
+  /// No description provided for @brackish.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brackawe'**
+  String get brackish;
+
+  /// No description provided for @netVolumeShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'{volume} l netto'**
+  String netVolumeShort(num volume);
+
+  /// No description provided for @litersCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'{volume} litrów'**
+  String litersCount(num volume);
+
+  /// No description provided for @inhabitantsCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =0{0 mieszkańców} =1{1 mieszkańiec} few{{count} mieszkańców} many{{count} mieszkańców} other{{count} mieszkańców}}'**
+  String inhabitantsCount(int count);
 
   /// No description provided for @save.
   ///
@@ -872,11 +932,11 @@ abstract class AppLocalizations {
   /// **'Podłoże'**
   String get substrate;
 
-  /// No description provided for @grossVolume.
+  /// No description provided for @grossVolumeValue.
   ///
   /// In pl, this message translates to:
   /// **'Brutto: {value} l'**
-  String grossVolume(String value);
+  String grossVolumeValue(String value);
 
   /// No description provided for @rocksWood.
   ///

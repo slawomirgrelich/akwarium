@@ -92,7 +92,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeAquarium => 'Active aquarium';
 
   @override
-  String get addNewAquarium => 'Add a new aquarium';
+  String get addNewAquarium => 'Add new aquarium';
 
   @override
   String get freePlan => 'Free plan: up to 3 aquariums';
@@ -169,7 +169,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daysCount(int count) {
-    return '$count days';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -230,7 +236,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSubtitle => 'Manage your aquarium and account settings.';
 
   @override
-  String get aquariumName => 'Planted Aquarium';
+  String get aquariumName => 'Name';
 
   @override
   String get tankDetails => '112 liters · Planted';
@@ -256,6 +262,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancel => 'Cancel';
+
+  @override
+  String get add => 'Add';
+
+  @override
+  String get netVolume => 'Net volume';
+
+  @override
+  String get grossVolume => 'Gross volume';
+
+  @override
+  String get tankType => 'Tank type';
+
+  @override
+  String get freshwater => 'Freshwater';
+
+  @override
+  String get saltwater => 'Saltwater';
+
+  @override
+  String get brackish => 'Brackish';
+
+  @override
+  String netVolumeShort(num volume) {
+    return '$volume L net';
+  }
+
+  @override
+  String litersCount(num volume) {
+    return '$volume liters';
+  }
+
+  @override
+  String inhabitantsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inhabitants',
+      one: '1 inhabitant',
+      zero: '0 inhabitants',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get save => 'Save';
@@ -412,7 +461,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get substrate => 'Substrate';
 
   @override
-  String grossVolume(String value) {
+  String grossVolumeValue(String value) {
     return 'Gross: $value l';
   }
 

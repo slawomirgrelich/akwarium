@@ -7,6 +7,12 @@ import 'package:provider/provider.dart';
 import 'models/aquarium_model.dart';
 import 'l10n/app_localizations.dart';
 
+String _tankTypeLabel(AppLocalizations l10n, TankType type) => switch (type) {
+  TankType.freshwater => l10n.freshwater,
+  TankType.marine => l10n.saltwater,
+  _ => type.label,
+};
+
 class TankSwitcher extends StatelessWidget {
   const TankSwitcher({super.key});
 
@@ -348,7 +354,7 @@ class _TankProfileStrip extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    '${aquarium.volumeNetLiters.toStringAsFixed(0)} l netto · ${aquarium.type.label}',
+                    '${AppLocalizations.of(context)!.netVolumeShort(aquarium.volumeNetLiters.round())} · ${_tankTypeLabel(AppLocalizations.of(context)!, aquarium.type)}',
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color,
                       fontSize: 12,
@@ -356,7 +362,7 @@ class _TankProfileStrip extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${aquarium.ageInDays} dni · $count mieszkańców',
+                    '${AppLocalizations.of(context)!.daysCount(aquarium.ageInDays)} · ${AppLocalizations.of(context)!.inhabitantsCount(count)}',
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color,
                       fontSize: 12,
@@ -574,31 +580,39 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
         children: [
           TextField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Nazwa'),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.aquariumName,
+            ),
           ),
           TextField(
             controller: _net,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Pojemność netto',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.netVolume,
               suffixText: 'l',
             ),
           ),
           TextField(
             controller: _gross,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Pojemność brutto',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.grossVolume,
               suffixText: 'l',
             ),
           ),
           DropdownButtonFormField<TankType>(
             initialValue: _type,
-            decoration: const InputDecoration(labelText: 'Typ zbiornika'),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.tankType,
+            ),
             items: TankType.values
                 .map(
-                  (type) =>
-                      DropdownMenuItem(value: type, child: Text(type.label)),
+                  (type) => DropdownMenuItem(
+                    value: type,
+                    child: Text(
+                      _tankTypeLabel(AppLocalizations.of(context)!, type),
+                    ),
+                  ),
                 )
                 .toList(),
             onChanged: (value) => setState(() => _type = value!),
@@ -609,9 +623,12 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Anuluj'),
+        child: Text(AppLocalizations.of(context)!.cancel),
       ),
-      FilledButton(onPressed: _save, child: const Text('Dodaj')),
+      FilledButton(
+        onPressed: _save,
+        child: Text(AppLocalizations.of(context)!.add),
+      ),
     ],
   );
 

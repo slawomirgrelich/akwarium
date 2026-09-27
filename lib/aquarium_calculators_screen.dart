@@ -707,7 +707,7 @@ class _VolumeResult extends StatelessWidget {
             color: Colors.lightBlueAccent,
           ),
           Text(
-            l10n.grossVolume(result.grossLiters.toStringAsFixed(1)),
+            l10n.grossVolumeValue(result.grossLiters.toStringAsFixed(1)),
             style: TextStyle(color: theme.textTheme.bodyMedium?.color),
           ),
           const SizedBox(height: 12),
