@@ -8,6 +8,7 @@ import '../services/aquarium_journal_service.dart';
 import '../services/firestore_service.dart';
 import '../services/pdf_report_service.dart';
 import '../services/pro_access_service.dart';
+import '../widgets/maintenance_schedule_section.dart';
 import '../widgets/pro_paywall_dialog.dart';
 import 'water_parameters_chart_screen.dart';
 
@@ -175,6 +176,8 @@ class _DetailsContent extends StatelessWidget {
             )
           else
             _LatestParametersCard(latest: latest),
+          const SizedBox(height: 16),
+          MaintenanceScheduleSection(aquariumId: aquarium.id),
           if (parameters.isNotEmpty) ...[
             const SizedBox(height: 16),
             _WaterHistoryChart(parameters: parameters),

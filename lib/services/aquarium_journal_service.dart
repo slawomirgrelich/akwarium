@@ -136,6 +136,53 @@ class ReminderModel {
   }
 }
 
+class MaintenanceTaskModel {
+  const MaintenanceTaskModel({
+    required this.id,
+    required this.aquariumId,
+    required this.taskType,
+    required this.title,
+    required this.repeatFrequencyDays,
+    required this.lastPerformedDate,
+    required this.nextDueDate,
+  });
+
+  final String id;
+  final String aquariumId;
+  final String taskType;
+  final String title;
+  final int repeatFrequencyDays;
+  final DateTime lastPerformedDate;
+  final DateTime nextDueDate;
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'aquariumId': aquariumId,
+    'taskType': taskType,
+    'title': title,
+    'repeatFrequencyDays': repeatFrequencyDays,
+    'lastPerformedDate': Timestamp.fromDate(lastPerformedDate),
+    'nextDueDate': Timestamp.fromDate(nextDueDate),
+  };
+
+  factory MaintenanceTaskModel.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final data = snapshot.data() ?? const <String, dynamic>{};
+    final lastPerformed = _date(data['lastPerformedDate']) ?? DateTime.now();
+    return MaintenanceTaskModel(
+      id: _string(data['id'], snapshot.id),
+      aquariumId: _string(data['aquariumId']),
+      taskType: _string(data['taskType'], 'custom'),
+      title: _string(data['title'], 'Zadanie konserwacyjne'),
+      repeatFrequencyDays:
+          (data['repeatFrequencyDays'] as num?)?.toInt() ?? 7,
+      lastPerformedDate: lastPerformed,
+      nextDueDate: _date(data['nextDueDate']) ?? lastPerformed,
+    );
+  }
+}
+
 class AquariumJournalServiceException implements Exception {
   const AquariumJournalServiceException(this.message);
 
@@ -197,6 +244,45 @@ class AquariumJournalService {
             (snapshot) =>
                 snapshot.docs.map(ReminderModel.fromFirestore).toList(),
           ),
+    );
+  }
+
+  Stream<List<MaintenanceTaskModel>> getMaintenanceTasks(String aquariumId) {
+    return _stream(
+      _collection(_userId(), aquariumId, 'maintenance_tasks')
+          .orderBy('nextDueDate')
+          .snapshots()
+          .map(
+            (snapshot) => snapshot.docs
+                .map(MaintenanceTaskModel.fromFirestore)
+                .toList(growable: false),
+          ),
+    );
+  }
+
+  Future<void> addMaintenanceTask(MaintenanceTaskModel task) async {
+    await _write(
+      _collection(_userId(), task.aquariumId, 'maintenance_tasks'),
+      task.id,
+      task.toMap(),
+    );
+  }
+
+  Future<void> completeMaintenanceTask(MaintenanceTaskModel task) async {
+    final completedAt = DateTime.now();
+    final updated = MaintenanceTaskModel(
+      id: task.id,
+      aquariumId: task.aquariumId,
+      taskType: task.taskType,
+      title: task.title,
+      repeatFrequencyDays: task.repeatFrequencyDays,
+      lastPerformedDate: completedAt,
+      nextDueDate: completedAt.add(Duration(days: task.repeatFrequencyDays)),
+    );
+    await _write(
+      _collection(_userId(), task.aquariumId, 'maintenance_tasks'),
+      task.id,
+      updated.toMap(),
     );
   }
 
