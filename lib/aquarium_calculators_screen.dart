@@ -7,6 +7,8 @@ import 'services/aquarium_calculators_service.dart';
 import 'services/pro_access_service.dart';
 import 'widgets/pro_paywall_dialog.dart';
 
+const _calculatorAccent = Color(0xFF10B981);
+
 class AquariumCalculatorsScreen extends StatefulWidget {
   const AquariumCalculatorsScreen({super.key});
 
@@ -31,6 +33,7 @@ class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
     final isProUser = context.watch<ProAccessService>().isProUser;
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -39,9 +42,11 @@ class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
         title: Text(l10n.calculatorsTitle),
         bottom: TabBar(
           controller: _tabs,
-          indicatorColor: theme.primaryColor,
-          labelColor: theme.primaryColor,
-          unselectedLabelColor: theme.textTheme.bodyMedium?.color,
+          indicatorColor: _calculatorAccent,
+          labelColor: _calculatorAccent,
+          unselectedLabelColor: isDark
+              ? const Color(0xFF94A3B8)
+              : const Color(0xFF64748B),
           tabs: [
             Tab(icon: const Icon(Icons.straighten), text: l10n.volumeTab),
             Tab(icon: const Icon(Icons.bubble_chart), text: l10n.co2Tab),
@@ -68,14 +73,26 @@ class _AquariumCalculatorsScreenState extends State<AquariumCalculatorsScreen>
           },
         ),
       ),
-      body: TabBarView(
-        controller: _tabs,
-        physics: isProUser ? null : const NeverScrollableScrollPhysics(),
-        children: const [
-          _VolumeCalculator(),
-          _Co2Calculator(),
-          _FertilizerCalculator(),
-        ],
+      body: SliderTheme(
+        data: SliderTheme.of(context).copyWith(
+          activeTrackColor: _calculatorAccent,
+          inactiveTrackColor: isDark
+              ? const Color(0xFF334155)
+              : const Color(0xFFE2E8F0),
+          thumbColor: const Color(0xFF14B8A6),
+          overlayColor: _calculatorAccent.withAlpha(35),
+          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
+          trackHeight: 5,
+        ),
+        child: TabBarView(
+          controller: _tabs,
+          physics: isProUser ? null : const NeverScrollableScrollPhysics(),
+          children: const [
+            _VolumeCalculator(),
+            _Co2Calculator(),
+            _FertilizerCalculator(),
+          ],
+        ),
       ),
     );
   }
@@ -186,7 +203,7 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
                 min: 5,
                 max: 20,
                 divisions: 15,
-                activeColor: theme.primaryColor,
+                activeColor: _calculatorAccent,
                 onChanged: (value) => setState(() => _decorations = value),
               ),
             ],
@@ -281,8 +298,8 @@ class _Co2CalculatorState extends State<_Co2Calculator> {
               Text(
                 '${result.mgPerLiter.toStringAsFixed(1)} mg/l',
                 style: TextStyle(
-                  color: statusColor,
-                  fontSize: 38,
+                  color: _calculatorAccent,
+                  fontSize: 34,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -401,15 +418,23 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: theme.dividerColor),
+                    borderSide: BorderSide(
+                      color: theme.brightness == Brightness.dark
+                          ? const Color(0xFF475569)
+                          : theme.dividerColor,
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: theme.dividerColor),
+                    borderSide: BorderSide(
+                      color: theme.brightness == Brightness.dark
+                          ? const Color(0xFF475569)
+                          : theme.dividerColor,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: theme.primaryColor, width: 2),
+                    borderSide: BorderSide(color: _calculatorAccent, width: 2),
                   ),
                 ),
                 items: saltRecipes
@@ -448,8 +473,8 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
               Text(
                 '${result.ppmPerMl.toStringAsFixed(3)} mg/l',
                 style: TextStyle(
-                  color: theme.textTheme.bodyLarge?.color,
-                  fontSize: 30,
+                  color: _calculatorAccent,
+                  fontSize: 34,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -566,6 +591,7 @@ class _NumberField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return TextField(
       controller: controller,
       onChanged: onChanged,
@@ -573,9 +599,9 @@ class _NumberField extends StatelessWidget {
       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: theme.textTheme.bodyMedium?.color),
+        labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
         suffixText: unit,
-        suffixStyle: TextStyle(color: theme.primaryColor),
+        suffixStyle: TextStyle(color: _calculatorAccent),
         floatingLabelBehavior: FloatingLabelBehavior.always,
         filled: true,
         fillColor: theme.cardColor,
@@ -585,15 +611,19 @@ class _NumberField extends StatelessWidget {
         ),
         border: OutlineInputBorder(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: theme.dividerColor),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF475569) : theme.dividerColor,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: theme.dividerColor),
+          borderSide: BorderSide(
+            color: isDark ? const Color(0xFF475569) : theme.dividerColor,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: const BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: theme.primaryColor, width: 2),
+          borderSide: BorderSide(color: _calculatorAccent, width: 2),
         ),
       ),
     );
@@ -633,7 +663,7 @@ class _SliderRow extends StatelessWidget {
             Text(
               display,
               style: TextStyle(
-                color: theme.primaryColor,
+                color: _calculatorAccent,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -644,7 +674,7 @@ class _SliderRow extends StatelessWidget {
           min: min,
           max: max,
           divisions: divisions,
-          activeColor: theme.primaryColor,
+          activeColor: _calculatorAccent,
           onChanged: onChanged,
         ),
       ],
@@ -666,8 +696,8 @@ class _VolumeResult extends StatelessWidget {
           Text(
             '${result.netLiters.toStringAsFixed(1)} l',
             style: TextStyle(
-              color: theme.primaryColor,
-              fontSize: 38,
+              color: _calculatorAccent,
+              fontSize: 34,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -772,7 +802,6 @@ class _Co2MatrixMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
       height: 100,
       decoration: BoxDecoration(
@@ -787,9 +816,9 @@ class _Co2MatrixMarker extends StatelessWidget {
           width: 18,
           height: 18,
           decoration: BoxDecoration(
-            color: theme.cardColor,
+            color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: theme.primaryColor, width: 3),
+            border: Border.all(color: const Color(0xFF0F172A), width: 3),
           ),
         ),
       ),
