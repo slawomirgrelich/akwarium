@@ -1477,6 +1477,114 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Uruchom rozpoznawanie'**
   String get runRecognition;
+
+  /// No description provided for @smartDiagnosis.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inteligentna diagnoza'**
+  String get smartDiagnosis;
+
+  /// No description provided for @smartDiagnosisSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wprowadź aktualne dane, aby otrzymać plan działania.'**
+  String get smartDiagnosisSubtitle;
+
+  /// No description provided for @currentPh.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aktualne pH'**
+  String get currentPh;
+
+  /// No description provided for @previousPh.
+  ///
+  /// In pl, this message translates to:
+  /// **'pH z poprzedniego pomiaru'**
+  String get previousPh;
+
+  /// No description provided for @lightingTime.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czas świecenia'**
+  String get lightingTime;
+
+  /// No description provided for @runProDiagnosis.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uruchom diagnozę PRO'**
+  String get runProDiagnosis;
+
+  /// No description provided for @temperature.
+  ///
+  /// In pl, this message translates to:
+  /// **'Temperatura'**
+  String get temperature;
+
+  /// No description provided for @changeAquariumTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmień akwarium'**
+  String get changeAquariumTooltip;
+
+  /// No description provided for @notificationSettings.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustawienia powiadomień'**
+  String get notificationSettings;
+
+  /// No description provided for @taskReminders.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienia o zadaniach'**
+  String get taskReminders;
+
+  /// No description provided for @taskRemindersSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podmiany, filtr i pielęgnacja'**
+  String get taskRemindersSubtitle;
+
+  /// No description provided for @waterTestReminders.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pomiary wody'**
+  String get waterTestReminders;
+
+  /// No description provided for @waterTestRemindersSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienie o regularnym teście'**
+  String get waterTestRemindersSubtitle;
+
+  /// No description provided for @weeklySummary.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tygodniowe podsumowanie'**
+  String get weeklySummary;
+
+  /// No description provided for @weeklySummarySubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najważniejsze zmiany w akwarium'**
+  String get weeklySummarySubtitle;
+
+  /// No description provided for @proNotificationsNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powiadomienia PRO są aktywne dla tego urządzenia.'**
+  String get proNotificationsNote;
+
+  /// No description provided for @atlasSearchPlaceholder.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. neon, anubias, zielenice'**
+  String get atlasSearchPlaceholder;
+
+  /// No description provided for @proNotificationsRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powiadomienia push i cykliczne harmonogramy wymagają aktywnego planu PRO.'**
+  String get proNotificationsRequired;
 }
 
 class _AppLocalizationsDelegate

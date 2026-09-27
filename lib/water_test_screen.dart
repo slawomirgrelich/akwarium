@@ -154,7 +154,9 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
         : Colors.orange.shade800;
 
     return InputDecoration(
-      labelText: key,
+      labelText: key == 'Temperatura'
+          ? AppLocalizations.of(context)!.temperature
+          : key,
       prefixIcon: Icon(Icons.science_outlined, color: color),
       suffixIcon: assessment == null
           ? null

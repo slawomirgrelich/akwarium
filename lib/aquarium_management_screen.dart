@@ -20,7 +20,7 @@ class TankSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
     return PopupMenuButton<String>(
-      tooltip: 'Zmień akwarium',
+      tooltip: AppLocalizations.of(context)!.changeAquariumTooltip,
       onSelected: provider.selectAquarium,
       itemBuilder: (context) => provider.aquariums
           .map(

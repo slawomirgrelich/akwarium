@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
+import '../l10n/app_localizations.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -77,9 +78,10 @@ class _NotificationSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isProUser = context.watch<ProAccessService>().isProUser;
     return Scaffold(
-      appBar: AppBar(title: const Text('Ustawienia powiadomień')),
+      appBar: AppBar(title: Text(l10n.notificationSettings)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
@@ -89,8 +91,8 @@ class _NotificationSettingsScreenState
                 InkWell(
                   onTap: isProUser ? null : _showProRequiredDialog,
                   child: SwitchListTile(
-                    title: const Text('Przypomnienia o zadaniach'),
-                    subtitle: const Text('Podmiany, filtr i pielęgnacja'),
+                    title: Text(l10n.taskReminders),
+                    subtitle: Text(l10n.taskRemindersSubtitle),
                     value: isProUser && _remindersEnabled,
                     onChanged: isProUser
                         ? (value) => _setPreference(
@@ -104,8 +106,8 @@ class _NotificationSettingsScreenState
                 InkWell(
                   onTap: isProUser ? null : _showProRequiredDialog,
                   child: SwitchListTile(
-                    title: const Text('Pomiary wody'),
-                    subtitle: const Text('Przypomnienie o regularnym teście'),
+                    title: Text(l10n.waterTestReminders),
+                    subtitle: Text(l10n.waterTestRemindersSubtitle),
                     value: isProUser && _waterTestsEnabled,
                     onChanged: isProUser
                         ? (value) => _setPreference(
@@ -119,8 +121,8 @@ class _NotificationSettingsScreenState
                 InkWell(
                   onTap: isProUser ? null : _showProRequiredDialog,
                   child: SwitchListTile(
-                    title: const Text('Tygodniowe podsumowanie'),
-                    subtitle: const Text('Najważniejsze zmiany w akwarium'),
+                    title: Text(l10n.weeklySummary),
+                    subtitle: Text(l10n.weeklySummarySubtitle),
                     value: isProUser && _weeklySummaryEnabled,
                     onChanged: isProUser
                         ? (value) => _setPreference(
@@ -136,8 +138,13 @@ class _NotificationSettingsScreenState
           ),
           const SizedBox(height: 12),
           Text(
-            isProUser ? 'Powiadomienia PRO są aktywne dla tego urządzenia.' : 'Powiadomienia push i cykliczne harmonogramy wymagają aktywnego planu PRO.',
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+            isProUser
+                ? l10n.proNotificationsNote
+                : l10n.proNotificationsRequired,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 12,
+            ),
           ),
         ],
       ),

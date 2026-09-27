@@ -747,4 +747,61 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get runRecognition => 'Uruchom rozpoznawanie';
+
+  @override
+  String get smartDiagnosis => 'Inteligentna diagnoza';
+
+  @override
+  String get smartDiagnosisSubtitle =>
+      'Wprowadź aktualne dane, aby otrzymać plan działania.';
+
+  @override
+  String get currentPh => 'Aktualne pH';
+
+  @override
+  String get previousPh => 'pH z poprzedniego pomiaru';
+
+  @override
+  String get lightingTime => 'Czas świecenia';
+
+  @override
+  String get runProDiagnosis => 'Uruchom diagnozę PRO';
+
+  @override
+  String get temperature => 'Temperatura';
+
+  @override
+  String get changeAquariumTooltip => 'Zmień akwarium';
+
+  @override
+  String get notificationSettings => 'Ustawienia powiadomień';
+
+  @override
+  String get taskReminders => 'Przypomnienia o zadaniach';
+
+  @override
+  String get taskRemindersSubtitle => 'Podmiany, filtr i pielęgnacja';
+
+  @override
+  String get waterTestReminders => 'Pomiary wody';
+
+  @override
+  String get waterTestRemindersSubtitle => 'Przypomnienie o regularnym teście';
+
+  @override
+  String get weeklySummary => 'Tygodniowe podsumowanie';
+
+  @override
+  String get weeklySummarySubtitle => 'Najważniejsze zmiany w akwarium';
+
+  @override
+  String get proNotificationsNote =>
+      'Powiadomienia PRO są aktywne dla tego urządzenia.';
+
+  @override
+  String get atlasSearchPlaceholder => 'np. neon, anubias, zielenice';
+
+  @override
+  String get proNotificationsRequired =>
+      'Powiadomienia push i cykliczne harmonogramy wymagają aktywnego planu PRO.';
 }

@@ -742,4 +742,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get runRecognition => 'Run recognition';
+
+  @override
+  String get smartDiagnosis => 'Smart Diagnosis';
+
+  @override
+  String get smartDiagnosisSubtitle =>
+      'Enter current parameters to generate an action plan.';
+
+  @override
+  String get currentPh => 'Current pH';
+
+  @override
+  String get previousPh => 'pH from previous measurement';
+
+  @override
+  String get lightingTime => 'Lighting duration';
+
+  @override
+  String get runProDiagnosis => 'Run PRO Diagnosis';
+
+  @override
+  String get temperature => 'Temperature';
+
+  @override
+  String get changeAquariumTooltip => 'Change aquarium';
+
+  @override
+  String get notificationSettings => 'Notification Settings';
+
+  @override
+  String get taskReminders => 'Task reminders';
+
+  @override
+  String get taskRemindersSubtitle =>
+      'Water changes, filter maintenance, and care';
+
+  @override
+  String get waterTestReminders => 'Water test reminders';
+
+  @override
+  String get waterTestRemindersSubtitle => 'Reminders for regular testing';
+
+  @override
+  String get weeklySummary => 'Weekly summary';
+
+  @override
+  String get weeklySummarySubtitle => 'Key changes and highlights in your tank';
+
+  @override
+  String get proNotificationsNote =>
+      'PRO notifications are active for this device.';
+
+  @override
+  String get atlasSearchPlaceholder => 'e.g., neon, anubias, green algae';
+
+  @override
+  String get proNotificationsRequired =>
+      'Push notifications and recurring schedules require an active PRO plan.';
 }

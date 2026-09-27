@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../services/firestore_service.dart';
 
@@ -582,7 +583,11 @@ class _FirestoreWaterParametersFormScreenState
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
-                            decoration: InputDecoration(labelText: entry.key),
+                            decoration: InputDecoration(
+                              labelText: entry.key == 'Temperatura'
+                                  ? AppLocalizations.of(context)!.temperature
+                                  : entry.key,
+                            ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Wpisz wartość.';

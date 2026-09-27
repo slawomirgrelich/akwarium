@@ -56,7 +56,7 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
                           onChanged: (value) => setState(() => _query = value),
                           decoration: InputDecoration(
                             labelText: l10n.searchAtlas,
-                            hintText: 'np. neon, anubias, zielenice',
+                            hintText: l10n.atlasSearchPlaceholder,
                             prefixIcon: Icon(Icons.search),
                           ),
                         ),
@@ -432,9 +432,10 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inteligentna diagnoza'),
+        title: Text(l10n.smartDiagnosis),
         actions: const [
           Padding(padding: EdgeInsets.only(right: 12), child: ProBadge()),
         ],
@@ -447,10 +448,10 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 4),
-          const Text('Wprowadź aktualne dane, aby otrzymać plan działania.'),
+          Text(l10n.smartDiagnosisSubtitle),
           const SizedBox(height: 18),
-          _numberField(_ph, 'Aktualne pH'),
-          _numberField(_previousPh, 'pH z poprzedniego pomiaru'),
+          _numberField(_ph, l10n.currentPh),
+          _numberField(_previousPh, l10n.previousPh),
           _numberField(_no3, 'NO3 (mg/l)'),
           _numberField(_po4, 'PO4 (mg/l)'),
           _numberField(_co2, 'CO2 (ppm)'),
@@ -461,7 +462,7 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
                 children: [
                   Row(
                     children: [
-                      const Text('Czas świecenia'),
+                      Text(l10n.lightingTime),
                       const Spacer(),
                       Text('${_lightHours.toStringAsFixed(0)} h'),
                     ],
@@ -482,7 +483,7 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
           FilledButton.icon(
             onPressed: _diagnose,
             icon: const Icon(Icons.auto_awesome),
-            label: const Text('Uruchom diagnozę PRO'),
+            label: Text(l10n.runProDiagnosis),
           ),
           if (_result != null) ...[
             const SizedBox(height: 20),
