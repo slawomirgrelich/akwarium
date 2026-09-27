@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/species_catalog.dart';
 import '../models/aquarium_model.dart';
+import '../aquarium_management_screen.dart';
 import '../models/species_models.dart';
 import '../services/database_service.dart';
 import '../services/stocking_compatibility_service.dart';
@@ -43,7 +44,12 @@ class _StockingBody extends StatelessWidget {
             tooltip: 'Atlas gatunków',
             onPressed: () => Navigator.push<void>(
               context,
-              MaterialPageRoute(builder: (_) => SpeciesAtlasScreen(tankId: tankId)),
+              MaterialPageRoute(
+                builder: (_) => SpeciesAtlasScreen(
+                  tankId: tankId,
+                  onCreateAquarium: () => showCreateAquariumDialog(context),
+                ),
+              ),
             ),
             icon: const Icon(Icons.menu_book_outlined),
           ),
@@ -106,7 +112,12 @@ class _StockingBody extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.push<void>(
           context,
-          MaterialPageRoute(builder: (_) => SpeciesAtlasScreen(tankId: tankId)),
+          MaterialPageRoute(
+            builder: (_) => SpeciesAtlasScreen(
+              tankId: tankId,
+              onCreateAquarium: () => showCreateAquariumDialog(context),
+            ),
+          ),
         ),
         icon: const Icon(Icons.add),
         label: const Text('Dodaj gatunek'),

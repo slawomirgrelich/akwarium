@@ -732,6 +732,7 @@ class ToolsPage extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (_) => SpeciesAtlasScreen(
                       tankId: context.read<models.AquariumProvider>().activeAquariumId,
+                      onCreateAquarium: () => showCreateAquariumDialog(context),
                     ),
                   ),
                 );

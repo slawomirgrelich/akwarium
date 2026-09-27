@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 
 import '../data/species_catalog.dart';
 import '../models/aquarium_firestore_model.dart';
+import '../models/aquarium_model.dart' as local_models;
 import '../models/species_models.dart';
 import '../services/firestore_service.dart';
 import 'aquarium_livestock_screen.dart';
 
 class SpeciesAtlasScreen extends StatefulWidget {
-  const SpeciesAtlasScreen({required this.tankId, super.key});
+  const SpeciesAtlasScreen({
+    required this.tankId,
+    this.onCreateAquarium,
+    super.key,
+  });
 
   final String tankId;
+  final VoidCallback? onCreateAquarium;
 
   @override
   State<SpeciesAtlasScreen> createState() => _SpeciesAtlasScreenState();
@@ -149,23 +156,36 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
   ) async {
     final firestore = FirestoreService();
     try {
-      final aquariums = await firestore.getAquariums().first;
+      final aquariums = await _loadAquariums(firestore);
       if (!pageContext.mounted) return;
-      if (aquariums.isEmpty) {
-        ScaffoldMessenger.of(pageContext).showSnackBar(
-          const SnackBar(content: Text('Nie znaleziono akwariów na Twoim koncie.')),
-        );
-        return;
-      }
-
-      final aquarium = aquariums.length == 1
-          ? aquariums.single
-          : await showModalBottomSheet<AquariumModel>(
+      final selection = aquariums.length == 1
+          ? _AquariumPickerResult.select(aquariums.single)
+          : await showModalBottomSheet<_AquariumPickerResult>(
               context: pageContext,
               showDragHandle: true,
-              builder: (_) => _AquariumSelectionSheet(aquariums: aquariums),
+              builder: (_) => _AquariumSelectionSheet(
+                aquariums: aquariums,
+                onCreateAquarium: widget.onCreateAquarium != null,
+              ),
             );
-      if (aquarium == null || !pageContext.mounted) return;
+      if (selection == null || !pageContext.mounted) return;
+      if (selection.create) {
+        if (detailsContext.mounted) Navigator.pop(detailsContext);
+        if (widget.onCreateAquarium != null) {
+          widget.onCreateAquarium!();
+        } else {
+          ScaffoldMessenger.of(pageContext).showSnackBar(
+            const SnackBar(content: Text('Otwórz zarządzanie akwariami, aby utworzyć akwarium.')),
+          );
+        }
+        return;
+      }
+      final selectedAquarium = selection.aquarium!;
+      final aquarium = selectedAquarium.aquarium;
+      if (!selectedAquarium.isStoredInFirestore) {
+        await firestore.addAquarium(aquarium);
+      }
+      if (!pageContext.mounted) return;
 
       final addition = await showDialog<_SpeciesAddition>(
         context: pageContext,
@@ -208,12 +228,50 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
       }
     }
   }
+
+  Future<List<_AquariumOption>> _loadAquariums(
+    FirestoreService firestore,
+  ) async {
+    final localAquariums = context.read<local_models.AquariumProvider>().aquariums;
+    final options = <String, _AquariumOption>{};
+    try {
+      final cloudAquariums = await firestore.getAquariums().first;
+      for (final aquarium in cloudAquariums) {
+        options[aquarium.id] = _AquariumOption(
+          aquarium: aquarium,
+          isStoredInFirestore: true,
+        );
+      }
+    } on FirestoreServiceException {
+      if (localAquariums.isEmpty) rethrow;
+    }
+    for (final aquarium in localAquariums) {
+      options.putIfAbsent(
+        aquarium.id,
+        () => _AquariumOption(
+          aquarium: AquariumModel(
+            id: aquarium.id,
+            name: aquarium.name,
+            capacityLiters: aquarium.volumeNetLiters,
+            setupDate: aquarium.setupDate,
+            type: aquarium.type.label,
+          ),
+          isStoredInFirestore: false,
+        ),
+      );
+    }
+    return options.values.toList(growable: false);
+  }
 }
 
 class _AquariumSelectionSheet extends StatelessWidget {
-  const _AquariumSelectionSheet({required this.aquariums});
+  const _AquariumSelectionSheet({
+    required this.aquariums,
+    required this.onCreateAquarium,
+  });
 
-  final List<AquariumModel> aquariums;
+  final List<_AquariumOption> aquariums;
+  final bool onCreateAquarium;
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -228,17 +286,69 @@ class _AquariumSelectionSheet extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
-        ...aquariums.map(
-          (aquarium) => ListTile(
-            leading: const Icon(Icons.water_drop_outlined),
-            title: Text(aquarium.name),
-            subtitle: Text('${aquarium.capacityLiters.round()} l · ${aquarium.type}'),
-            onTap: () => Navigator.pop(context, aquarium),
+        if (aquariums.isEmpty) ...[
+          const Icon(Icons.water_drop_outlined, size: 36),
+          const SizedBox(height: 12),
+          const Text(
+            'Nie masz jeszcze żadnego akwarium. Utwórz akwarium, aby dodać do niego gatunek',
+            textAlign: TextAlign.center,
           ),
-        ),
+          if (onCreateAquarium) ...[
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(
+                context,
+                const _AquariumPickerResult.create(),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('Utwórz akwarium'),
+            ),
+          ],
+        ] else ...[
+          ...aquariums.map(
+            (option) => ListTile(
+              leading: const Icon(Icons.water_drop_outlined),
+              title: Text(option.aquarium.name),
+              subtitle: Text(
+                '${option.aquarium.capacityLiters.round()} l · ${option.aquarium.type}',
+              ),
+              onTap: () => Navigator.pop(
+                context,
+                _AquariumPickerResult.select(option),
+              ),
+            ),
+          ),
+          if (onCreateAquarium)
+            TextButton.icon(
+              onPressed: () => Navigator.pop(
+                context,
+                const _AquariumPickerResult.create(),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text('Utwórz nowe akwarium'),
+            ),
+        ],
       ],
     ),
   );
+}
+
+class _AquariumOption {
+  const _AquariumOption({
+    required this.aquarium,
+    required this.isStoredInFirestore,
+  });
+
+  final AquariumModel aquarium;
+  final bool isStoredInFirestore;
+}
+
+class _AquariumPickerResult {
+  const _AquariumPickerResult.select(this.aquarium) : create = false;
+  const _AquariumPickerResult.create() : aquarium = null, create = true;
+
+  final _AquariumOption? aquarium;
+  final bool create;
 }
 
 class _SpeciesAddition {

@@ -10,6 +10,13 @@ import 'screens/species_atlas_screen.dart';
 import 'screens/tank_stocking_screen.dart';
 import 'screens/tank_photo_journal_screen.dart';
 
+Future<void> showCreateAquariumDialog(BuildContext context) async {
+  await showDialog<void>(
+    context: context,
+    builder: (_) => const AddAquariumModal(),
+  );
+}
+
 String _tankTypeLabel(AppLocalizations l10n, TankType type) => switch (type) {
   TankType.freshwater => l10n.freshwater,
   TankType.marine => l10n.saltwater,
@@ -85,7 +92,12 @@ class AquariumManagementScreen extends StatelessWidget {
               final tankId = context.read<AquariumProvider>().activeAquariumId;
               Navigator.push<void>(
                 context,
-                MaterialPageRoute(builder: (_) => SpeciesAtlasScreen(tankId: tankId)),
+                  MaterialPageRoute(
+                    builder: (_) => SpeciesAtlasScreen(
+                      tankId: tankId,
+                      onCreateAquarium: () => showCreateAquariumDialog(context),
+                    ),
+                  ),
               );
             },
             icon: const Icon(Icons.menu_book_outlined),
@@ -129,10 +141,7 @@ class AquariumManagementScreen extends StatelessWidget {
   }
 
   void _showAddAquarium(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (_) => const AddAquariumModal(),
-    );
+    showCreateAquariumDialog(context);
   }
 
   void _showAddInhabitant(BuildContext context) {

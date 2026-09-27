@@ -52,13 +52,16 @@ class FirestoreService {
     try {
       final userId = _requireUserId();
       return _aquariums(userId)
-          .orderBy('createdAt', descending: true)
           .snapshots()
-          .map(
-            (snapshot) => snapshot.docs
+          .map((snapshot) {
+            final aquariums = snapshot.docs
                 .map(AquariumModel.fromFirestore)
-                .toList(growable: false),
-          )
+                .toList();
+            aquariums.sort(
+              (first, second) => second.createdAt.compareTo(first.createdAt),
+            );
+            return aquariums;
+          })
           .handleError((Object error) {
             throw FirestoreServiceException(_messageFor(error));
           });
