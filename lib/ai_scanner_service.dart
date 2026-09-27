@@ -93,16 +93,17 @@ class AiScannerService {
         'Klucz API Gemini jest pusty. Sprawdź GitHub Secrets lub Ustawienia Profilu.',
       );
     }
-    final url =
-        'https://generativelanguage.googleapis.com/v1beta/models/'
-        'gemini-3.8-flash:generateContent?key=$apiKey';
-    final requestUrls = [
-      url,
-      'https://generativelanguage.googleapis.com/v1/models/'
-        'gemini-3.8-flash:generateContent?key=$apiKey',
+    const models = [
+      'gemini-3.8-flash',
+      'gemini-1.5-flash',
+      'gemini-2.0-flash-exp',
     ];
-    for (final requestUrl in requestUrls) {
+    var overloadFailures = 0;
+    for (var index = 0; index < models.length; index++) {
       try {
+        final requestUrl =
+            'https://generativelanguage.googleapis.com/v1beta/models/'
+            '${models[index]}:generateContent?key=$apiKey';
         debugPrint(
           'Requesting Gemini API via: '
           '${requestUrl.replaceAll(apiKey, 'HIDDEN_KEY')}',
@@ -130,11 +131,18 @@ class AiScannerService {
           }),
         ).timeout(const Duration(seconds: 45));
         if (response.statusCode != 200) {
+          if (response.statusCode == 503 || response.statusCode == 429) {
+            overloadFailures++;
+            if (index < models.length - 1) {
+              await Future<void>.delayed(const Duration(milliseconds: 1500));
+              continue;
+            }
+            throw const AiScannerException(
+              'Serwery AI są obecnie przeciążone. Spróbuj ponownie za chwilę.',
+            );
+          }
           if (response.statusCode == 404 && usesStoredApiKey) {
             await preferences.remove('gemini_api_key');
-          }
-          if (requestUrl != requestUrls.last) {
-            continue;
           }
           throw AiScannerException(
             'HTTP ${response.statusCode}:${response.body}',
@@ -162,6 +170,11 @@ class AiScannerService {
       } on FormatException {
         throw const AiScannerException('Gemini zwróciło nieprawidłowy format JSON.');
       }
+    }
+    if (overloadFailures == models.length) {
+      throw const AiScannerException(
+        'Serwery AI są obecnie przeciążone. Spróbuj ponownie za chwilę.',
+      );
     }
     throw const AiScannerException('Gemini nie zwróciło wyniku analizy.');
   }
