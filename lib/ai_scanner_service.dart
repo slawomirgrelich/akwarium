@@ -67,7 +67,8 @@ class AiScannerService {
 
   static const endpoint = String.fromEnvironment('AI_SCANNER_ENDPOINT');
   static const defaultApiKey = String.fromEnvironment('GEMINI_API_KEY');
-  static const modelName = 'gemini-1.5-flash-latest';
+  static const modelName = 'gemini-1.5-flash';
+  static const fallbackModelName = 'gemini-1.5-pro';
   final http.Client _client;
   final String? apiKeyOverride;
 
@@ -127,38 +128,36 @@ class AiScannerService {
     if (apiKey.trim().isEmpty) {
       throw const AiScannerException('Ustaw klucz API Gemini w profilu aplikacji.');
     }
-    try {
-      final model = GenerativeModel(
-        model: modelName,
-        apiKey: apiKey,
-        generationConfig: GenerationConfig(
-          responseMimeType: 'application/json',
-          temperature: 0.2,
-        ),
-      );
-      final response = await model.generateContent([
-        Content.multi([
-          TextPart(_geminiPrompt),
-          DataPart(mimeType, imageBytes),
-        ]),
-      ]).timeout(const Duration(seconds: 45));
-      final text = response.text?.trim();
-      if (text == null || text.isEmpty) {
-        throw const AiScannerException('Gemini nie zwróciło wyniku analizy.');
+    GenerativeAIException? lastModelError;
+    for (final selectedModel in [modelName, fallbackModelName]) {
+      try {
+        final model = GenerativeModel(
+          model: selectedModel,
+          apiKey: apiKey,
+          generationConfig: GenerationConfig(
+            responseMimeType: 'application/json',
+            temperature: 0.2,
+          ),
+        );
+        final response = await model.generateContent([
+          Content.multi([
+            TextPart(_geminiPrompt),
+            DataPart(mimeType, imageBytes),
+          ]),
+        ]).timeout(const Duration(seconds: 45));
+        final text = response.text?.trim();
+        if (text == null || text.isEmpty) {
+          throw const AiScannerException('Gemini nie zwróciło wyniku analizy.');
+        }
+        final decoded = jsonDecode(text);
+        return AiScanResult.fromJson(Map<String, dynamic>.from(decoded as Map));
+      } on GenerativeAIException catch (error) {
+        lastModelError = error;
       }
-      final decoded = jsonDecode(text);
-      return AiScanResult.fromJson(Map<String, dynamic>.from(decoded as Map));
-    } on AiScannerException {
-      rethrow;
-    } on TimeoutException {
-      throw const AiScannerException('Analiza Gemini trwała zbyt długo.');
-    } on GenerativeAIException catch (error) {
-      throw AiScannerException('Gemini nie mogło przeanalizować zdjęcia: ${error.message}');
-    } on FormatException {
-      throw const AiScannerException('Gemini zwróciło nieprawidłowy format JSON.');
-    } on Object catch (error) {
-      throw AiScannerException('Nie udało się połączyć z Gemini: $error');
     }
+    throw AiScannerException(
+      'Gemini nie mogło przeanalizować zdjęcia: ${lastModelError?.message ?? 'brak dostępnego modelu'}',
+    );
   }
 
   static const _systemPrompt = '''Jesteś ekspertem akwarystyki. Rozpoznaj rybę, roślinę lub inny organizm na zdjęciu. Zwróć wyłącznie poprawny JSON bez markdownu, dokładnie w schemacie: {"nazwa_polska":"...","nazwa_lacinska":"...","typ":"ryba|roślina|inne","wymagania":{"temperatura":{"min":0,"max":0},"pH":{"min":0,"max":0},"min_pojemnosc_akwarium":0,"poziom_trudnosci":"Łatwy|Średni|Trudny"},"opis":"...","zgodnosc":"..."}. Jeśli nie da się rozpoznać organizmu, zwróć błąd HTTP 422. Nie zgaduj pewnego gatunku bez zaznaczenia tego w opisie.''';
