@@ -6,6 +6,7 @@ import '../data/species_catalog.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../models/aquarium_model.dart' as local_models;
 import '../models/species_models.dart';
+import '../services/compatibility_checker.dart';
 import '../services/firestore_service.dart';
 import 'aquarium_livestock_screen.dart';
 
@@ -131,6 +132,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
               Text('GH: ${species.ghRange.min}–${species.ghRange.max}'),
               Text('Trudność: ${_difficultyLabel(species.difficulty)}'),
               Text('Strefa pływania: ${_zoneLabel(species.swimmingZone)}'),
+              const SizedBox(height: 16),
+              _CompatibilitySection(species: species),
             ],
           ),
         ),
@@ -374,6 +377,73 @@ class _AquariumSelectionSheet extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Sekcja pokazująca wynik walidacji kompatybilności gatunku z aktywnym akwarium.
+class _CompatibilitySection extends StatelessWidget {
+  const _CompatibilitySection({required this.species});
+
+  final Species species;
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<local_models.AquariumProvider>();
+    final aquarium = provider.selectedAquarium;
+    if (aquarium == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<List<WaterParametersModel>>(
+      stream: FirestoreService().getWaterParameters(aquarium.id),
+      builder: (context, snapshot) {
+        final latest = snapshot.data?.firstOrNull;
+        final result = checkCompatibility(
+          species: species,
+          volumeLiters: aquarium.volumeNetLiters,
+          ph: latest?.ph,
+          temperature: latest?.temp,
+        );
+        final theme = Theme.of(context);
+        final color = result.isCompatible
+            ? theme.colorScheme.primary
+            : theme.colorScheme.error;
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    result.isCompatible ? Icons.check_circle_outline : Icons.warning_amber_outlined,
+                    color: color,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      result.isCompatible
+                          ? 'Dopasowany do akwarium "${aquarium.name}"'
+                          : 'Ostrzeżenia dla akwarium "${aquarium.name}"',
+                      style: theme.textTheme.titleSmall?.copyWith(color: color),
+                    ),
+                  ),
+                ],
+              ),
+              for (final warning in result.warnings) ...[
+                const SizedBox(height: 6),
+                Text('• $warning', style: theme.textTheme.bodySmall),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _AquariumOption {
