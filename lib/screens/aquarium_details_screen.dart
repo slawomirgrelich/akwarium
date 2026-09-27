@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
@@ -174,6 +175,10 @@ class _DetailsContent extends StatelessWidget {
             )
           else
             _LatestParametersCard(latest: latest),
+          if (parameters.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _WaterHistoryChart(parameters: parameters),
+          ],
           const SizedBox(height: 18),
           Card(
             child: Padding(
@@ -212,6 +217,180 @@ class _DetailsContent extends StatelessWidget {
       ),
     );
   }
+}
+
+enum _HistoryParameter { ph, temperature, no3 }
+
+class _WaterHistoryChart extends StatefulWidget {
+  const _WaterHistoryChart({required this.parameters});
+
+  final List<WaterParametersModel> parameters;
+
+  @override
+  State<_WaterHistoryChart> createState() => _WaterHistoryChartState();
+}
+
+class _WaterHistoryChartState extends State<_WaterHistoryChart> {
+  _HistoryParameter _selected = _HistoryParameter.ph;
+
+  @override
+  Widget build(BuildContext context) {
+    final measurements = widget.parameters.reversed.toList(growable: false);
+    final values = measurements.map(_valueForSelected).toList(growable: false);
+    final minimum = values.reduce((a, b) => a < b ? a : b);
+    final maximum = values.reduce((a, b) => a > b ? a : b);
+    final padding = maximum == minimum ? 1.0 : (maximum - minimum) * 0.12;
+    final minY = minimum - padding;
+    final maxY = maximum + padding;
+    final unit = _unit;
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Historia parametrów wody',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              children: _HistoryParameter.values.map((parameter) {
+                return ChoiceChip(
+                  label: Text(_parameterLabel(parameter)),
+                  selected: _selected == parameter,
+                  onSelected: (_) => setState(() => _selected = parameter),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 230,
+              child: LineChart(
+                LineChartData(
+                  minX: 0,
+                  maxX: measurements.length < 2
+                      ? 1
+                      : (measurements.length - 1).toDouble(),
+                  minY: minY,
+                  maxY: maxY,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (_) => FlLine(
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.45),
+                      strokeWidth: 1,
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 62,
+                        getTitlesWidget: (value, _) => Text(
+                          '${_axisValue(value)}${unit.isEmpty ? '' : ' $unit'}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 9,
+                          ),
+                        ),
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 28,
+                        interval: measurements.length > 5
+                            ? (measurements.length / 4).ceilToDouble()
+                            : 1,
+                        getTitlesWidget: (value, meta) {
+                          final index = value.round();
+                          if (index < 0 || index >= measurements.length) {
+                            return const SizedBox.shrink();
+                          }
+                          final date = measurements[index].timestamp;
+                          return SideTitleWidget(
+                            axisSide: meta.axisSide,
+                            child: Text(
+                              '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(fontSize: 10),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipItems: (spots) => spots.map((spot) {
+                        final index = spot.x.round().clamp(0, measurements.length - 1);
+                        final date = measurements[index].timestamp;
+                        return LineTooltipItem(
+                          '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}\n${_axisValue(spot.y)}${unit.isEmpty ? '' : ' $unit'}',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: values.indexed
+                          .map((entry) => FlSpot(entry.$1.toDouble(), entry.$2))
+                          .toList(growable: false),
+                      isCurved: true,
+                      curveSmoothness: 0.22,
+                      color: primary,
+                      barWidth: 3,
+                      dotData: FlDotData(show: values.length <= 18),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: primary.withValues(alpha: 0.10),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double _valueForSelected(WaterParametersModel measurement) => switch (_selected) {
+    _HistoryParameter.ph => measurement.ph,
+    _HistoryParameter.temperature => measurement.temp,
+    _HistoryParameter.no3 => measurement.no3,
+  };
+
+  String get _unit => switch (_selected) {
+    _HistoryParameter.ph => '',
+    _HistoryParameter.temperature => '°C',
+    _HistoryParameter.no3 => 'mg/l',
+  };
+
+  String _parameterLabel(_HistoryParameter parameter) => switch (parameter) {
+    _HistoryParameter.ph => 'pH',
+    _HistoryParameter.temperature => 'Temperatura',
+    _HistoryParameter.no3 => 'Azotany (NO3)',
+  };
+
+  String _axisValue(double value) => _selected == _HistoryParameter.ph
+      ? value.toStringAsFixed(1)
+      : value.toStringAsFixed(value.abs() < 10 ? 1 : 0);
 }
 
 class _ReportIconButton extends StatelessWidget {
