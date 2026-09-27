@@ -6,7 +6,7 @@ import '../data/species_catalog.dart';
 import '../models/aquarium_model.dart';
 import '../aquarium_management_screen.dart';
 import '../models/species_models.dart';
-import '../services/database_service.dart';
+import '../services/firestore_service.dart';
 import '../services/stocking_compatibility_service.dart';
 import 'species_atlas_screen.dart';
 
@@ -18,9 +18,11 @@ class TankStockingScreen extends StatelessWidget {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     final provider = context.watch<AquariumProvider>();
     final tankId = provider.activeAquariumId;
-    final aquarium = provider.activeAquarium;
+    final aquarium = provider.selectedAquarium;
     if (userId == null) {
-      return const Scaffold(body: Center(child: Text('Zaloguj się, aby zobaczyć obsadę.')));
+      return const Scaffold(
+        body: Center(child: Text('Zaloguj się, aby zobaczyć obsadę.')),
+      );
     }
     if (aquarium == null || tankId.isEmpty) {
       return Scaffold(
@@ -46,29 +48,22 @@ class TankStockingScreen extends StatelessWidget {
         ),
       );
     }
-    return _StockingBody(
-      userId: userId,
-      tankId: tankId,
-      aquarium: aquarium,
-    );
+    return _StockingBody(tankId: tankId, aquarium: aquarium);
   }
 }
 
 class _StockingBody extends StatelessWidget {
-  const _StockingBody({
-    required this.userId,
-    required this.tankId,
-    required this.aquarium,
-  });
+  const _StockingBody({required this.tankId, required this.aquarium});
 
-  final String userId;
   final String tankId;
   final AquariumProfile aquarium;
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
-    final latest = provider.waterTests.isEmpty ? null : provider.waterTests.first;
+    final latest = provider.waterTests.isEmpty
+        ? null
+        : provider.waterTests.first;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Obsada akwarium'),
@@ -88,12 +83,12 @@ class _StockingBody extends StatelessWidget {
           ),
         ],
       ),
-      body: StreamBuilder<List<TankStockItem>>(
-        stream: DatabaseService().getTankStockingStream(userId, tankId),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: FirestoreService().getLivestock(tankId),
         builder: (context, snapshot) {
-          final items = snapshot.data ?? const <TankStockItem>[];
+          final items = snapshot.data ?? const <Map<String, dynamic>>[];
           final species = items
-              .map((item) => speciesCatalog.where((entry) => entry.id == item.speciesId).firstOrNull)
+              .map(_catalogSpeciesForEntry)
               .whereType<Species>()
               .toList();
           final report = StockingCompatibilityService().validate(
@@ -107,30 +102,72 @@ class _StockingBody extends StatelessWidget {
             children: [
               _CompatibilityCard(report: report),
               const SizedBox(height: 16),
+              if (snapshot.hasError)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    'Nie udało się zsynchronizować obsady: ${snapshot.error}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              if (snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasData)
+                const LinearProgressIndicator(),
               if (items.isEmpty)
                 const Padding(
                   padding: EdgeInsets.all(24),
-                  child: Center(child: Text('Brak dodanych gatunków. Otwórz atlas, aby dodać obsadę.')),
+                  child: Center(
+                    child: Text(
+                      'Brak dodanych gatunków. Otwórz atlas, aby dodać obsadę.',
+                    ),
+                  ),
                 )
               else
                 ...items.map((item) {
-                  final match = speciesCatalog.where((entry) => entry.id == item.speciesId).firstOrNull;
-                  if (match == null) return const SizedBox.shrink();
+                  final category = '${item['category'] ?? ''}'.toLowerCase();
+                  final isPlant =
+                      category == 'flora' ||
+                      category == 'plant' ||
+                      category.contains('roślin') ||
+                      category.contains('roslin');
+                  final count = item['count'] is num
+                      ? (item['count'] as num).toInt()
+                      : 1;
+                  final name = '${item['namePl'] ?? 'Nieznany gatunek'}';
                   return Card(
                     child: ListTile(
-                      leading: Icon(_iconFor(match.category), color: Theme.of(context).colorScheme.primary),
-                      title: Text(match.namePl),
-                      subtitle: Text('${match.nameLatin} · ${item.count} szt.'),
+                      leading: Icon(
+                        isPlant ? Icons.local_florist : Icons.pets,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(name),
+                      subtitle: Text(
+                        '${item['nameLatin'] ?? ''} · $count szt. · ${item['categoryLabel'] ?? (isPlant ? 'Flora' : 'Fauna')}',
+                      ),
                       trailing: Wrap(
                         children: [
                           IconButton(
                             tooltip: 'Zmień ilość',
-                            onPressed: () => _changeCount(context, userId, tankId, item, -1),
+                            onPressed: () => _changeCount(
+                              context,
+                              tankId,
+                              '${item['id'] ?? ''}',
+                              count,
+                              -1,
+                            ),
                             icon: const Icon(Icons.remove_circle_outline),
                           ),
                           IconButton(
                             tooltip: 'Zwiększ ilość',
-                            onPressed: () => _changeCount(context, userId, tankId, item, 1),
+                            onPressed: () => _changeCount(
+                              context,
+                              tankId,
+                              '${item['id'] ?? ''}',
+                              count,
+                              1,
+                            ),
                             icon: const Icon(Icons.add_circle_outline),
                           ),
                         ],
@@ -160,18 +197,33 @@ class _StockingBody extends StatelessWidget {
 
   Future<void> _changeCount(
     BuildContext context,
-    String userId,
     String tankId,
-    TankStockItem item,
+    String itemId,
+    int currentCount,
     int delta,
   ) async {
-    final count = item.count + delta;
-    if (count <= 0) {
-      await DatabaseService().deleteStockItem(userId, tankId, item.id);
-    } else {
-      await DatabaseService().updateStockItem(userId, tankId, item.copyWith(count: count));
+    final count = currentCount + delta;
+    try {
+      if (count <= 0) {
+        await FirestoreService().deleteLivestockItem(tankId, itemId);
+      } else {
+        await FirestoreService().updateLivestockCount(tankId, itemId, count);
+      }
+    } on Object catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.toString())));
+      }
     }
   }
+}
+
+Species? _catalogSpeciesForEntry(Map<String, dynamic> entry) {
+  final latinName = entry['nameLatin']?.toString().toLowerCase();
+  if (latinName == null || latinName.isEmpty) return null;
+  return speciesCatalog
+      .where((species) => species.nameLatin.toLowerCase() == latinName)
+      .firstOrNull;
 }
 
 class _CompatibilityCard extends StatelessWidget {
@@ -184,8 +236,8 @@ class _CompatibilityCard extends StatelessWidget {
     final color = report.isCompatible
         ? const Color(0xFF10B981)
         : report.warnings.any((warning) => warning.isCritical)
-            ? Theme.of(context).colorScheme.error
-            : const Color(0xFFF59E0B);
+        ? Theme.of(context).colorScheme.error
+        : const Color(0xFFF59E0B);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -194,28 +246,32 @@ class _CompatibilityCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(report.isCompatible ? Icons.check_circle : Icons.warning_amber, color: color),
+                Icon(
+                  report.isCompatible
+                      ? Icons.check_circle
+                      : Icons.warning_amber,
+                  color: color,
+                ),
                 const SizedBox(width: 8),
-                Text('${report.score}% kompatybilności', style: TextStyle(color: color, fontWeight: FontWeight.w800)),
+                Text(
+                  '${report.score}% kompatybilności',
+                  style: TextStyle(color: color, fontWeight: FontWeight.w800),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             if (report.isCompatible)
               const Text('Obsada mieści się w sprawdzonych zakresach.')
             else
-              ...report.warnings.map((warning) => Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text('• ${warning.message}'),
-                  )),
+              ...report.warnings.map(
+                (warning) => Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text('• ${warning.message}'),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 }
-
-IconData _iconFor(SpeciesCategory category) => switch (category) {
-  SpeciesCategory.fish => Icons.pets,
-  SpeciesCategory.plant => Icons.local_florist,
-  SpeciesCategory.invertebrate => Icons.bug_report_outlined,
-};

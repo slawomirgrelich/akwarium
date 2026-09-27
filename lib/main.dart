@@ -304,7 +304,7 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<models.AquariumProvider>();
-    final activeAquarium = provider.activeAquarium;
+    final activeAquarium = provider.selectedAquarium;
     if (activeAquarium == null) {
       return _PageContainer(
         child: Padding(
@@ -1568,7 +1568,7 @@ class ProfilePage extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final proService = context.watch<ProAccessService>();
     final activeAquarium =
-        context.watch<models.AquariumProvider>().activeAquarium;
+      context.watch<models.AquariumProvider>().selectedAquarium;
     if (proService.trialExpired) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted || !proService.consumeTrialExpired()) return;

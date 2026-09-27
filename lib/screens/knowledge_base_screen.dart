@@ -25,7 +25,7 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
     final l10n = AppLocalizations.of(context)!;
     final isPro = context.watch<ProAccessService>().isProUser;
     final provider = context.watch<AquariumProvider>();
-    final aquarium = provider.activeAquarium;
+    final aquarium = provider.selectedAquarium;
     if (aquarium == null) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.knowledgeBaseTitle)),

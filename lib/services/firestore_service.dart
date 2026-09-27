@@ -233,10 +233,16 @@ class FirestoreService {
     }
 
     try {
+      final normalizedCategory = category.toLowerCase();
+      final isFlora = normalizedCategory.contains('plant') ||
+          normalizedCategory.contains('flora') ||
+          normalizedCategory.contains('roślin') ||
+          normalizedCategory.contains('roslin');
       await _livestock(userId, aquariumId).add({
         'namePl': namePl,
         'nameLatin': nameLatin,
-        'category': category,
+        'category': isFlora ? 'flora' : 'fauna',
+        'categoryLabel': category,
         'count': count,
         'phRange': phRange,
         'tempRange': tempRange,
@@ -277,6 +283,46 @@ class FirestoreService {
             ? error
             : FirestoreServiceException(_messageFor(error)),
       );
+    }
+  }
+
+  Future<void> deleteLivestockItem(String aquariumId, String itemId) async {
+    final userId = _requireUserId();
+    if (aquariumId.trim().isEmpty || itemId.trim().isEmpty) {
+      throw const FirestoreServiceException('Nieprawidłowe dane obsady.');
+    }
+    try {
+      await _livestock(userId, aquariumId).doc(itemId).delete();
+      await FirestoreSyncStatus.recordSuccessfulSync();
+    } on FirebaseException catch (error) {
+      throw FirestoreServiceException(
+        'FirebaseException (${error.code}): ${error.message ?? error.toString()}',
+      );
+    } catch (error) {
+      throw FirestoreServiceException(error.toString());
+    }
+  }
+
+  Future<void> updateLivestockCount(
+    String aquariumId,
+    String itemId,
+    int count,
+  ) async {
+    final userId = _requireUserId();
+    if (aquariumId.trim().isEmpty || itemId.trim().isEmpty || count < 1) {
+      throw const FirestoreServiceException('Nieprawidłowa liczba sztuk.');
+    }
+    try {
+      await _livestock(userId, aquariumId)
+          .doc(itemId)
+          .update({'count': count});
+      await FirestoreSyncStatus.recordSuccessfulSync();
+    } on FirebaseException catch (error) {
+      throw FirestoreServiceException(
+        'FirebaseException (${error.code}): ${error.message ?? error.toString()}',
+      );
+    } catch (error) {
+      throw FirestoreServiceException(error.toString());
     }
   }
 

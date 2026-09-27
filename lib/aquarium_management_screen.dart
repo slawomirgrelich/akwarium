@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,7 @@ import 'l10n/app_localizations.dart';
 import 'screens/species_atlas_screen.dart';
 import 'screens/tank_stocking_screen.dart';
 import 'screens/tank_photo_journal_screen.dart';
+import 'services/firestore_service.dart';
 
 Future<void> showCreateAquariumDialog(BuildContext context) async {
   await showDialog<void>(
@@ -29,7 +31,7 @@ class TankSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
-    final activeAquarium = provider.activeAquarium;
+    final activeAquarium = provider.selectedAquarium;
     if (activeAquarium == null) {
       return ActionChip(
         avatar: const Icon(Icons.add, size: 18),
@@ -184,6 +186,9 @@ class _ManagementContentState extends State<_ManagementContent>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(length: 2, vsync: this);
   final _search = TextEditingController();
+  final _firestoreService = FirestoreService();
+  String? _streamAquariumId;
+  Stream<List<Map<String, dynamic>>>? _livestockStream;
 
   @override
   void dispose() {
@@ -195,25 +200,49 @@ class _ManagementContentState extends State<_ManagementContent>
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
-    final inhabitants = provider.inhabitants;
-    final query = _search.text.toLowerCase();
-    final filtered = inhabitants.where((item) {
-      return '${item.name} ${item.latinName} ${item.notes ?? ''}'
-          .toLowerCase()
-          .contains(query);
-    }).toList();
-    final fauna = filtered
-        .where((item) => item.category != CreatureCategory.plant)
-        .toList();
-    final flora = filtered
-        .where((item) => item.category == CreatureCategory.plant)
-        .toList();
+    final aquariumId = provider.activeAquariumId;
+    if (_streamAquariumId != aquariumId) {
+      _streamAquariumId = aquariumId;
+      _livestockStream = aquariumId.isEmpty
+          ? Stream<List<Map<String, dynamic>>>.value(const [])
+          : _firestoreService.getLivestock(aquariumId);
+    }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: _livestockStream,
+      builder: (context, stockSnapshot) {
+        final inhabitants = (stockSnapshot.data ?? const <Map<String, dynamic>>[])
+            .map((entry) => _inhabitantFromFirestore(entry, aquariumId))
+            .toList(growable: false);
+        final query = _search.text.toLowerCase();
+        final filtered = inhabitants.where((item) {
+          return '${item.name} ${item.latinName} ${item.notes ?? ''}'
+              .toLowerCase()
+              .contains(query);
+        }).toList();
+        final fauna = filtered
+            .where((item) => item.category != CreatureCategory.plant)
+            .toList();
+        final flora = filtered
+            .where((item) => item.category == CreatureCategory.plant)
+            .toList();
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+          if (stockSnapshot.hasError)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Nie udało się zsynchronizować obsady: ${stockSnapshot.error}',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            )
+          else if (stockSnapshot.connectionState == ConnectionState.waiting &&
+              !stockSnapshot.hasData)
+            const LinearProgressIndicator(),
           _TankProfileStrip(onAdd: widget.onAddAquarium),
           const SizedBox(height: 16),
           _StockingSummary(inhabitants: inhabitants),
@@ -265,10 +294,43 @@ class _ManagementContentState extends State<_ManagementContent>
             icon: const Icon(Icons.add),
             label: const Text('Dodaj gatunek do obsady'),
           ),
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
+}
+
+Inhabitant _inhabitantFromFirestore(
+  Map<String, dynamic> data,
+  String aquariumId,
+) {
+  final rawCategory =
+      '${data['category'] ?? data['categoryLabel'] ?? ''}'.toLowerCase();
+  final isPlant = rawCategory.contains('flora') ||
+      rawCategory.contains('plant') ||
+      rawCategory.contains('roślin') ||
+      rawCategory.contains('roslin');
+  final rawDate = data['addedAt'];
+  final addedDate = rawDate is Timestamp
+      ? rawDate.toDate()
+      : rawDate is DateTime
+      ? rawDate
+      : DateTime.tryParse('${rawDate ?? ''}') ?? DateTime.now();
+  return Inhabitant(
+    id: '${data['id'] ?? ''}',
+    aquariumId: aquariumId,
+    name: '${data['namePl'] ?? data['name'] ?? 'Nieznany gatunek'}',
+    latinName: '${data['nameLatin'] ?? data['latinName'] ?? ''}',
+    category: isPlant ? CreatureCategory.plant : CreatureCategory.fish,
+    count: data['count'] is num ? (data['count'] as num).toInt() : 1,
+    addedDate: addedDate,
+    status: 'Zdrowe',
+    difficulty: data['difficulty']?.toString(),
+    notes: data['notes']?.toString(),
+    imagePath: data['photoUrl']?.toString(),
+  );
 }
 
 class _ManagementTabView extends StatelessWidget {
@@ -334,9 +396,6 @@ class _TankProfileStrip extends StatelessWidget {
           }
           final aquarium = provider.aquariums[index];
           final active = aquarium.id == provider.activeAquariumId;
-          final count = provider.inhabitants
-              .where((item) => item.aquariumId == aquarium.id)
-              .fold<int>(0, (sum, item) => sum + item.count);
           return InkWell(
             onTap: () => provider.selectAquarium(aquarium.id),
             borderRadius: BorderRadius.circular(16),
@@ -424,12 +483,25 @@ class _TankProfileStrip extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '${AppLocalizations.of(context)!.daysCount(aquarium.ageInDays)} · ${AppLocalizations.of(context)!.inhabitantsCount(count)}',
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                      fontSize: 12,
-                    ),
+                  StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: FirestoreService().getLivestock(aquarium.id),
+                    builder: (context, snapshot) {
+                      final count = (snapshot.data ?? const <Map<String, dynamic>>[])
+                          .fold<int>(
+                            0,
+                            (total, item) => total +
+                                (item['count'] is num
+                                    ? (item['count'] as num).toInt()
+                                    : 1),
+                          );
+                      return Text(
+                        '${AppLocalizations.of(context)!.daysCount(aquarium.ageInDays)} · ${AppLocalizations.of(context)!.inhabitantsCount(count)}',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                          fontSize: 12,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -451,8 +523,8 @@ class _StockingSummary extends StatelessWidget {
     final species = inhabitants.length;
     final animals = inhabitants
         .where((item) => item.category != CreatureCategory.plant)
-        .fold<int>(0, (sum, item) => sum + item.count);
-    final activeAquarium = provider.activeAquarium;
+        .fold<int>(0, (total, item) => total + item.count);
+    final activeAquarium = provider.selectedAquarium;
     final litersPerAnimal = animals == 0 || activeAquarium == null
         ? double.infinity
       : activeAquarium.volumeNetLiters / animals;
@@ -592,8 +664,20 @@ class _InhabitantCard extends StatelessWidget {
           Icons.delete_outline,
           color: Theme.of(context).textTheme.bodyMedium?.color,
         ),
-        onPressed: () =>
-            context.read<AquariumProvider>().deleteInhabitant(item.id),
+        onPressed: () async {
+          try {
+            await FirestoreService().deleteLivestockItem(
+              item.aquariumId,
+              item.id,
+            );
+          } on Object catch (error) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(error.toString())),
+              );
+            }
+          }
+        },
       ),
     ),
   );
@@ -852,23 +936,37 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
     }
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (_name.text.trim().isEmpty) return;
     final provider = context.read<AquariumProvider>();
-    provider.addInhabitant(
-      Inhabitant(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
-        aquariumId: provider.activeAquariumId,
-        name: _name.text.trim(),
-        latinName: _latin.text.trim(),
-        category: _category,
+    final aquariumId = provider.activeAquariumId;
+    if (aquariumId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Najpierw wybierz akwarium.')),
+      );
+      return;
+    }
+    try {
+      await FirestoreService().addLivestockItem(
+        aquariumId,
+        namePl: _name.text.trim(),
+        nameLatin: _latin.text.trim(),
+        category: _category.label,
         count: int.tryParse(_count.text) ?? 1,
-        addedDate: DateTime.now(),
-        plantPosition: _position,
+        phRange: '',
+        tempRange: '',
+        minTankVolume: 0,
+        addedAt: DateTime.now(),
         notes: _notes.text.trim(),
-        imagePath: _image,
-      ),
-    );
-    Navigator.pop(context);
+        photoUrl: _image,
+      );
+      if (mounted) Navigator.pop(context);
+    } on Object catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    }
   }
 }

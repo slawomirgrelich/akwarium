@@ -46,7 +46,8 @@ class AquariumLivestockScreen extends StatelessWidget {
                     [
                       if ((entry['nameLatin']?.toString() ?? '').isNotEmpty)
                         entry['nameLatin'].toString(),
-                      entry['category']?.toString() ?? '',
+                        entry['categoryLabel']?.toString() ??
+                          _categoryLabel(entry['category']?.toString()),
                       'Liczba: ${entry['count'] ?? 1}',
                       if (date != null)
                         'Dodano: ${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}',
@@ -64,6 +65,12 @@ class AquariumLivestockScreen extends StatelessWidget {
     );
   }
 }
+
+String _categoryLabel(String? category) => switch (category) {
+  'flora' || 'plant' => 'Flora',
+  'fauna' || 'fish' => 'Fauna',
+  _ => category ?? '',
+};
 
 class _StockHealthCard extends StatelessWidget {
   const _StockHealthCard({required this.aquarium, required this.entries});

@@ -547,12 +547,14 @@ class AquariumProvider extends ChangeNotifier {
   String get activeAquariumId => _activeAquariumId;
   String get selectedAquariumId => _activeAquariumId;
   List<AquariumProfile> get aquariums => List.unmodifiable(_aquariums);
-  AquariumProfile? get activeAquarium {
+  AquariumProfile? get selectedAquarium {
     for (final aquarium in _aquariums) {
       if (aquarium.id == _activeAquariumId) return aquarium;
     }
     return _aquariums.firstOrNull;
   }
+  AquariumProfile get activeAquarium => selectedAquarium ??
+      (throw StateError('Brak aktywnego akwarium.'));
   List<WaterTest> get waterTests => List.unmodifiable(
     _waterTests.where((test) => test.aquariumId == _activeAquariumId),
   );
