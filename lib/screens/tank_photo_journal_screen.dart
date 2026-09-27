@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -87,11 +88,47 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
 
   Future<void> _addPhoto(String? userId) async {
     if (userId == null) return;
-    final file = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-    if (file == null || !mounted) return;
-    final caption = await _captionDialog();
-    if (caption == null || !mounted) return;
-    await _database.uploadTankPhoto(userId, widget.tankId, await file.readAsBytes(), caption);
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (file == null || !mounted) return;
+      final caption = await _captionDialog();
+      if (caption == null || !mounted) return;
+      final bytes = await file.readAsBytes();
+      await _database.uploadTankPhoto(
+        userId,
+        widget.tankId,
+        bytes,
+        caption,
+        localFilePath: kIsWeb ? null : file.path,
+      );
+      if (!mounted) return;
+      _showPhotoMessage('Zdjęcie zostało zapisane.');
+    } on Object catch (error) {
+      if (mounted) _showPhotoMessage(_photoErrorMessage(error), isError: true);
+    }
+  }
+
+  void _showPhotoMessage(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+          backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
+          content: Text(message),
+        ),
+      );
+  }
+
+  String _photoErrorMessage(Object error) {
+    if (error is FirebaseException) {
+      return 'FirebaseException (${error.code}): ${error.message ?? error.toString()}';
+    }
+    return error.toString();
   }
 
   Future<String?> _captionDialog() async {

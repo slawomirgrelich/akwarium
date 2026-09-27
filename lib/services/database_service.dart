@@ -8,6 +8,8 @@ import '../models/aquarium_reminder.dart';
 import '../models/species_models.dart';
 import '../models/tank_photo.dart';
 import 'firestore_sync_status.dart';
+import 'tank_photo_upload_io.dart'
+  if (dart.library.html) 'tank_photo_upload_web.dart' as photo_uploader;
 
 class DatabaseService {
   DatabaseService({FirebaseFirestore? firestore, FirebaseStorage? storage})
@@ -235,14 +237,18 @@ class DatabaseService {
     String userId,
     String tankId,
     Uint8List imageBytes,
-    String caption,
+    String caption, {
+    String? localFilePath,
+  }
   ) async {
     final document = _photos(userId, tankId).doc();
     final storagePath = 'users/$userId/tanks/$tankId/photos/${document.id}.jpg';
     final storageReference = _storage.ref(storagePath);
-    await storageReference.putData(
-      imageBytes,
-      SettableMetadata(contentType: 'image/jpeg'),
+    await photo_uploader.uploadTankPhotoBytes(
+      reference: storageReference,
+      bytes: imageBytes,
+      filePath: localFilePath,
+      metadata: SettableMetadata(contentType: 'image/jpeg'),
     );
     final photo = TankPhoto(
       id: document.id,
