@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'aquarium_firestore_model.dart' as firestore_models;
+import '../services/firestore_sync_status.dart';
 
 export 'aquarium_firestore_model.dart';
 
@@ -987,6 +988,7 @@ class AquariumProvider extends ChangeNotifier {
           .collection('water_tests')
           .doc(test.id)
           .set(data);
+        await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (_) {
       // Lokalny zapis pozostaje źródłem danych offline.
     }

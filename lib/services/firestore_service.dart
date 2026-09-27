@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/aquarium_firestore_model.dart';
+import 'firestore_sync_status.dart';
 
 class FirestoreServiceException implements Exception {
   const FirestoreServiceException(this.message);
@@ -85,6 +86,7 @@ class FirestoreService {
       await reference.set(
         aquarium.copyWith(id: reference.id, userId: userId).toMap(),
       );
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
     }
@@ -106,6 +108,7 @@ class FirestoreService {
             aquarium.copyWith(userId: userId).toMap(),
             SetOptions(merge: true),
           );
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
     }
@@ -136,6 +139,7 @@ class FirestoreService {
       } else {
         await Future.wait(writes);
       }
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
     }
@@ -182,6 +186,7 @@ class FirestoreService {
           ? _waterParameters(userId, params.aquariumId).doc()
           : _waterParameters(userId, params.aquariumId).doc(params.id);
       await reference.set(params.copyWith(id: reference.id).toMap());
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
     }
@@ -197,6 +202,7 @@ class FirestoreService {
 
     try {
       await _waterParameters(userId, aquariumId).doc(paramId).delete();
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
     }
@@ -237,6 +243,7 @@ class FirestoreService {
         'notes': notes,
         'photoUrl': ?photoUrl,
       });
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } on FirebaseException catch (error) {
       throw FirestoreServiceException(
         'FirebaseException (${error.code}): ${error.message ?? error.toString()}',

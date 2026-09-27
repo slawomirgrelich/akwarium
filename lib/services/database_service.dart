@@ -7,6 +7,7 @@ import '../models/tank_firestore_models.dart';
 import '../models/aquarium_reminder.dart';
 import '../models/species_models.dart';
 import '../models/tank_photo.dart';
+import 'firestore_sync_status.dart';
 
 class DatabaseService {
   DatabaseService({FirebaseFirestore? firestore, FirebaseStorage? storage})
@@ -57,15 +58,18 @@ class DatabaseService {
   Future<void> addTank(String userId, Tank tank) async {
     final reference = tank.id.isEmpty ? _tanks(userId).doc() : _tanks(userId).doc(tank.id);
     await reference.set(tank.copyWithId(reference.id).toFirestore());
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> updateTank(String userId, Tank tank) async {
     if (tank.id.isEmpty) throw ArgumentError('Tank id cannot be empty.');
     await _tanks(userId).doc(tank.id).set(tank.toFirestore(), SetOptions(merge: true));
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> deleteTank(String userId, String tankId) async {
     await _tanks(userId).doc(tankId).delete();
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> addWaterParameter(
@@ -77,6 +81,7 @@ class DatabaseService {
         ? _waterParameters(userId, tankId).doc()
         : _waterParameters(userId, tankId).doc(param.id);
     await reference.set(param.copyWithId(reference.id).toFirestore());
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Stream<List<WaterParameter>> getWaterParametersStream(
@@ -98,6 +103,7 @@ class DatabaseService {
         ? _journalLogs(userId, tankId).doc()
         : _journalLogs(userId, tankId).doc(log.id);
     await reference.set(log.copyWithId(reference.id).toFirestore());
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Stream<List<JournalLog>> getJournalLogsStream(String userId, String tankId) =>
@@ -127,6 +133,7 @@ class DatabaseService {
     await reference.set(
       reminder.copyWith(id: reference.id, tankId: tankId).toFirestore(),
     );
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> updateReminder(
@@ -139,6 +146,7 @@ class DatabaseService {
           reminder.copyWith(tankId: tankId).toFirestore(),
           SetOptions(merge: true),
         );
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> deleteReminder(
@@ -147,6 +155,7 @@ class DatabaseService {
     String reminderId,
   ) async {
     await _reminders(userId, tankId).doc(reminderId).delete();
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> completeReminder(
@@ -175,6 +184,7 @@ class DatabaseService {
       note: 'Przypomnienie wykonane',
     ).toFirestore());
     await batch.commit();
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Stream<List<TankStockItem>> getTankStockingStream(
@@ -196,6 +206,7 @@ class DatabaseService {
         ? _stocking(userId, tankId).doc()
         : _stocking(userId, tankId).doc(item.id);
     await reference.set(item.copyWith(id: reference.id, tankId: tankId).toFirestore());
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> updateStockItem(
@@ -208,6 +219,7 @@ class DatabaseService {
           item.copyWith(tankId: tankId).toFirestore(),
           SetOptions(merge: true),
         );
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> deleteStockItem(
@@ -216,6 +228,7 @@ class DatabaseService {
     String itemId,
   ) async {
     await _stocking(userId, tankId).doc(itemId).delete();
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<TankPhoto> uploadTankPhoto(
@@ -240,6 +253,7 @@ class DatabaseService {
       createdAt: DateTime.now(),
     );
     await document.set(photo.toFirestore());
+    await FirestoreSyncStatus.recordSuccessfulSync();
     return photo;
   }
 
@@ -255,6 +269,7 @@ class DatabaseService {
     TankPhoto photo,
   ) async {
     await _photos(userId, tankId).doc(photo.id).delete();
+    await FirestoreSyncStatus.recordSuccessfulSync();
     if (photo.storagePath.isNotEmpty) {
       await _storage.ref(photo.storagePath).delete();
     }
@@ -276,6 +291,7 @@ class DatabaseService {
       'coverImagePath': photo.storagePath,
     });
     await batch.commit();
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 }
 

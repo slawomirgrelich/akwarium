@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'firestore_sync_status.dart';
+
 enum JournalEntryType { waterChange, filter, trimming, medication, cleaning }
 
 extension JournalEntryTypeLabel on JournalEntryType {
@@ -329,6 +331,7 @@ class AquariumJournalService {
         reminder.aquariumId,
         'reminders',
       ).doc(reminder.id).delete();
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw AquariumJournalServiceException(_message(error));
     }
@@ -342,6 +345,7 @@ class AquariumJournalService {
     try {
       final reference = id.isEmpty ? collection.doc() : collection.doc(id);
       await reference.set({...data, 'id': reference.id});
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw AquariumJournalServiceException(_message(error));
     }
