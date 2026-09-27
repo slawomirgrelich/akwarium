@@ -120,9 +120,10 @@ class AiScannerService {
     String mimeType,
   ) async {
     final preferences = await SharedPreferences.getInstance();
-    final apiKey = apiKeyOverride ??
-        preferences.getString('gemini_api_key') ??
-        defaultApiKey;
+    final environmentApiKey = defaultApiKey.trim();
+    final apiKey = environmentApiKey.isNotEmpty
+      ? environmentApiKey
+      : apiKeyOverride ?? preferences.getString('gemini_api_key') ?? '';
     if (apiKey.trim().isEmpty) {
       throw const AiScannerException('Ustaw klucz API Gemini w profilu aplikacji.');
     }
