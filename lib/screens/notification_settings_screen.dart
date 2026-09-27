@@ -52,30 +52,18 @@ class _NotificationSettingsScreenState
     await preferences.setBool(key, value);
   }
 
-  void _showProRequiredDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Funkcja PRO'),
-        content: const Text(
-          'Funkcja dostępna w planie PRO. Aktywuj darmowy okres próbny!',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Później'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              ProPaywallDialog.show(context);
-            },
-            child: const Text('Aktywuj PRO'),
-          ),
-        ],
-      ),
-    );
-  }
+  void _showProRequiredDialog() => ProPaywallDialog.show(
+    context,
+    headline: 'Funkcja PRO - aktywuj darmowy okres próbny',
+  );
+
+  Widget _titleWithProBadge(String title, bool isProUser) => Row(
+    children: [
+      Expanded(child: Text(title)),
+      if (!isProUser) const SizedBox(width: 8),
+      if (!isProUser) const ProBadge(compact: true),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -89,50 +77,53 @@ class _NotificationSettingsScreenState
           Card(
             child: Column(
               children: [
-                InkWell(
-                  onTap: isProUser ? null : _showProRequiredDialog,
-                  child: SwitchListTile(
-                    title: Text(l10n.taskReminders),
-                    subtitle: Text(l10n.taskRemindersSubtitle),
-                    value: isProUser && _remindersEnabled,
-                    onChanged: isProUser
-                        ? (value) => _setPreference(
-                            key: _remindersKey,
-                            value: value,
-                            update: () => _remindersEnabled = value,
-                          )
-                        : null,
-                  ),
+                SwitchListTile(
+                  title: _titleWithProBadge(l10n.taskReminders, isProUser),
+                  subtitle: Text(l10n.taskRemindersSubtitle),
+                  value: isProUser && _remindersEnabled,
+                  onChanged: (value) {
+                    if (!isProUser) {
+                      _showProRequiredDialog();
+                      return;
+                    }
+                    _setPreference(
+                      key: _remindersKey,
+                      value: value,
+                      update: () => _remindersEnabled = value,
+                    );
+                  },
                 ),
-                InkWell(
-                  onTap: isProUser ? null : _showProRequiredDialog,
-                  child: SwitchListTile(
-                    title: Text(l10n.waterTestReminders),
-                    subtitle: Text(l10n.waterTestRemindersSubtitle),
-                    value: isProUser && _waterTestsEnabled,
-                    onChanged: isProUser
-                        ? (value) => _setPreference(
-                            key: _waterTestsKey,
-                            value: value,
-                            update: () => _waterTestsEnabled = value,
-                          )
-                        : null,
-                  ),
+                SwitchListTile(
+                  title: _titleWithProBadge(l10n.waterTestReminders, isProUser),
+                  subtitle: Text(l10n.waterTestRemindersSubtitle),
+                  value: isProUser && _waterTestsEnabled,
+                  onChanged: (value) {
+                    if (!isProUser) {
+                      _showProRequiredDialog();
+                      return;
+                    }
+                    _setPreference(
+                      key: _waterTestsKey,
+                      value: value,
+                      update: () => _waterTestsEnabled = value,
+                    );
+                  },
                 ),
-                InkWell(
-                  onTap: isProUser ? null : _showProRequiredDialog,
-                  child: SwitchListTile(
-                    title: Text(l10n.weeklySummary),
-                    subtitle: Text(l10n.weeklySummarySubtitle),
-                    value: isProUser && _weeklySummaryEnabled,
-                    onChanged: isProUser
-                        ? (value) => _setPreference(
-                            key: _weeklySummaryKey,
-                            value: value,
-                            update: () => _weeklySummaryEnabled = value,
-                          )
-                        : null,
-                  ),
+                SwitchListTile(
+                  title: _titleWithProBadge(l10n.weeklySummary, isProUser),
+                  subtitle: Text(l10n.weeklySummarySubtitle),
+                  value: isProUser && _weeklySummaryEnabled,
+                  onChanged: (value) {
+                    if (!isProUser) {
+                      _showProRequiredDialog();
+                      return;
+                    }
+                    _setPreference(
+                      key: _weeklySummaryKey,
+                      value: value,
+                      update: () => _weeklySummaryEnabled = value,
+                    );
+                  },
                 ),
               ],
             ),
