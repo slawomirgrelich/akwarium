@@ -355,28 +355,35 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Header(
-              eyebrow: 'AKWARYSTA PRO',
-              title: l10n.yourDashboard,
-              subtitle: l10n.dashboardSubtitle,
-              greeting: l10n.helloUser,
-              action: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const TankSwitcher(),
-                  IconButton(
-                    tooltip: l10n.notifications,
-                    onPressed: context.read<ProAccessService>().isProUser
-                        ? () => Navigator.push<void>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const RemindersScreen(),
-                            ),
-                          )
-                        : () => _showMessage(context, l10n.noNewNotifications),
-                    icon: const Icon(Icons.notifications_none),
-                  ),
-                ],
+            StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.userChanges(),
+              initialData: FirebaseAuth.instance.currentUser,
+              builder: (context, userSnapshot) => _Header(
+                eyebrow: 'AKWARYSTA PRO',
+                title: l10n.yourDashboard,
+                subtitle: l10n.dashboardSubtitle,
+                greeting: _dashboardGreeting(
+                  userSnapshot.data ?? FirebaseAuth.instance.currentUser,
+                  Localizations.localeOf(context).languageCode,
+                ),
+                action: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const TankSwitcher(),
+                    IconButton(
+                      tooltip: l10n.notifications,
+                      onPressed: context.read<ProAccessService>().isProUser
+                          ? () => Navigator.push<void>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const RemindersScreen(),
+                              ),
+                            )
+                          : () => _showMessage(context, l10n.noNewNotifications),
+                      icon: const Icon(Icons.notifications_none),
+                    ),
+                  ],
+                ),
               ),
             ),
             _DashboardTankCard(aquarium: activeAquarium),
@@ -1587,6 +1594,8 @@ class ProfilePage extends StatelessWidget {
               title: l10n.profileTitle,
               subtitle: l10n.profileSubtitle,
             ),
+            const _ProfileDisplayNameTile(),
+            const SizedBox(height: 12),
             const _ProCard(),
             const SizedBox(height: 24),
             const _SectionHeader(title: 'Aktywne akwarium'),
@@ -2056,6 +2065,18 @@ String _localizedAquariumType(AppLocalizations l10n, String type) {
   return type;
 }
 
+String _dashboardGreeting(User? user, String languageCode) {
+  final displayName = user?.displayName?.trim();
+  final emailName = user?.email?.split('@').first.trim();
+  final name = displayName != null && displayName.isNotEmpty
+      ? displayName
+      : emailName != null && emailName.isNotEmpty
+      ? emailName
+      : null;
+  if (name == null) return languageCode == 'pl' ? 'Cześć! 👋' : 'Hello! 👋';
+  return languageCode == 'pl' ? 'Cześć, $name! 👋' : 'Hello, $name! 👋';
+}
+
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.icon,
@@ -2428,6 +2449,78 @@ class _ToolCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ProfileDisplayNameTile extends StatelessWidget {
+  const _ProfileDisplayNameTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.userChanges(),
+      initialData: FirebaseAuth.instance.currentUser,
+      builder: (context, snapshot) {
+        final displayName = snapshot.data?.displayName?.trim();
+        return _SettingsTile(
+          icon: Icons.person_outline,
+          title: displayName == null || displayName.isEmpty
+              ? 'Ustaw imię profilu'
+              : displayName,
+          subtitle: 'Imię wyświetlane na pulpicie',
+          onTap: () => _editProfileDisplayName(context, displayName ?? ''),
+        );
+      },
+    );
+  }
+}
+
+Future<void> _editProfileDisplayName(
+  BuildContext context,
+  String currentName,
+) async {
+  final controller = TextEditingController(text: currentName);
+  final name = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Imię profilu'),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        textCapitalization: TextCapitalization.words,
+        decoration: const InputDecoration(labelText: 'Imię'),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Anuluj'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+          child: const Text('Zapisz'),
+        ),
+      ],
+    ),
+  );
+  controller.dispose();
+  if (name == null || name.isEmpty) return;
+
+  try {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Zaloguj się, aby zmienić imię profilu.');
+    await user.updateDisplayName(name);
+    await user.reload();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Zapisano imię profilu: $name')),
+      );
+    }
+  } on Object catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się zapisać imienia: $error')),
+      );
+    }
   }
 }
 
