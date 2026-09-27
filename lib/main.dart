@@ -2312,7 +2312,7 @@ class _ThemeModeTile extends StatelessWidget {
       child: ListTile(
         leading: Icon(
           Icons.palette_outlined,
-          color: Theme.of(context).primaryColor,
+          color: Theme.of(context).colorScheme.primary,
         ),
         title: Text(l10n.theme, style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('${l10n.system}, ${l10n.light}, ${l10n.dark}'),
@@ -2349,7 +2349,10 @@ class _LocaleTile extends StatelessWidget {
     final selected = controller.locale?.languageCode == 'en' ? 'en' : 'pl';
     return Card(
       child: ListTile(
-        leading: Icon(Icons.language, color: Theme.of(context).primaryColor),
+        leading: Icon(
+          Icons.language,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         title: Text(
           l10n.language,
           style: const TextStyle(fontWeight: FontWeight.bold),
