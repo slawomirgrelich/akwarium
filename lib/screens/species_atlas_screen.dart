@@ -97,7 +97,10 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
 
   Future<void> _showDetails(Species species) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) return;
+    if (userId == null) {
+      _showAtlasMessage(context, 'Zaloguj się, aby dodać gatunek do akwarium.', isError: true);
+      return;
+    }
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -137,7 +140,6 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
             onPressed: () => _addSpeciesToAquarium(
               context,
               dialogContext,
-              userId,
               species,
             ),
             icon: const Icon(Icons.water_drop_outlined),
@@ -151,7 +153,6 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
   Future<void> _addSpeciesToAquarium(
     BuildContext pageContext,
     BuildContext detailsContext,
-    String userId,
     Species species,
   ) async {
     final firestore = FirestoreService();
@@ -207,8 +208,12 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
       );
       if (!pageContext.mounted) return;
       if (detailsContext.mounted) Navigator.pop(detailsContext);
-      ScaffoldMessenger.of(pageContext).showSnackBar(
+      final messenger = ScaffoldMessenger.of(pageContext);
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
         SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
           content: Text('Dodano ${species.namePl} do akwarium ${aquarium.name}'),
           action: SnackBarAction(
             label: 'Zobacz obsadę',
@@ -222,9 +227,19 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
       );
     } on FirestoreServiceException catch (error) {
       if (pageContext.mounted) {
-        ScaffoldMessenger.of(pageContext).showSnackBar(
-          SnackBar(content: Text(error.message)),
+        _showAtlasMessage(pageContext, error.message, isError: true);
+      }
+    } on FirebaseException catch (error) {
+      if (pageContext.mounted) {
+        _showAtlasMessage(
+          pageContext,
+          'FirebaseException (${error.code}): ${error.message ?? error.toString()}',
+          isError: true,
         );
+      }
+    } catch (error) {
+      if (pageContext.mounted) {
+        _showAtlasMessage(pageContext, error.toString(), isError: true);
       }
     }
   }
@@ -232,7 +247,9 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
   Future<List<_AquariumOption>> _loadAquariums(
     FirestoreService firestore,
   ) async {
-    final localAquariums = context.read<local_models.AquariumProvider>().aquariums;
+    final provider = context.read<local_models.AquariumProvider>();
+    final localAquariums = provider.aquariums;
+    final activeAquariumId = provider.activeAquariumId;
     final options = <String, _AquariumOption>{};
     try {
       final cloudAquariums = await firestore.getAquariums().first;
@@ -260,8 +277,31 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         ),
       );
     }
-    return options.values.toList(growable: false);
+    final result = options.values.toList();
+    result.sort((first, second) {
+      if (first.aquarium.id == activeAquariumId) return -1;
+      if (second.aquarium.id == activeAquariumId) return 1;
+      return 0;
+    });
+    return result;
   }
+}
+
+void _showAtlasMessage(
+  BuildContext context,
+  String message, {
+  bool isError = false,
+}) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+        backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
+        content: Text(message),
+      ),
+    );
 }
 
 class _AquariumSelectionSheet extends StatelessWidget {

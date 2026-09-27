@@ -237,8 +237,12 @@ class FirestoreService {
         'notes': notes,
         'photoUrl': ?photoUrl,
       });
+    } on FirebaseException catch (error) {
+      throw FirestoreServiceException(
+        'FirebaseException (${error.code}): ${error.message ?? error.toString()}',
+      );
     } catch (error) {
-      throw FirestoreServiceException(_messageFor(error));
+      throw FirestoreServiceException(error.toString());
     }
   }
 
