@@ -66,7 +66,6 @@ class AiScannerService {
 
   static const defaultApiKey = String.fromEnvironment('GEMINI_API_KEY');
   static const modelName = 'gemini-1.5-flash';
-  static const fallbackModelName = 'gemini-2.0-flash-exp';
   final http.Client _client;
   final String? apiKeyOverride;
 
@@ -86,11 +85,11 @@ class AiScannerService {
       throw const AiScannerException('Ustaw klucz API Gemini w profilu aplikacji.');
     }
     String? lastError;
-    for (final selectedModel in [modelName, fallbackModelName]) {
+    for (final apiVersion in ['v1beta', 'v1']) {
       try {
         final uri = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/'
-          '$selectedModel:generateContent?key=$apiKey',
+          'https://generativelanguage.googleapis.com/$apiVersion/models/'
+          '$modelName:generateContent?key=$apiKey',
         );
         final response = await _client.post(
           uri,
@@ -111,12 +110,15 @@ class AiScannerService {
             ],
           }),
         ).timeout(const Duration(seconds: 45));
-        if (response.statusCode < 200 || response.statusCode >= 300) {
+        if (response.statusCode != 200) {
           if (response.statusCode == 404 && usesStoredApiKey) {
             await preferences.remove('gemini_api_key');
           }
           lastError = 'HTTP ${response.statusCode}';
-          continue;
+          if (response.statusCode == 404 && apiVersion == 'v1beta') {
+            continue;
+          }
+          break;
         }
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
         final candidates = decoded['candidates'] as List<dynamic>? ?? const [];
@@ -155,7 +157,7 @@ class AiScannerService {
     return text;
   }
 
-  static const _geminiPrompt = '''Przeanalizuj to zdjęcie akwarystyczne. Rozpoznaj gatunek ryby, rośliny, bezkręgowca lub ewentualną chorobę. Zwróć wynik wyłącznie jako poprawny JSON z polami: namePl, nameLatin, category, description, phRange, tempRange, difficulty, minTankVolume. Zakresy phRange i tempRange zwróć jako obiekty z polami min i max. category ustaw jako fish, plant, invertebrate lub disease. Wszystkie wartości tekstowe, w tym description i difficulty, napisz po polsku. Jeśli nie da się wiarygodnie rozpoznać obiektu, wpisz niepewność w description i podaj ostrożne zakresy.''';
+  static const _geminiPrompt = 'Przeanalizuj to zdjęcie akwarystyczne. Rozpoznaj gatunek ryby, rośliny, bezkręgowca lub chorobę. Zwróć JSON z polami: namePl, nameLatin, category, description, phRange, tempRange, difficulty, minTankVolume.';
 }
 
 class MockAiScannerService {

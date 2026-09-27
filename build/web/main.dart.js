@@ -53250,15 +53250,15 @@ else a1=c3
 l=a1
 if(J.biL(l).length===0)throw A.f(B.Wj)
 k=null
-c2=["gemini-1.5-flash","gemini-2.0-flash-exp"],a2=t.f,a3=t.N,a4=t.z,a5=t.kc,a6=t.Xw,a7=t.a,a8=n.a,a9=t.GU,b0=t.Mq,b1=t.JD,b2=t.lU,b3=t.iU,b4=0
+c2=["v1beta","v1"],a2=t.f,a3=t.N,a4=t.z,a5=t.kc,a6=t.Xw,a7=t.a,a8=n.a,a9=t.GU,b0=t.Mq,b1=t.JD,b2=t.lU,b3=t.iU,b4=0
 case 4:if(!(b4<2)){s=6
 break}j=c2[b4]
 p=8
-i=A.i2("https://generativelanguage.googleapis.com/v1beta/models/"+A.l(j)+":generateContent?key="+A.l(l))
+i=A.i2("https://generativelanguage.googleapis.com/"+A.l(j)+"/models/gemini-1.5-flash:generateContent?key="+A.l(l))
 s=11
-return A.k(a8.zq("POST",i,B.adE,B.bL.q5(A.ae(["contents",A.b([A.ae(["parts",A.b([A.ae(["text","Przeanalizuj to zdj\u0119cie akwarystyczne. Rozpoznaj gatunek ryby, ro\u015bliny, bezkr\u0119gowca lub ewentualn\u0105 chorob\u0119. Zwr\xf3\u0107 wynik wy\u0142\u0105cznie jako poprawny JSON z polami: namePl, nameLatin, category, description, phRange, tempRange, difficulty, minTankVolume. Zakresy phRange i tempRange zwr\xf3\u0107 jako obiekty z polami min i max. category ustaw jako fish, plant, invertebrate lub disease. Wszystkie warto\u015bci tekstowe, w tym description i difficulty, napisz po polsku. Je\u015bli nie da si\u0119 wiarygodnie rozpozna\u0107 obiektu, wpisz niepewno\u015b\u0107 w description i podaj ostro\u017cne zakresy."],a3,a3),A.ae(["inline_data",A.ae(["mime_type","image/jpeg","data",B.hK.gtg().fb(c5)],a3,a3)],a3,a9)],b0)],a3,b1)],b2)],a3,b3),null),null).Tz(B.a3d),$async$uC)
+return A.k(a8.zq("POST",i,B.adE,B.bL.q5(A.ae(["contents",A.b([A.ae(["parts",A.b([A.ae(["text","Przeanalizuj to zdj\u0119cie akwarystyczne. Rozpoznaj gatunek ryby, ro\u015bliny, bezkr\u0119gowca lub chorob\u0119. Zwr\xf3\u0107 JSON z polami: namePl, nameLatin, category, description, phRange, tempRange, difficulty, minTankVolume."],a3,a3),A.ae(["inline_data",A.ae(["mime_type","image/jpeg","data",B.hK.gtg().fb(c5)],a3,a3)],a3,a9)],b0)],a3,b1)],b2)],a3,b3),null),null).Tz(B.a3d),$async$uC)
 case 11:h=c7
-s=h.b<200||h.b>=300?12:13
+s=h.b!==200?12:13
 break
 case 12:s=h.b===404&&m?14:15
 break
@@ -53266,7 +53266,8 @@ case 14:c1.a.G(0,"gemini_api_key")
 s=16
 return A.k($.ah8().G(0,"flutter.gemini_api_key"),$async$uC)
 case 16:case 15:k="HTTP "+h.b
-s=5
+if(h.b===404&&J.d(j,"v1beta")){s=5
+break}s=6
 break
 case 13:b5=h
 g=a7.a(B.bL.Al(A.beh(A.bcO(b5.e)).im(b5.w),null))
