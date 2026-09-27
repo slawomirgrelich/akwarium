@@ -411,4 +411,84 @@ const speciesCatalog = <Species>[
     tempRange: SpeciesRange(22, 28), phRange: SpeciesRange(6.5, 7.8), ghRange: SpeciesRange(5, 20), difficulty: SpeciesDifficulty.medium, swimmingZone: SwimmingZone.bottom,
     description: 'Duża krewetka filtrująca wodę wachlarzykami. Potrzebuje silnego, ale bezpiecznego przepływu i drobnego pokarmu.', imageUrl: '',
   ),
+  Species(
+    id: 'endler-livebearer', namePl: 'Żyworódka Endlera', nameLatin: 'Poecilia wingei', category: SpeciesCategory.fish, minTankVolumeLiters: 30,
+    tempRange: SpeciesRange(22, 26), phRange: SpeciesRange(7, 8.2), ghRange: SpeciesRange(8, 20), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.middle,
+    description: 'Spokojna, niewielka ryba żyworodna o bardzo żywych barwach.', imageUrl: '',
+  ),
+  Species(
+    id: 'red-phantom-tetra', namePl: 'Bystrzyk Czerwony', nameLatin: 'Hyphessobrycon sweglesi', category: SpeciesCategory.fish, minTankVolumeLiters: 54,
+    tempRange: SpeciesRange(20, 23), phRange: SpeciesRange(6, 7.2), ghRange: SpeciesRange(2, 12), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.middle,
+    description: 'Niewielka ryba stadna o półprzezroczystym, czerwonym ciele.', imageUrl: '',
+  ),
+  Species(
+    id: 'chili-rasbora', namePl: 'Razbora Borneńska', nameLatin: 'Boraras brigittae', category: SpeciesCategory.fish, minTankVolumeLiters: 20,
+    tempRange: SpeciesRange(24, 28), phRange: SpeciesRange(5, 6.5), ghRange: SpeciesRange(1, 8), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.middle,
+    description: 'Idealna ryba do nanoakwariów i krewetkariów.', imageUrl: '',
+  ),
+  Species(
+    id: 'white-cloud-minnow', namePl: 'Kardynałek Chiński', nameLatin: 'Tanichthys albonubes', category: SpeciesCategory.fish, minTankVolumeLiters: 40,
+    tempRange: SpeciesRange(18, 22), phRange: SpeciesRange(6, 7.5), ghRange: SpeciesRange(5, 20), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.middle,
+    description: 'Odporna ryba preferująca nieco chłodniejszą wodę.', imageUrl: '',
+  ),
+  Species(
+    id: 'bolivian-ram', namePl: 'Pielęgniczka Boliwijska', nameLatin: 'Mikrogeophagus altispinosus', category: SpeciesCategory.fish, minTankVolumeLiters: 80,
+    tempRange: SpeciesRange(23, 26), phRange: SpeciesRange(6, 7.5), ghRange: SpeciesRange(3, 15), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.bottom,
+    description: 'Łagodna i odporniejsza krewna popularnej Pielęgniczki Ramireza.', imageUrl: '',
+  ),
+  Species(
+    id: 'honey-gourami', namePl: 'Prętnik Miodowy', nameLatin: 'Trichogaster chuna', category: SpeciesCategory.fish, minTankVolumeLiters: 50,
+    tempRange: SpeciesRange(22, 28), phRange: SpeciesRange(6, 7.5), ghRange: SpeciesRange(4, 15), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.top,
+    description: 'Niewielki, spokrewniony z prętnikiem karłowatym gatunek o ciepłym zabarwieniu.', imageUrl: '',
+  ),
+  Species(
+    id: 'duckweed', namePl: 'Rzęsa Wodna', nameLatin: 'Lemna minor', category: SpeciesCategory.plant, minTankVolumeLiters: 10,
+    tempRange: SpeciesRange(15, 30), phRange: SpeciesRange(5, 8), ghRange: SpeciesRange(1, 20), difficulty: SpeciesDifficulty.veryEasy, swimmingZone: SwimmingZone.top,
+    description: 'Szybko rosnąca roślina pływająca, wyciągająca z wody azotany.', imageUrl: '',
+  ),
+  Species(
+    id: 'red-tiger-lotus', namePl: 'Lotos Tygrysi Czerwony', nameLatin: 'Nymphaea lotus', category: SpeciesCategory.plant, minTankVolumeLiters: 100,
+    tempRange: SpeciesRange(22, 28), phRange: SpeciesRange(6, 7.5), ghRange: SpeciesRange(3, 15), difficulty: SpeciesDifficulty.medium, swimmingZone: SwimmingZone.all,
+    description: 'Przepiękna roślina o dużych, czerwono-brunatnych liściach.', imageUrl: '',
+  ),
+  Species(
+    id: 'giant-vallisneria', namePl: 'Nurzaniec Olbrzymi', nameLatin: 'Vallisneria gigantea', category: SpeciesCategory.plant, minTankVolumeLiters: 100,
+    tempRange: SpeciesRange(20, 28), phRange: SpeciesRange(6, 8), ghRange: SpeciesRange(3, 25), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.all,
+    description: 'Wysoka roślina na trzeci plan z długimi, wstęgowatymi liśćmi.', imageUrl: '',
+  ),
+  Species(
+    id: 'gabon-fan-shrimp', namePl: 'Krewetka Gabańska (Filtrująca)', nameLatin: 'Atya gabonensis', category: SpeciesCategory.invertebrate, minTankVolumeLiters: 80,
+    tempRange: SpeciesRange(23, 28), phRange: SpeciesRange(6.5, 7.5), ghRange: SpeciesRange(4, 15), difficulty: SpeciesDifficulty.medium, swimmingZone: SwimmingZone.bottom,
+    description: 'Duża, nieagresywna krewetka wyłapująca pokarm z prądu wody.', imageUrl: '',
+  ),
+  Species(
+    id: 'tylomelania-snail', namePl: 'Ślimak Tylomelania', nameLatin: 'Tylomelania sp.', category: SpeciesCategory.invertebrate, minTankVolumeLiters: 40,
+    tempRange: SpeciesRange(25, 30), phRange: SpeciesRange(7.5, 8.5), ghRange: SpeciesRange(8, 20), difficulty: SpeciesDifficulty.medium, swimmingZone: SwimmingZone.bottom,
+    description: 'Duży, efektowny ślimak z Sulawesi o jaskrawym ciele.', imageUrl: '',
+  ),
+  Species(
+    id: 'horned-nerite', namePl: 'Ślimak Rogaty (Clithon corona)', nameLatin: 'Clithon corona', category: SpeciesCategory.invertebrate, minTankVolumeLiters: 15,
+    tempRange: SpeciesRange(22, 28), phRange: SpeciesRange(7, 8), ghRange: SpeciesRange(8, 20), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.bottom,
+    description: 'Mały ślimak posiadający wyrostki (rogi) na muszli, świetny na glony.', imageUrl: '',
+  ),
+  Species(
+    id: 'elephantnose-fish', namePl: 'Mruk Petersa', nameLatin: 'Gnathonemus petersii', category: SpeciesCategory.fish, minTankVolumeLiters: 200,
+    tempRange: SpeciesRange(22, 28), phRange: SpeciesRange(6, 7.5), ghRange: SpeciesRange(2, 15), difficulty: SpeciesDifficulty.hard, swimmingZone: SwimmingZone.bottom,
+    description: 'Niezwykła ryba z wydłużonym pyszkiem przypominającym trąbę.', imageUrl: '',
+  ),
+  Species(
+    id: 'hengels-rasbora', namePl: 'Razbora Hengela', nameLatin: 'Trigonostigma hengeli', category: SpeciesCategory.fish, minTankVolumeLiters: 54,
+    tempRange: SpeciesRange(23, 28), phRange: SpeciesRange(6, 7.5), ghRange: SpeciesRange(2, 12), difficulty: SpeciesDifficulty.easy, swimmingZone: SwimmingZone.middle,
+    description: 'Niewielka ryba stadna, podobna do razbory klinowej z pomarańczowym paskiem.', imageUrl: '',
+  ),
+  Species(
+    id: 'argentine-waterweed', namePl: 'Moczarka Argentyńska', nameLatin: 'Egeria densa', category: SpeciesCategory.plant, minTankVolumeLiters: 20,
+    tempRange: SpeciesRange(15, 26), phRange: SpeciesRange(6, 8), ghRange: SpeciesRange(3, 20), difficulty: SpeciesDifficulty.veryEasy, swimmingZone: SwimmingZone.all,
+    description: 'Szybko rosnąca roślina podwodna produkująca dużo tlenu.', imageUrl: '',
+  ),
+  Species(
+    id: 'red-ammania', namePl: 'Ammania Czerwona', nameLatin: 'Ammannia gracilis', category: SpeciesCategory.plant, minTankVolumeLiters: 50,
+    tempRange: SpeciesRange(22, 28), phRange: SpeciesRange(6, 7.2), ghRange: SpeciesRange(2, 12), difficulty: SpeciesDifficulty.hard, swimmingZone: SwimmingZone.all,
+    description: 'Efektowna roślina łodygowa o intensywnie czerwonych liściach przy silnym świetle.', imageUrl: '',
+  ),
 ];

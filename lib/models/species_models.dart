@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum SpeciesCategory { fish, plant, invertebrate }
-enum SpeciesDifficulty { easy, medium, hard }
+enum SpeciesDifficulty { veryEasy, easy, medium, hard }
 enum SwimmingZone { bottom, middle, top, all }
 
 class SpeciesRange {

@@ -155,6 +155,7 @@ IconData _iconFor(SpeciesCategory category) => switch (category) {
 };
 
 String _difficultyLabel(SpeciesDifficulty difficulty) => switch (difficulty) {
+  SpeciesDifficulty.veryEasy => 'bardzo łatwa',
   SpeciesDifficulty.easy => 'łatwa',
   SpeciesDifficulty.medium => 'średnia',
   SpeciesDifficulty.hard => 'trudna',
