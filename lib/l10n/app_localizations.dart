@@ -1117,6 +1117,144 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Wiedza dla stabilnego zbiornika'**
   String get knowledgeForStableTank;
+
+  /// No description provided for @proPaywallTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odblokuj Pełny Potencjał Akwarysta PRO'**
+  String get proPaywallTitle;
+
+  /// No description provided for @proPaywallSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Spokojniejsza opieka nad akwarium dzięki funkcjom dla wymagających zbiorników.'**
+  String get proPaywallSubtitle;
+
+  /// No description provided for @featureUnlimitedCharts.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nielimitowane wykresy i historia parametrów'**
+  String get featureUnlimitedCharts;
+
+  /// No description provided for @featureFertilizerCalc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalkulator nawożenia i receptury soli'**
+  String get featureFertilizerCalc;
+
+  /// No description provided for @featureReminders.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienia SMS i Push'**
+  String get featureReminders;
+
+  /// No description provided for @featureExportPdf.
+  ///
+  /// In pl, this message translates to:
+  /// **'Eksport raportów do PDF'**
+  String get featureExportPdf;
+
+  /// No description provided for @trial7Days.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wypróbuj PRO przez 7 dni za darmo'**
+  String get trial7Days;
+
+  /// No description provided for @maybeLater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Później'**
+  String get maybeLater;
+
+  /// No description provided for @algaeQuestion.
+  ///
+  /// In pl, this message translates to:
+  /// **'Co widzisz w akwarium?'**
+  String get algaeQuestion;
+
+  /// No description provided for @algaeBba.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krasnorosty / BBA'**
+  String get algaeBba;
+
+  /// No description provided for @algaeGreen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zielenice'**
+  String get algaeGreen;
+
+  /// No description provided for @algaeCyanobacteria.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sinice / cyjanobakterie'**
+  String get algaeCyanobacteria;
+
+  /// No description provided for @algaeDiatoms.
+  ///
+  /// In pl, this message translates to:
+  /// **'Okrzemki'**
+  String get algaeDiatoms;
+
+  /// No description provided for @algaeDust.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pył na szybie'**
+  String get algaeDust;
+
+  /// No description provided for @algaeThread.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nitkowate'**
+  String get algaeThread;
+
+  /// No description provided for @addAlgaePhotoOptional.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zdjęcie glonu (opcjonalnie)'**
+  String get addAlgaePhotoOptional;
+
+  /// No description provided for @recentWaterParams.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnie parametry wody'**
+  String get recentWaterParams;
+
+  /// No description provided for @paramsLoadedInfo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wartości zostały wczytane z najnowszego testu. Możesz je poprawić przed analizą.'**
+  String get paramsLoadedInfo;
+
+  /// No description provided for @tankConditions.
+  ///
+  /// In pl, this message translates to:
+  /// **'Warunki w akwarium'**
+  String get tankConditions;
+
+  /// No description provided for @lightHours.
+  ///
+  /// In pl, this message translates to:
+  /// **'Światło'**
+  String get lightHours;
+
+  /// No description provided for @substrateType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podłoże'**
+  String get substrateType;
+
+  /// No description provided for @gravelSand.
+  ///
+  /// In pl, this message translates to:
+  /// **'Żwirek / piasek'**
+  String get gravelSand;
+
+  /// No description provided for @saveMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz pomiar'**
+  String get saveMeasurement;
 }
 
 class _AppLocalizationsDelegate

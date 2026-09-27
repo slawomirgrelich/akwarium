@@ -869,8 +869,9 @@ class ToolsPage extends StatelessWidget {
 }
 
 class _AlgaeTypeOption {
-  const _AlgaeTypeOption(this.label, this.icon, this.color);
+  const _AlgaeTypeOption(this.value, this.label, this.icon, this.color);
 
+  final String value;
   final String label;
   final IconData icon;
   final Color color;
@@ -884,13 +885,13 @@ class AlgaeAssistantPage extends StatefulWidget {
 }
 
 class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
-  static const _algaeTypes = [
-    _AlgaeTypeOption('Krasnorosty / BBA', Icons.grass, Colors.deepOrange),
-    _AlgaeTypeOption('Zielenice', Icons.brightness_5, Colors.green),
-    _AlgaeTypeOption('Sinice / cyjanobakterie', Icons.water, Colors.blue),
-    _AlgaeTypeOption('Okrzemki', Icons.blur_on, Colors.brown),
-    _AlgaeTypeOption('Pył na szybie', Icons.blur_circular, Colors.amber),
-    _AlgaeTypeOption('Nitkowate', Icons.linear_scale, Colors.lightGreen),
+  static const _algaeValues = [
+    'Krasnorosty / BBA',
+    'Zielenice',
+    'Sinice / cyjanobakterie',
+    'Okrzemki',
+    'Pył na szybie',
+    'Nitkowate',
   ];
 
   final _service = AlgaeAssistantService();
@@ -901,7 +902,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   final _kh = TextEditingController();
   final _lightHours = TextEditingController(text: '8');
   final _picker = ImagePicker();
-  String _selectedAlgae = _algaeTypes.first.label;
+  String _selectedAlgae = _algaeValues.first;
   String _substrate = 'Żwirek / piasek';
   bool _hasCo2 = false;
   Uint8List? _imageBytes;
@@ -934,15 +935,54 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final algaeTypes = [
+      _AlgaeTypeOption(
+        _algaeValues[0],
+        l10n.algaeBba,
+        Icons.grass,
+        Colors.deepOrange,
+      ),
+      _AlgaeTypeOption(
+        _algaeValues[1],
+        l10n.algaeGreen,
+        Icons.brightness_5,
+        Colors.green,
+      ),
+      _AlgaeTypeOption(
+        _algaeValues[2],
+        l10n.algaeCyanobacteria,
+        Icons.water,
+        Colors.blue,
+      ),
+      _AlgaeTypeOption(
+        _algaeValues[3],
+        l10n.algaeDiatoms,
+        Icons.blur_on,
+        Colors.brown,
+      ),
+      _AlgaeTypeOption(
+        _algaeValues[4],
+        l10n.algaeDust,
+        Icons.blur_circular,
+        Colors.amber,
+      ),
+      _AlgaeTypeOption(
+        _algaeValues[5],
+        l10n.algaeThread,
+        Icons.linear_scale,
+        Colors.lightGreen,
+      ),
+    ];
     return Scaffold(
-      appBar: AppBar(title: const Text('Asystent glonów')),
+      appBar: AppBar(title: Text(l10n.algaeAssistantTitle)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Co widzisz w akwarium?',
+              l10n.algaeQuestion,
               style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -950,7 +990,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _algaeTypes.length,
+              itemCount: algaeTypes.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 mainAxisExtent: 88,
@@ -958,10 +998,10 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                 mainAxisSpacing: 10,
               ),
               itemBuilder: (context, index) {
-                final option = _algaeTypes[index];
-                final selected = option.label == _selectedAlgae;
+                final option = algaeTypes[index];
+                final selected = option.value == _selectedAlgae;
                 return InkWell(
-                  onTap: () => setState(() => _selectedAlgae = option.label),
+                  onTap: () => setState(() => _selectedAlgae = option.value),
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
                     padding: const EdgeInsets.all(12),
@@ -997,7 +1037,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
               icon: const Icon(Icons.photo_camera_outlined),
               label: Text(
                 _imageBytes == null
-                    ? 'Dodaj zdjęcie glonu (opcjonalnie)'
+                    ? l10n.addAlgaePhotoOptional
                     : 'Zmień zdjęcie glonu',
               ),
             ),
@@ -1014,20 +1054,20 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
             ],
             const SizedBox(height: 20),
             Text(
-              'Ostatnie parametry wody',
+              l10n.recentWaterParams,
               style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 6),
             Text(
-              'Wartości zostały wczytane z najnowszego testu. Możesz je poprawić przed analizą.',
+              l10n.paramsLoadedInfo,
               style: TextStyle(color: Colors.grey.shade700),
             ),
             const SizedBox(height: 12),
             _measurementFields(),
             const SizedBox(height: 18),
             Text(
-              'Warunki w akwarium',
+              l10n.tankConditions,
               style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -1038,8 +1078,8 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                   child: TextField(
                     controller: _lightHours,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Światło',
+                    decoration: InputDecoration(
+                      labelText: l10n.lightHours,
                       suffixText: 'h',
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                       filled: true,
@@ -1050,8 +1090,8 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     initialValue: _substrate,
-                    decoration: const InputDecoration(
-                      labelText: 'Podłoże',
+                    decoration: InputDecoration(
+                      labelText: l10n.substrateType,
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                       filled: true,
                     ),
@@ -1065,7 +1105,11 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                             .map(
                               (value) => DropdownMenuItem(
                                 value: value,
-                                child: Text(value),
+                                child: Text(
+                                  value == 'Żwirek / piasek'
+                                      ? l10n.gravelSand
+                                      : value,
+                                ),
                               ),
                             )
                             .toList(),

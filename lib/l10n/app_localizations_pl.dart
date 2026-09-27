@@ -541,4 +541,76 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get knowledgeForStableTank => 'Wiedza dla stabilnego zbiornika';
+
+  @override
+  String get proPaywallTitle => 'Odblokuj Pełny Potencjał Akwarysta PRO';
+
+  @override
+  String get proPaywallSubtitle =>
+      'Spokojniejsza opieka nad akwarium dzięki funkcjom dla wymagających zbiorników.';
+
+  @override
+  String get featureUnlimitedCharts =>
+      'Nielimitowane wykresy i historia parametrów';
+
+  @override
+  String get featureFertilizerCalc => 'Kalkulator nawożenia i receptury soli';
+
+  @override
+  String get featureReminders => 'Przypomnienia SMS i Push';
+
+  @override
+  String get featureExportPdf => 'Eksport raportów do PDF';
+
+  @override
+  String get trial7Days => 'Wypróbuj PRO przez 7 dni za darmo';
+
+  @override
+  String get maybeLater => 'Później';
+
+  @override
+  String get algaeQuestion => 'Co widzisz w akwarium?';
+
+  @override
+  String get algaeBba => 'Krasnorosty / BBA';
+
+  @override
+  String get algaeGreen => 'Zielenice';
+
+  @override
+  String get algaeCyanobacteria => 'Sinice / cyjanobakterie';
+
+  @override
+  String get algaeDiatoms => 'Okrzemki';
+
+  @override
+  String get algaeDust => 'Pył na szybie';
+
+  @override
+  String get algaeThread => 'Nitkowate';
+
+  @override
+  String get addAlgaePhotoOptional => 'Dodaj zdjęcie glonu (opcjonalnie)';
+
+  @override
+  String get recentWaterParams => 'Ostatnie parametry wody';
+
+  @override
+  String get paramsLoadedInfo =>
+      'Wartości zostały wczytane z najnowszego testu. Możesz je poprawić przed analizą.';
+
+  @override
+  String get tankConditions => 'Warunki w akwarium';
+
+  @override
+  String get lightHours => 'Światło';
+
+  @override
+  String get substrateType => 'Podłoże';
+
+  @override
+  String get gravelSand => 'Żwirek / piasek';
+
+  @override
+  String get saveMeasurement => 'Zapisz pomiar';
 }

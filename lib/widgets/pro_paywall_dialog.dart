@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../services/pro_access_service.dart';
 
 class ProBadge extends StatelessWidget {
@@ -49,12 +50,11 @@ class ProPaywallDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: Row(
         children: [
-          Expanded(
-            child: Text(headline ?? 'Odblokuj Pełny Potencjał Akwarysta PRO'),
-          ),
+          Expanded(child: Text(headline ?? l10n.proPaywallTitle)),
           const SizedBox(width: 8),
           const ProBadge(),
         ],
@@ -65,25 +65,22 @@ class ProPaywallDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Spokojniejsza opieka nad akwarium dzięki funkcjom dla wymagających zbiorników.',
+              l10n.proPaywallSubtitle,
               style: TextStyle(color: Colors.grey.shade700),
             ),
             const SizedBox(height: 18),
-            const _Benefit(
-              icon: Icons.show_chart,
-              text: 'Nielimitowane wykresy i historia parametrów',
-            ),
-            const _Benefit(
+            _Benefit(icon: Icons.show_chart, text: l10n.featureUnlimitedCharts),
+            _Benefit(
               icon: Icons.eco_outlined,
-              text: 'Kalkulator nawożenia i receptury soli',
+              text: l10n.featureFertilizerCalc,
             ),
-            const _Benefit(
+            _Benefit(
               icon: Icons.notifications_active_outlined,
-              text: 'Przypomnienia SMS i Push',
+              text: l10n.featureReminders,
             ),
-            const _Benefit(
+            _Benefit(
               icon: Icons.picture_as_pdf_outlined,
-              text: 'Eksport raportów do PDF',
+              text: l10n.featureExportPdf,
             ),
           ],
         ),
@@ -91,7 +88,7 @@ class ProPaywallDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Później'),
+          child: Text(l10n.maybeLater),
         ),
         FilledButton.icon(
           onPressed: () async {
@@ -114,7 +111,7 @@ class ProPaywallDialog extends StatelessWidget {
                 .showSnackBar(SnackBar(content: Text(message)));
           },
           icon: const Icon(Icons.auto_awesome),
-          label: const Text('Wypróbuj PRO przez 7 dni za darmo'),
+          label: Text(l10n.trial7Days),
         ),
       ],
     );

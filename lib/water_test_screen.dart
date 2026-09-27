@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'l10n/app_localizations.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/water_standards.dart';
 
@@ -34,6 +35,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Test wody'),
@@ -96,7 +98,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
                     FilledButton.icon(
                       onPressed: _saveTest,
                       icon: const Icon(Icons.save_outlined),
-                      label: const Text('Zapisz pomiar'),
+                      label: Text(l10n.saveMeasurement),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),

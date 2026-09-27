@@ -540,4 +540,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get knowledgeForStableTank => 'Knowledge for a stable tank';
+
+  @override
+  String get proPaywallTitle => 'Unlock Full Potential with Aquarist PRO';
+
+  @override
+  String get proPaywallSubtitle =>
+      'Peace of mind in aquarium care with features for demanding tanks.';
+
+  @override
+  String get featureUnlimitedCharts => 'Unlimited charts and parameter history';
+
+  @override
+  String get featureFertilizerCalc => 'Fertilizer calculator and salt recipes';
+
+  @override
+  String get featureReminders => 'SMS and Push notifications';
+
+  @override
+  String get featureExportPdf => 'Export reports to PDF';
+
+  @override
+  String get trial7Days => 'Try PRO free for 7 days';
+
+  @override
+  String get maybeLater => 'Maybe later';
+
+  @override
+  String get algaeQuestion => 'What do you see in the aquarium?';
+
+  @override
+  String get algaeBba => 'BBA / Black Brush';
+
+  @override
+  String get algaeGreen => 'Green algae';
+
+  @override
+  String get algaeCyanobacteria => 'Blue-green algae / Cyanobacteria';
+
+  @override
+  String get algaeDiatoms => 'Diatoms';
+
+  @override
+  String get algaeDust => 'Dust on glass';
+
+  @override
+  String get algaeThread => 'Thread algae';
+
+  @override
+  String get addAlgaePhotoOptional => 'Add algae photo (optional)';
+
+  @override
+  String get recentWaterParams => 'Recent water parameters';
+
+  @override
+  String get paramsLoadedInfo =>
+      'Values loaded from the latest test. You can correct them before analysis.';
+
+  @override
+  String get tankConditions => 'Tank conditions';
+
+  @override
+  String get lightHours => 'Light';
+
+  @override
+  String get substrateType => 'Substrate';
+
+  @override
+  String get gravelSand => 'Gravel / Sand';
+
+  @override
+  String get saveMeasurement => 'Save measurement';
 }
