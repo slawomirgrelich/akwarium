@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +22,7 @@ import 'aquarium_management_screen.dart';
 import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/water_standards.dart';
+import 'models/tank_firestore_models.dart' show Tank;
 import 'screens/auth_wrapper.dart';
 import 'screens/calculators_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
@@ -28,6 +30,7 @@ import 'screens/knowledge_base_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'services/auth_service.dart';
+import 'services/database_service.dart';
 import 'services/pro_access_service.dart';
 import 'services/theme_controller.dart';
 import 'services/locale_controller.dart';
@@ -385,7 +388,7 @@ class DashboardPage extends StatelessWidget {
                 ],
               ),
             ),
-            _AquariumCard(aquarium: displayedAquarium),
+            _DashboardTankCard(aquarium: displayedAquarium),
             const SizedBox(height: 20),
             const FirestoreRemindersWidget(),
             const SizedBox(height: 20),
@@ -1765,9 +1768,10 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _AquariumCard extends StatelessWidget {
-  const _AquariumCard({required this.aquarium});
+  const _AquariumCard({required this.aquarium, this.imageUrl});
 
   final Aquarium aquarium;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -1788,17 +1792,15 @@ class _AquariumCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(13),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withAlpha(35),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.water,
-              color: theme.colorScheme.primary,
-              size: 28,
-            ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: imageUrl == null || imageUrl!.isEmpty
+                ? Container(
+                    padding: const EdgeInsets.all(13),
+                    color: theme.colorScheme.primary.withAlpha(35),
+                    child: Icon(Icons.water, color: theme.colorScheme.primary, size: 28),
+                  )
+                : Image.network(imageUrl!, width: 66, height: 66, fit: BoxFit.cover),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1827,6 +1829,25 @@ class _AquariumCard extends StatelessWidget {
           Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
         ],
       ),
+    );
+  }
+}
+
+class _DashboardTankCard extends StatelessWidget {
+  const _DashboardTankCard({required this.aquarium});
+
+  final Aquarium aquarium;
+
+  @override
+  Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return _AquariumCard(aquarium: aquarium);
+    return StreamBuilder<List<Tank>>(
+      stream: DatabaseService().getTanksStream(userId),
+      builder: (context, snapshot) {
+        final tank = snapshot.data?.where((item) => item.id == aquarium.id).firstOrNull;
+        return _AquariumCard(aquarium: aquarium, imageUrl: tank?.imageUrl);
+      },
     );
   }
 }

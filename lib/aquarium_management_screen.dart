@@ -8,6 +8,7 @@ import 'models/aquarium_model.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/species_atlas_screen.dart';
 import 'screens/tank_stocking_screen.dart';
+import 'screens/tank_photo_journal_screen.dart';
 
 String _tankTypeLabel(AppLocalizations l10n, TankType type) => switch (type) {
   TankType.freshwater => l10n.freshwater,
@@ -88,6 +89,17 @@ class AquariumManagementScreen extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.menu_book_outlined),
+          ),
+          IconButton(
+            tooltip: 'Dziennik zdjęć',
+            onPressed: () {
+              final tankId = context.read<AquariumProvider>().activeAquariumId;
+              Navigator.push<void>(
+                context,
+                MaterialPageRoute(builder: (_) => TankPhotoJournalScreen(tankId: tankId)),
+              );
+            },
+            icon: const Icon(Icons.photo_library_outlined),
           ),
           IconButton(
             tooltip: l10n.addTank,

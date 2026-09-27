@@ -39,6 +39,7 @@ dependencies:
   firebase_auth: ^6.7.0
   cloud_firestore: ^6.10.0
   firebase_core: ^4.15.0
+  firebase_storage: ^13.0.5
   fl_chart: ^0.69.2
   flutter_local_notifications: ^18.0.1
   image_picker: ^1.1.2

@@ -1,14 +1,20 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import '../models/tank_firestore_models.dart';
 import '../models/aquarium_reminder.dart';
 import '../models/species_models.dart';
+import '../models/tank_photo.dart';
 
 class DatabaseService {
-  DatabaseService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  DatabaseService({FirebaseFirestore? firestore, FirebaseStorage? storage})
+      : _firestore = firestore ?? FirebaseFirestore.instance,
+        _storage = storage ?? FirebaseStorage.instance;
 
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
 
   CollectionReference<Map<String, dynamic>> _tanks(String userId) =>
       _firestore.collection('users').doc(userId).collection('tanks');
@@ -36,6 +42,12 @@ class DatabaseService {
     String tankId,
   ) =>
       _tanks(userId).doc(tankId).collection('stocking');
+
+  CollectionReference<Map<String, dynamic>> _photos(
+    String userId,
+    String tankId,
+  ) =>
+      _tanks(userId).doc(tankId).collection('photos');
 
   Stream<List<Tank>> getTanksStream(String userId) => _tanks(userId)
       .orderBy('createdAt', descending: true)
@@ -204,6 +216,62 @@ class DatabaseService {
     String itemId,
   ) async {
     await _stocking(userId, tankId).doc(itemId).delete();
+  }
+
+  Future<TankPhoto> uploadTankPhoto(
+    String userId,
+    String tankId,
+    Uint8List imageBytes,
+    String caption,
+  ) async {
+    final document = _photos(userId, tankId).doc();
+    final storagePath = 'users/$userId/tanks/$tankId/photos/${document.id}.jpg';
+    final storageReference = _storage.ref(storagePath);
+    await storageReference.putData(
+      imageBytes,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
+    final photo = TankPhoto(
+      id: document.id,
+      tankId: tankId,
+      photoUrl: await storageReference.getDownloadURL(),
+      storagePath: storagePath,
+      caption: caption,
+      createdAt: DateTime.now(),
+    );
+    await document.set(photo.toFirestore());
+    return photo;
+  }
+
+  Stream<List<TankPhoto>> getTankPhotosStream(String userId, String tankId) =>
+      _photos(userId, tankId)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.map(TankPhoto.fromFirestore).toList());
+
+  Future<void> deleteTankPhoto(
+    String userId,
+    String tankId,
+    TankPhoto photo,
+  ) async {
+    await _photos(userId, tankId).doc(photo.id).delete();
+    if (photo.storagePath.isNotEmpty) {
+      await _storage.ref(photo.storagePath).delete();
+    }
+  }
+
+  Future<void> setCoverPhoto(
+    String userId,
+    String tankId,
+    TankPhoto photo,
+  ) async {
+    final snapshot = await _photos(userId, tankId).get();
+    final batch = _firestore.batch();
+    for (final document in snapshot.docs) {
+      batch.update(document.reference, {'isCoverPhoto': document.id == photo.id});
+    }
+    batch.update(_tanks(userId).doc(tankId), {'imageUrl': photo.photoUrl});
+    await batch.commit();
   }
 }
 
