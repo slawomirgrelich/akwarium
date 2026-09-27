@@ -30,37 +30,10 @@ import 'services/auth_service.dart';
 import 'services/pro_access_service.dart';
 import 'services/theme_controller.dart';
 import 'services/locale_controller.dart';
+import 'theme/app_theme.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 import 'widgets/pro_paywall_dialog.dart';
-
-InputDecorationTheme _inputDecorationTheme({required bool dark}) {
-  final borderColor = dark ? Colors.white24 : const Color(0xFFD7E2DF);
-  final fillColor = dark ? const Color(0xFF1C2730) : Colors.white;
-  final labelColor = dark ? Colors.white70 : const Color(0xFF49635E);
-  final focusedColor = dark ? const Color(0xFF00E5FF) : Colors.teal;
-
-  return InputDecorationTheme(
-    filled: true,
-    fillColor: fillColor,
-    floatingLabelBehavior: FloatingLabelBehavior.always,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    labelStyle: TextStyle(color: labelColor),
-    floatingLabelStyle: TextStyle(color: focusedColor),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: borderColor),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: borderColor),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: focusedColor, width: 2),
-    ),
-  );
-}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -223,11 +196,6 @@ class AkwarystaProApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.teal,
-      brightness: Brightness.light,
-    );
-
     return ChangeNotifierProvider<ProAccessService>(
       create: (_) => ProAccessService(preferences: proPreferences)..init(),
       child: ChangeNotifierProvider<ThemeController>(
@@ -244,79 +212,8 @@ class AkwarystaProApp extends StatelessWidget {
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
                 themeMode: context.watch<ThemeController>().themeMode,
-                theme: ThemeData.light(useMaterial3: true).copyWith(
-                  colorScheme: colorScheme,
-                  scaffoldBackgroundColor: const Color(0xFFF2F8F6),
-                  appBarTheme: const AppBarTheme(
-                    backgroundColor: Color(0xFFF9FBFB),
-                    foregroundColor: Color(0xFF0F2D2A),
-                    elevation: 0,
-                  ),
-                  cardTheme: CardThemeData(
-                    color: Colors.white,
-                    elevation: 1,
-                    shadowColor: Color(0x180F2D2A),
-                    margin: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: const BorderSide(color: Color(0x240F2D2A)),
-                    ),
-                  ),
-                  dividerTheme: const DividerThemeData(
-                    color: Color(0x180F2D2A),
-                    space: 1,
-                  ),
-                  textTheme: const TextTheme(
-                    bodyLarge: TextStyle(color: Color(0xFF1A202C)),
-                    bodyMedium: TextStyle(color: Color(0xFF4A5568)),
-                    titleLarge: TextStyle(
-                      color: Color(0xFF0F2D2A),
-                      fontWeight: FontWeight.bold,
-                    ),
-                    titleMedium: TextStyle(
-                      color: Color(0xFF0F2D2A),
-                      fontWeight: FontWeight.bold,
-                    ),
-                    titleSmall: TextStyle(
-                      color: Color(0xFF0F2D2A),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  filledButtonTheme: FilledButtonThemeData(
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  outlinedButtonTheme: OutlinedButtonThemeData(
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(46),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  inputDecorationTheme: _inputDecorationTheme(dark: false),
-                ),
-                darkTheme: ThemeData(
-                  useMaterial3: true,
-                  colorScheme: ColorScheme.fromSeed(
-                    seedColor: Colors.teal,
-                    brightness: Brightness.dark,
-                  ),
-                  scaffoldBackgroundColor: const Color(0xFF0F172A),
-                  cardTheme: CardThemeData(
-                    color: const Color(0xFF1E293B),
-                    elevation: 1,
-                    margin: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  inputDecorationTheme: _inputDecorationTheme(dark: true),
-                ),
+                theme: AppTheme.light,
+                darkTheme: AppTheme.dark,
                 home: firebaseReady
                     ? const AuthWrapper(authenticatedScreen: MainShell())
                     : const LoginScreen(),
@@ -363,23 +260,21 @@ class _MainShellState extends State<MainShell> {
 
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFE0F2F1), Color(0xFFE1F5FE)],
-          ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
         ),
         child: SizedBox.expand(
           child: IndexedStack(index: _currentIndex, children: pages),
         ),
       ),
       bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color:
+              Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
+              Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: Theme.of(context).shadowColor.withValues(alpha: 0.18),
               blurRadius: 8,
               offset: Offset(0, -2),
             ),
@@ -388,8 +283,13 @@ class _MainShellState extends State<MainShell> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.teal.shade800,
-          unselectedItemColor: Colors.grey.shade600,
+          backgroundColor: Colors.transparent,
+          selectedItemColor: Theme.of(context)
+              .bottomNavigationBarTheme
+              .selectedItemColor,
+          unselectedItemColor: Theme.of(context)
+              .bottomNavigationBarTheme
+              .unselectedItemColor,
           onTap: (index) {
             setState(() {
               _currentIndex = index;
@@ -936,6 +836,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final algaeTypes = [
       _AlgaeTypeOption(
         _algaeValues[0],
@@ -1008,10 +909,12 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                     decoration: BoxDecoration(
                       color: selected
                           ? option.color.withAlpha(25)
-                          : Colors.white,
+                          : theme.cardColor,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: selected ? option.color : Colors.black12,
+                        color: selected
+                            ? option.color
+                            : theme.colorScheme.outline,
                         width: selected ? 2 : 1,
                       ),
                     ),
@@ -1061,7 +964,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
             const SizedBox(height: 6),
             Text(
               l10n.paramsLoadedInfo,
-              style: TextStyle(color: Colors.grey.shade700),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 12),
             _measurementFields(),
@@ -1408,6 +1311,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Skaner AI')),
       body: _PageContainer(
@@ -1424,7 +1328,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
                 child: Container(
                   height: 260,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE1F2EF),
+                    color: theme.cardColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: _imageBytes == null
@@ -1447,7 +1351,9 @@ class _AiScannerPageState extends State<AiScannerPage> {
                             const SizedBox(height: 6),
                             Text(
                               l10n.tapToSelectCameraOrGallery,
-                              style: TextStyle(color: Colors.grey.shade700),
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         )
@@ -1773,6 +1679,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -1786,7 +1693,7 @@ class _Header extends StatelessWidget {
                     child: Text(
                       greeting!,
                       style: TextStyle(
-                        color: Colors.grey.shade700,
+                        color: theme.colorScheme.onSurfaceVariant,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1801,7 +1708,7 @@ class _Header extends StatelessWidget {
           Text(
             eyebrow,
             style: TextStyle(
-              color: Colors.teal.shade700,
+              color: theme.colorScheme.primary,
               fontWeight: FontWeight.bold,
               fontSize: 11,
               letterSpacing: 1.2,
@@ -1810,8 +1717,8 @@ class _Header extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             title,
-            style: const TextStyle(
-              color: Color(0xFF123D39),
+            style: TextStyle(
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w800,
               fontSize: 28,
             ),
@@ -1819,7 +1726,10 @@ class _Header extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             subtitle,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 15),
+            style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 15,
+            ),
           ),
         ],
       ),
@@ -1853,10 +1763,11 @@ class _AquariumCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF00695C),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
@@ -1871,10 +1782,14 @@ class _AquariumCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(35),
+              color: theme.colorScheme.primary.withAlpha(35),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.water, color: Colors.white, size: 28),
+            child: Icon(
+              Icons.water,
+              color: theme.colorScheme.primary,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1883,8 +1798,8 @@ class _AquariumCard extends StatelessWidget {
               children: [
                 Text(
                   aquarium.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
                     fontSize: 19,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1892,12 +1807,15 @@ class _AquariumCard extends StatelessWidget {
                 const SizedBox(height: 5),
                 Text(
                   '${l10n.litersCount(aquarium.capacityLiters.round())} · ${_localizedAquariumType(l10n, aquarium.type)}',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: Colors.white70),
+          Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
         ],
       ),
     );
@@ -1933,6 +1851,7 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(15),
@@ -1943,7 +1862,10 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               label,
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+              style: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -2397,7 +2319,7 @@ class _ProCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isProUser ? const Color(0xFF315B43) : const Color(0xFF123D39),
+        color: Theme.of(context).cardColor,
         border: isProUser
             ? Border.all(color: const Color(0xFFFFD166), width: 1.5)
             : null,

@@ -288,8 +288,9 @@ class _JournalScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F8F6),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(l10n.journalTitle),
         actions: [
