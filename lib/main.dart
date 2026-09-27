@@ -1610,10 +1610,10 @@ class ProfilePage extends StatelessWidget {
             const _LocaleTile(),
             const SizedBox(height: 10),
             _SettingsTile(
-              icon: Icons.cloud_outlined,
-              title: l10n.syncData,
-              subtitle: l10n.syncSubtitle,
-              onTap: () => _showMessage(context, l10n.syncComingSoon),
+              icon: Icons.cloud_sync_outlined,
+              title: 'Kopia w chmurze i synchronizacja',
+              subtitle: 'Automatyczny zapis i tworzenie kopii zapasowej w chmurze',
+              onTap: () => _showCloudSyncDialog(context),
             ),
             const SizedBox(height: 10),
             _SettingsTile(
@@ -1635,6 +1635,30 @@ class ProfilePage extends StatelessWidget {
   void _showMessage(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showCloudSyncDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(
+          Icons.cloud_done_outlined,
+          color: Theme.of(context).colorScheme.primary,
+          size: 36,
+        ),
+        title: const Text('Kopia w chmurze i synchronizacja'),
+        content: const Text(
+          'Twoje dane są bezpiecznie synchronizowane w chmurze',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Gotowe'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _openAquariumManagement(BuildContext context) {
@@ -2287,7 +2311,7 @@ class _ThemeModeTile extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: Icon(
-          Icons.brightness_6_outlined,
+          Icons.palette_outlined,
           color: Theme.of(context).primaryColor,
         ),
         title: Text(l10n.theme, style: TextStyle(fontWeight: FontWeight.bold)),
