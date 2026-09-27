@@ -993,6 +993,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     initialValue: _substrate,
+                    dropdownColor: Theme.of(context).cardColor,
                     decoration: InputDecoration(
                       labelText: l10n.substrateType,
                       floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -2255,6 +2256,7 @@ class _ThemeModeTile extends StatelessWidget {
           child: DropdownButton<ThemeMode>(
             value: controller.themeMode,
             isDense: true,
+            dropdownColor: Theme.of(context).cardColor,
             onChanged: (mode) {
               if (mode != null) controller.setThemeMode(mode);
             },
@@ -2293,6 +2295,7 @@ class _LocaleTile extends StatelessWidget {
           child: DropdownButton<String>(
             value: selected,
             isDense: true,
+            dropdownColor: Theme.of(context).cardColor,
             onChanged: (languageCode) {
               if (languageCode != null) {
                 controller.setLocale(Locale(languageCode));
@@ -2316,10 +2319,12 @@ class _ProCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isProUser = context.watch<ProAccessService>().isProUser;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? theme.cardColor : const Color(0xFFFFF7D6),
         border: isProUser
             ? Border.all(color: const Color(0xFFFFD166), width: 1.5)
             : null,
@@ -2342,8 +2347,10 @@ class _ProCard extends StatelessWidget {
                 children: [
                   Text(
                     isProUser ? l10n.aquaristProActive : l10n.proName,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: isDark
+                          ? theme.colorScheme.onSurface
+                          : const Color(0xFF064E3B),
                       fontWeight: FontWeight.bold,
                       fontSize: 17,
                     ),
@@ -2351,7 +2358,11 @@ class _ProCard extends StatelessWidget {
                   const SizedBox(height: 5),
                   Text(
                     isProUser ? l10n.allFeaturesUnlocked : l10n.unlockPremium,
-                    style: const TextStyle(color: Colors.white70),
+                    style: TextStyle(
+                      color: isDark
+                          ? theme.colorScheme.onSurfaceVariant
+                          : const Color(0xFF365314),
+                    ),
                   ),
                 ],
               ),

@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 class AppTheme {
   AppTheme._();
 
-  static const _lightScaffold = Color(0xFFF2F8F6);
+  static const _lightScaffold = Color(0xFFF8FAFC);
+  static const _lightSurface = Color(0xFFFFFFFF);
+  static const _lightPrimary = Color(0xFF0D9488);
+  static const _lightOnSurface = Color(0xFF0F172A);
+  static const _lightOnSurfaceVariant = Color(0xFF475569);
   static const _darkScaffold = Color(0xFF0F172A);
   static const _darkSurface = Color(0xFF1E293B);
   static const _darkPrimary = Color(0xFF2DD4BF);
@@ -11,21 +15,30 @@ class AppTheme {
   static const _darkOnSurfaceVariant = Color(0xFFCBD5E1);
 
   static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.teal,
-      brightness: Brightness.light,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: _lightPrimary,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: _lightPrimary,
+          onPrimary: Colors.white,
+          surface: _lightSurface,
+          onSurface: _lightOnSurface,
+          onSurfaceVariant: _lightOnSurfaceVariant,
+          outline: const Color(0xFFCBD5E1),
+        );
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: _lightScaffold,
+      canvasColor: _lightSurface,
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFFF9FBFB),
-        foregroundColor: Color(0xFF0F2D2A),
+        foregroundColor: _lightOnSurface,
         elevation: 0,
       ),
       cardTheme: CardThemeData(
-        color: Colors.white,
+        color: _lightSurface,
         elevation: 1,
         shadowColor: Color(0x180F2D2A),
         margin: EdgeInsets.zero,
@@ -33,6 +46,32 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: Color(0x240F2D2A)),
         ),
+      ),
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: _lightOnSurface),
+        bodyMedium: TextStyle(color: _lightOnSurfaceVariant),
+        bodySmall: TextStyle(color: _lightOnSurfaceVariant),
+        titleLarge: TextStyle(
+          color: _lightOnSurface,
+          fontWeight: FontWeight.bold,
+        ),
+        titleMedium: TextStyle(
+          color: _lightOnSurface,
+          fontWeight: FontWeight.bold,
+        ),
+        titleSmall: TextStyle(
+          color: _lightOnSurface,
+          fontWeight: FontWeight.bold,
+        ),
+        labelLarge: TextStyle(color: _lightOnSurface),
+      ),
+      iconTheme: const IconThemeData(color: _lightOnSurfaceVariant),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: _lightSurface,
+        selectedItemColor: _lightPrimary,
+        unselectedItemColor: _lightOnSurfaceVariant,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
       ),
       dividerTheme: const DividerThemeData(color: Color(0x180F2D2A), space: 1),
       filledButtonTheme: _buttonTheme(),
