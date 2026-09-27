@@ -63,7 +63,10 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
                     child: Icon(_iconFor(species.category)),
                   ),
                   title: Text(species.namePl),
-                  subtitle: Text('${species.nameLatin} · od ${species.minTankVolumeLiters} l'),
+                  subtitle: Text(
+                    '${species.nameLatin} · od ${species.minTankVolumeLiters} l',
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _showDetails(species),
                 ),
@@ -94,7 +97,12 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(species.nameLatin, style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                species.nameLatin,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
               const SizedBox(height: 12),
               Text(species.description),
               const SizedBox(height: 16),
@@ -102,7 +110,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
               Text('Temperatura: ${species.tempRange.min}–${species.tempRange.max}°C'),
               Text('pH: ${species.phRange.min}–${species.phRange.max}'),
               Text('GH: ${species.ghRange.min}–${species.ghRange.max}'),
-              Text('Trudność: ${species.difficulty.name}'),
+              Text('Trudność: ${_difficultyLabel(species.difficulty)}'),
+              Text('Strefa pływania: ${_zoneLabel(species.swimmingZone)}'),
             ],
           ),
         ),
@@ -136,4 +145,17 @@ IconData _iconFor(SpeciesCategory category) => switch (category) {
   SpeciesCategory.fish => Icons.pets,
   SpeciesCategory.plant => Icons.local_florist,
   SpeciesCategory.invertebrate => Icons.bug_report_outlined,
+};
+
+String _difficultyLabel(SpeciesDifficulty difficulty) => switch (difficulty) {
+  SpeciesDifficulty.easy => 'łatwa',
+  SpeciesDifficulty.medium => 'średnia',
+  SpeciesDifficulty.hard => 'trudna',
+};
+
+String _zoneLabel(SwimmingZone zone) => switch (zone) {
+  SwimmingZone.bottom => 'dno',
+  SwimmingZone.middle => 'środek',
+  SwimmingZone.top => 'powierzchnia',
+  SwimmingZone.all => 'cały zbiornik',
 };
