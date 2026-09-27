@@ -90,8 +90,8 @@ class AiScannerService {
         'gemini-1.5-flash:generateContent?key=$apiKey';
     final requestUrls = [
       url,
-      'https://generativelanguage.googleapis.com/v1/models/'
-          'gemini-1.5-flash:generateContent?key=$apiKey',
+      'https://generativelanguage.googleapis.com/v1beta/models/'
+        'gemini-2.0-flash:generateContent?key=$apiKey',
     ];
     for (final requestUrl in requestUrls) {
       try {
@@ -122,7 +122,7 @@ class AiScannerService {
           if (response.statusCode == 404 && usesStoredApiKey) {
             await preferences.remove('gemini_api_key');
           }
-          if (response.statusCode == 404 && requestUrl == url) {
+          if (requestUrl != requestUrls.last) {
             continue;
           }
           throw AiScannerException(
@@ -164,7 +164,7 @@ class AiScannerService {
     return text;
   }
 
-  static const _geminiPrompt = 'Przeanalizuj to zdjęcie akwarystyczne. Rozpoznaj gatunek ryby, rośliny, bezkręgowca lub chorobę. Zwróć JSON z polami: namePl, nameLatin, category, description, phRange, tempRange, difficulty, minTankVolume.';
+  static const _geminiPrompt = 'Przeanalizuj to zdjęcie akwarystyczne. Rozpoznaj gatunek ryby, rośliny, bezkręgowca lub ewentualną chorobę. Zwróć wynik w formacie JSON z polami: namePl, nameLatin, category, description, phRange, tempRange, difficulty, minTankVolume.';
 }
 
 class MockAiScannerService {
