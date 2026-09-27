@@ -608,7 +608,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     );
     context.read<AquariumProvider>().addTask(task);
     LocalReminderService.instance.schedule(
-      AquariumReminder(
+      ScheduledReminder(
         id: int.tryParse(task.id.substring(task.id.length - 8)) ?? 1,
         title: task.title,
         body: task.description,

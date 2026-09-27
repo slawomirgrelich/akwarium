@@ -247,7 +247,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
 
   Future<void> _scheduleReminder(ReminderModel reminder) {
     return LocalReminderService.instance.schedule(
-      AquariumReminder(
+      ScheduledReminder(
         id: _notificationId(reminder.id),
         title: reminder.title,
         body: reminder.isRecurring

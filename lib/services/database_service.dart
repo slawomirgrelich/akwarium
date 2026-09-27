@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/tank_firestore_models.dart';
+import '../models/aquarium_reminder.dart';
 
 class DatabaseService {
   DatabaseService({FirebaseFirestore? firestore})
@@ -22,6 +23,12 @@ class DatabaseService {
     String tankId,
   ) =>
       _tanks(userId).doc(tankId).collection('journal_logs');
+
+  CollectionReference<Map<String, dynamic>> _reminders(
+    String userId,
+    String tankId,
+  ) =>
+      _tanks(userId).doc(tankId).collection('reminders');
 
   Stream<List<Tank>> getTanksStream(String userId) => _tanks(userId)
       .orderBy('createdAt', descending: true)
@@ -79,6 +86,77 @@ class DatabaseService {
           .orderBy('timestamp', descending: true)
           .snapshots()
           .map((snapshot) => snapshot.docs.map(JournalLog.fromFirestore).toList());
+
+  Stream<List<AquariumReminder>> getRemindersStream(
+    String userId,
+    String tankId,
+  ) =>
+      _reminders(userId, tankId)
+          .orderBy('dueDate')
+          .snapshots()
+          .map((snapshot) =>
+              snapshot.docs.map(AquariumReminder.fromFirestore).toList());
+
+  Future<void> addReminder(
+    String userId,
+    String tankId,
+    AquariumReminder reminder,
+  ) async {
+    final reference = reminder.id.isEmpty
+        ? _reminders(userId, tankId).doc()
+        : _reminders(userId, tankId).doc(reminder.id);
+    await reference.set(
+      reminder.copyWith(id: reference.id, tankId: tankId).toFirestore(),
+    );
+  }
+
+  Future<void> updateReminder(
+    String userId,
+    String tankId,
+    AquariumReminder reminder,
+  ) async {
+    if (reminder.id.isEmpty) throw ArgumentError('Reminder id cannot be empty.');
+    await _reminders(userId, tankId).doc(reminder.id).set(
+          reminder.copyWith(tankId: tankId).toFirestore(),
+          SetOptions(merge: true),
+        );
+  }
+
+  Future<void> deleteReminder(
+    String userId,
+    String tankId,
+    String reminderId,
+  ) async {
+    await _reminders(userId, tankId).doc(reminderId).delete();
+  }
+
+  Future<void> completeReminder(
+    String userId,
+    String tankId,
+    AquariumReminder reminder,
+  ) async {
+    final completedAt = DateTime.now();
+    final nextDueDate = reminder.repeatIntervalDays == null
+        ? reminder.dueDate
+        : completedAt.add(Duration(days: reminder.repeatIntervalDays!));
+    final updated = reminder.copyWith(
+      tankId: tankId,
+      dueDate: nextDueDate,
+      isCompleted: reminder.repeatIntervalDays == null,
+      lastCompletedAt: completedAt,
+    );
+    final batch = _firestore.batch();
+    batch.set(_reminders(userId, tankId).doc(reminder.id), updated.toFirestore());
+    final journalReference = _journalLogs(userId, tankId).doc();
+    batch.set(journalReference, JournalLog(
+      id: journalReference.id,
+      timestamp: completedAt,
+      activityType: reminder.taskType.name,
+      title: reminder.title,
+      note: 'Przypomnienie wykonane',
+    ).toFirestore());
+    await batch.commit();
+  }
 }
 
 extension on Tank {

@@ -35,6 +35,7 @@ import 'theme/app_theme.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 import 'widgets/pro_paywall_dialog.dart';
+import 'widgets/firestore_reminders_widget.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -385,6 +386,8 @@ class DashboardPage extends StatelessWidget {
               ),
             ),
             _AquariumCard(aquarium: displayedAquarium),
+            const SizedBox(height: 20),
+            const FirestoreRemindersWidget(),
             const SizedBox(height: 20),
             _SectionHeader(title: l10n.aquariumStatus),
             const SizedBox(height: 12),

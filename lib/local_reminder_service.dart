@@ -42,7 +42,7 @@ class LocalReminderService {
     }
   }
 
-  Future<void> schedule(AquariumReminder reminder) async {
+  Future<void> schedule(ScheduledReminder reminder) async {
     if (!_ready) return;
     try {
       await _notifications.zonedSchedule(
@@ -80,8 +80,8 @@ class LocalReminderService {
   }
 }
 
-class AquariumReminder {
-  const AquariumReminder({
+class ScheduledReminder {
+  const ScheduledReminder({
     required this.id,
     required this.title,
     required this.body,
