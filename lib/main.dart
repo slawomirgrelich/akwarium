@@ -21,8 +21,10 @@ import 'app_version_widget.dart';
 import 'aquarium_management_screen.dart';
 import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
+import 'models/aquarium_firestore_model.dart' show AquariumModel;
 import 'models/water_standards.dart';
 import 'models/tank_firestore_models.dart' show Tank;
+import 'screens/aquarium_details_screen.dart';
 import 'screens/auth_wrapper.dart';
 import 'screens/calculators_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
@@ -32,6 +34,7 @@ import 'screens/reminders_screen.dart';
 import 'screens/species_atlas_screen.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
+import 'services/firestore_service.dart';
 import 'services/pro_access_service.dart';
 import 'services/theme_controller.dart';
 import 'services/locale_controller.dart';
@@ -2625,39 +2628,189 @@ class _ScanResultCard extends StatelessWidget {
             Text(result.compatibility),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: () {
-                final provider = context.read<models.AquariumProvider>();
-                final type = result.type.toLowerCase();
-                final category =
-                    type.contains('roślin') || type.contains('roslin')
-                    ? models.CreatureCategory.plant
-                    : type.contains('ryb')
-                    ? models.CreatureCategory.fish
-                    : models.CreatureCategory.other;
-                provider.addInhabitant(
-                  models.Inhabitant(
-                    id: DateTime.now().microsecondsSinceEpoch.toString(),
-                    aquariumId: provider.activeAquariumId,
-                    name: result.polishName,
-                    latinName: result.latinName,
-                    category: category,
-                    count: 1,
-                    addedDate: DateTime.now(),
-                    difficulty: result.difficulty,
-                    notes:
-                        '${result.description}\n\nZgodność: ${result.compatibility}',
-                    imagePath:
-                        'data:image/jpeg;base64,${base64Encode(imageBytes)}',
-                  ),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Gatunek dodano do obsady')),
-                );
-              },
+              onPressed: () => _showAddToAquariumSheet(context, result, imageBytes),
               icon: const Icon(Icons.playlist_add),
               label: const Text('Dodaj do mojego akwarium / obsady'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _showAddToAquariumSheet(
+  BuildContext context,
+  AiScanResult result,
+  Uint8List imageBytes,
+) async {
+  if (FirebaseAuth.instance.currentUser == null) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Zaloguj się, aby dodać do obsady.')));
+    return;
+  }
+
+  final aquarium = await showModalBottomSheet<AquariumModel>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => const _AquariumPickerSheet(),
+  );
+  if (aquarium == null || !context.mounted) return;
+
+  final count = await _showLivestockQuantityDialog(context, result);
+  if (count == null || !context.mounted) return;
+
+  try {
+    await FirestoreService().addLivestockItem(
+      aquarium.id,
+      namePl: result.polishName,
+      nameLatin: result.latinName,
+      category: result.type,
+      count: count,
+      phRange: result.ph,
+      tempRange: result.temperature,
+      minTankVolume: result.minimumVolume,
+      photoUrl: 'data:image/jpeg;base64,${base64Encode(imageBytes)}',
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Dodano ${result.polishName} do obsady ${aquarium.name}!',
+        ),
+        action: SnackBarAction(
+          label: 'Zobacz',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AquariumDetailsScreen(aquarium: aquarium),
+            ),
+          ),
+        ),
+      ),
+    );
+  } on FirestoreServiceException catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
+  }
+}
+
+Future<int?> _showLivestockQuantityDialog(
+  BuildContext context,
+  AiScanResult result,
+) {
+  var count = 1;
+  return showDialog<int>(
+    context: context,
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (dialogContext, setState) => AlertDialog(
+        title: Text('Dodaj ${result.polishName}'),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: count > 1 ? () => setState(() => count--) : null,
+              icon: const Icon(Icons.remove_circle_outline),
+            ),
+            Text('$count', style: Theme.of(context).textTheme.titleLarge),
+            IconButton(
+              onPressed: () => setState(() => count++),
+              icon: const Icon(Icons.add_circle_outline),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, count),
+            child: const Text('Dodaj'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _AquariumPickerSheet extends StatefulWidget {
+  const _AquariumPickerSheet();
+
+  @override
+  State<_AquariumPickerSheet> createState() => _AquariumPickerSheetState();
+}
+
+class _AquariumPickerSheetState extends State<_AquariumPickerSheet> {
+  late final Future<List<AquariumModel>> _future =
+      FirestoreService().getAquariums().first;
+  bool _autoSelected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: FutureBuilder<List<AquariumModel>>(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                height: 120,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasError) {
+              return Text('Nie udało się wczytać akwariów: ${snapshot.error}');
+            }
+            final aquariums = snapshot.data ?? const <AquariumModel>[];
+            if (aquariums.isEmpty) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Brak akwariów. Dodaj akwarium, aby kontynuować.'),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Zamknij'),
+                  ),
+                ],
+              );
+            }
+            // Skip the list and use the only aquarium automatically.
+            if (aquariums.length == 1 && !_autoSelected) {
+              _autoSelected = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) Navigator.pop(context, aquariums.first);
+              });
+              return const SizedBox(
+                height: 120,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Wybierz akwarium',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                ...aquariums.map(
+                  (aquarium) => ListTile(
+                    leading: const Icon(Icons.water_drop_outlined),
+                    title: Text(aquarium.name),
+                    subtitle: Text('${aquarium.capacityLiters.toStringAsFixed(0)} l'),
+                    onTap: () => Navigator.pop(context, aquarium),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

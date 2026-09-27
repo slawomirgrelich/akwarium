@@ -31,6 +31,13 @@ class FirestoreService {
     return _aquariums(userId).doc(aquariumId).collection('water_parameters');
   }
 
+  CollectionReference<Map<String, dynamic>> _livestock(
+    String userId,
+    String aquariumId,
+  ) {
+    return _aquariums(userId).doc(aquariumId).collection('livestock');
+  }
+
   String _requireUserId() {
     final userId = _auth.currentUser?.uid;
     if (userId == null || userId.isEmpty) {
@@ -187,6 +194,41 @@ class FirestoreService {
 
     try {
       await _waterParameters(userId, aquariumId).doc(paramId).delete();
+    } catch (error) {
+      throw FirestoreServiceException(_messageFor(error));
+    }
+  }
+
+  Future<void> addLivestockItem(
+    String aquariumId, {
+    required String namePl,
+    required String nameLatin,
+    required String category,
+    required int count,
+    required String phRange,
+    required String tempRange,
+    required int minTankVolume,
+    String? photoUrl,
+  }) async {
+    final userId = _requireUserId();
+    if (aquariumId.trim().isEmpty) {
+      throw const FirestoreServiceException(
+        'Nie wybrano akwarium do dodania obsady.',
+      );
+    }
+
+    try {
+      await _livestock(userId, aquariumId).add({
+        'namePl': namePl,
+        'nameLatin': nameLatin,
+        'category': category,
+        'count': count,
+        'phRange': phRange,
+        'tempRange': tempRange,
+        'minTankVolume': minTankVolume,
+        'addedAt': FieldValue.serverTimestamp(),
+        'photoUrl': ?photoUrl,
+      });
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
     }
