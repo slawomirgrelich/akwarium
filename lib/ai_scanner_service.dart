@@ -36,10 +36,18 @@ class AiScanResult {
         polishName: _requiredText(json['namePl'], 'namePl'),
         latinName: _requiredText(json['nameLatin'], 'nameLatin'),
         type: _requiredText(json['category'], 'category'),
-        temperature: _rangeText(json['tempRange']),
-        ph: _rangeText(json['phRange']),
-        minimumVolume: _number(json['minTankVolume']),
-        difficulty: _requiredText(json['difficulty'], 'difficulty'),
+        temperature: _rangeText(
+          json['tempRange'] ?? json['temp'],
+          fallback: '22 - 26',
+        ),
+        ph: _rangeText(
+          json['phRange'] ?? json['ph'],
+          fallback: '6.5 - 7.5',
+        ),
+        minimumVolume: _numberOrDefault(
+          json['minTankVolume'] ?? json['tankSize'],
+        ),
+        difficulty: _textOrFallback(json['difficulty'], 'Łatwy'),
         description: _requiredText(json['description'], 'description'),
         compatibility: 'Wynik wygenerowany przez Gemini Vision.',
       );
@@ -49,10 +57,10 @@ class AiScanResult {
       polishName: _requiredText(json['nazwa_polska'], 'nazwa_polska'),
       latinName: _requiredText(json['nazwa_lacinska'], 'nazwa_lacinska'),
       type: _requiredText(json['typ'], 'typ'),
-      temperature: _rangeText(requirements['temperatura']),
-      ph: _rangeText(requirements['pH'] ?? requirements['ph']),
-      minimumVolume: _number(requirements['min_pojemnosc_akwarium']),
-      difficulty: _requiredText(requirements['poziom_trudnosci'], 'poziom_trudnosci'),
+      temperature: _rangeText(requirements['temperatura'], fallback: '22 - 26'),
+      ph: _rangeText(requirements['pH'] ?? requirements['ph'], fallback: '6.5 - 7.5'),
+      minimumVolume: _numberOrDefault(requirements['min_pojemnosc_akwarium']),
+      difficulty: _textOrFallback(requirements['poziom_trudnosci'], 'Łatwy'),
       description: _requiredText(json['opis'], 'opis'),
       compatibility: _requiredText(json['zgodnosc'], 'zgodnosc'),
     );
@@ -116,6 +124,9 @@ class AiScannerService {
                 ],
               },
             ],
+            'generationConfig': {
+              'response_mime_type': 'application/json',
+            },
           }),
         ).timeout(const Duration(seconds: 45));
         if (response.statusCode != 200) {
@@ -140,8 +151,9 @@ class AiScannerService {
         if (text.isEmpty) {
           throw const AiScannerException('Gemini nie zwróciło wyniku analizy.');
         }
+        final cleanedText = text.replaceAll(RegExp(r'```json|```'), '').trim();
         return AiScanResult.fromJson(
-          Map<String, dynamic>.from(jsonDecode(_stripJsonMarkdown(text)) as Map),
+          Map<String, dynamic>.from(jsonDecode(cleanedText) as Map),
         );
       } on TimeoutException {
         throw const AiScannerException('Analiza Gemini trwała zbyt długo.');
@@ -154,17 +166,16 @@ class AiScannerService {
     throw const AiScannerException('Gemini nie zwróciło wyniku analizy.');
   }
 
-  static String _stripJsonMarkdown(String text) {
-    if (text.startsWith('```')) {
-      return text
-          .replaceFirst(RegExp(r'^```(?:json)?\s*'), '')
-          .replaceFirst(RegExp(r'\s*```$'), '')
-          .trim();
-    }
-    return text;
-  }
-
-  static const _geminiPrompt = 'Przeanalizuj to zdjęcie akwarystyczne. Rozpoznaj gatunek ryby, rośliny, bezkręgowca lub ewentualną chorobę. Zwróć wynik w formacie JSON z polami: namePl, nameLatin, category, description, phRange, tempRange, difficulty, minTankVolume.';
+  static const _geminiPrompt = '''Przeanalizuj to zdjęcie akwarystyczne. Zwróć WYŁĄCZNIE poprawny JSON bez żadnego dodatkowego tekstu ani znaczników markdown codeblock.
+Wymagane pola w JSON:
+- namePl (String, nazwa polska)
+- nameLatin (String, nazwa łacińska)
+- category (String, np. Ryba, Roślina, Bezkręgowiec)
+- description (String, krótki opis)
+- phRange (String, np. '6.0 - 7.5')
+- tempRange (String, np. '22 - 28')
+- difficulty (String, np. Łatwy, Średni, Trudny)
+- minTankVolume (int lub String, np. 50)''';
 }
 
 class MockAiScannerService {
@@ -201,10 +212,19 @@ String _requiredText(dynamic value, String field) {
   return text;
 }
 
-String _rangeText(dynamic value) {
+String _rangeText(dynamic value, {String fallback = 'Brak danych'}) {
+  if (value is String && value.trim().isNotEmpty) return value.trim();
   final range = _asMap(value);
-  if (range.isEmpty) return 'Brak danych';
-  return '${range['min'] ?? '?'}-${range['max'] ?? '?'}';
+  if (range.isEmpty) return fallback;
+  return '${range['min'] ?? '?'} - ${range['max'] ?? '?'}';
 }
 
-int _number(dynamic value) => value is num ? value.round() : int.tryParse('$value') ?? 0;
+String _textOrFallback(Object? value, String fallback) {
+  final text = value?.toString().trim() ?? '';
+  return text.isEmpty ? fallback : text;
+}
+
+int _numberOrDefault(Object? value) {
+  final parsed = value is num ? value.toInt() : int.tryParse('$value') ?? 0;
+  return parsed > 0 ? parsed : 50;
+}
