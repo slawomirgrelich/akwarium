@@ -662,6 +662,30 @@ abstract class AppLocalizations {
   /// **'Notatka'**
   String get note;
 
+  /// No description provided for @newActivity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowa czynność'**
+  String get newActivity;
+
+  /// No description provided for @title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tytuł'**
+  String get title;
+
+  /// No description provided for @activityType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Typ czynności'**
+  String get activityType;
+
+  /// No description provided for @waterReplaced.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podmieniona woda'**
+  String get waterReplaced;
+
   /// No description provided for @liters.
   ///
   /// In pl, this message translates to:

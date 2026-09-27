@@ -356,7 +356,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
             Card(
               color: _surface,
               child: TableCalendar<AquariumTask>(
-                locale: 'pl_PL',
+                locale: Localizations.localeOf(context).languageCode,
                 firstDay: DateTime.utc(2020),
                 lastDay: DateTime.utc(2035),
                 focusedDay: _focusedDay,

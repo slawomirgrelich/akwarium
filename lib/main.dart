@@ -49,6 +49,7 @@ Future<void> main() async {
   }
 
   final preferences = await SharedPreferences.getInstance();
+  await initializeDateFormatting('en_US', null);
   await initializeDateFormatting('pl_PL', null);
   runApp(
     AkwarystaProApp(firebaseReady: firebaseReady, proPreferences: preferences),

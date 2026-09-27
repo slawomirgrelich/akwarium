@@ -317,6 +317,18 @@ class AppLocalizationsPl extends AppLocalizations {
   String get note => 'Notatka';
 
   @override
+  String get newActivity => 'Nowa czynność';
+
+  @override
+  String get title => 'Tytuł';
+
+  @override
+  String get activityType => 'Typ czynności';
+
+  @override
+  String get waterReplaced => 'Podmieniona woda';
+
+  @override
   String get liters => 'litrów';
 
   @override

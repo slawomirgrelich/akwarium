@@ -452,7 +452,7 @@ class _CalendarTab extends StatelessWidget {
               builder: (context) {
                 try {
                   return TableCalendar<ReminderModel>(
-                    locale: 'pl_PL',
+                    locale: Localizations.localeOf(context).languageCode,
                     firstDay: DateTime.utc(2020),
                     lastDay: DateTime.utc(2035),
                     focusedDay: focusedDay,
@@ -627,19 +627,19 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Nowa czynność'),
+      title: Text(l10n.newActivity),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _title,
-              decoration: const InputDecoration(labelText: 'Tytuł'),
+              decoration: InputDecoration(labelText: l10n.title),
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<JournalEntryType>(
               initialValue: _type,
-              decoration: const InputDecoration(labelText: 'Typ czynności'),
+              decoration: InputDecoration(labelText: l10n.activityType),
               items: JournalEntryType.values
                   .map(
                     (type) => DropdownMenuItem(
@@ -655,8 +655,8 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
               TextField(
                 controller: _percentage,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Podmieniona woda',
+                decoration: InputDecoration(
+                  labelText: l10n.waterReplaced,
                   suffixText: '%',
                 ),
               ),
@@ -665,7 +665,7 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
             TextField(
               controller: _notes,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Notatka'),
+              decoration: InputDecoration(labelText: l10n.note),
             ),
           ],
         ),
@@ -673,9 +673,9 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Anuluj'),
+          child: Text(l10n.cancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Zapisz')),
+        FilledButton(onPressed: _save, child: Text(l10n.save)),
       ],
     );
   }

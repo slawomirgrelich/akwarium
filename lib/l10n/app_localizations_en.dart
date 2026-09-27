@@ -316,6 +316,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get note => 'Note';
 
   @override
+  String get newActivity => 'New activity';
+
+  @override
+  String get title => 'Title';
+
+  @override
+  String get activityType => 'Activity type';
+
+  @override
+  String get waterReplaced => 'Water replaced';
+
+  @override
   String get liters => 'liters';
 
   @override
