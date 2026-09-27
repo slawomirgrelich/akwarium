@@ -64,61 +64,17 @@ class AiScannerService {
       : _client = client ?? http.Client(),
         apiKeyOverride = apiKey;
 
-  static const endpoint = String.fromEnvironment('AI_SCANNER_ENDPOINT');
   static const defaultApiKey = String.fromEnvironment('GEMINI_API_KEY');
   static const modelName = 'gemini-1.5-flash';
-  static const fallbackModelName = 'gemini-1.5-pro';
+  static const fallbackModelName = 'gemini-2.0-flash-exp';
   final http.Client _client;
   final String? apiKeyOverride;
 
   Future<AiScanResult> analyze(Uint8List imageBytes, String mimeType) async {
-    if (endpoint.isEmpty) {
-      return _analyzeWithGemini(imageBytes, mimeType);
-    }
-
-    late final http.Response response;
-    try {
-      response = await _client
-          .post(
-            Uri.parse(endpoint),
-            headers: const {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'image_base64': base64Encode(imageBytes),
-              'mime_type': mimeType,
-              'system_prompt': _systemPrompt,
-            }),
-          )
-          .timeout(const Duration(seconds: 45));
-    } on http.ClientException {
-      throw const AiScannerException('Brak połączenia z serwerem analizy.');
-    } on TimeoutException {
-      throw const AiScannerException('Serwer analizy nie odpowiedział na czas.');
-    }
-
-    if (response.statusCode == 422) {
-      throw const AiScannerException('Nie rozpoznano gatunku. Wybierz wyraźniejsze zdjęcie organizmu.');
-    }
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw AiScannerException('Serwer analizy zwrócił błąd (${response.statusCode}).');
-    }
-
-    try {
-      final decoded = jsonDecode(response.body);
-      final payload = decoded is Map<String, dynamic> && decoded['result'] is Map
-          ? Map<String, dynamic>.from(decoded['result'] as Map)
-          : Map<String, dynamic>.from(decoded as Map);
-      return AiScanResult.fromJson(payload);
-    } on FormatException {
-      throw const AiScannerException('Odpowiedź serwera ma nieprawidłowy format.');
-    } on TypeError {
-      throw const AiScannerException('Odpowiedź serwera nie zawiera danych gatunku.');
-    }
+    return _analyzeWithGemini(imageBytes);
   }
 
-  Future<AiScanResult> _analyzeWithGemini(
-    Uint8List imageBytes,
-    String mimeType,
-  ) async {
+  Future<AiScanResult> _analyzeWithGemini(Uint8List imageBytes) async {
     final environmentApiKey = defaultApiKey.trim();
     final preferences = await SharedPreferences.getInstance();
     final storedApiKey = preferences.getString('gemini_api_key')?.trim() ?? '';
@@ -132,10 +88,9 @@ class AiScannerService {
     String? lastError;
     for (final selectedModel in [modelName, fallbackModelName]) {
       try {
-        final uri = Uri.https(
-          'generativelanguage.googleapis.com',
-          '/v1beta/models/$selectedModel:generateContent',
-          {'key': apiKey},
+        final uri = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1beta/models/'
+          '$selectedModel:generateContent?key=$apiKey',
         );
         final response = await _client.post(
           uri,
@@ -147,7 +102,7 @@ class AiScannerService {
                   {'text': _geminiPrompt},
                   {
                     'inline_data': {
-                      'mime_type': mimeType,
+                      'mime_type': 'image/jpeg',
                       'data': base64Encode(imageBytes),
                     },
                   },
@@ -200,7 +155,6 @@ class AiScannerService {
     return text;
   }
 
-  static const _systemPrompt = '''Jesteś ekspertem akwarystyki. Rozpoznaj rybę, roślinę lub inny organizm na zdjęciu. Zwróć wyłącznie poprawny JSON bez markdownu, dokładnie w schemacie: {"nazwa_polska":"...","nazwa_lacinska":"...","typ":"ryba|roślina|inne","wymagania":{"temperatura":{"min":0,"max":0},"pH":{"min":0,"max":0},"min_pojemnosc_akwarium":0,"poziom_trudnosci":"Łatwy|Średni|Trudny"},"opis":"...","zgodnosc":"..."}. Jeśli nie da się rozpoznać organizmu, zwróć błąd HTTP 422. Nie zgaduj pewnego gatunku bez zaznaczenia tego w opisie.''';
   static const _geminiPrompt = '''Przeanalizuj to zdjęcie akwarystyczne. Rozpoznaj gatunek ryby, rośliny, bezkręgowca lub ewentualną chorobę. Zwróć wynik wyłącznie jako poprawny JSON z polami: namePl, nameLatin, category, description, phRange, tempRange, difficulty, minTankVolume. Zakresy phRange i tempRange zwróć jako obiekty z polami min i max. category ustaw jako fish, plant, invertebrate lub disease. Wszystkie wartości tekstowe, w tym description i difficulty, napisz po polsku. Jeśli nie da się wiarygodnie rozpoznać obiektu, wpisz niepewność w description i podaj ostrożne zakresy.''';
 }
 
