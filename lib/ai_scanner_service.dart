@@ -67,7 +67,7 @@ class AiScannerService {
 
   static const endpoint = String.fromEnvironment('AI_SCANNER_ENDPOINT');
   static const defaultApiKey = String.fromEnvironment('GEMINI_API_KEY');
-  static const modelName = 'gemini-1.5-flash';
+  static const modelName = 'gemini-1.5-flash-latest';
   final http.Client _client;
   final String? apiKeyOverride;
 
