@@ -53249,7 +53249,7 @@ if(!b6)a0=b4
 else a0=b7
 l=a0
 if(J.biL(l).length===0)throw A.f(B.Wk)
-k=A.b(["https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+A.l(l),"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key="+A.l(l)],t.s)
+k=A.b(["https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key="+A.l(l),"https://generativelanguage.googleapis.com/v1/models/gemini-3.8-flash:generateContent?key="+A.l(l)],t.s)
 b6=k,a1=b6.length,a2=n.a,a3=t.N,a4=t.GU,a5=t.Mq,a6=t.JD,a7=t.lU,a8=t.iU,a9=0
 case 4:if(!(a9<b6.length)){s=6
 break}j=b6[a9]

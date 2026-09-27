@@ -87,11 +87,11 @@ class AiScannerService {
     }
     final url =
         'https://generativelanguage.googleapis.com/v1beta/models/'
-        'gemini-1.5-flash:generateContent?key=$apiKey';
+        'gemini-3.8-flash:generateContent?key=$apiKey';
     final requestUrls = [
       url,
-      'https://generativelanguage.googleapis.com/v1beta/models/'
-        'gemini-2.0-flash:generateContent?key=$apiKey',
+      'https://generativelanguage.googleapis.com/v1/models/'
+        'gemini-3.8-flash:generateContent?key=$apiKey',
     ];
     for (final requestUrl in requestUrls) {
       try {
