@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
-import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AiScanResult {
@@ -120,44 +119,85 @@ class AiScannerService {
     Uint8List imageBytes,
     String mimeType,
   ) async {
-    final preferences = await SharedPreferences.getInstance();
     final environmentApiKey = defaultApiKey.trim();
+    final preferences = await SharedPreferences.getInstance();
+    final storedApiKey = preferences.getString('gemini_api_key')?.trim() ?? '';
+    final usesStoredApiKey = environmentApiKey.isEmpty && apiKeyOverride == null && storedApiKey.isNotEmpty;
     final apiKey = environmentApiKey.isNotEmpty
-      ? environmentApiKey
-      : apiKeyOverride ?? preferences.getString('gemini_api_key') ?? '';
+        ? environmentApiKey
+        : apiKeyOverride?.trim() ?? storedApiKey;
     if (apiKey.trim().isEmpty) {
       throw const AiScannerException('Ustaw klucz API Gemini w profilu aplikacji.');
     }
-    GenerativeAIException? lastModelError;
+    String? lastError;
     for (final selectedModel in [modelName, fallbackModelName]) {
       try {
-        final model = GenerativeModel(
-          model: selectedModel,
-          apiKey: apiKey,
-          generationConfig: GenerationConfig(
-            responseMimeType: 'application/json',
-            temperature: 0.2,
-          ),
+        final uri = Uri.https(
+          'generativelanguage.googleapis.com',
+          '/v1beta/models/$selectedModel:generateContent',
+          {'key': apiKey},
         );
-        final response = await model.generateContent([
-          Content.multi([
-            TextPart(_geminiPrompt),
-            DataPart(mimeType, imageBytes),
-          ]),
-        ]).timeout(const Duration(seconds: 45));
-        final text = response.text?.trim();
-        if (text == null || text.isEmpty) {
+        final response = await _client.post(
+          uri,
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'contents': [
+              {
+                'parts': [
+                  {'text': _geminiPrompt},
+                  {
+                    'inline_data': {
+                      'mime_type': mimeType,
+                      'data': base64Encode(imageBytes),
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+        ).timeout(const Duration(seconds: 45));
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          if (response.statusCode == 404 && usesStoredApiKey) {
+            await preferences.remove('gemini_api_key');
+          }
+          lastError = 'HTTP ${response.statusCode}';
+          continue;
+        }
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        final candidates = decoded['candidates'] as List<dynamic>? ?? const [];
+        final candidate = candidates.isEmpty
+            ? const <String, dynamic>{}
+            : Map<String, dynamic>.from(candidates.first as Map);
+        final content = Map<String, dynamic>.from(candidate['content'] as Map? ?? const {});
+        final parts = content['parts'] as List<dynamic>? ?? const [];
+        final text = parts.isEmpty ? '' : (parts.first as Map)['text']?.toString().trim() ?? '';
+        if (text.isEmpty) {
           throw const AiScannerException('Gemini nie zwróciło wyniku analizy.');
         }
-        final decoded = jsonDecode(text);
-        return AiScanResult.fromJson(Map<String, dynamic>.from(decoded as Map));
-      } on GenerativeAIException catch (error) {
-        lastModelError = error;
+        return AiScanResult.fromJson(
+          Map<String, dynamic>.from(jsonDecode(_stripJsonMarkdown(text)) as Map),
+        );
+      } on TimeoutException {
+        throw const AiScannerException('Analiza Gemini trwała zbyt długo.');
+      } on http.ClientException catch (error) {
+        lastError = error.message;
+      } on FormatException {
+        throw const AiScannerException('Gemini zwróciło nieprawidłowy format JSON.');
       }
     }
     throw AiScannerException(
-      'Gemini nie mogło przeanalizować zdjęcia: ${lastModelError?.message ?? 'brak dostępnego modelu'}',
+      'Gemini nie mogło przeanalizować zdjęcia: ${lastError ?? 'brak dostępnego modelu'}',
     );
+  }
+
+  static String _stripJsonMarkdown(String text) {
+    if (text.startsWith('```')) {
+      return text
+          .replaceFirst(RegExp(r'^```(?:json)?\s*'), '')
+          .replaceFirst(RegExp(r'\s*```$'), '')
+          .trim();
+    }
+    return text;
   }
 
   static const _systemPrompt = '''Jesteś ekspertem akwarystyki. Rozpoznaj rybę, roślinę lub inny organizm na zdjęciu. Zwróć wyłącznie poprawny JSON bez markdownu, dokładnie w schemacie: {"nazwa_polska":"...","nazwa_lacinska":"...","typ":"ryba|roślina|inne","wymagania":{"temperatura":{"min":0,"max":0},"pH":{"min":0,"max":0},"min_pojemnosc_akwarium":0,"poziom_trudnosci":"Łatwy|Średni|Trudny"},"opis":"...","zgodnosc":"..."}. Jeśli nie da się rozpoznać organizmu, zwróć błąd HTTP 422. Nie zgaduj pewnego gatunku bez zaznaczenia tego w opisie.''';

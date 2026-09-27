@@ -1689,6 +1689,10 @@ class ProfilePage extends StatelessWidget {
         ),
         actions: [
           TextButton(
+            onPressed: () => Navigator.pop(dialogContext, ''),
+            child: const Text('Użyj domyślnego klucza'),
+          ),
+          TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(AppLocalizations.of(context)!.cancel),
           ),
