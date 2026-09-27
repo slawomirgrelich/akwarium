@@ -988,7 +988,7 @@ class AquariumProvider extends ChangeNotifier {
           .collection('water_tests')
           .doc(test.id)
           .set(data);
-        await FirestoreSyncStatus.recordSuccessfulSync();
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (_) {
       // Lokalny zapis pozostaje źródłem danych offline.
     }

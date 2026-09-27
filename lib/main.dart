@@ -35,6 +35,7 @@ import 'screens/species_atlas_screen.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
 import 'services/firestore_service.dart';
+import 'services/firestore_sync_status.dart';
 import 'services/pro_access_service.dart';
 import 'services/theme_controller.dart';
 import 'services/locale_controller.dart';
@@ -1689,9 +1690,31 @@ class ProfilePage extends StatelessWidget {
           size: 36,
         ),
         title: const Text('Kopia w chmurze i synchronizacja'),
-        content: const Text(
-          'Twoje dane są bezpiecznie synchronizowane w chmurze',
-          textAlign: TextAlign.center,
+        content: FutureBuilder<DateTime?>(
+          future: FirestoreSyncStatus.getLastSuccessfulSync(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final syncedAt = snapshot.data;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Twoje dane są bezpiecznie synchronizowane w chmurze',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  syncedAt == null
+                      ? 'Ostatnia synchronizacja: brak zapisanych danych'
+                      : 'Ostatnia synchronizacja: ${_formatSyncDateTime(syncedAt)}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            );
+          },
         ),
         actions: [
           FilledButton(
@@ -2460,31 +2483,27 @@ class _ThemeModeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<ThemeController>();
+    final modeLabel = switch (controller.themeMode) {
+      ThemeMode.system => l10n.system,
+      ThemeMode.light => l10n.light,
+      ThemeMode.dark => l10n.dark,
+    };
     return Card(
       child: ListTile(
+        onTap: () => _showThemeModePicker(context, controller),
         leading: Icon(
           Icons.palette_outlined,
           color: Theme.of(context).colorScheme.primary,
         ),
         title: Text(l10n.theme, style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text('${l10n.system}, ${l10n.light}, ${l10n.dark}'),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton<ThemeMode>(
-            value: controller.themeMode,
-            isDense: true,
-            dropdownColor: Theme.of(context).cardColor,
-            onChanged: (mode) {
-              if (mode != null) controller.setThemeMode(mode);
-            },
-            items: [
-              DropdownMenuItem(
-                value: ThemeMode.system,
-                child: Text(l10n.system),
-              ),
-              DropdownMenuItem(value: ThemeMode.light, child: Text(l10n.light)),
-              DropdownMenuItem(value: ThemeMode.dark, child: Text(l10n.dark)),
-            ],
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(modeLabel),
+            const SizedBox(width: 4),
+            const Icon(Icons.expand_more),
+          ],
         ),
       ),
     );
@@ -2499,8 +2518,10 @@ class _LocaleTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final controller = context.watch<LocaleController>();
     final selected = controller.locale?.languageCode == 'en' ? 'en' : 'pl';
+    final languageLabel = selected == 'en' ? l10n.english : l10n.polish;
     return Card(
       child: ListTile(
+        onTap: () => _showLocalePicker(context, controller, selected),
         leading: Icon(
           Icons.language,
           color: Theme.of(context).colorScheme.primary,
@@ -2509,26 +2530,106 @@ class _LocaleTile extends StatelessWidget {
           l10n.language,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(selected == 'en' ? l10n.english : l10n.polish),
-        trailing: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: selected,
-            isDense: true,
-            dropdownColor: Theme.of(context).cardColor,
-            onChanged: (languageCode) {
-              if (languageCode != null) {
-                controller.setLocale(Locale(languageCode));
-              }
-            },
-            items: [
-              DropdownMenuItem(value: 'pl', child: Text(l10n.polish)),
-              DropdownMenuItem(value: 'en', child: Text(l10n.english)),
-            ],
-          ),
-        ),
+        subtitle: Text(languageLabel),
+        trailing: const Icon(Icons.expand_more),
       ),
     );
   }
+}
+
+Future<void> _showThemeModePicker(
+  BuildContext context,
+  ThemeController controller,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final selected = await showDialog<ThemeMode>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.theme),
+      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ModeOption(
+            title: l10n.system,
+            selected: controller.themeMode == ThemeMode.system,
+            onTap: () => Navigator.pop(dialogContext, ThemeMode.system),
+          ),
+          _ModeOption(
+            title: l10n.light,
+            selected: controller.themeMode == ThemeMode.light,
+            onTap: () => Navigator.pop(dialogContext, ThemeMode.light),
+          ),
+          _ModeOption(
+            title: l10n.dark,
+            selected: controller.themeMode == ThemeMode.dark,
+            onTap: () => Navigator.pop(dialogContext, ThemeMode.dark),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (selected != null) controller.setThemeMode(selected);
+}
+
+Future<void> _showLocalePicker(
+  BuildContext context,
+  LocaleController controller,
+  String currentLanguageCode,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final selected = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.language),
+      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ModeOption(
+            title: l10n.polish,
+            selected: currentLanguageCode == 'pl',
+            onTap: () => Navigator.pop(dialogContext, 'pl'),
+          ),
+          _ModeOption(
+            title: l10n.english,
+            selected: currentLanguageCode == 'en',
+            onTap: () => Navigator.pop(dialogContext, 'en'),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (selected != null) controller.setLocale(Locale(selected));
+}
+
+class _ModeOption extends StatelessWidget {
+  const _ModeOption({
+    required this.title,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    title: Text(title),
+    trailing: selected
+        ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+        : null,
+    onTap: onTap,
+  );
+}
+
+String _formatSyncDateTime(DateTime value) {
+  final day = value.day.toString().padLeft(2, '0');
+  final month = value.month.toString().padLeft(2, '0');
+  final hour = value.hour.toString().padLeft(2, '0');
+  final minute = value.minute.toString().padLeft(2, '0');
+  return '$day.$month.${value.year}, $hour:$minute';
 }
 
 class _ProCard extends StatelessWidget {

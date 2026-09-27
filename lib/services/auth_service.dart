@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'firestore_sync_status.dart';
+
 class AuthException implements Exception {
   const AuthException(this.message, {this.code});
 
@@ -134,6 +136,7 @@ class AuthService {
         'has_used_trial_v1': false,
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: false));
+      await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       debugPrint('Firestore user profile creation failed: $error');
     }
