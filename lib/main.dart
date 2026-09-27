@@ -828,6 +828,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   final _kh = TextEditingController();
   final _lightHours = TextEditingController(text: '8');
   final _picker = ImagePicker();
+  final _editedWaterFields = <String>{};
   String _selectedAlgae = _algaeValues.first;
   String _substrate = 'Żwirek / piasek';
   bool _hasCo2 = false;
@@ -840,15 +841,44 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   @override
   void initState() {
     super.initState();
-    final latest = context
-        .read<models.AquariumProvider>()
-        .waterTests
-        .firstOrNull;
+    final provider = context.read<models.AquariumProvider>();
+    final aquariumId = provider.activeAquariumId;
+    final latest = provider.waterTests.firstOrNull;
     _no3.text = _formatMeasurement(latest?.no3);
     _po4.text = _formatMeasurement(latest?.po4);
     _fe.text = _formatMeasurement(latest?.fe);
     _ph.text = _formatMeasurement(latest?.ph);
     _kh.text = _formatMeasurement(latest?.kh);
+    unawaited(_prefillLatestFirestoreMeasurement(aquariumId));
+  }
+
+  Future<void> _prefillLatestFirestoreMeasurement(String aquariumId) async {
+    try {
+      final measurements = await FirestoreService()
+          .getWaterParameters(aquariumId)
+          .first;
+      if (!mounted || measurements.isEmpty) return;
+      final latest = measurements.first;
+      setState(() {
+        if (!_editedWaterFields.contains('NO3')) {
+          _no3.text = _formatMeasurement(latest.no3);
+        }
+        if (!_editedWaterFields.contains('PO4')) {
+          _po4.text = _formatMeasurement(latest.po4);
+        }
+        if (!_editedWaterFields.contains('Fe')) {
+          _fe.text = _formatMeasurement(latest.fe);
+        }
+        if (!_editedWaterFields.contains('pH')) {
+          _ph.text = _formatMeasurement(latest.ph);
+        }
+        if (!_editedWaterFields.contains('KH')) {
+          _kh.text = _formatMeasurement(latest.kh);
+        }
+      });
+    } on Object catch (error) {
+      debugPrint('Nie udało się pobrać ostatnich parametrów wody: $error');
+    }
   }
 
   @override
@@ -1136,6 +1166,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
       child: TextField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        onChanged: (_) => _editedWaterFields.add(label),
         decoration: InputDecoration(labelText: label, suffixText: suffix),
       ),
     );

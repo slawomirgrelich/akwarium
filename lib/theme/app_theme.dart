@@ -32,6 +32,10 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: _lightScaffold,
       canvasColor: _lightSurface,
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        insetPadding: EdgeInsets.only(bottom: 80, left: 16, right: 16),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFFF9FBFB),
         foregroundColor: _lightOnSurface,
@@ -98,6 +102,10 @@ class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: _darkScaffold,
       canvasColor: _darkScaffold,
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        insetPadding: EdgeInsets.only(bottom: 80, left: 16, right: 16),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: _darkScaffold,
         foregroundColor: _darkOnSurface,
