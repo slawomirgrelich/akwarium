@@ -1881,7 +1881,10 @@ class _DashboardTankCard extends StatelessWidget {
       stream: DatabaseService().getTanksStream(userId),
       builder: (context, snapshot) {
         final tank = snapshot.data?.where((item) => item.id == aquarium.id).firstOrNull;
-        return _AquariumCard(aquarium: aquarium, imageUrl: tank?.imageUrl);
+        return _AquariumCard(
+          aquarium: aquarium,
+          imageUrl: tank?.effectiveCoverPhotoUrl,
+        );
       },
     );
   }

@@ -47,19 +47,33 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
           if (photos.isEmpty) {
             return const Center(child: Text('Dodaj pierwsze zdjęcie akwarium.'));
           }
-          return GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 240,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 0.86,
-            ),
-            itemCount: photos.length,
-            itemBuilder: (context, index) => _PhotoTile(
-              photo: photos[index],
-              onTap: () => _showDetails(userId, photos[index]),
-            ),
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                child: FilledButton.icon(
+                  onPressed: () => _openCompare(userId, photos),
+                  icon: const Icon(Icons.compare_arrows_outlined),
+                  label: const Text('Porównaj pierwsze i najnowsze zdjęcie'),
+                ),
+              ),
+              Expanded(
+                child: GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 240,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.86,
+                  ),
+                  itemCount: photos.length,
+                  itemBuilder: (context, index) => _PhotoTile(
+                    photo: photos[index],
+                    onTap: () => _showDetails(userId, photos[index]),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -129,7 +143,11 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
                             if (dialogContext.mounted) Navigator.pop(dialogContext);
                           },
                           icon: const Icon(Icons.photo_size_select_actual_outlined),
-                          label: Text(photo.isCoverPhoto ? 'Zdjęcie główne' : 'Ustaw jako główne'),
+                          label: Text(
+                            photo.isCoverPhoto
+                                ? 'Zdjęcie główne'
+                                : 'Ustaw jako okładkę akwarium',
+                          ),
                         ),
                         FilledButton.icon(
                           onPressed: () async {
@@ -151,8 +169,12 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
     );
   }
 
-  Future<void> _openCompare(String userId) async {
-    final photos = await _database.getTankPhotosStream(userId, widget.tankId).first;
+  Future<void> _openCompare(
+    String userId, [
+    List<TankPhoto>? selectedPhotos,
+  ]) async {
+    final photos = selectedPhotos ??
+        await _database.getTankPhotosStream(userId, widget.tankId).first;
     if (!mounted || photos.length < 2) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Potrzebujesz co najmniej dwóch zdjęć.')));
       return;
@@ -215,9 +237,9 @@ class _CompareScreenState extends State<_CompareScreen> {
         children: [
           Row(
             children: [
-              Expanded(child: _photoChoice('Wcześniej', _before, (photo) => setState(() => _before = photo))),
+              Expanded(child: _photoChoice('Wtedy', _before, (photo) => setState(() => _before = photo))),
               const SizedBox(width: 12),
-              Expanded(child: _photoChoice('Później', _after, (photo) => setState(() => _after = photo))),
+              Expanded(child: _photoChoice('Teraz', _after, (photo) => setState(() => _after = photo))),
             ],
           ),
           const SizedBox(height: 16),
@@ -235,6 +257,16 @@ class _CompareScreenState extends State<_CompareScreen> {
                   Align(
                     alignment: Alignment(_split * 2 - 1, 0),
                     child: Container(width: 2, color: Colors.white),
+                  ),
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: _DateBadge(label: 'Teraz', date: _after.createdAt),
+                  ),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: _DateBadge(label: 'Wtedy', date: _before.createdAt),
                   ),
                 ],
               ),
@@ -265,6 +297,28 @@ class _SplitClipper extends CustomClipper<Rect> {
   Rect getClip(Size size) => Rect.fromLTWH(0, 0, size.width * split, size.height);
   @override
   bool shouldReclip(_SplitClipper oldClipper) => oldClipper.split != split;
+}
+
+class _DateBadge extends StatelessWidget {
+  const _DateBadge({required this.label, required this.date});
+
+  final String label;
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.68),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: Text(
+            '$label: ${_formatDate(date)}',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
+        ),
+      );
 }
 
 String _formatDate(DateTime date) => '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';

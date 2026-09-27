@@ -8,6 +8,8 @@ class Tank {
     required this.dimensions,
     required this.createdAt,
     this.imageUrl,
+    this.coverPhotoUrl,
+    this.coverImagePath,
   });
 
   final String id;
@@ -16,6 +18,10 @@ class Tank {
   final String dimensions;
   final DateTime createdAt;
   final String? imageUrl;
+  final String? coverPhotoUrl;
+  final String? coverImagePath;
+
+  String? get effectiveCoverPhotoUrl => coverPhotoUrl ?? imageUrl;
 
   Map<String, dynamic> toFirestore() => {
         'id': id,
@@ -24,6 +30,8 @@ class Tank {
         'dimensions': dimensions,
         'createdAt': Timestamp.fromDate(createdAt),
         'imageUrl': imageUrl,
+        'coverPhotoUrl': coverPhotoUrl,
+        'coverImagePath': coverImagePath,
       };
 
   factory Tank.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot) {
@@ -35,6 +43,9 @@ class Tank {
       dimensions: _string(data['dimensions']),
       createdAt: _date(data['createdAt']) ?? DateTime.now(),
       imageUrl: _nullableString(data['imageUrl']),
+        coverPhotoUrl: _nullableString(data['coverPhotoUrl']) ??
+          _nullableString(data['imageUrl']),
+        coverImagePath: _nullableString(data['coverImagePath']),
     );
   }
 }

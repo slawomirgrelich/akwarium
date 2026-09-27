@@ -270,7 +270,11 @@ class DatabaseService {
     for (final document in snapshot.docs) {
       batch.update(document.reference, {'isCoverPhoto': document.id == photo.id});
     }
-    batch.update(_tanks(userId).doc(tankId), {'imageUrl': photo.photoUrl});
+    batch.update(_tanks(userId).doc(tankId), {
+      'imageUrl': photo.photoUrl,
+      'coverPhotoUrl': photo.photoUrl,
+      'coverImagePath': photo.storagePath,
+    });
     await batch.commit();
   }
 }
@@ -283,6 +287,8 @@ extension on Tank {
         dimensions: dimensions,
         createdAt: createdAt,
         imageUrl: imageUrl,
+        coverPhotoUrl: coverPhotoUrl,
+        coverImagePath: coverImagePath,
       );
 }
 
