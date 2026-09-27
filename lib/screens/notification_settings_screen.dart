@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
 import '../l10n/app_localizations.dart';
+import 'reminders_screen.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -135,6 +136,17 @@ class _NotificationSettingsScreenState
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: isProUser
+                ? () => Navigator.push<void>(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RemindersScreen()),
+                  )
+                : _showProRequiredDialog,
+            icon: const Icon(Icons.checklist_outlined),
+            label: const Text('Zarządzaj przypomnieniami zadań'),
           ),
           const SizedBox(height: 12),
           Text(

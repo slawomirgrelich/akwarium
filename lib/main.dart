@@ -28,6 +28,7 @@ import 'screens/calculators_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/notification_settings_screen.dart';
+import 'screens/reminders_screen.dart';
 import 'screens/species_atlas_screen.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
@@ -381,8 +382,14 @@ class DashboardPage extends StatelessWidget {
                   const TankSwitcher(),
                   IconButton(
                     tooltip: l10n.notifications,
-                    onPressed: () =>
-                        _showMessage(context, l10n.noNewNotifications),
+                    onPressed: context.read<ProAccessService>().isProUser
+                        ? () => Navigator.push<void>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const RemindersScreen(),
+                            ),
+                          )
+                        : () => _showMessage(context, l10n.noNewNotifications),
                     icon: const Icon(Icons.notifications_none),
                   ),
                 ],
@@ -390,8 +397,10 @@ class DashboardPage extends StatelessWidget {
             ),
             _DashboardTankCard(aquarium: displayedAquarium),
             const SizedBox(height: 20),
-            const FirestoreRemindersWidget(),
-            const SizedBox(height: 20),
+            if (context.watch<ProAccessService>().isProUser) ...[
+              const FirestoreRemindersWidget(),
+              const SizedBox(height: 20),
+            ],
             _SectionHeader(title: l10n.aquariumStatus),
             const SizedBox(height: 12),
             Row(
