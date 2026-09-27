@@ -95,7 +95,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addNewAquarium => 'Add new aquarium';
 
   @override
-  String get freePlan => 'Free plan: up to 3 aquariums';
+  String get freePlan => 'Free plan: 1 aquarium';
 
   @override
   String get proPlan => 'PRO plan: unlimited aquariums';

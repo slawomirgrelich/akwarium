@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -379,7 +380,8 @@ class DashboardPage extends StatelessWidget {
                                 builder: (_) => const RemindersScreen(),
                               ),
                             )
-                          : () => _showMessage(context, l10n.noNewNotifications),
+                          : () =>
+                                _showMessage(context, l10n.noNewNotifications),
                       icon: const Icon(Icons.notifications_none),
                     ),
                   ],
@@ -717,7 +719,9 @@ class ToolsPage extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => SpeciesAtlasScreen(
-                      tankId: context.read<models.AquariumProvider>().activeAquariumId,
+                      tankId: context
+                          .read<models.AquariumProvider>()
+                          .activeAquariumId,
                       onCreateAquarium: () => showCreateAquariumDialog(context),
                     ),
                   ),
@@ -1574,8 +1578,9 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final proService = context.watch<ProAccessService>();
-    final activeAquarium =
-      context.watch<models.AquariumProvider>().selectedAquarium;
+    final activeAquarium = context
+        .watch<models.AquariumProvider>()
+        .selectedAquarium;
     if (proService.trialExpired) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted || !proService.consumeTrialExpired()) return;
@@ -1597,6 +1602,28 @@ class ProfilePage extends StatelessWidget {
             const _ProfileDisplayNameTile(),
             const SizedBox(height: 12),
             const _ProCard(),
+            if (kDebugMode) ...[
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  try {
+                    await proService.toggleProStatus();
+                  } on Object catch (error) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Nie udało się zmienić PRO: $error'),
+                        ),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.toggle_on_outlined),
+                label: Text(
+                  'Przełącz status PRO (test): ${proService.isProUser ? 'włączony' : 'wyłączony'}',
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             const _SectionHeader(title: 'Aktywne akwarium'),
             const SizedBox(height: 12),
@@ -1646,7 +1673,8 @@ class ProfilePage extends StatelessWidget {
             _SettingsTile(
               icon: Icons.cloud_sync_outlined,
               title: 'Kopia w chmurze i synchronizacja',
-              subtitle: 'Automatyczny zapis i tworzenie kopii zapasowej w chmurze',
+              subtitle:
+                  'Automatyczny zapis i tworzenie kopii zapasowej w chmurze',
               onTap: () => _showCloudSyncDialog(context),
             ),
             const SizedBox(height: 10),
@@ -1996,9 +2024,18 @@ class _AquariumCard extends StatelessWidget {
                 ? Container(
                     padding: const EdgeInsets.all(13),
                     color: theme.colorScheme.primary.withAlpha(35),
-                    child: Icon(Icons.water, color: theme.colorScheme.primary, size: 28),
+                    child: Icon(
+                      Icons.water,
+                      color: theme.colorScheme.primary,
+                      size: 28,
+                    ),
                   )
-                : Image.network(imageUrl!, width: 66, height: 66, fit: BoxFit.cover),
+                : Image.network(
+                    imageUrl!,
+                    width: 66,
+                    height: 66,
+                    fit: BoxFit.cover,
+                  ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -2043,7 +2080,9 @@ class _DashboardTankCard extends StatelessWidget {
     return StreamBuilder<List<Tank>>(
       stream: DatabaseService().getTanksStream(userId),
       builder: (context, snapshot) {
-        final tank = snapshot.data?.where((item) => item.id == aquarium.id).firstOrNull;
+        final tank = snapshot.data
+            ?.where((item) => item.id == aquarium.id)
+            .firstOrNull;
         return _AquariumCard(
           aquarium: aquarium,
           imageUrl: tank?.effectiveCoverPhotoUrl,
@@ -2410,8 +2449,8 @@ class _ToolCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showProBadge =
-        premium && !context.watch<ProAccessService>().isProUser;
+    final isProUser = context.watch<ProAccessService>().isProUser;
+    final showProBadge = premium && !isProUser;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -2443,7 +2482,12 @@ class _ToolCard extends StatelessWidget {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton(onPressed: onTap, child: Text(buttonLabel)),
+              child: OutlinedButton(
+                onPressed: premium && !isProUser
+                    ? () => ProPaywallDialog.show(context, headline: title)
+                    : onTap,
+                child: Text(buttonLabel),
+              ),
             ),
           ],
         ),
@@ -2507,13 +2551,14 @@ Future<void> _editProfileDisplayName(
 
   try {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw StateError('Zaloguj się, aby zmienić imię profilu.');
+    if (user == null)
+      throw StateError('Zaloguj się, aby zmienić imię profilu.');
     await user.updateDisplayName(name);
     await user.reload();
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Zapisano imię profilu: $name')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Zapisano imię profilu: $name')));
     }
   } on Object catch (error) {
     if (context.mounted) {
@@ -2741,7 +2786,7 @@ class _ProCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isProUser ? l10n.aquaristProActive : l10n.proName,
+                    isProUser ? l10n.aquaristProActive : l10n.freePlan,
                     style: TextStyle(
                       color: isDark
                           ? theme.colorScheme.onSurface
@@ -2899,7 +2944,8 @@ class _ScanResultCard extends StatelessWidget {
             Text(result.compatibility),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: () => _showAddToAquariumSheet(context, result, imageBytes),
+              onPressed: () =>
+                  _showAddToAquariumSheet(context, result, imageBytes),
               icon: const Icon(Icons.playlist_add),
               label: const Text('Dodaj do mojego akwarium / obsady'),
             ),
@@ -2916,9 +2962,9 @@ Future<void> _showAddToAquariumSheet(
   Uint8List imageBytes,
 ) async {
   if (FirebaseAuth.instance.currentUser == null) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Zaloguj się, aby dodać do obsady.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Zaloguj się, aby dodać do obsady.')),
+    );
     return;
   }
 
@@ -2963,9 +3009,8 @@ Future<void> _showAddToAquariumSheet(
     );
   } on FirestoreServiceException catch (error) {
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.message)));
     }
   }
 }
@@ -3017,8 +3062,9 @@ class _AquariumPickerSheet extends StatefulWidget {
 }
 
 class _AquariumPickerSheetState extends State<_AquariumPickerSheet> {
-  late final Future<List<AquariumModel>> _future =
-      FirestoreService().getAquariums().first;
+  late final Future<List<AquariumModel>> _future = FirestoreService()
+      .getAquariums()
+      .first;
   bool _autoSelected = false;
 
   @override
@@ -3075,7 +3121,9 @@ class _AquariumPickerSheetState extends State<_AquariumPickerSheet> {
                   (aquarium) => ListTile(
                     leading: const Icon(Icons.water_drop_outlined),
                     title: Text(aquarium.name),
-                    subtitle: Text('${aquarium.capacityLiters.toStringAsFixed(0)} l'),
+                    subtitle: Text(
+                      '${aquarium.capacityLiters.toStringAsFixed(0)} l',
+                    ),
                     onTap: () => Navigator.pop(context, aquarium),
                   ),
                 ),

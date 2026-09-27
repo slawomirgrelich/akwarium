@@ -2,9 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 import '../models/tank_photo.dart';
 import '../services/database_service.dart';
+import '../services/pro_access_service.dart';
+import '../widgets/pro_paywall_dialog.dart';
 
 class TankPhotoJournalScreen extends StatefulWidget {
   const TankPhotoJournalScreen({required this.tankId, super.key});
@@ -24,7 +27,9 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
   Widget build(BuildContext context) {
     final userId = _auth.currentUser?.uid;
     if (userId == null) {
-      return const Scaffold(body: Center(child: Text('Zaloguj się, aby zobaczyć zdjęcia.')));
+      return const Scaffold(
+        body: Center(child: Text('Zaloguj się, aby zobaczyć zdjęcia.')),
+      );
     }
     return Scaffold(
       appBar: AppBar(
@@ -41,12 +46,16 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
         stream: _database.getTankPhotosStream(userId, widget.tankId),
         builder: (context, snapshot) {
           final photos = snapshot.data ?? const <TankPhoto>[];
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) return const Center(child: Text('Nie udało się wczytać zdjęć.'));
+          if (snapshot.hasError)
+            return const Center(child: Text('Nie udało się wczytać zdjęć.'));
           if (photos.isEmpty) {
-            return const Center(child: Text('Dodaj pierwsze zdjęcie akwarium.'));
+            return const Center(
+              child: Text('Dodaj pierwsze zdjęcie akwarium.'),
+            );
           }
           return Column(
             children: [
@@ -89,6 +98,21 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
   Future<void> _addPhoto(String? userId) async {
     if (userId == null) return;
     try {
+      final isProUser = context.read<ProAccessService>().isProUser;
+      if (!isProUser) {
+        final photos = await _database
+            .getTankPhotosStream(userId, widget.tankId)
+            .first;
+        if (photos.length >= ProAccessService.freeTankPhotoLimit) {
+          if (mounted) {
+            await ProPaywallDialog.show(
+              context,
+              headline: 'Nielimitowany dziennik zdjęć',
+            );
+          }
+          return;
+        }
+      }
       final file = await _picker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 85,
@@ -144,8 +168,14 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
           decoration: const InputDecoration(labelText: 'Opcjonalny opis'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')),
-          FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('Zapisz')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Zapisz'),
+          ),
         ],
       ),
     );
@@ -161,7 +191,9 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              InteractiveViewer(child: Image.network(photo.photoUrl, fit: BoxFit.contain)),
+              InteractiveViewer(
+                child: Image.network(photo.photoUrl, fit: BoxFit.contain),
+              ),
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -169,17 +201,27 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
                   children: [
                     if (photo.caption.isNotEmpty) Text(photo.caption),
                     const SizedBox(height: 6),
-                    Text(_formatDate(photo.createdAt), style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      _formatDate(photo.createdAt),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       children: [
                         OutlinedButton.icon(
                           onPressed: () async {
-                            await _database.setCoverPhoto(userId, widget.tankId, photo);
-                            if (dialogContext.mounted) Navigator.pop(dialogContext);
+                            await _database.setCoverPhoto(
+                              userId,
+                              widget.tankId,
+                              photo,
+                            );
+                            if (dialogContext.mounted)
+                              Navigator.pop(dialogContext);
                           },
-                          icon: const Icon(Icons.photo_size_select_actual_outlined),
+                          icon: const Icon(
+                            Icons.photo_size_select_actual_outlined,
+                          ),
                           label: Text(
                             photo.isCoverPhoto
                                 ? 'Zdjęcie główne'
@@ -188,8 +230,13 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
                         ),
                         FilledButton.icon(
                           onPressed: () async {
-                            await _database.deleteTankPhoto(userId, widget.tankId, photo);
-                            if (dialogContext.mounted) Navigator.pop(dialogContext);
+                            await _database.deleteTankPhoto(
+                              userId,
+                              widget.tankId,
+                              photo,
+                            );
+                            if (dialogContext.mounted)
+                              Navigator.pop(dialogContext);
                           },
                           icon: const Icon(Icons.delete_outline),
                           label: const Text('Usuń'),
@@ -210,10 +257,16 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
     String userId, [
     List<TankPhoto>? selectedPhotos,
   ]) async {
-    final photos = selectedPhotos ??
+    final photos =
+        selectedPhotos ??
         await _database.getTankPhotosStream(userId, widget.tankId).first;
     if (!mounted || photos.length < 2) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Potrzebujesz co najmniej dwóch zdjęć.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Potrzebujesz co najmniej dwóch zdjęć.'),
+          ),
+        );
       return;
     }
     await Navigator.push<void>(
@@ -230,27 +283,36 @@ class _PhotoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: Image.network(photo.photoUrl, fit: BoxFit.cover)),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    if (photo.isCoverPhoto) const Icon(Icons.star, size: 16, color: Colors.amber),
-                    const SizedBox(width: 4),
-                    Expanded(child: Text(photo.caption.isEmpty ? _formatDate(photo.createdAt) : photo.caption, maxLines: 2, overflow: TextOverflow.ellipsis)),
-                  ],
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: Image.network(photo.photoUrl, fit: BoxFit.cover)),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                if (photo.isCoverPhoto)
+                  const Icon(Icons.star, size: 16, color: Colors.amber),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    photo.caption.isEmpty
+                        ? _formatDate(photo.createdAt)
+                        : photo.caption,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 }
 
 class _CompareScreen extends StatefulWidget {
@@ -274,9 +336,21 @@ class _CompareScreenState extends State<_CompareScreen> {
         children: [
           Row(
             children: [
-              Expanded(child: _photoChoice('Wtedy', _before, (photo) => setState(() => _before = photo))),
+              Expanded(
+                child: _photoChoice(
+                  'Wtedy',
+                  _before,
+                  (photo) => setState(() => _before = photo),
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _photoChoice('Teraz', _after, (photo) => setState(() => _after = photo))),
+              Expanded(
+                child: _photoChoice(
+                  'Teraz',
+                  _after,
+                  (photo) => setState(() => _after = photo),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -309,29 +383,47 @@ class _CompareScreenState extends State<_CompareScreen> {
               ),
             ),
           ),
-          Slider(value: _split, onChanged: (value) => setState(() => _split = value)),
-          Text('${_formatDate(_before.createdAt)}  →  ${_formatDate(_after.createdAt)}', textAlign: TextAlign.center),
+          Slider(
+            value: _split,
+            onChanged: (value) => setState(() => _split = value),
+          ),
+          Text(
+            '${_formatDate(_before.createdAt)}  →  ${_formatDate(_after.createdAt)}',
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
   }
 
-  Widget _photoChoice(String label, TankPhoto selected, ValueChanged<TankPhoto> onChanged) => DropdownButtonFormField<TankPhoto>(
-        initialValue: selected,
-        decoration: InputDecoration(labelText: label),
-        isExpanded: true,
-        items: widget.photos.map((photo) => DropdownMenuItem(value: photo, child: Text(_formatDate(photo.createdAt)))).toList(),
-        onChanged: (photo) {
-          if (photo != null) onChanged(photo);
-        },
-      );
+  Widget _photoChoice(
+    String label,
+    TankPhoto selected,
+    ValueChanged<TankPhoto> onChanged,
+  ) => DropdownButtonFormField<TankPhoto>(
+    initialValue: selected,
+    decoration: InputDecoration(labelText: label),
+    isExpanded: true,
+    items: widget.photos
+        .map(
+          (photo) => DropdownMenuItem(
+            value: photo,
+            child: Text(_formatDate(photo.createdAt)),
+          ),
+        )
+        .toList(),
+    onChanged: (photo) {
+      if (photo != null) onChanged(photo);
+    },
+  );
 }
 
 class _SplitClipper extends CustomClipper<Rect> {
   const _SplitClipper(this.split);
   final double split;
   @override
-  Rect getClip(Size size) => Rect.fromLTWH(0, 0, size.width * split, size.height);
+  Rect getClip(Size size) =>
+      Rect.fromLTWH(0, 0, size.width * split, size.height);
   @override
   bool shouldReclip(_SplitClipper oldClipper) => oldClipper.split != split;
 }
@@ -344,18 +436,22 @@ class _DateBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.68),
-          borderRadius: BorderRadius.circular(8),
+    decoration: BoxDecoration(
+      color: Colors.black.withValues(alpha: 0.68),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Text(
+        '$label: ${_formatDate(date)}',
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          child: Text(
-            '$label: ${_formatDate(date)}',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-          ),
-        ),
-      );
+      ),
+    ),
+  );
 }
 
-String _formatDate(DateTime date) => '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+String _formatDate(DateTime date) =>
+    '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';

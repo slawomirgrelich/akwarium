@@ -11,6 +11,8 @@ import 'screens/species_atlas_screen.dart';
 import 'screens/tank_stocking_screen.dart';
 import 'screens/tank_photo_journal_screen.dart';
 import 'services/firestore_service.dart';
+import 'services/pro_access_service.dart';
+import 'widgets/pro_paywall_dialog.dart';
 
 Future<void> showCreateAquariumDialog(BuildContext context) async {
   await showDialog<void>(
@@ -70,10 +72,7 @@ class TankSwitcher extends StatelessWidget {
         avatar: const Icon(Icons.water_drop_outlined, size: 18),
         label: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 150),
-          child: Text(
-            activeAquarium.name,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: Text(activeAquarium.name, overflow: TextOverflow.ellipsis),
         ),
       ),
     );
@@ -107,12 +106,12 @@ class AquariumManagementScreen extends StatelessWidget {
               final tankId = context.read<AquariumProvider>().activeAquariumId;
               Navigator.push<void>(
                 context,
-                  MaterialPageRoute(
-                    builder: (_) => SpeciesAtlasScreen(
-                      tankId: tankId,
-                      onCreateAquarium: () => showCreateAquariumDialog(context),
-                    ),
+                MaterialPageRoute(
+                  builder: (_) => SpeciesAtlasScreen(
+                    tankId: tankId,
+                    onCreateAquarium: () => showCreateAquariumDialog(context),
                   ),
+                ),
               );
             },
             icon: const Icon(Icons.menu_book_outlined),
@@ -123,7 +122,9 @@ class AquariumManagementScreen extends StatelessWidget {
               final tankId = context.read<AquariumProvider>().activeAquariumId;
               Navigator.push<void>(
                 context,
-                MaterialPageRoute(builder: (_) => TankPhotoJournalScreen(tankId: tankId)),
+                MaterialPageRoute(
+                  builder: (_) => TankPhotoJournalScreen(tankId: tankId),
+                ),
               );
             },
             icon: const Icon(Icons.photo_library_outlined),
@@ -211,9 +212,10 @@ class _ManagementContentState extends State<_ManagementContent>
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: _livestockStream,
       builder: (context, stockSnapshot) {
-        final inhabitants = (stockSnapshot.data ?? const <Map<String, dynamic>>[])
-            .map((entry) => _inhabitantFromFirestore(entry, aquariumId))
-            .toList(growable: false);
+        final inhabitants =
+            (stockSnapshot.data ?? const <Map<String, dynamic>>[])
+                .map((entry) => _inhabitantFromFirestore(entry, aquariumId))
+                .toList(growable: false);
         final query = _search.text.toLowerCase();
         final filtered = inhabitants.where((item) {
           return '${item.name} ${item.latinName} ${item.notes ?? ''}'
@@ -232,68 +234,76 @@ class _ManagementContentState extends State<_ManagementContent>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-          if (stockSnapshot.hasError)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text(
-                'Nie udało się zsynchronizować obsady: ${stockSnapshot.error}',
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              if (stockSnapshot.hasError)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    'Nie udało się zsynchronizować obsady: ${stockSnapshot.error}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                )
+              else if (stockSnapshot.connectionState ==
+                      ConnectionState.waiting &&
+                  !stockSnapshot.hasData)
+                const LinearProgressIndicator(),
+              _TankProfileStrip(onAdd: widget.onAddAquarium),
+              const SizedBox(height: 16),
+              _StockingSummary(inhabitants: inhabitants),
+              const SizedBox(height: 18),
+              TextField(
+                controller: _search,
+                onChanged: (_) => setState(() {}),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.searchSpeciesOrVar,
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  filled: true,
+                  fillColor: Theme.of(context).cardColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).dividerColor,
+                    ),
+                  ),
+                ),
               ),
-            )
-          else if (stockSnapshot.connectionState == ConnectionState.waiting &&
-              !stockSnapshot.hasData)
-            const LinearProgressIndicator(),
-          _TankProfileStrip(onAdd: widget.onAddAquarium),
-          const SizedBox(height: 16),
-          _StockingSummary(inhabitants: inhabitants),
-          const SizedBox(height: 18),
-          TextField(
-            controller: _search,
-            onChanged: (_) => setState(() {}),
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-            decoration: InputDecoration(
-              hintText: AppLocalizations.of(context)!.searchSpeciesOrVar,
-              hintStyle: TextStyle(
-                color: Theme.of(context).textTheme.bodyMedium?.color,
+              const SizedBox(height: 12),
+              TabBar(
+                controller: _tabs,
+                indicatorColor: Theme.of(context).primaryColor,
+                labelColor: Theme.of(context).primaryColor,
+                unselectedLabelColor: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color,
+                tabs: [
+                  Tab(text: 'Fauna (${fauna.length})'),
+                  Tab(text: 'Flora (${flora.length})'),
+                ],
               ),
-              prefixIcon: Icon(
-                Icons.search,
-                color: Theme.of(context).primaryColor,
+              SizedBox(
+                height: 450,
+                child: _ManagementTabView(
+                  controller: _tabs,
+                  fauna: fauna,
+                  flora: flora,
+                ),
               ),
-              filled: true,
-              fillColor: Theme.of(context).cardColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Theme.of(context).dividerColor),
+              FilledButton.icon(
+                onPressed: widget.onAddInhabitant,
+                icon: const Icon(Icons.add),
+                label: const Text('Dodaj gatunek do obsady'),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TabBar(
-            controller: _tabs,
-            indicatorColor: Theme.of(context).primaryColor,
-            labelColor: Theme.of(context).primaryColor,
-            unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
-            tabs: [
-              Tab(text: 'Fauna (${fauna.length})'),
-              Tab(text: 'Flora (${flora.length})'),
-            ],
-          ),
-          SizedBox(
-            height: 450,
-            child: _ManagementTabView(
-              controller: _tabs,
-              fauna: fauna,
-              flora: flora,
-            ),
-          ),
-          FilledButton.icon(
-            onPressed: widget.onAddInhabitant,
-            icon: const Icon(Icons.add),
-            label: const Text('Dodaj gatunek do obsady'),
-          ),
             ],
           ),
         );
@@ -306,9 +316,10 @@ Inhabitant _inhabitantFromFirestore(
   Map<String, dynamic> data,
   String aquariumId,
 ) {
-  final rawCategory =
-      '${data['category'] ?? data['categoryLabel'] ?? ''}'.toLowerCase();
-  final isPlant = rawCategory.contains('flora') ||
+  final rawCategory = '${data['category'] ?? data['categoryLabel'] ?? ''}'
+      .toLowerCase();
+  final isPlant =
+      rawCategory.contains('flora') ||
       rawCategory.contains('plant') ||
       rawCategory.contains('roślin') ||
       rawCategory.contains('roslin');
@@ -486,14 +497,16 @@ class _TankProfileStrip extends StatelessWidget {
                   StreamBuilder<List<Map<String, dynamic>>>(
                     stream: FirestoreService().getLivestock(aquarium.id),
                     builder: (context, snapshot) {
-                      final count = (snapshot.data ?? const <Map<String, dynamic>>[])
-                          .fold<int>(
-                            0,
-                            (total, item) => total +
-                                (item['count'] is num
-                                    ? (item['count'] as num).toInt()
-                                    : 1),
-                          );
+                      final count =
+                          (snapshot.data ?? const <Map<String, dynamic>>[])
+                              .fold<int>(
+                                0,
+                                (total, item) =>
+                                    total +
+                                    (item['count'] is num
+                                        ? (item['count'] as num).toInt()
+                                        : 1),
+                              );
                       return Text(
                         '${AppLocalizations.of(context)!.daysCount(aquarium.ageInDays)} · ${AppLocalizations.of(context)!.inhabitantsCount(count)}',
                         style: TextStyle(
@@ -527,7 +540,7 @@ class _StockingSummary extends StatelessWidget {
     final activeAquarium = provider.selectedAquarium;
     final litersPerAnimal = animals == 0 || activeAquarium == null
         ? double.infinity
-      : activeAquarium.volumeNetLiters / animals;
+        : activeAquarium.volumeNetLiters / animals;
     final overloaded = litersPerAnimal < 2;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -672,9 +685,8 @@ class _InhabitantCard extends StatelessWidget {
             );
           } on Object catch (error) {
             if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(error.toString())),
-              );
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(error.toString())));
             }
           }
         },
@@ -783,6 +795,13 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) return;
     final provider = context.read<AquariumProvider>();
+    final isProUser = context.read<ProAccessService>().isProUser;
+    if (widget.initial == null &&
+        !isProUser &&
+        provider.aquariums.length >= ProAccessService.freeAquariumLimit) {
+      await ProPaywallDialog.show(context, headline: 'Nielimitowane akwaria');
+      return;
+    }
     final profile = AquariumProfile(
       id:
           widget.initial?.id ??
@@ -803,9 +822,8 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
       if (mounted) Navigator.pop(context);
     } on Object catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }
@@ -963,9 +981,8 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
       if (mounted) Navigator.pop(context);
     } on Object catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }

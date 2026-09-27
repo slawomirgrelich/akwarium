@@ -36,7 +36,7 @@ class ProBadge extends StatelessWidget {
   }
 }
 
-class ProPaywallDialog extends StatelessWidget {
+class ProPaywallDialog extends StatefulWidget {
   const ProPaywallDialog({this.headline, super.key});
 
   final String? headline;
@@ -49,12 +49,20 @@ class ProPaywallDialog extends StatelessWidget {
   }
 
   @override
+  State<ProPaywallDialog> createState() => _ProPaywallDialogState();
+}
+
+class _ProPaywallDialogState extends State<ProPaywallDialog> {
+  bool _yearlyPlanSelected = true;
+  bool _activating = false;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: Row(
         children: [
-          Expanded(child: Text(headline ?? l10n.proPaywallTitle)),
+          Expanded(child: Text(widget.headline ?? 'Odblokuj Akwarysta PRO')),
           const SizedBox(width: 8),
           const ProBadge(),
         ],
@@ -70,6 +78,14 @@ class ProPaywallDialog extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             _Benefit(icon: Icons.show_chart, text: l10n.featureUnlimitedCharts),
+            const _Benefit(
+              icon: Icons.water_drop_outlined,
+              text: 'Nielimitowane akwaria',
+            ),
+            const _Benefit(
+              icon: Icons.auto_awesome,
+              text: 'Skaner AI i diagnostyka',
+            ),
             _Benefit(
               icon: Icons.eco_outlined,
               text: l10n.featureFertilizerCalc,
@@ -82,6 +98,26 @@ class ProPaywallDialog extends StatelessWidget {
               icon: Icons.picture_as_pdf_outlined,
               text: l10n.featureExportPdf,
             ),
+            const _Benefit(
+              icon: Icons.photo_library_outlined,
+              text: 'Pełna historia zdjęć',
+            ),
+            const _Benefit(icon: Icons.block, text: 'Brak reklam'),
+            const SizedBox(height: 8),
+            _PlanTile(
+              title: 'Miesięczny',
+              price: '9,99 zł / miesiąc',
+              selected: !_yearlyPlanSelected,
+              onTap: () => setState(() => _yearlyPlanSelected = false),
+            ),
+            const SizedBox(height: 8),
+            _PlanTile(
+              title: 'Roczny',
+              price: '69,99 zł / rok',
+              badge: 'Najpopularniejszy',
+              selected: _yearlyPlanSelected,
+              onTap: () => setState(() => _yearlyPlanSelected = true),
+            ),
           ],
         ),
       ),
@@ -91,29 +127,116 @@ class ProPaywallDialog extends StatelessWidget {
           child: Text(l10n.maybeLater),
         ),
         FilledButton.icon(
-          onPressed: () async {
-            final proService = context.read<ProAccessService>();
-            final result = await proService.startFreeTrial();
-            final trialError = proService.lastTrialError;
-            if (!context.mounted) return;
-            Navigator.pop(context);
-            final message = switch (result) {
-              TrialActivationResult.activated =>
-                'Aktywowano 7-dniowy okres próbny Akwarysta PRO.',
-              TrialActivationResult.emailNotVerified =>
-                trialError ??
-                    'Potwierdź adres e-mail, aby aktywować okres próbny PRO.',
-              TrialActivationResult.temporaryEmail => 'Okres próbny nie jest dostępny dla tymczasowych adresów e-mail.',
-              TrialActivationResult.alreadyUsed => 'Darmowy 7-dniowy okres próbny został już wykorzystany. Wybierz płatny pakiet PRO.',
-              TrialActivationResult.unavailable => trialError ?? 'Nie udało się aktywować okresu próbnego. Spróbuj ponownie później.',
-            };
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(message)));
-          },
-          icon: const Icon(Icons.auto_awesome),
-          label: Text(l10n.trial7Days),
+          onPressed: _activating ? null : _activatePro,
+          icon: _activating
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.auto_awesome),
+          label: Text(_activating ? 'Aktywowanie…' : 'Wypróbuj PRO'),
         ),
       ],
+    );
+  }
+
+  Future<void> _activatePro() async {
+    setState(() => _activating = true);
+    try {
+      await context.read<ProAccessService>().setProUser(
+        true,
+        plan: _yearlyPlanSelected ? 'yearly' : 'monthly',
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aktywowany status Akwarysta PRO.')),
+      );
+    } on Object catch (error) {
+      if (mounted) {
+        setState(() => _activating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Nie udało się aktywować PRO: $error')),
+        );
+      }
+    }
+  }
+}
+
+class _PlanTile extends StatelessWidget {
+  const _PlanTile({
+    required this.title,
+    required this.price,
+    required this.selected,
+    required this.onTap,
+    this.badge,
+  });
+
+  final String title;
+  final String price;
+  final String? badge;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.outline;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: color, width: selected ? 2 : 1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: color,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  Text(price),
+                ],
+              ),
+            ),
+            if (badge != null)
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade700,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    badge!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

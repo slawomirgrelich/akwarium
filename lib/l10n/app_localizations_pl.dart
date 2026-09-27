@@ -94,7 +94,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get addNewAquarium => 'Dodaj nowe akwarium';
 
   @override
-  String get freePlan => 'Plan Free: do 3 zbiorników';
+  String get freePlan => 'Plan Free: 1 akwarium';
 
   @override
   String get proPlan => 'Plan PRO: nielimitowana liczba akwariów';

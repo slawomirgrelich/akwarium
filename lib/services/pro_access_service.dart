@@ -30,6 +30,8 @@ class ProAccessService extends ChangeNotifier {
   static const _hasUsedTrialFirestoreKey = 'has_used_trial_v1';
   static const _deviceIdKey = 'trial_device_id';
   static const _trialCollection = 'trial_registrations';
+  static const freeAquariumLimit = 1;
+  static const freeTankPhotoLimit = 5;
   static const _trialDuration = Duration(days: 7);
   static const _temporaryEmailDomains = <String>{
     '10minutemail.com',
@@ -52,6 +54,8 @@ class ProAccessService extends ChangeNotifier {
   final FirebaseFirestore? firestore;
   SharedPreferences? _loadedPreferences;
   StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+  _userDocumentSubscription;
   bool _trialExpired = false;
   String? _lastTrialError;
 
@@ -194,7 +198,7 @@ class ProAccessService extends ChangeNotifier {
     }
   }
 
-  Future<void> setProUser(bool value) async {
+  Future<void> setProUser(bool value, {String? plan}) async {
     final currentUser = _tryGetAuth()?.currentUser;
     final firestore = _tryGetFirestore();
     if (currentUser != null && firestore != null) {
@@ -202,6 +206,8 @@ class ProAccessService extends ChangeNotifier {
         'uid': currentUser.uid,
         'isPro': value,
         'subscriptionStatus': value ? 'pro' : 'free',
+        if (value && plan != null) 'subscriptionPlan': plan,
+        if (!value) 'subscriptionPlan': FieldValue.delete(),
         if (!value) 'trialEndsAt': FieldValue.delete(),
       }, SetOptions(merge: true));
     }
@@ -213,6 +219,8 @@ class ProAccessService extends ChangeNotifier {
     );
   }
 
+  Future<void> toggleProStatus() => setProUser(!isProUser);
+
   Future<void> activateFreeTrial() async {
     await startFreeTrial();
   }
@@ -220,10 +228,13 @@ class ProAccessService extends ChangeNotifier {
   @override
   void dispose() {
     unawaited(_authSubscription?.cancel());
+    unawaited(_userDocumentSubscription?.cancel());
     super.dispose();
   }
 
   Future<void> _syncUser(User? firebaseUser) async {
+    await _userDocumentSubscription?.cancel();
+    _userDocumentSubscription = null;
     final storedPreferences = await _getPreferences();
     if (firebaseUser == null) {
       await _applyStatus(uid: '', isPro: false, preferences: storedPreferences);
@@ -234,12 +245,13 @@ class ProAccessService extends ChangeNotifier {
     var isPro = false;
     var expiredTrial = false;
     final firestore = _tryGetFirestore();
+    DocumentReference<Map<String, dynamic>>? userReference;
     if (firestore != null) {
       try {
-        final reference = firestore.collection('users').doc(uid);
-        final document = await reference.get();
+        userReference = firestore.collection('users').doc(uid);
+        final document = await userReference.get();
         if (!document.exists) {
-          await reference.set({
+          await userReference.set({
             'uid': uid,
             'email': firebaseUser.email,
             'isPro': false,
@@ -251,19 +263,22 @@ class ProAccessService extends ChangeNotifier {
         } else {
           final data = document.data() ?? const <String, dynamic>{};
           final trialEndsAt = _readTimestamp(data['trialEndsAt']);
-          final subscriptionActive =
-              data['subscriptionStatus'] == 'active' ||
-              data['subscriptionStatus'] == 'pro';
+          final subscriptionStatus = data['subscriptionStatus'];
           final trialActive =
               trialEndsAt != null &&
               trialEndsAt.isAfter(DateTime.now().toUtc());
-          isPro = subscriptionActive || trialActive;
+          final explicitlyPro =
+              data['isPro'] == true ||
+              subscriptionStatus == 'active' ||
+              subscriptionStatus == 'pro';
+          isPro =
+              trialActive || (subscriptionStatus != 'trial' && explicitlyPro);
           expiredTrial =
-              data['subscriptionStatus'] == 'trial' &&
+              subscriptionStatus == 'trial' &&
               trialEndsAt != null &&
               !trialActive;
           if (expiredTrial) {
-            await reference.set({
+            await userReference.set({
               'isPro': false,
               'subscriptionStatus': 'free',
               'trialEndsAt': FieldValue.delete(),
@@ -278,6 +293,45 @@ class ProAccessService extends ChangeNotifier {
     if (_tryGetAuth()?.currentUser?.uid != uid) return;
     _trialExpired = expiredTrial;
     await _applyStatus(uid: uid, isPro: isPro, preferences: storedPreferences);
+    if (userReference != null) {
+      _listenToUserDocument(uid, userReference);
+    }
+  }
+
+  void _listenToUserDocument(
+    String uid,
+    DocumentReference<Map<String, dynamic>> reference,
+  ) {
+    _userDocumentSubscription?.cancel();
+    _userDocumentSubscription = reference.snapshots().listen(
+      (snapshot) {
+        if (_tryGetAuth()?.currentUser?.uid != uid) return;
+        final data = snapshot.data() ?? const <String, dynamic>{};
+        final status = data['subscriptionStatus'];
+        final trialEndsAt = _readTimestamp(data['trialEndsAt']);
+        final trialActive =
+            status == 'trial' &&
+            trialEndsAt != null &&
+            trialEndsAt.isAfter(DateTime.now().toUtc());
+        final isPro =
+            trialActive ||
+            (status != 'trial' &&
+                (data['isPro'] == true ||
+                    status == 'active' ||
+                    status == 'pro'));
+        _trialExpired =
+            status == 'trial' && trialEndsAt != null && !trialActive;
+        unawaited(
+          _applyStatus(
+            uid: uid,
+            isPro: isPro,
+            preferences: _loadedPreferences ?? preferences!,
+          ),
+        );
+      },
+      onError: (Object error) =>
+          debugPrint('Firestore PRO status listener failed: $error'),
+    );
   }
 
   bool _isTemporaryEmail(String email) {

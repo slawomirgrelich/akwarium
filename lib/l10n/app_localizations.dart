@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// No description provided for @freePlan.
   ///
   /// In pl, this message translates to:
-  /// **'Plan Free: do 3 zbiorników'**
+  /// **'Plan Free: 1 akwarium'**
   String get freePlan;
 
   /// No description provided for @proPlan.
