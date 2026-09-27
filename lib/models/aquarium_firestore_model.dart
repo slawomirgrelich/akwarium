@@ -94,6 +94,8 @@ class WaterParametersModel {
     required this.no3,
     required this.po4,
     required this.fe,
+    this.k = 0,
+    this.mg = 0,
     required this.temp,
     required this.notes,
   });
@@ -107,6 +109,8 @@ class WaterParametersModel {
   final double no3;
   final double po4;
   final double fe;
+  final double k;
+  final double mg;
   final double temp;
   final String notes;
 
@@ -120,6 +124,8 @@ class WaterParametersModel {
     double? no3,
     double? po4,
     double? fe,
+    double? k,
+    double? mg,
     double? temp,
     String? notes,
   }) {
@@ -133,6 +139,8 @@ class WaterParametersModel {
       no3: no3 ?? this.no3,
       po4: po4 ?? this.po4,
       fe: fe ?? this.fe,
+      k: k ?? this.k,
+      mg: mg ?? this.mg,
       temp: temp ?? this.temp,
       notes: notes ?? this.notes,
     );
@@ -149,6 +157,8 @@ class WaterParametersModel {
       'no3': no3,
       'po4': po4,
       'fe': fe,
+      'k': k,
+      'mg': mg,
       'temp': temp,
       'notes': notes,
     };
@@ -174,6 +184,8 @@ class WaterParametersModel {
       no3: _doubleFromValue(values['no3']),
       po4: _doubleFromValue(values['po4']),
       fe: _doubleFromValue(values['fe']),
+      k: _doubleFromValue(values['k']),
+      mg: _doubleFromValue(values['mg']),
       temp: _doubleFromValue(values['temp']),
       notes: _stringFromValue(values['notes']),
     );

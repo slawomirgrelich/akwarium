@@ -5,7 +5,9 @@ import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../services/firestore_service.dart';
 
-enum _ChartParameter { ph, no3, po4, temp, gh, kh }
+enum _ChartParameter { ph, no3, po4, temp, gh, kh, fe, k, mg }
+
+enum _ChartRange { days7, days30, days90, all }
 
 class WaterParametersChartScreen extends StatefulWidget {
   const WaterParametersChartScreen({required this.aquarium, super.key});
@@ -22,6 +24,7 @@ class _WaterParametersChartScreenState
   late final FirestoreService _service;
   late final Stream<List<WaterParametersModel>> _parametersStream;
   _ChartParameter _selected = _ChartParameter.ph;
+  _ChartRange _range = _ChartRange.all;
 
   @override
   void initState() {
@@ -65,8 +68,10 @@ class _WaterParametersChartScreenState
             aquarium: widget.aquarium,
             measurements: measurements,
             selected: _selected,
+            range: _range,
             onParameterChanged: (parameter) =>
                 setState(() => _selected = parameter),
+            onRangeChanged: (range) => setState(() => _range = range),
             onAddMeasurement: () => _openMeasurementForm(context),
           );
         },
@@ -94,23 +99,31 @@ class _ChartContent extends StatelessWidget {
     required this.aquarium,
     required this.measurements,
     required this.selected,
+    required this.range,
     required this.onParameterChanged,
     required this.onAddMeasurement,
+    required this.onRangeChanged,
   });
 
   final AquariumModel aquarium;
   final List<WaterParametersModel> measurements;
   final _ChartParameter selected;
+  final _ChartRange range;
   final ValueChanged<_ChartParameter> onParameterChanged;
+  final ValueChanged<_ChartRange> onRangeChanged;
   final VoidCallback onAddMeasurement;
 
   @override
   Widget build(BuildContext context) {
+    final measurementsInRange = _filterMeasurements(measurements, range);
+    final visibleMeasurements = measurementsInRange.isEmpty
+      ? measurements
+      : measurementsInRange;
     final standard = _standardFor(selected, aquarium.type);
-    final values = measurements
+    final values = visibleMeasurements
         .map((measurement) => _valueFor(measurement, selected))
         .toList();
-    final chronological = measurements.reversed.toList();
+    final chronological = visibleMeasurements.reversed.toList();
     final chronologicalValues = values.reversed.toList();
 
     return SafeArea(
@@ -126,11 +139,27 @@ class _ChartContent extends StatelessWidget {
                 const SizedBox(height: 16),
                 _QuickStatsCard(
                   parameter: selected,
-                  latest: measurements.first,
-                  previous: measurements.length > 1 ? measurements[1] : null,
+                  latest: visibleMeasurements.first,
+                  previous: visibleMeasurements.length > 1
+                      ? visibleMeasurements[1]
+                      : null,
                   standard: standard,
                 ),
                 const SizedBox(height: 20),
+                SegmentedButton<_ChartRange>(
+                  segments: _ChartRange.values
+                      .map(
+                        (range) => ButtonSegment(
+                          value: range,
+                          label: Text(_rangeLabel(range)),
+                        ),
+                      )
+                      .toList(),
+                  selected: {range},
+                  onSelectionChanged: (selection) =>
+                      onRangeChanged(selection.first),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'Wybierz parametr',
                   style: Theme.of(context).textTheme.titleMedium,
@@ -240,6 +269,17 @@ class _LineChart extends StatelessWidget {
           ),
         ),
         borderData: FlBorderData(show: false),
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (spots) => spots.map((spot) {
+              final measurement = measurements[spot.x.round()];
+              return LineTooltipItem(
+                '${_fullDate(measurement.timestamp)}\n${_formatNumber(spot.y)} ${standard.unit}',
+                const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              );
+            }).toList(),
+          ),
+        ),
         rangeAnnotations: RangeAnnotations(
           horizontalRangeAnnotations: [
             HorizontalRangeAnnotation(
@@ -295,12 +335,20 @@ class _LineChart extends StatelessWidget {
                 .map((entry) => FlSpot(entry.$1.toDouble(), entry.$2))
                 .toList(),
             isCurved: values.length > 2,
-            color: Colors.teal.shade700,
+            color: const Color(0xFF10B981),
             barWidth: 3,
-            dotData: FlDotData(show: values.length <= 12),
+            dotData: FlDotData(
+              show: values.length <= 24,
+              getDotPainter: (spot, _, _, index) => FlDotCirclePainter(
+                radius: 4,
+                color: _pointColor(spot.y, standard),
+                strokeWidth: 1.5,
+                strokeColor: Theme.of(context).colorScheme.surface,
+              ),
+            ),
             belowBarData: BarAreaData(
               show: true,
-              color: Colors.teal.withValues(alpha: 0.08),
+              color: const Color(0xFF10B981).withValues(alpha: 0.08),
             ),
           ),
         ],
@@ -351,6 +399,14 @@ class _QuickStatsCard extends StatelessWidget {
         ? 'Wzrost względem poprzedniego'
         : 'Spadek względem poprzedniego';
     final inRange = latestValue >= standard.min && latestValue <= standard.max;
+    final status = latestValue < standard.min
+      ? 'Poniżej zakresu'
+      : latestValue > standard.max
+      ? 'Powyżej zakresu'
+      : 'W zakresie';
+    final statusColor = inRange
+      ? const Color(0xFF10B981)
+      : const Color(0xFFF59E0B);
 
     return Card(
       color: inRange ? Colors.white : Colors.orange.shade50,
@@ -370,9 +426,7 @@ class _QuickStatsCard extends StatelessWidget {
                 const Spacer(),
                 Icon(
                   inRange ? Icons.check_circle_outline : Icons.warning_amber,
-                  color: inRange
-                      ? Colors.teal.shade700
-                      : Colors.orange.shade800,
+                  color: statusColor,
                 ),
               ],
             ),
@@ -404,6 +458,11 @@ class _QuickStatsCard extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Status: $status',
+              style: TextStyle(color: statusColor, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
             Text(
@@ -529,6 +588,8 @@ class _FirestoreWaterParametersFormScreenState
     'NO3': TextEditingController(),
     'PO4': TextEditingController(),
     'Fe': TextEditingController(),
+    'K': TextEditingController(),
+    'Mg': TextEditingController(),
     'Temperatura': TextEditingController(),
     'Notatka': TextEditingController(),
   };
@@ -652,6 +713,8 @@ class _FirestoreWaterParametersFormScreenState
           no3: _number('NO3'),
           po4: _number('PO4'),
           fe: _number('Fe'),
+          k: _number('K'),
+          mg: _number('Mg'),
           temp: _number('Temperatura'),
           notes: _controllers['Notatka']!.text.trim(),
         ),
@@ -780,7 +843,38 @@ _ChartStandard _standardFor(_ChartParameter parameter, String aquariumType) {
               chartMax: 12,
               unit: 'dKH',
             );
+    case _ChartParameter.fe:
+      return const _ChartStandard(
+        min: 0.05,
+        max: 0.2,
+        chartMin: 0,
+        chartMax: 0.5,
+        unit: 'mg/l',
+      );
+    case _ChartParameter.k:
+      return const _ChartStandard(
+        min: 5,
+        max: 15,
+        chartMin: 0,
+        chartMax: 25,
+        unit: 'mg/l',
+      );
+    case _ChartParameter.mg:
+      return const _ChartStandard(
+        min: 5,
+        max: 20,
+        chartMin: 0,
+        chartMax: 30,
+        unit: 'mg/l',
+      );
   }
+}
+
+Color _pointColor(double value, _ChartStandard standard) {
+  if (value >= standard.min && value <= standard.max) {
+    return const Color(0xFF10B981);
+  }
+  return const Color(0xFFF59E0B);
 }
 
 double _valueFor(WaterParametersModel measurement, _ChartParameter parameter) {
@@ -797,6 +891,12 @@ double _valueFor(WaterParametersModel measurement, _ChartParameter parameter) {
       return measurement.gh;
     case _ChartParameter.kh:
       return measurement.kh;
+    case _ChartParameter.fe:
+      return measurement.fe;
+    case _ChartParameter.k:
+      return measurement.k;
+    case _ChartParameter.mg:
+      return measurement.mg;
   }
 }
 
@@ -814,7 +914,43 @@ String _labelFor(_ChartParameter parameter) {
       return 'GH';
     case _ChartParameter.kh:
       return 'KH';
+    case _ChartParameter.fe:
+      return 'Fe';
+    case _ChartParameter.k:
+      return 'K';
+    case _ChartParameter.mg:
+      return 'Mg';
   }
+}
+
+String _rangeLabel(_ChartRange range) {
+  switch (range) {
+    case _ChartRange.days7:
+      return '7 dni';
+    case _ChartRange.days30:
+      return '30 dni';
+    case _ChartRange.days90:
+      return '90 dni';
+    case _ChartRange.all:
+      return 'Wszystko';
+  }
+}
+
+List<WaterParametersModel> _filterMeasurements(
+  List<WaterParametersModel> measurements,
+  _ChartRange range,
+) {
+  if (range == _ChartRange.all) return measurements;
+  final days = switch (range) {
+    _ChartRange.days7 => 7,
+    _ChartRange.days30 => 30,
+    _ChartRange.days90 => 90,
+    _ChartRange.all => 0,
+  };
+  final cutoff = DateTime.now().subtract(Duration(days: days));
+  return measurements
+      .where((measurement) => !measurement.timestamp.isBefore(cutoff))
+      .toList(growable: false);
 }
 
 String _formatNumber(double value) {
