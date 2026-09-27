@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 
 import 'models/aquarium_model.dart';
 import 'l10n/app_localizations.dart';
+import 'screens/species_atlas_screen.dart';
+import 'screens/tank_stocking_screen.dart';
 
 String _tankTypeLabel(AppLocalizations l10n, TankType type) => switch (type) {
   TankType.freshwater => l10n.freshwater,
@@ -68,6 +70,25 @@ class AquariumManagementScreen extends StatelessWidget {
         foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         title: Text(l10n.tanksAndStockTitle),
         actions: [
+          IconButton(
+            tooltip: 'Obsada akwarium',
+            onPressed: () => Navigator.push<void>(
+              context,
+              MaterialPageRoute(builder: (_) => const TankStockingScreen()),
+            ),
+            icon: const Icon(Icons.pets_outlined),
+          ),
+          IconButton(
+            tooltip: 'Atlas gatunków',
+            onPressed: () {
+              final tankId = context.read<AquariumProvider>().activeAquariumId;
+              Navigator.push<void>(
+                context,
+                MaterialPageRoute(builder: (_) => SpeciesAtlasScreen(tankId: tankId)),
+              );
+            },
+            icon: const Icon(Icons.menu_book_outlined),
+          ),
           IconButton(
             tooltip: l10n.addTank,
             onPressed: () => _showAddAquarium(context),

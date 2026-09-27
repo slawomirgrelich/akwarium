@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/tank_firestore_models.dart';
 import '../models/aquarium_reminder.dart';
+import '../models/species_models.dart';
 
 class DatabaseService {
   DatabaseService({FirebaseFirestore? firestore})
@@ -29,6 +30,12 @@ class DatabaseService {
     String tankId,
   ) =>
       _tanks(userId).doc(tankId).collection('reminders');
+
+  CollectionReference<Map<String, dynamic>> _stocking(
+    String userId,
+    String tankId,
+  ) =>
+      _tanks(userId).doc(tankId).collection('stocking');
 
   Stream<List<Tank>> getTanksStream(String userId) => _tanks(userId)
       .orderBy('createdAt', descending: true)
@@ -156,6 +163,47 @@ class DatabaseService {
       note: 'Przypomnienie wykonane',
     ).toFirestore());
     await batch.commit();
+  }
+
+  Stream<List<TankStockItem>> getTankStockingStream(
+    String userId,
+    String tankId,
+  ) =>
+      _stocking(userId, tankId)
+          .orderBy('addedDate')
+          .snapshots()
+          .map((snapshot) =>
+              snapshot.docs.map(TankStockItem.fromFirestore).toList());
+
+  Future<void> addStockItem(
+    String userId,
+    String tankId,
+    TankStockItem item,
+  ) async {
+    final reference = item.id.isEmpty
+        ? _stocking(userId, tankId).doc()
+        : _stocking(userId, tankId).doc(item.id);
+    await reference.set(item.copyWith(id: reference.id, tankId: tankId).toFirestore());
+  }
+
+  Future<void> updateStockItem(
+    String userId,
+    String tankId,
+    TankStockItem item,
+  ) async {
+    if (item.id.isEmpty) throw ArgumentError('Stock item id cannot be empty.');
+    await _stocking(userId, tankId).doc(item.id).set(
+          item.copyWith(tankId: tankId).toFirestore(),
+          SetOptions(merge: true),
+        );
+  }
+
+  Future<void> deleteStockItem(
+    String userId,
+    String tankId,
+    String itemId,
+  ) async {
+    await _stocking(userId, tankId).doc(itemId).delete();
   }
 }
 
