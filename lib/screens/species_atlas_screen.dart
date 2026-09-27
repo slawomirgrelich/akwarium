@@ -106,6 +106,13 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
               const SizedBox(height: 12),
               Text(species.description),
               const SizedBox(height: 16),
+              const Text(
+                'Wskazówki pielęgnacyjne',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(species.careNotes),
+              const SizedBox(height: 16),
               Text('Minimum akwarium: ${species.minTankVolumeLiters} l'),
               Text('Temperatura: ${species.tempRange.min}–${species.tempRange.max}°C'),
               Text('pH: ${species.phRange.min}–${species.phRange.max}'),

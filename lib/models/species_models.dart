@@ -27,8 +27,9 @@ class Species {
     required this.difficulty,
     required this.swimmingZone,
     required this.description,
+    String? careNotes,
     required this.imageUrl,
-  });
+  }) : careNotes = careNotes ?? description;
 
   final String id;
   final String namePl;
@@ -41,6 +42,7 @@ class Species {
   final SpeciesDifficulty difficulty;
   final SwimmingZone swimmingZone;
   final String description;
+  final String careNotes;
   final String imageUrl;
 }
 
