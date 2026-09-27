@@ -38,7 +38,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Test wody'),
+        title: Text(l10n.waterTestTitle),
         leading: IconButton(
           tooltip: 'Wróć',
           onPressed: () => Navigator.of(context).pop(),
@@ -57,7 +57,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Parametry wody',
+                      l10n.waterParameters,
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
                             color: const Color(0xFF123D39),
@@ -65,9 +65,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
                           ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Pomiar zostanie zapisany z aktualną datą i godziną.',
-                    ),
+                    Text(l10n.waterTestInfo),
                     const SizedBox(height: 20),
                     ..._controllers.entries.map(
                       (entry) => Padding(

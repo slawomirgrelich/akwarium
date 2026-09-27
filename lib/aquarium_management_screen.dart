@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import 'models/aquarium_model.dart';
+import 'l10n/app_localizations.dart';
 
 class TankSwitcher extends StatelessWidget {
   const TankSwitcher({super.key});
@@ -53,15 +54,16 @@ class AquariumManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
-        title: const Text('Akwaria i obsada'),
+        title: Text(l10n.tanksAndStockTitle),
         actions: [
           IconButton(
-            tooltip: 'Dodaj akwarium',
+            tooltip: l10n.addTank,
             onPressed: () => _showAddAquarium(context),
             icon: const Icon(Icons.add_business_outlined),
           ),
@@ -162,7 +164,7 @@ class _ManagementContentState extends State<_ManagementContent>
               color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
             decoration: InputDecoration(
-              hintText: 'Szukaj gatunku lub odmiany',
+              hintText: AppLocalizations.of(context)!.searchSpeciesOrVar,
               hintStyle: TextStyle(
                 color: Theme.of(context).textTheme.bodyMedium?.color,
               ),
@@ -263,7 +265,7 @@ class _TankProfileStrip extends StatelessWidget {
                   children: [
                     Icon(Icons.add),
                     SizedBox(height: 6),
-                    Text('Dodaj akwarium'),
+                    Text(AppLocalizations.of(context)!.addTank),
                   ],
                 ),
               ),
@@ -402,14 +404,14 @@ class _StockingSummary extends StatelessWidget {
         children: [
           Expanded(
             child: _SummaryMetric(
-              label: 'Gatunki',
+              label: AppLocalizations.of(context)!.speciesCount,
               value: '$species',
               icon: Icons.category_outlined,
             ),
           ),
           Expanded(
             child: _SummaryMetric(
-              label: 'Sztuki',
+              label: AppLocalizations.of(context)!.itemCount,
               value: '$animals',
               icon: Icons.pets_outlined,
             ),
@@ -472,7 +474,7 @@ class _InhabitantList extends StatelessWidget {
     if (items.isEmpty) {
       return Center(
         child: Text(
-          'Brak wpisów w tej kategorii.',
+          AppLocalizations.of(context)!.noEntriesInCategory,
           style: TextStyle(
             color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
@@ -565,7 +567,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Nowe akwarium'),
+    title: Text(AppLocalizations.of(context)!.addNewTank),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,

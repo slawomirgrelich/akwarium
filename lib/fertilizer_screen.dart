@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'l10n/app_localizations.dart';
+
 /// Ekran obliczający rekomendowaną dzienną dawkę nawozu.
 class FertilizerScreen extends StatefulWidget {
   const FertilizerScreen({super.key});
@@ -58,6 +60,7 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         // Przycisk powrotu prowadzi do poprzedniego ekranu.
@@ -177,7 +180,7 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Rekomendowana dawka dzienna:',
+                                      '${l10n.dailyDose}:',
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium

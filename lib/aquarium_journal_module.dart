@@ -7,6 +7,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'models/aquarium_model.dart';
 import 'local_reminder_service.dart';
+import 'l10n/app_localizations.dart';
 
 const _ink = Color(0xFFF2F8F6);
 const _surface = Color(0xFFFFFFFF);
@@ -35,6 +36,7 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AquariumProvider>();
     final query = _searchController.text.toLowerCase();
     final entries = provider.journalEntries.where((entry) {
@@ -51,7 +53,7 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
       appBar: AppBar(
         backgroundColor: _surface,
         foregroundColor: _textPrimary,
-        title: const Text('Dziennik akwarysty'),
+        title: Text(l10n.journalTitle),
         actions: [
           IconButton(
             tooltip: 'Porównaj zdjęcia',
@@ -309,6 +311,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tasks = context.watch<AquariumProvider>().tasks;
     final dayTasks = tasks
         .where((task) => isSameDay(task.nextDueDate, _selectedDay))
@@ -406,10 +409,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
             ),
             const SizedBox(height: 10),
             if (dayTasks.isEmpty)
-              const Text(
-                'Brak zadań na ten dzień.',
-                style: TextStyle(color: _textSecondary),
-              )
+              Text(l10n.noTasksForDay, style: TextStyle(color: _textSecondary))
             else
               ...dayTasks.map((task) => _TaskTile(task: task)),
             if (upcoming.isNotEmpty) ...[

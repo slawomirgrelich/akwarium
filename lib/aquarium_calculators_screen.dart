@@ -455,11 +455,11 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
               ),
               const SizedBox(height: 14),
               Text(
-                'Dawka dzienna: ${result.dailyMl.toStringAsFixed(2)} ml',
+                '${AppLocalizations.of(context)!.dailyDose}: ${result.dailyMl.toStringAsFixed(2)} ml',
                 style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               ),
               Text(
-                'Dawka tygodniowa: ${result.weeklyMl.toStringAsFixed(2)} ml',
+                '${AppLocalizations.of(context)!.weeklyDose}: ${result.weeklyMl.toStringAsFixed(2)} ml',
                 style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               ),
             ],

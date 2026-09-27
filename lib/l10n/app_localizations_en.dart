@@ -611,4 +611,86 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveMeasurement => 'Save measurement';
+
+  @override
+  String get journalTitle => 'Aquarist Journal';
+
+  @override
+  String get filterWaterChange => 'Water change';
+
+  @override
+  String get filterFilter => 'Filter';
+
+  @override
+  String get filterTrimming => 'Trimming';
+
+  @override
+  String get filterMeds => 'Medication';
+
+  @override
+  String get filterCleaning => 'Cleaning';
+
+  @override
+  String get upcomingTasks => 'Upcoming tasks';
+
+  @override
+  String get noTasksForDay => 'No tasks for this day.';
+
+  @override
+  String get tanksAndStockTitle => 'Aquariums & Stock';
+
+  @override
+  String get addTank => 'Add aquarium';
+
+  @override
+  String get addNewTank => 'Add new aquarium';
+
+  @override
+  String get speciesCount => 'Species';
+
+  @override
+  String get itemCount => 'Pcs';
+
+  @override
+  String get searchSpeciesOrVar => 'Search species or variety';
+
+  @override
+  String get noEntriesInCategory => 'No entries in this category.';
+
+  @override
+  String get idealForYourTank => 'Ideal for your tank';
+
+  @override
+  String get co2Dosing => 'CO2 Dosing';
+
+  @override
+  String get includeCo2InDiagnosis => 'Include CO2 system in diagnosis';
+
+  @override
+  String get diagnoseProblem => 'Diagnose problem';
+
+  @override
+  String get waterTestTitle => 'Water Test';
+
+  @override
+  String get waterParameters => 'Water parameters';
+
+  @override
+  String get waterTestInfo =>
+      'Measurement will be saved with current date and time.';
+
+  @override
+  String get dailyDose => 'Daily dose';
+
+  @override
+  String get weeklyDose => 'Weekly dose';
+
+  @override
+  String get addFishOrPlantPhoto => 'Add fish or plant photo';
+
+  @override
+  String get tapToSelectCameraOrGallery => 'Tap to select Camera or Gallery';
+
+  @override
+  String get runRecognition => 'Run recognition';
 }

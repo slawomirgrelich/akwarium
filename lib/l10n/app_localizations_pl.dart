@@ -613,4 +613,87 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get saveMeasurement => 'Zapisz pomiar';
+
+  @override
+  String get journalTitle => 'Dziennik akwarysty';
+
+  @override
+  String get filterWaterChange => 'Podmiana wody';
+
+  @override
+  String get filterFilter => 'Filtr';
+
+  @override
+  String get filterTrimming => 'Przycinanie';
+
+  @override
+  String get filterMeds => 'Leki';
+
+  @override
+  String get filterCleaning => 'Czyszczenie';
+
+  @override
+  String get upcomingTasks => 'Nadchodzące zadania';
+
+  @override
+  String get noTasksForDay => 'Brak zadań na ten dzień.';
+
+  @override
+  String get tanksAndStockTitle => 'Akwaria i obsada';
+
+  @override
+  String get addTank => 'Dodaj akwarium';
+
+  @override
+  String get addNewTank => 'Dodaj nowe akwarium';
+
+  @override
+  String get speciesCount => 'Gatunki';
+
+  @override
+  String get itemCount => 'Sztuki';
+
+  @override
+  String get searchSpeciesOrVar => 'Szukaj gatunku lub odmiany';
+
+  @override
+  String get noEntriesInCategory => 'Brak wpisów w tej kategorii.';
+
+  @override
+  String get idealForYourTank => 'Idealne do Twojego akwarium';
+
+  @override
+  String get co2Dosing => 'Podawanie CO2';
+
+  @override
+  String get includeCo2InDiagnosis => 'Uwzględnij instalację CO2 w diagnozie';
+
+  @override
+  String get diagnoseProblem => 'Zdiagnozuj problem';
+
+  @override
+  String get waterTestTitle => 'Test wody';
+
+  @override
+  String get waterParameters => 'Parametry wody';
+
+  @override
+  String get waterTestInfo =>
+      'Pomiar zostanie zapisany z aktualną datą i godziną.';
+
+  @override
+  String get dailyDose => 'Dawka dzienna';
+
+  @override
+  String get weeklyDose => 'Dawka tygodniowa';
+
+  @override
+  String get addFishOrPlantPhoto => 'Dodaj zdjęcie ryby lub rośliny';
+
+  @override
+  String get tapToSelectCameraOrGallery =>
+      'Dotknij, aby wybrać Aparat lub Galerię';
+
+  @override
+  String get runRecognition => 'Uruchom rozpoznawanie';
 }

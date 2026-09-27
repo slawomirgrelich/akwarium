@@ -120,6 +120,8 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
                   child: _FishCard(
                     fish: fish,
                     compatible: _isCompatible(fish, aquarium, latestTest),
+                    compatibleLabel: AppLocalizations.of(context)!
+                        .idealForYourTank,
                     onTap: () => _showFishDetails(context, fish),
                   ),
                 ),
@@ -278,11 +280,13 @@ class _FishCard extends StatelessWidget {
   const _FishCard({
     required this.fish,
     required this.compatible,
+    required this.compatibleLabel,
     required this.onTap,
   });
 
   final FishSpeciesModel fish;
   final bool compatible;
+  final String compatibleLabel;
   final VoidCallback onTap;
 
   @override
@@ -318,7 +322,7 @@ class _FishCard extends StatelessWidget {
                     ),
                     if (compatible)
                       Text(
-                        'Idealne do Twojego akwarium',
+                        compatibleLabel,
                         style: TextStyle(
                           color: Colors.teal.shade700,
                           fontWeight: FontWeight.bold,

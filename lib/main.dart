@@ -1120,8 +1120,8 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Podawanie CO2'),
-              subtitle: const Text('Uwzględnij instalację CO2 w diagnozie'),
+              title: Text(l10n.co2Dosing),
+              subtitle: Text(l10n.includeCo2InDiagnosis),
               value: _hasCo2,
               onChanged: (value) => setState(() => _hasCo2 = value),
             ),
@@ -1136,7 +1136,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                     )
                   : const Icon(Icons.auto_awesome),
               label: Text(
-                _loading ? 'Analizuję warunki...' : 'Zdiagnozuj problem',
+                _loading ? 'Analizuję warunki...' : l10n.diagnoseProblem,
               ),
             ),
             if (_loading)
@@ -1407,6 +1407,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(title: const Text('Skaner AI')),
       body: _PageContainer(
@@ -1436,8 +1437,8 @@ class _AiScannerPageState extends State<AiScannerPage> {
                               color: Colors.teal.shade700,
                             ),
                             const SizedBox(height: 14),
-                            const Text(
-                              'Dodaj zdjęcie ryby lub rośliny',
+                            Text(
+                              l10n.addFishOrPlantPhoto,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 17,
@@ -1445,7 +1446,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Dotknij, aby wybrać Aparat lub Galerię',
+                              l10n.tapToSelectCameraOrGallery,
                               style: TextStyle(color: Colors.grey.shade700),
                             ),
                           ],
@@ -1473,7 +1474,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
                       )
                     : const Icon(Icons.auto_awesome),
                 label: Text(
-                  _isLoading ? 'Analizuję zdjęcie...' : 'Uruchom rozpoznawanie',
+                  _isLoading ? 'Analizuję zdjęcie...' : l10n.runRecognition,
                 ),
               ),
               if (_isLoading) ...[

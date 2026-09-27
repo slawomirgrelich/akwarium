@@ -1255,6 +1255,168 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Zapisz pomiar'**
   String get saveMeasurement;
+
+  /// No description provided for @journalTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dziennik akwarysty'**
+  String get journalTitle;
+
+  /// No description provided for @filterWaterChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podmiana wody'**
+  String get filterWaterChange;
+
+  /// No description provided for @filterFilter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Filtr'**
+  String get filterFilter;
+
+  /// No description provided for @filterTrimming.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przycinanie'**
+  String get filterTrimming;
+
+  /// No description provided for @filterMeds.
+  ///
+  /// In pl, this message translates to:
+  /// **'Leki'**
+  String get filterMeds;
+
+  /// No description provided for @filterCleaning.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czyszczenie'**
+  String get filterCleaning;
+
+  /// No description provided for @upcomingTasks.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nadchodzące zadania'**
+  String get upcomingTasks;
+
+  /// No description provided for @noTasksForDay.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak zadań na ten dzień.'**
+  String get noTasksForDay;
+
+  /// No description provided for @tanksAndStockTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwaria i obsada'**
+  String get tanksAndStockTitle;
+
+  /// No description provided for @addTank.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj akwarium'**
+  String get addTank;
+
+  /// No description provided for @addNewTank.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj nowe akwarium'**
+  String get addNewTank;
+
+  /// No description provided for @speciesCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gatunki'**
+  String get speciesCount;
+
+  /// No description provided for @itemCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sztuki'**
+  String get itemCount;
+
+  /// No description provided for @searchSpeciesOrVar.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szukaj gatunku lub odmiany'**
+  String get searchSpeciesOrVar;
+
+  /// No description provided for @noEntriesInCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wpisów w tej kategorii.'**
+  String get noEntriesInCategory;
+
+  /// No description provided for @idealForYourTank.
+  ///
+  /// In pl, this message translates to:
+  /// **'Idealne do Twojego akwarium'**
+  String get idealForYourTank;
+
+  /// No description provided for @co2Dosing.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podawanie CO2'**
+  String get co2Dosing;
+
+  /// No description provided for @includeCo2InDiagnosis.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uwzględnij instalację CO2 w diagnozie'**
+  String get includeCo2InDiagnosis;
+
+  /// No description provided for @diagnoseProblem.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdiagnozuj problem'**
+  String get diagnoseProblem;
+
+  /// No description provided for @waterTestTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Test wody'**
+  String get waterTestTitle;
+
+  /// No description provided for @waterParameters.
+  ///
+  /// In pl, this message translates to:
+  /// **'Parametry wody'**
+  String get waterParameters;
+
+  /// No description provided for @waterTestInfo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pomiar zostanie zapisany z aktualną datą i godziną.'**
+  String get waterTestInfo;
+
+  /// No description provided for @dailyDose.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dawka dzienna'**
+  String get dailyDose;
+
+  /// No description provided for @weeklyDose.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dawka tygodniowa'**
+  String get weeklyDose;
+
+  /// No description provided for @addFishOrPlantPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zdjęcie ryby lub rośliny'**
+  String get addFishOrPlantPhoto;
+
+  /// No description provided for @tapToSelectCameraOrGallery.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dotknij, aby wybrać Aparat lub Galerię'**
+  String get tapToSelectCameraOrGallery;
+
+  /// No description provided for @runRecognition.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uruchom rozpoznawanie'**
+  String get runRecognition;
 }
 
 class _AppLocalizationsDelegate

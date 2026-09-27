@@ -9,6 +9,15 @@ import '../services/aquarium_journal_service.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
 
+String _journalTypeLabel(AppLocalizations l10n, JournalEntryType type) =>
+    switch (type) {
+      JournalEntryType.waterChange => l10n.filterWaterChange,
+      JournalEntryType.filter => l10n.filterFilter,
+      JournalEntryType.trimming => l10n.filterTrimming,
+      JournalEntryType.medication => l10n.filterMeds,
+      JournalEntryType.cleaning => l10n.filterCleaning,
+    };
+
 class JournalAndRemindersScreen extends StatefulWidget {
   const JournalAndRemindersScreen({super.key});
 
@@ -278,10 +287,11 @@ class _JournalScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFFF2F8F6),
       appBar: AppBar(
-        title: const Text('Dziennik akwarysty'),
+        title: Text(l10n.journalTitle),
         actions: [
           if (onAdd != null)
             IconButton(
@@ -329,7 +339,7 @@ class _TimelineTab extends StatelessWidget {
                 (type) => Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: ChoiceChip(
-                    label: Text(type.label),
+                    label: Text(_journalTypeLabel(l10n, type)),
                     selected: filter == type,
                     onSelected: (_) => onFilterChanged(type),
                   ),
@@ -355,6 +365,7 @@ class _JournalTimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
@@ -368,7 +379,7 @@ class _JournalTimelineCard extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
-          '${entry.entryType.label} · ${_formatDate(entry.timestamp)}\n${entry.notes}',
+          '${_journalTypeLabel(l10n, entry.entryType)} · ${_formatDate(entry.timestamp)}\n${entry.notes}',
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
         ),
@@ -417,9 +428,9 @@ class _CalendarTab extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'Nadchodzące zadania',
+                l10n.upcomingTasks,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -475,10 +486,7 @@ class _CalendarTab extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         if (selected.isEmpty)
-          const _JournalEmpty(
-            icon: Icons.event_available,
-            text: 'Brak zadań na ten dzień.',
-          )
+          _JournalEmpty(icon: Icons.event_available, text: l10n.noTasksForDay)
         else
           ...selected.map(
             (reminder) => _ReminderTile(
@@ -616,6 +624,7 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: const Text('Nowa czynność'),
       content: SingleChildScrollView(
@@ -632,8 +641,10 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
               decoration: const InputDecoration(labelText: 'Typ czynności'),
               items: JournalEntryType.values
                   .map(
-                    (type) =>
-                        DropdownMenuItem(value: type, child: Text(type.label)),
+                    (type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(_journalTypeLabel(l10n, type)),
+                    ),
                   )
                   .toList(),
               onChanged: (value) => setState(() => _type = value ?? _type),
