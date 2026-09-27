@@ -26,9 +26,9 @@ import 'models/tank_firestore_models.dart' show Tank;
 import 'screens/auth_wrapper.dart';
 import 'screens/calculators_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
-import 'screens/knowledge_base_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/notification_settings_screen.dart';
+import 'screens/species_atlas_screen.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
 import 'services/pro_access_service.dart';
@@ -718,7 +718,9 @@ class ToolsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const KnowledgeBaseScreen(),
+                    builder: (_) => SpeciesAtlasScreen(
+                      tankId: context.read<models.AquariumProvider>().activeAquariumId,
+                    ),
                   ),
                 );
               },
