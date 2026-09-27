@@ -1605,6 +1605,13 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
+            _SettingsTile(
+              icon: Icons.key_outlined,
+              title: 'Klucz API Gemini',
+              subtitle: 'Konfiguracja skanera AI zdjęć',
+              onTap: () => _showGeminiKeyDialog(context),
+            ),
+            const SizedBox(height: 10),
             const _ThemeModeTile(),
             const SizedBox(height: 10),
             const _LocaleTile(),
@@ -1659,6 +1666,46 @@ class ProfilePage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _showGeminiKeyDialog(BuildContext context) async {
+    final preferences = await SharedPreferences.getInstance();
+    if (!context.mounted) return;
+    final controller = TextEditingController(
+      text: preferences.getString('gemini_api_key') ?? '',
+    );
+    final key = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Klucz API Gemini'),
+        content: TextField(
+          controller: controller,
+          obscureText: true,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Klucz API',
+            hintText: 'Pozostaw puste, aby użyć klucza domyślnego',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+            child: Text(AppLocalizations.of(context)!.save),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (key == null) return;
+    if (key.isEmpty) {
+      await preferences.remove('gemini_api_key');
+    } else {
+      await preferences.setString('gemini_api_key', key);
+    }
   }
 
   void _openAquariumManagement(BuildContext context) {
