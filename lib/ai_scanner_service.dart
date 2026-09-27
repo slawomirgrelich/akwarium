@@ -76,6 +76,45 @@ class AiScannerService {
   final http.Client _client;
   final String? apiKeyOverride;
 
+  Future<void> testApiKey(String apiKey) async {
+    final key = apiKey.trim();
+    if (key.isEmpty) {
+      throw const AiScannerException('Wpisz klucz API Gemini.');
+    }
+
+    final url = Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/models/'
+      'gemini-2.5-flash:generateContent?key=$key',
+    );
+    try {
+      final response = await _client
+          .post(
+            url,
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'contents': [
+                {
+                  'parts': [
+                    {'text': 'Odpowiedz jednym słowem: OK'},
+                  ],
+                },
+              ],
+              'generationConfig': {'maxOutputTokens': 8},
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
+      if (response.statusCode != 200) {
+        throw AiScannerException(
+          'HTTP ${response.statusCode}: ${response.body}',
+        );
+      }
+    } on TimeoutException {
+      throw const AiScannerException('Test klucza Gemini przekroczył limit czasu.');
+    } on http.ClientException catch (error) {
+      throw AiScannerException('Nie udało się połączyć z Gemini: ${error.message}');
+    }
+  }
+
   Future<AiScanResult> analyze(Uint8List imageBytes, String mimeType) async {
     return _analyzeWithGemini(imageBytes);
   }
@@ -93,11 +132,7 @@ class AiScannerService {
         'Klucz API Gemini jest pusty. Sprawdź GitHub Secrets lub Ustawienia Profilu.',
       );
     }
-    const models = [
-      'gemini-3.8-flash',
-      'gemini-1.5-flash',
-      'gemini-2.0-flash-exp',
-    ];
+    const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
     var overloadFailures = 0;
     for (var index = 0; index < models.length; index++) {
       try {

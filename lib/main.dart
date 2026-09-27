@@ -1678,33 +1678,96 @@ class ProfilePage extends StatelessWidget {
     final controller = TextEditingController(
       text: preferences.getString('gemini_api_key') ?? '',
     );
+    var isTestingKey = false;
+    String? keyTestMessage;
+    bool keyTestSucceeded = false;
     final key = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Klucz API Gemini'),
-        content: TextField(
-          controller: controller,
-          obscureText: true,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Klucz API',
-            hintText: 'Pozostaw puste, aby użyć klucza domyślnego',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Klucz API Gemini'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: controller,
+                obscureText: true,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Klucz API',
+                  hintText: 'Pozostaw puste, aby użyć klucza domyślnego',
+                ),
+              ),
+              if (keyTestMessage != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  keyTestMessage!,
+                  style: TextStyle(
+                    color: keyTestSucceeded
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
+            ],
           ),
+          actions: [
+            TextButton(
+              onPressed: isTestingKey
+                  ? null
+                  : () async {
+                      setDialogState(() {
+                        isTestingKey = true;
+                        keyTestMessage = null;
+                      });
+                      try {
+                        await AiScannerService().testApiKey(controller.text);
+                        if (!dialogContext.mounted) return;
+                        setDialogState(() {
+                          keyTestSucceeded = true;
+                          keyTestMessage = 'Połączenie z Gemini działa.';
+                        });
+                      } on Object catch (error) {
+                        if (!dialogContext.mounted) return;
+                        setDialogState(() {
+                          keyTestSucceeded = false;
+                          keyTestMessage = error.toString();
+                        });
+                      } finally {
+                        if (dialogContext.mounted) {
+                          setDialogState(() => isTestingKey = false);
+                        }
+                      }
+                    },
+              child: isTestingKey
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Testuj klucz API'),
+            ),
+            TextButton(
+              onPressed: isTestingKey
+                  ? null
+                  : () => Navigator.pop(dialogContext, ''),
+              child: const Text('Użyj domyślnego klucza'),
+            ),
+            TextButton(
+              onPressed: isTestingKey
+                  ? null
+                  : () => Navigator.pop(dialogContext),
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            FilledButton(
+              onPressed: isTestingKey
+                  ? null
+                  : () => Navigator.pop(dialogContext, controller.text.trim()),
+              child: Text(AppLocalizations.of(context)!.save),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, ''),
-            child: const Text('Użyj domyślnego klucza'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
-            child: Text(AppLocalizations.of(context)!.save),
-          ),
-        ],
       ),
     );
     controller.dispose();
