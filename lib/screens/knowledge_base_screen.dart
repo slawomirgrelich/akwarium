@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../data/aquarium_knowledge_base.dart';
 import '../models/aquarium_model.dart';
+import '../aquarium_management_screen.dart';
 import '../services/aquarium_diagnostic_service.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
@@ -23,8 +24,35 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isPro = context.watch<ProAccessService>().isProUser;
-    final aquarium = context.watch<AquariumProvider>().activeAquarium;
     final provider = context.watch<AquariumProvider>();
+    final aquarium = provider.activeAquarium;
+    if (aquarium == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.knowledgeBaseTitle)),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Dodaj akwarium, aby sprawdzić zgodność gatunków.'),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: () => Navigator.push<void>(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AquariumManagementScreen(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.addNewAquarium),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     final latestTest = provider.waterTests.isEmpty
         ? null
         : provider.waterTests.first;

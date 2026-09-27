@@ -74,42 +74,6 @@ Future<void> main() async {
 // MODELE DANYCH
 // ===========================
 
-class Aquarium {
-  const Aquarium({
-    required this.id,
-    required this.name,
-    required this.capacityLiters,
-    required this.setupDate,
-    required this.type,
-  });
-
-  final String id;
-  final String name;
-  final double capacityLiters;
-  final DateTime setupDate;
-  final String type;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'capacityLiters': capacityLiters,
-      'setupDate': setupDate.toIso8601String(),
-      'type': type,
-    };
-  }
-
-  factory Aquarium.fromMap(Map<String, dynamic> map) {
-    return Aquarium(
-      id: map['id'] as String,
-      name: map['name'] as String,
-      capacityLiters: (map['capacityLiters'] as num).toDouble(),
-      setupDate: DateTime.parse(map['setupDate'] as String),
-      type: map['type'] as String,
-    );
-  }
-}
-
 class WaterTest {
   const WaterTest({
     required this.id,
@@ -254,21 +218,13 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  final Aquarium _aquarium = Aquarium(
-    id: 'aquarium-001',
-    name: 'Akwarium Roślinne',
-    capacityLiters: 112,
-    setupDate: DateTime(2024, 3, 12),
-    type: 'Roślinne',
-  );
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final pages = [
-      DashboardPage(aquarium: _aquarium),
+      const DashboardPage(),
       const JournalAndRemindersScreen(),
-      ToolsPage(aquarium: _aquarium),
+      const ToolsPage(),
       const ProfilePage(),
     ];
 
@@ -342,14 +298,47 @@ class _MainShellState extends State<MainShell> {
 // ===========================
 
 class DashboardPage extends StatelessWidget {
-  const DashboardPage({required this.aquarium, super.key});
-
-  final Aquarium aquarium;
+  const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<models.AquariumProvider>();
+    final activeAquarium = provider.activeAquarium;
+    if (activeAquarium == null) {
+      return _PageContainer(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Header(
+                eyebrow: 'AKWARYSTA PRO',
+                title: l10n.yourDashboard,
+                subtitle: l10n.dashboardSubtitle,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Nie masz jeszcze akwarium. Dodaj akwarium, aby zobaczyć jego pulpit.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () => Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AquariumManagementScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.add),
+                label: Text(l10n.addNewAquarium),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     final latestTest = provider.waterTests.isEmpty
         ? null
         : provider.waterTests.first;
@@ -360,15 +349,6 @@ class DashboardPage extends StatelessWidget {
         ? 0
         : DateTime.now().difference(latestChange.date).inDays;
     final isWaterFresh = latestChange != null && daysSinceChange < 7;
-    final activeAquarium = provider.activeAquarium;
-    final displayedAquarium = Aquarium(
-      id: activeAquarium.id,
-      name: activeAquarium.name,
-      capacityLiters: activeAquarium.volumeNetLiters,
-      setupDate: activeAquarium.setupDate,
-      type: activeAquarium.type.label,
-    );
-
     return _PageContainer(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -399,7 +379,7 @@ class DashboardPage extends StatelessWidget {
                 ],
               ),
             ),
-            _DashboardTankCard(aquarium: displayedAquarium),
+            _DashboardTankCard(aquarium: activeAquarium),
             const SizedBox(height: 20),
             if (context.watch<ProAccessService>().isProUser) ...[
               const FirestoreRemindersWidget(),
@@ -672,9 +652,7 @@ class _EmptyJournalState extends StatelessWidget {
 // ===========================
 
 class ToolsPage extends StatelessWidget {
-  const ToolsPage({required this.aquarium, super.key});
-
-  final Aquarium aquarium;
+  const ToolsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1589,6 +1567,8 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final proService = context.watch<ProAccessService>();
+    final activeAquarium =
+        context.watch<models.AquariumProvider>().activeAquarium;
     if (proService.trialExpired) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted || !proService.consumeTrialExpired()) return;
@@ -1613,8 +1593,10 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 12),
             _SettingsTile(
               icon: Icons.water,
-              title: l10n.aquariumName,
-              subtitle: l10n.tankDetails,
+              title: activeAquarium?.name ?? 'Brak aktywnego akwarium',
+              subtitle: activeAquarium == null
+                  ? 'Dodaj akwarium, aby rozpocząć'
+                  : '${activeAquarium.volumeNetLiters.round()} l · ${activeAquarium.type.label}',
               onTap: () => _openAquariumManagement(context),
             ),
             const SizedBox(height: 10),
@@ -1977,7 +1959,7 @@ class _SectionHeader extends StatelessWidget {
 class _AquariumCard extends StatelessWidget {
   const _AquariumCard({required this.aquarium, this.imageUrl});
 
-  final Aquarium aquarium;
+  final models.AquariumProfile aquarium;
   final String? imageUrl;
 
   @override
@@ -2024,7 +2006,7 @@ class _AquariumCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '${l10n.litersCount(aquarium.capacityLiters.round())} · ${_localizedAquariumType(l10n, aquarium.type)}',
+                  '${l10n.litersCount(aquarium.volumeNetLiters.round())} · ${_localizedAquariumType(l10n, aquarium.type.label)}',
                   style: TextStyle(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 14,
@@ -2043,7 +2025,7 @@ class _AquariumCard extends StatelessWidget {
 class _DashboardTankCard extends StatelessWidget {
   const _DashboardTankCard({required this.aquarium});
 
-  final Aquarium aquarium;
+  final models.AquariumProfile aquarium;
 
   @override
   Widget build(BuildContext context) {

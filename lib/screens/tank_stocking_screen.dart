@@ -18,23 +18,56 @@ class TankStockingScreen extends StatelessWidget {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     final provider = context.watch<AquariumProvider>();
     final tankId = provider.activeAquariumId;
-    if (userId == null || tankId.isEmpty) {
+    final aquarium = provider.activeAquarium;
+    if (userId == null) {
       return const Scaffold(body: Center(child: Text('Zaloguj się, aby zobaczyć obsadę.')));
     }
-    return _StockingBody(userId: userId, tankId: tankId);
+    if (aquarium == null || tankId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Obsada akwarium')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Najpierw dodaj akwarium.'),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AquariumManagementScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text('Dodaj akwarium'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return _StockingBody(
+      userId: userId,
+      tankId: tankId,
+      aquarium: aquarium,
+    );
   }
 }
 
 class _StockingBody extends StatelessWidget {
-  const _StockingBody({required this.userId, required this.tankId});
+  const _StockingBody({
+    required this.userId,
+    required this.tankId,
+    required this.aquarium,
+  });
 
   final String userId;
   final String tankId;
+  final AquariumProfile aquarium;
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
-    final aquarium = provider.activeAquarium;
     final latest = provider.waterTests.isEmpty ? null : provider.waterTests.first;
     return Scaffold(
       appBar: AppBar(

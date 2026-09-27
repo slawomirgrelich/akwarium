@@ -189,7 +189,7 @@ class Inhabitant {
 
   factory Inhabitant.fromJson(Map<String, dynamic> json) => Inhabitant(
     id: json['id'] as String,
-    aquariumId: json['aquariumId'] as String? ?? 'aquarium-001',
+    aquariumId: json['aquariumId'] as String? ?? '',
     name: json['name'] as String,
     latinName: json['latinName'] as String? ?? '',
     category: CreatureCategory.values.byName(
@@ -219,7 +219,7 @@ class WaterTest {
     required this.kh,
     required this.gh,
     required this.temp,
-    this.aquariumId = 'aquarium-001',
+    this.aquariumId = '',
   });
 
   final String id;
@@ -257,7 +257,7 @@ class WaterTest {
       kh: (map['kh'] as num).toDouble(),
       gh: (map['gh'] as num).toDouble(),
       temp: (map['temp'] as num).toDouble(),
-      aquariumId: map['aquariumId'] as String? ?? 'aquarium-001',
+      aquariumId: map['aquariumId'] as String? ?? '',
     );
   }
 }
@@ -279,7 +279,7 @@ class WaterChange {
     required this.date,
     required this.volumeLiters,
     this.notes = '',
-    this.aquariumId = 'aquarium-001',
+    this.aquariumId = '',
   });
 
   final String id;
@@ -302,7 +302,7 @@ class WaterChange {
       date: DateTime.parse(map['date'] as String),
       volumeLiters: (map['volumeLiters'] as num).toDouble(),
       notes: map['notes'] as String? ?? '',
-      aquariumId: map['aquariumId'] as String? ?? 'aquarium-001',
+      aquariumId: map['aquariumId'] as String? ?? '',
     );
   }
 }
@@ -347,7 +347,7 @@ class JournalEntry {
     this.category = JournalCategory.other,
     this.tags = const [],
     this.attachedWaterParameters,
-    this.aquariumId = 'aquarium-001',
+    this.aquariumId = '',
   });
 
   final String id;
@@ -392,7 +392,7 @@ class JournalEntry {
       attachedWaterParameters: (map['attachedWaterParameters'] as Map?)?.map(
         (key, value) => MapEntry(key.toString(), (value as num).toDouble()),
       ),
-      aquariumId: map['aquariumId'] as String? ?? 'aquarium-001',
+      aquariumId: map['aquariumId'] as String? ?? '',
     );
   }
 }
@@ -411,7 +411,7 @@ class AquariumTask {
     this.isCompletedToday = false,
     this.categoryColorHex = '#00E5FF',
     this.reminderMinutes,
-    this.aquariumId = 'aquarium-001',
+    this.aquariumId = '',
   });
 
   final String id;
@@ -453,7 +453,7 @@ class AquariumTask {
     isCompletedToday: json['isCompletedToday'] as bool? ?? false,
     categoryColorHex: json['categoryColorHex'] as String? ?? '#00E5FF',
     reminderMinutes: json['reminderMinutes'] as int?,
-    aquariumId: json['aquariumId'] as String? ?? 'aquarium-001',
+    aquariumId: json['aquariumId'] as String? ?? '',
   );
 
   AquariumTask completed(DateTime completedAt) {
@@ -528,22 +528,8 @@ class AquariumProvider extends ChangeNotifier {
        _activeAquariumId =
            activeAquariumId ??
            (aquariums != null && aquariums.isNotEmpty
-               ? aquariums.first.id
-               : 'aquarium-001') {
-    if (_aquariums.isEmpty) {
-      _aquariums.add(
-        AquariumProfile(
-          id: 'aquarium-001',
-          name: 'Akwarium Roślinne',
-          volumeNetLiters: 112,
-          volumeGrossLiters: 125,
-          setupDate: DateTime(2024, 3, 12),
-          type: TankType.planted,
-          isActive: true,
-        ),
-      );
-    }
-  }
+                ? aquariums.first.id
+                : '');
 
   final List<WaterTest> _waterTests;
   final List<WaterChange> _waterChanges;
@@ -554,14 +540,19 @@ class AquariumProvider extends ChangeNotifier {
   String _activeAquariumId;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
   _waterTestsSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+  _aquariumsSubscription;
+  StreamSubscription<User?>? _authStateSubscription;
 
   String get activeAquariumId => _activeAquariumId;
   String get selectedAquariumId => _activeAquariumId;
   List<AquariumProfile> get aquariums => List.unmodifiable(_aquariums);
-  AquariumProfile get activeAquarium => _aquariums.firstWhere(
-    (aquarium) => aquarium.id == _activeAquariumId,
-    orElse: () => _aquariums.first,
-  );
+  AquariumProfile? get activeAquarium {
+    for (final aquarium in _aquariums) {
+      if (aquarium.id == _activeAquariumId) return aquarium;
+    }
+    return _aquariums.firstOrNull;
+  }
   List<WaterTest> get waterTests => List.unmodifiable(
     _waterTests.where((test) => test.aquariumId == _activeAquariumId),
   );
@@ -585,10 +576,18 @@ class AquariumProvider extends ChangeNotifier {
     try {
       final auth = FirebaseAuth.instance;
       await auth.setPersistence(Persistence.LOCAL);
-      final user = auth.currentUser;
-      if (user != null) {
+      _authStateSubscription?.cancel();
+      _authStateSubscription = auth.authStateChanges().listen((user) {
+        _aquariumsSubscription?.cancel();
+        _waterTestsSubscription?.cancel();
+        if (user == null) {
+          syncCloudAquariums(const []);
+          _replaceWaterTests(const []);
+          return;
+        }
+        _listenToAquariums(user.uid);
         _listenToWaterTests(user.uid);
-      }
+      });
     } catch (_) {
       // Do czasu konfiguracji Firebase aplikacja korzysta z danych lokalnych.
     }
@@ -681,9 +680,11 @@ class AquariumProvider extends ChangeNotifier {
 
   void setSelectedAquarium(String aquariumId) => selectAquarium(aquariumId);
 
-  void syncCloudAquariums(List<firestore_models.AquariumModel> cloudAquariums) {
-    if (cloudAquariums.isEmpty) return;
-
+  void syncCloudAquariums(
+    List<firestore_models.AquariumModel> cloudAquariums, {
+    bool isFromCache = false,
+  }) {
+    if (cloudAquariums.isEmpty && isFromCache && _aquariums.isNotEmpty) return;
     final mapped = cloudAquariums
         .map(
           (aquarium) => AquariumProfile(
@@ -696,14 +697,22 @@ class AquariumProvider extends ChangeNotifier {
           ),
         )
         .toList(growable: false);
+      mapped.sort((first, second) => second.setupDate.compareTo(first.setupDate));
+    final nextActiveAquariumId = mapped.any(
+      (aquarium) => aquarium.id == _activeAquariumId,
+    )
+      ? _activeAquariumId
+      : mapped.firstOrNull?.id ?? '';
     final hasChanged =
         mapped.length != _aquariums.length ||
+      nextActiveAquariumId != _activeAquariumId ||
         mapped.asMap().entries.any((entry) {
           final current = entry.value;
           final previous = _aquariums[entry.key];
           return current.id != previous.id ||
               current.name != previous.name ||
               current.volumeNetLiters != previous.volumeNetLiters ||
+              current.setupDate != previous.setupDate ||
               current.type != previous.type;
         });
     if (!hasChanged) return;
@@ -711,29 +720,49 @@ class AquariumProvider extends ChangeNotifier {
     _aquariums
       ..clear()
       ..addAll(mapped);
-    if (!_aquariums.any((aquarium) => aquarium.id == _activeAquariumId)) {
-      _activeAquariumId = _aquariums.first.id;
+    _activeAquariumId = nextActiveAquariumId;
+    notifyListeners();
+    _persist();
+  }
+
+  Future<void> addAquarium(AquariumProfile profile) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Zaloguj się, aby zapisać akwarium.');
+    await _writeAquariumToFirestore(user.uid, profile);
+    _upsertAquarium(profile);
+  }
+
+  Future<void> updateAquarium(AquariumProfile profile) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Zaloguj się, aby zapisać akwarium.');
+    await _writeAquariumToFirestore(user.uid, profile, merge: true);
+    _upsertAquarium(profile);
+  }
+
+  void _upsertAquarium(AquariumProfile profile) {
+    final index = _aquariums.indexWhere((item) => item.id == profile.id);
+    if (index == -1) {
+      _aquariums.add(profile);
+    } else {
+      _aquariums[index] = profile;
+    }
+    if (_activeAquariumId.isEmpty || _aquariums.length == 1) {
+      _activeAquariumId = profile.id;
     }
     notifyListeners();
-  }
-
-  void addAquarium(AquariumProfile profile) {
-    _aquariums.add(profile);
-    if (_aquariums.length == 1) _activeAquariumId = profile.id;
-    notifyListeners();
     _persist();
   }
 
-  void updateAquarium(AquariumProfile profile) {
-    final index = _aquariums.indexWhere((item) => item.id == profile.id);
-    if (index == -1) return;
-    _aquariums[index] = profile;
-    notifyListeners();
-    _persist();
-  }
-
-  void deleteAquarium(String aquariumId) {
-    if (_aquariums.length <= 1) return;
+  Future<void> deleteAquarium(String aquariumId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw StateError('Zaloguj się, aby usunąć akwarium.');
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('aquariums')
+        .doc(aquariumId)
+        .delete();
+    await FirestoreSyncStatus.recordSuccessfulSync();
     _aquariums.removeWhere((item) => item.id == aquariumId);
     _inhabitants.removeWhere((item) => item.aquariumId == aquariumId);
     _waterTests.removeWhere((item) => item.aquariumId == aquariumId);
@@ -741,7 +770,7 @@ class AquariumProvider extends ChangeNotifier {
     _journalEntries.removeWhere((item) => item.aquariumId == aquariumId);
     _tasks.removeWhere((item) => item.aquariumId == aquariumId);
     if (_activeAquariumId == aquariumId) {
-      _activeAquariumId = _aquariums.first.id;
+      _activeAquariumId = _aquariums.firstOrNull?.id ?? '';
     }
     notifyListeners();
     _persist();
@@ -751,6 +780,53 @@ class AquariumProvider extends ChangeNotifier {
     _inhabitants.add(inhabitant);
     notifyListeners();
     _persist();
+  }
+
+  void _listenToAquariums(String userId) {
+    _aquariumsSubscription?.cancel();
+    _aquariumsSubscription = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('aquariums')
+        .snapshots()
+        .listen(
+          (snapshot) => syncCloudAquariums(
+            snapshot.docs
+                .map(firestore_models.AquariumModel.fromFirestore)
+                .toList(growable: false),
+            isFromCache: snapshot.metadata.isFromCache,
+          ),
+          onError: (Object error) =>
+              debugPrint('Firestore aquarium stream failed: $error'),
+        );
+  }
+
+  Future<void> _writeAquariumToFirestore(
+    String userId,
+    AquariumProfile profile, {
+    bool merge = false,
+  }) async {
+    final reference = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('aquariums')
+        .doc(profile.id);
+    final existing = merge ? await reference.get() : null;
+    final existingCreatedAt = existing?.data()?['createdAt'];
+    final createdAt = existingCreatedAt is Timestamp
+        ? existingCreatedAt.toDate()
+        : DateTime.now();
+    final aquarium = firestore_models.AquariumModel(
+      id: profile.id,
+      userId: userId,
+      name: profile.name,
+      capacityLiters: profile.volumeNetLiters,
+      setupDate: profile.setupDate,
+      type: profile.type.label,
+      createdAt: createdAt,
+    );
+    await reference.set(aquarium.toMap(), SetOptions(merge: merge));
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   void updateInhabitant(Inhabitant inhabitant) {
@@ -997,6 +1073,8 @@ class AquariumProvider extends ChangeNotifier {
   @override
   void dispose() {
     _waterTestsSubscription?.cancel();
+    _aquariumsSubscription?.cancel();
+    _authStateSubscription?.cancel();
     super.dispose();
   }
 

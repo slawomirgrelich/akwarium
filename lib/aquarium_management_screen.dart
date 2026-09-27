@@ -29,6 +29,19 @@ class TankSwitcher extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
+    final activeAquarium = provider.activeAquarium;
+    if (activeAquarium == null) {
+      return ActionChip(
+        avatar: const Icon(Icons.add, size: 18),
+        label: const Text('Dodaj akwarium'),
+        onPressed: () => Navigator.push<void>(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => const AquariumManagementScreen(),
+          ),
+        ),
+      );
+    }
     return PopupMenuButton<String>(
       tooltip: AppLocalizations.of(context)!.changeAquariumTooltip,
       onSelected: provider.selectAquarium,
@@ -56,7 +69,7 @@ class TankSwitcher extends StatelessWidget {
         label: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 150),
           child: Text(
-            provider.activeAquarium.name,
+            activeAquarium.name,
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -376,9 +389,17 @@ class _TankProfileStrip extends StatelessWidget {
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                           size: 18,
                         ),
-                        onSelected: (action) {
+                        onSelected: (action) async {
                           if (action == 'delete') {
-                            provider.deleteAquarium(aquarium.id);
+                            try {
+                              await provider.deleteAquarium(aquarium.id);
+                            } on Object catch (error) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(error.toString())),
+                                );
+                              }
+                            }
                           } else {
                             showDialog<void>(
                               context: context,
@@ -431,9 +452,10 @@ class _StockingSummary extends StatelessWidget {
     final animals = inhabitants
         .where((item) => item.category != CreatureCategory.plant)
         .fold<int>(0, (sum, item) => sum + item.count);
-    final litersPerAnimal = animals == 0
+    final activeAquarium = provider.activeAquarium;
+    final litersPerAnimal = animals == 0 || activeAquarium == null
         ? double.infinity
-        : provider.activeAquarium.volumeNetLiters / animals;
+      : activeAquarium.volumeNetLiters / animals;
     final overloaded = litersPerAnimal < 2;
     return Container(
       padding: const EdgeInsets.all(16),
@@ -674,7 +696,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
     ],
   );
 
-  void _save() {
+  Future<void> _save() async {
     if (_name.text.trim().isEmpty) return;
     final provider = context.read<AquariumProvider>();
     final profile = AquariumProfile(
@@ -688,12 +710,20 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
       type: _type,
       imagePath: widget.initial?.imagePath,
     );
-    if (widget.initial == null) {
-      provider.addAquarium(profile);
-    } else {
-      provider.updateAquarium(profile);
+    try {
+      if (widget.initial == null) {
+        await provider.addAquarium(profile);
+      } else {
+        await provider.updateAquarium(profile);
+      }
+      if (mounted) Navigator.pop(context);
+    } on Object catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
     }
-    Navigator.pop(context);
   }
 }
 
