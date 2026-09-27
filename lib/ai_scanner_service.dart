@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,7 +65,6 @@ class AiScannerService {
         apiKeyOverride = apiKey;
 
   static const defaultApiKey = String.fromEnvironment('GEMINI_API_KEY');
-  static const modelName = 'gemini-1.5-flash';
   final http.Client _client;
   final String? apiKeyOverride;
 
@@ -82,17 +81,26 @@ class AiScannerService {
         ? environmentApiKey
         : apiKeyOverride?.trim() ?? storedApiKey;
     if (apiKey.trim().isEmpty) {
-      throw const AiScannerException('Ustaw klucz API Gemini w profilu aplikacji.');
+      throw const AiScannerException(
+        'Klucz API Gemini jest pusty. Sprawdź GitHub Secrets lub Ustawienia Profilu.',
+      );
     }
-    String? lastError;
-    for (final apiVersion in ['v1beta', 'v1']) {
+    final url =
+        'https://generativelanguage.googleapis.com/v1beta/models/'
+        'gemini-1.5-flash:generateContent?key=$apiKey';
+    final requestUrls = [
+      url,
+      'https://generativelanguage.googleapis.com/v1/models/'
+          'gemini-1.5-flash:generateContent?key=$apiKey',
+    ];
+    for (final requestUrl in requestUrls) {
       try {
-        final uri = Uri.parse(
-          'https://generativelanguage.googleapis.com/$apiVersion/models/'
-          '$modelName:generateContent?key=$apiKey',
+        debugPrint(
+          'Requesting Gemini API via: '
+          '${requestUrl.replaceAll(apiKey, 'HIDDEN_KEY')}',
         );
         final response = await _client.post(
-          uri,
+          Uri.parse(requestUrl),
           headers: const {'Content-Type': 'application/json'},
           body: jsonEncode({
             'contents': [
@@ -114,11 +122,12 @@ class AiScannerService {
           if (response.statusCode == 404 && usesStoredApiKey) {
             await preferences.remove('gemini_api_key');
           }
-          lastError = 'HTTP ${response.statusCode}';
-          if (response.statusCode == 404 && apiVersion == 'v1beta') {
+          if (response.statusCode == 404 && requestUrl == url) {
             continue;
           }
-          break;
+          throw AiScannerException(
+            'HTTP ${response.statusCode}:${response.body}',
+          );
         }
         final decoded = jsonDecode(response.body) as Map<String, dynamic>;
         final candidates = decoded['candidates'] as List<dynamic>? ?? const [];
@@ -137,14 +146,12 @@ class AiScannerService {
       } on TimeoutException {
         throw const AiScannerException('Analiza Gemini trwała zbyt długo.');
       } on http.ClientException catch (error) {
-        lastError = error.message;
+        throw AiScannerException('Błąd połączenia z Gemini: ${error.message}');
       } on FormatException {
         throw const AiScannerException('Gemini zwróciło nieprawidłowy format JSON.');
       }
     }
-    throw AiScannerException(
-      'Gemini nie mogło przeanalizować zdjęcia: ${lastError ?? 'brak dostępnego modelu'}',
-    );
+    throw const AiScannerException('Gemini nie zwróciło wyniku analizy.');
   }
 
   static String _stripJsonMarkdown(String text) {
