@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_data_model.dart';
+import 'referral_service.dart';
 
 enum TrialActivationResult {
   activated,
@@ -187,6 +188,7 @@ class ProAccessService extends ChangeNotifier {
         isPro: true,
         preferences: await _getPreferences(),
       );
+      await _completeReferralAfterActivation();
       return TrialActivationResult.activated;
     } on _TrialAlreadyUsed {
       await _setFreeForCurrentUser();
@@ -217,6 +219,7 @@ class ProAccessService extends ChangeNotifier {
       isPro: value,
       preferences: await _getPreferences(),
     );
+    if (value) await _completeReferralAfterActivation();
   }
 
   Future<void> toggleProStatus() => setProUser(!isProUser);
@@ -255,6 +258,7 @@ class ProAccessService extends ChangeNotifier {
             'uid': uid,
             'email': firebaseUser.email,
             'isPro': false,
+            'successfulReferralsCount': 0,
             'subscriptionStatus': 'free',
             'hasUsedTrial': false,
             _hasUsedTrialFirestoreKey: false,
@@ -411,6 +415,15 @@ class ProAccessService extends ChangeNotifier {
     } catch (error) {
       _lastTrialError = _messageForFirebaseError(error);
       debugPrint('Free plan fallback failed: $error');
+    }
+  }
+
+  Future<void> _completeReferralAfterActivation() async {
+    if (_tryGetAuth()?.currentUser == null) return;
+    try {
+      await ReferralService().completeReferral();
+    } on Object catch (error) {
+      debugPrint('Referral completion failed: $error');
     }
   }
 

@@ -131,6 +131,7 @@ class AuthService {
         'uid': user.uid,
         'email': user.email,
         'isPro': false,
+        'successfulReferralsCount': 0,
         'subscriptionStatus': 'free',
         'hasUsedTrial': false,
         'has_used_trial_v1': false,

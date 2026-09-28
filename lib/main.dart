@@ -32,12 +32,14 @@ import 'screens/journal_and_reminders_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'screens/reminders_screen.dart';
+import 'screens/referral_screen.dart';
 import 'screens/species_atlas_screen.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
 import 'services/firestore_service.dart';
 import 'services/firestore_sync_status.dart';
 import 'services/pro_access_service.dart';
+import 'services/referral_service.dart';
 import 'services/theme_controller.dart';
 import 'services/locale_controller.dart';
 import 'theme/app_theme.dart';
@@ -181,30 +183,44 @@ class AkwarystaProApp extends StatelessWidget {
         create: (_) => ThemeController(preferences: proPreferences)..init(),
         child: ChangeNotifierProvider<LocaleController>(
           create: (_) => LocaleController(preferences: proPreferences)..init(),
-          child: ChangeNotifierProvider<models.AquariumProvider>(
-            create: (_) => models.AquariumProvider()..initialize(),
-            child: Builder(
-              builder: (context) => MaterialApp(
-                title: 'Akwarysta PRO',
-                debugShowCheckedModeBanner: false,
-                locale: context.watch<LocaleController>().locale,
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
-                supportedLocales: AppLocalizations.supportedLocales,
-                themeMode: context.watch<ThemeController>().themeMode,
-                theme: AppTheme.light,
-                darkTheme: AppTheme.dark,
-                home: firebaseReady
-                    ? const AuthWrapper(authenticatedScreen: MainShell())
-                    : const LoginScreen(),
-                routes: {
-                  '/login': (_) => const LoginScreen(),
-                  '/dashboard': (_) => const MainShell(),
-                },
-              ),
-            ),
-          ),
+          child: firebaseReady
+              ? ChangeNotifierProvider<ReferralService>(
+                  create: (_) => ReferralService()..init(),
+                  child: ChangeNotifierProvider<models.AquariumProvider>(
+                    create: (_) => models.AquariumProvider()..initialize(),
+                    child: Builder(
+                      builder: (context) => _buildApp(context, firebaseReady),
+                    ),
+                  ),
+                )
+              : ChangeNotifierProvider<models.AquariumProvider>(
+                  create: (_) => models.AquariumProvider()..initialize(),
+                  child: Builder(
+                    builder: (context) => _buildApp(context, firebaseReady),
+                  ),
+                ),
         ),
       ),
+    );
+  }
+
+  Widget _buildApp(BuildContext context, bool firebaseReady) {
+    return MaterialApp(
+      title: 'Akwarysta PRO',
+      debugShowCheckedModeBanner: false,
+      locale: context.watch<LocaleController>().locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      themeMode: context.watch<ThemeController>().themeMode,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      home: firebaseReady
+          ? const AuthWrapper(authenticatedScreen: MainShell())
+          : const LoginScreen(),
+      routes: {
+        '/login': (_) => const LoginScreen(),
+        '/dashboard': (_) => const MainShell(),
+      },
     );
   }
 }
@@ -1602,6 +1618,16 @@ class ProfilePage extends StatelessWidget {
             const _ProfileDisplayNameTile(),
             const SizedBox(height: 12),
             const _ProCard(),
+            const SizedBox(height: 10),
+            _SettingsTile(
+              icon: Icons.card_giftcard_outlined,
+              title: 'Program poleceń',
+              subtitle: 'Poleć znajomych i odbierz darmowy miesiąc PRO',
+              onTap: () => Navigator.push<void>(
+                context,
+                MaterialPageRoute(builder: (_) => const ReferralScreen()),
+              ),
+            ),
             if (kDebugMode) ...[
               const SizedBox(height: 8),
               OutlinedButton.icon(

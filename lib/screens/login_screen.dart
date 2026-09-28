@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../l10n/app_localizations.dart';
+import '../models/referral_models.dart';
 import '../services/auth_service.dart';
+import '../services/referral_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _referralCodeController = TextEditingController();
   AuthService? _authService;
 
   bool _isRegistering = false;
@@ -22,6 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _errorMessage;
+  ReferralCodeValidation? _referralValidation;
+  Timer? _referralValidationTimer;
 
   AuthService get _auth => _authService ??= AuthService();
 
@@ -30,6 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _referralCodeController.dispose();
+    _referralValidationTimer?.cancel();
     super.dispose();
   }
 
@@ -158,6 +166,27 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                               onFieldSubmitted: (_) => _submit(),
                             ),
+                            const SizedBox(height: 14),
+                            TextFormField(
+                              controller: _referralCodeController,
+                              textCapitalization: TextCapitalization.characters,
+                              decoration: InputDecoration(
+                                labelText: 'Masz kod polecający? (opcjonalnie)',
+                                prefixIcon: const Icon(Icons.card_giftcard_outlined),
+                                suffixIcon: _referralValidation == null
+                                    ? null
+                                    : Icon(
+                                        _referralValidation!.isValid
+                                            ? Icons.check_circle
+                                            : Icons.error_outline,
+                                        color: _referralValidation!.isValid
+                                            ? Colors.green
+                                            : Theme.of(context).colorScheme.error,
+                                      ),
+                                helperText: _referralValidation?.message,
+                              ),
+                              onChanged: _onReferralCodeChanged,
+                            ),
                           ],
                           const SizedBox(height: 22),
                           FilledButton(
@@ -270,6 +299,14 @@ class _LoginScreenState extends State<LoginScreen> {
           email: _emailController.text,
           password: _passwordController.text,
         );
+        if (_referralCodeController.text.trim().isNotEmpty) {
+          try {
+            await ReferralService().applyCode(_referralCodeController.text);
+          } on ReferralException catch (error) {
+            if (mounted) setState(() => _errorMessage = error.message);
+            return;
+          }
+        }
         if (mounted) {
           await Navigator.of(context).pushReplacementNamed('/dashboard');
         }
@@ -297,6 +334,20 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _onReferralCodeChanged(String value) {
+    _referralValidationTimer?.cancel();
+    final code = value.trim();
+    if (code.isEmpty) {
+      setState(() => _referralValidation = null);
+      return;
+    }
+    _referralValidationTimer = Timer(const Duration(milliseconds: 450), () async {
+      final result = await ReferralService().validateCode(code);
+      if (!mounted || _referralCodeController.text.trim() != code) return;
+      setState(() => _referralValidation = result);
+    });
   }
 
   Future<void> _resetPassword() async {
