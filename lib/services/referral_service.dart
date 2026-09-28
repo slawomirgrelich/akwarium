@@ -12,12 +12,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/referral_models.dart';
 
 class ReferralException implements Exception {
-  const ReferralException(this.message);
+  const ReferralException(this.code);
 
-  final String message;
+  final ReferralErrorCode code;
 
   @override
-  String toString() => message;
+  String toString() => code.name;
 }
 
 class ReferralService extends ChangeNotifier {
@@ -64,17 +64,17 @@ class ReferralService extends ChangeNotifier {
   Future<ReferralCodeValidation> validateCode(String value) async {
     final code = _normalizeCode(value);
     if (code.length < 6) {
-      return const ReferralCodeValidation(isValid: false, message: 'Kod jest za krótki.');
+      return const ReferralCodeValidation(isValid: false, errorCode: ReferralErrorCode.codeTooShort);
     }
     try {
       final result = await _call('validateReferralCode', {'code': code});
       final data = Map<String, dynamic>.from(result.data as Map);
       return ReferralCodeValidation(
         isValid: data['valid'] == true,
-        message: data['valid'] == true ? null : 'Nie znaleziono takiego kodu.',
+        errorCode: data['valid'] == true ? null : ReferralErrorCode.invalidCode,
       );
     } on FirebaseFunctionsException catch (error) {
-      return ReferralCodeValidation(isValid: false, message: _messageForCode(error.code));
+      return ReferralCodeValidation(isValid: false, errorCode: _errorCodeFor(error.code));
     }
   }
 
@@ -87,7 +87,7 @@ class ReferralService extends ChangeNotifier {
         'deviceId': await _getDeviceId(),
       });
     } on FirebaseFunctionsException catch (error) {
-      throw ReferralException(_messageForCode(error.code));
+      throw ReferralException(_errorCodeFor(error.code));
     }
   }
 
@@ -95,7 +95,7 @@ class ReferralService extends ChangeNotifier {
     try {
       await _call('completeReferral', const <String, dynamic>{});
     } on FirebaseFunctionsException catch (error) {
-      throw ReferralException(_messageForCode(error.code));
+      throw ReferralException(_errorCodeFor(error.code));
     }
   }
 
@@ -274,29 +274,29 @@ class ReferralService extends ChangeNotifier {
 
   String _normalizeCode(String value) => value.trim().toUpperCase();
 
-  String _messageForCode(String code) {
+  ReferralErrorCode _errorCodeFor(String code) {
     switch (code) {
       case 'already-used-device':
-        return 'Ten kod został już wykorzystany na tym urządzeniu.';
+        return ReferralErrorCode.alreadyUsedDevice;
       case 'self-referral':
-        return 'Nie możesz użyć własnego kodu polecającego.';
+        return ReferralErrorCode.selfReferral;
       case 'invalid-referral-code':
-        return 'Nie znaleziono takiego kodu polecającego.';
+        return ReferralErrorCode.invalidCode;
       case 'already-referred':
-        return 'To konto ma już przypisany kod polecający.';
+        return ReferralErrorCode.alreadyReferred;
       case 'email-not-verified':
-        return 'Potwierdź adres e-mail, aby zaliczyć polecenie.';
+        return ReferralErrorCode.emailNotVerified;
       case 'failed-precondition':
-        return 'Nie można teraz wykonać tej operacji.';
+        return ReferralErrorCode.operationUnavailable;
       case 'unauthenticated':
-        return 'Sesja wygasła. Zaloguj się ponownie.';
+        return ReferralErrorCode.unauthenticated;
       case 'unavailable':
       case 'deadline-exceeded':
-        return 'Program poleceń jest chwilowo niedostępny. Spróbuj ponownie.';
+        return ReferralErrorCode.unavailable;
       case 'internal':
-        return 'Nie udało się przygotować kodu. Spróbuj ponownie.';
+        return ReferralErrorCode.internal;
       default:
-        return 'Nie udało się wykonać operacji programu poleceń.';
+        return ReferralErrorCode.generic;
     }
   }
 

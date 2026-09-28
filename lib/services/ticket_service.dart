@@ -8,13 +8,23 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../models/ticket_models.dart';
 
-class TicketServiceException implements Exception {
-  const TicketServiceException(this.message);
+enum TicketServiceErrorCode {
+  authRequired,
+  subjectRequired,
+  descriptionTooShort,
+  permission,
+  offline,
+  missingIndex,
+  generic,
+}
 
-  final String message;
+class TicketServiceException implements Exception {
+  const TicketServiceException(this.code);
+
+  final TicketServiceErrorCode code;
 
   @override
-  String toString() => message;
+  String toString() => code.name;
 }
 
 class TicketService extends ChangeNotifier {
@@ -39,18 +49,18 @@ class TicketService extends ChangeNotifier {
   List<TicketModel> _tickets = const [];
   bool _isLoading = false;
   bool _isSubmitting = false;
-  String? _errorMessage;
+  TicketServiceErrorCode? _errorCode;
 
   List<TicketModel> get tickets => List.unmodifiable(_tickets);
   bool get isLoading => _isLoading;
   bool get isSubmitting => _isSubmitting;
-  String? get errorMessage => _errorMessage;
+  TicketServiceErrorCode? get errorCode => _errorCode;
 
   Future<void> refresh() async {
     final user = _auth.currentUser;
     if (user == null) return;
     _isLoading = true;
-    _errorMessage = null;
+    _errorCode = null;
     notifyListeners();
     try {
       final snapshot = await _firestore
@@ -67,10 +77,10 @@ class TicketService extends ChangeNotifier {
             .get();
         _tickets = snapshot.docs.map(TicketModel.fromDocument).toList()
           ..sort((first, second) => second.createdAt.compareTo(first.createdAt));
-        _errorMessage = null;
+        _errorCode = null;
       } on Object catch (_) {
         _tickets = const [];
-        _errorMessage = _messageFor(error);
+        _errorCode = _errorCodeFor(error);
       }
     } finally {
       _isLoading = false;
@@ -86,23 +96,19 @@ class TicketService extends ChangeNotifier {
   }) async {
     final user = _auth.currentUser;
     if (user == null) {
-      throw const TicketServiceException(
-        'Zaloguj się, aby wysłać zgłoszenie.',
-      );
+      throw const TicketServiceException(TicketServiceErrorCode.authRequired);
     }
     final trimmedSubject = subject.trim();
     final trimmedDescription = description.trim();
     if (trimmedSubject.isEmpty) {
-      throw const TicketServiceException('Wpisz tytuł zgłoszenia.');
+      throw const TicketServiceException(TicketServiceErrorCode.subjectRequired);
     }
     if (trimmedDescription.length < 15) {
-      throw const TicketServiceException(
-        'Opis zgłoszenia musi mieć co najmniej 15 znaków.',
-      );
+      throw const TicketServiceException(TicketServiceErrorCode.descriptionTooShort);
     }
 
     _isSubmitting = true;
-    _errorMessage = null;
+    _errorCode = null;
     notifyListeners();
     try {
       final deviceInfo = await _collectDeviceInfo();
@@ -140,8 +146,8 @@ class TicketService extends ChangeNotifier {
         debugPrint('Ticket sent but list refresh failed: $error');
       }
     } on Object catch (error) {
-      final exception = TicketServiceException(_messageFor(error));
-      _errorMessage = exception.message;
+      final exception = TicketServiceException(_errorCodeFor(error));
+      _errorCode = exception.code;
       throw exception;
     } finally {
       _isSubmitting = false;
@@ -201,7 +207,7 @@ class TicketService extends ChangeNotifier {
     await _ticketsSubscription?.cancel();
     _ticketsSubscription = null;
     _tickets = const [];
-    _errorMessage = null;
+    _errorCode = null;
     notifyListeners();
     if (user == null) return;
 
@@ -257,30 +263,28 @@ class TicketService extends ChangeNotifier {
           .get();
       _tickets = snapshot.docs.map(TicketModel.fromDocument).toList()
         ..sort((first, second) => second.createdAt.compareTo(first.createdAt));
-      _errorMessage = null;
+      _errorCode = null;
     } on Object catch (_) {
       _tickets = const [];
-      _errorMessage = _messageFor(error);
+      _errorCode = _errorCodeFor(error);
     }
     notifyListeners();
   }
 
-  String _messageFor(Object error) {
-    if (error is TicketServiceException) return error.message;
+  TicketServiceErrorCode _errorCodeFor(Object error) {
+    if (error is TicketServiceException) return error.code;
     if (error is FirebaseException) {
       switch (error.code) {
         case 'permission-denied':
-          return 'Brak uprawnień do zgłoszeń. Zaloguj się ponownie.';
+          return TicketServiceErrorCode.permission;
         case 'unavailable':
         case 'network-request-failed':
-          return 'Brak połączenia z internetem. Sprawdź sieć i spróbuj ponownie.';
+          return TicketServiceErrorCode.offline;
         case 'failed-precondition':
-          return 'Nie można pobrać zgłoszeń. Baza danych wymaga indeksu Firestore.';
-        default:
-          return 'Nie udało się połączyć z centrum pomocy.';
+          return TicketServiceErrorCode.missingIndex;
       }
     }
-    return 'Nie udało się wykonać operacji. Spróbuj ponownie.';
+    return TicketServiceErrorCode.generic;
   }
 
   @override

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/ticket_models.dart';
 import '../services/ticket_service.dart';
 
@@ -14,8 +15,9 @@ class HelpCenterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service = context.watch<TicketService>();
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Centrum pomocy')),
+      appBar: AppBar(title: Text(l10n.helpCenterTitle)),
       body: RefreshIndicator(
         onRefresh: service.refresh,
         child: ListView(
@@ -29,7 +31,7 @@ class HelpCenterScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const NewTicketScreen()),
               ),
               icon: const Icon(Icons.add_comment_outlined),
-              label: const Text('Utwórz nowe zgłoszenie'),
+              label: Text(l10n.createTicket),
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
@@ -38,16 +40,16 @@ class HelpCenterScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const MyTicketsScreen()),
               ),
               icon: const Icon(Icons.inbox_outlined),
-              label: Text('Moje zgłoszenia${service.tickets.isEmpty ? '' : ' (${service.tickets.length})'}'),
+              label: Text(service.tickets.isEmpty ? l10n.myTicketsTitle : l10n.myTicketsCount(service.tickets.length)),
             ),
             const SizedBox(height: 28),
-            Text('Szybkie odpowiedzi', style: Theme.of(context).textTheme.titleLarge),
+            Text(l10n.quickAnswers, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             const _FaqSection(),
-            if (service.errorMessage != null) ...[
+            if (service.errorCode != null) ...[
               const SizedBox(height: 16),
               Text(
-                service.errorMessage!,
+                _ticketErrorMessage(l10n, service.errorCode!),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
@@ -65,6 +67,7 @@ class _HelpHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -82,12 +85,12 @@ class _HelpHero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Jesteśmy tu, żeby pomóc',
+                  l10n.helpHeroTitle,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                 ),
                 SizedBox(height: 6),
                 Text(
-                  'Opisz problem, a zespół Akwarysta PRO wróci do Ciebie z odpowiedzią.',
+                  l10n.helpHeroDescription,
                   style: TextStyle(height: 1.35),
                 ),
               ],
@@ -104,65 +107,66 @@ class _FaqSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
       children: [
         ExpansionTile(
           leading: Icon(Icons.science_outlined),
-          title: Text('Jak działa skaner AI i weryfikacja parametrów?'),
+          title: Text(l10n.faqAiTitle),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Skaner AI pomaga rozpoznać problem na zdjęciu. Wyniki testów wody aplikacja porównuje z normami temperatury, pH i twardości dla wybranego akwarium.'),
+              child: Text(l10n.faqAiAnswer),
             ),
           ],
         ),
         ExpansionTile(
           leading: Icon(Icons.water_drop_outlined),
-          title: Text('Co zrobić, gdy azotany (NO3) są za wysokie?'),
+          title: Text(l10n.faqNo3Title),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Wykonaj częściową podmianę wody, ogranicz przekarmianie i sprawdź filtrację biologiczną. Powtarzaj pomiary po podmianie, zamiast obniżać NO3 gwałtownie.'),
+              child: Text(l10n.faqNo3Answer),
             ),
           ],
         ),
         ExpansionTile(
           leading: Icon(Icons.notifications_active_outlined),
-          title: Text('Jak ustawić przypomnienia o podmianie i filtrze?'),
+          title: Text(l10n.faqRemindersTitle),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Otwórz Dziennik i przypomnienia, wybierz dodanie zadania, ustaw termin oraz częstotliwość. Powiadomienia wymagają zgody systemu.'),
+              child: Text(l10n.faqRemindersAnswer),
             ),
           ],
         ),
         ExpansionTile(
           leading: Icon(Icons.devices_other_outlined),
-          title: Text('Jak przenieść dane na nowe urządzenie?'),
+          title: Text(l10n.faqTransferTitle),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Zaloguj się na nowym urządzeniu tym samym kontem. Dane zapisane w chmurze zostaną zsynchronizowane po chwili.'),
+              child: Text(l10n.faqTransferAnswer),
             ),
           ],
         ),
         ExpansionTile(
           leading: Icon(Icons.credit_card_outlined),
-          title: Text('Jak anulować lub zmienić plan PRO?'),
+          title: Text(l10n.faqSubscriptionTitle),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Subskrypcją zarządza się w ustawieniach Google Play lub App Store, zależnie od miejsca zakupu. Zmiany planu nie usuwają danych akwarium.'),
+              child: Text(l10n.faqSubscriptionAnswer),
             ),
           ],
         ),
         ExpansionTile(
           leading: Icon(Icons.water_outlined),
-          title: Text('Czy mogę zarządzać kilkoma akwariami?'),
+          title: Text(l10n.faqMultipleAquariumsTitle),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Tak. Przełączaj aktywne akwarium z poziomu zarządzania akwariami. Plan PRO nie ogranicza liczby zapisanych zbiorników.'),
+              child: Text(l10n.faqMultipleAquariumsAnswer),
             ),
           ],
         ),
@@ -197,8 +201,9 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   @override
   Widget build(BuildContext context) {
     final service = context.watch<TicketService>();
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Nowe zgłoszenie')),
+      appBar: AppBar(title: Text(l10n.newTicketTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -206,15 +211,15 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
           children: [
             DropdownButtonFormField<TicketCategory>(
               initialValue: _category,
-              decoration: const InputDecoration(
-                labelText: 'Kategoria',
+              decoration: InputDecoration(
+                labelText: l10n.ticketCategory,
                 prefixIcon: Icon(Icons.category_outlined),
               ),
               items: TicketCategory.values
                   .map(
                     (category) => DropdownMenuItem(
                       value: category,
-                      child: Text('${category.emoji}  ${category.label}'),
+                      child: Text('${category.emoji}  ${_categoryLabel(l10n, category)}'),
                     ),
                   )
                   .toList(),
@@ -227,13 +232,13 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               controller: _subjectController,
               maxLength: 100,
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'Tytuł',
-                hintText: 'Krótko opisz problem',
+              decoration: InputDecoration(
+                labelText: l10n.ticketSubject,
+                hintText: l10n.ticketSubjectHint,
                 prefixIcon: Icon(Icons.title_outlined),
               ),
               validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Wpisz tytuł zgłoszenia.'
+                  ? l10n.ticketSubjectRequired
                   : null,
             ),
             const SizedBox(height: 8),
@@ -242,9 +247,9 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               minLines: 7,
               maxLines: 12,
               maxLength: 4000,
-              decoration: const InputDecoration(
-                labelText: 'Szczegółowy opis',
-                hintText: 'Co się wydarzyło? Jak można odtworzyć problem?',
+              decoration: InputDecoration(
+                labelText: l10n.ticketDescription,
+                hintText: l10n.ticketDescriptionHint,
                 alignLabelWithHint: true,
                 prefixIcon: Padding(
                   padding: EdgeInsets.only(bottom: 106),
@@ -253,7 +258,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               ),
               validator: (value) {
                 if ((value?.trim().length ?? 0) < 15) {
-                  return 'Opis musi mieć co najmniej 15 znaków.';
+                  return l10n.ticketDescriptionMin;
                 }
                 return null;
               },
@@ -264,8 +269,8 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               icon: const Icon(Icons.attach_file_outlined),
               label: Text(
                 _imageName == null
-                    ? 'Załącz zdjęcie / zrzut ekranu'
-                    : 'Zmień załącznik: $_imageName',
+                    ? l10n.attachImage
+                    : l10n.changeAttachment(_imageName!),
               ),
             ),
             if (_imageBytes != null) ...[
@@ -285,7 +290,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                     top: 8,
                     right: 8,
                     child: IconButton.filledTonal(
-                      tooltip: 'Usuń załącznik',
+                      tooltip: l10n.removeAttachment,
                       onPressed: () => setState(() {
                         _imageBytes = null;
                         _imageName = null;
@@ -297,11 +302,11 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               ),
             ],
             const SizedBox(height: 16),
-            if (service.errorMessage != null)
+            if (service.errorCode != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
-                  service.errorMessage!,
+                  _ticketErrorMessage(l10n, service.errorCode!),
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
@@ -313,7 +318,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.send_outlined),
-              label: Text(service.isSubmitting ? 'Wysyłanie...' : 'Wyślij zgłoszenie'),
+              label: Text(service.isSubmitting ? l10n.sendingTicket : l10n.sendTicket),
             ),
           ],
         ),
@@ -331,14 +336,15 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
         imageBytes: _imageBytes,
       );
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zgłoszenie zostało wysłane.')),
+        SnackBar(content: Text(l10n.ticketSent)),
       );
     } on TicketServiceException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
+        SnackBar(content: Text(_ticketErrorMessage(AppLocalizations.of(context)!, error.code))),
       );
     }
   }
@@ -359,8 +365,9 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       });
     } on Object catch (error) {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się odczytać zdjęcia: $error')),
+        SnackBar(content: Text(l10n.ticketPhotoReadError(error.toString()))),
       );
     }
   }
@@ -372,14 +379,15 @@ class MyTicketsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service = context.watch<TicketService>();
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Moje zgłoszenia')),
+      appBar: AppBar(title: Text(l10n.myTicketsTitle)),
       body: RefreshIndicator(
         onRefresh: service.refresh,
         child: service.isLoading && service.tickets.isEmpty
             ? ListView(children: const [Center(child: Padding(padding: EdgeInsets.all(48), child: CircularProgressIndicator()))])
             : service.tickets.isEmpty
-            ? ListView(children: const [Center(child: Padding(padding: EdgeInsets.all(48), child: Text('Nie masz jeszcze żadnych zgłoszeń.')))])
+            ? ListView(children: [Center(child: Padding(padding: const EdgeInsets.all(48), child: Text(l10n.noTickets)))])
             : ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                 itemCount: service.tickets.length,
@@ -409,6 +417,7 @@ class _TicketCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(ticket.status);
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -433,7 +442,7 @@ class _TicketCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              Text('${ticket.category.emoji}  ${ticket.category.shortLabel}'),
+              Text('${ticket.category.emoji}  ${_categoryShortLabel(l10n, ticket.category)}'),
               const SizedBox(height: 6),
               Text(
                 DateFormat('dd.MM.yyyy, HH:mm').format(ticket.updatedAt),
@@ -445,7 +454,7 @@ class _TicketCard extends StatelessWidget {
                   children: [
                     Icon(Icons.reply_outlined, size: 17, color: statusColor),
                     const SizedBox(width: 6),
-                    Text('Odpowiedź od wsparcia', style: TextStyle(color: statusColor, fontWeight: FontWeight.w700)),
+                    Text(l10n.ticketSupportReply, style: TextStyle(color: statusColor, fontWeight: FontWeight.w700)),
                   ],
                 ),
               ],
@@ -471,7 +480,7 @@ class _StatusBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.13),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(status.label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800)),
+      child: Text(_statusLabel(AppLocalizations.of(context)!, status), style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800)),
     );
   }
 }
@@ -483,8 +492,9 @@ class TicketDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Szczegóły zgłoszenia')),
+      appBar: AppBar(title: Text(l10n.ticketDetails)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
@@ -495,14 +505,14 @@ class TicketDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text('${ticket.category.emoji}  ${ticket.category.label}'),
+          Text('${ticket.category.emoji}  ${_categoryLabel(l10n, ticket.category)}'),
           const SizedBox(height: 6),
-          Text('Utworzono: ${DateFormat('dd.MM.yyyy, HH:mm').format(ticket.createdAt)}', style: Theme.of(context).textTheme.bodySmall),
+          Text(l10n.ticketCreatedAt(DateFormat('dd.MM.yyyy, HH:mm').format(ticket.createdAt)), style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 20),
-          _DetailBlock(title: 'Opis zgłoszenia', text: ticket.description),
+          _DetailBlock(title: l10n.ticketDescriptionSection, text: ticket.description),
           const SizedBox(height: 12),
           _DetailBlock(
-            title: 'Informacje techniczne',
+            title: l10n.ticketTechnicalInfo,
             text: ticket.deviceInfo.entries.map((entry) => '${entry.key}: ${entry.value}').join('\n'),
           ),
           if (ticket.imageUrl?.trim().isNotEmpty == true) ...[
@@ -512,16 +522,16 @@ class TicketDetailScreen extends StatelessWidget {
               child: Image.network(
                 ticket.imageUrl!,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const Padding(
+                errorBuilder: (_, _, _) => Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text('Nie udało się wyświetlić załącznika.'),
+                  child: Text(l10n.ticketAttachmentError),
                 ),
               ),
             ),
           ],
           if (ticket.adminResponse?.trim().isNotEmpty == true) ...[
             const SizedBox(height: 12),
-            _DetailBlock(title: 'Odpowiedź wsparcia', text: ticket.adminResponse!),
+            _DetailBlock(title: l10n.ticketSupportReply, text: ticket.adminResponse!),
           ],
         ],
       ),
@@ -563,5 +573,67 @@ Color _statusColor(TicketStatus status) {
       return const Color(0xFF16A34A);
     case TicketStatus.closed:
       return const Color(0xFF64748B);
+  }
+}
+
+String _categoryLabel(AppLocalizations l10n, TicketCategory category) {
+  switch (category) {
+    case TicketCategory.bug:
+      return l10n.ticketBugCategory;
+    case TicketCategory.feature:
+      return l10n.ticketFeatureCategory;
+    case TicketCategory.subscription:
+      return l10n.ticketSubscriptionCategory;
+    case TicketCategory.business:
+      return l10n.ticketBusinessCategory;
+    case TicketCategory.other:
+      return l10n.ticketOtherCategory;
+  }
+}
+
+String _categoryShortLabel(AppLocalizations l10n, TicketCategory category) {
+  switch (category) {
+    case TicketCategory.bug:
+      return l10n.ticketBugCategory.replaceFirst('🐛 ', '');
+    case TicketCategory.feature:
+      return l10n.ticketFeatureCategory.replaceFirst('💡 ', '');
+    case TicketCategory.subscription:
+      return l10n.ticketSubscriptionCategory.replaceFirst('💳 ', '');
+    case TicketCategory.business:
+      return l10n.ticketBusinessCategory.replaceFirst('🤝 ', '');
+    case TicketCategory.other:
+      return l10n.ticketOtherCategory.replaceFirst('❓ ', '');
+  }
+}
+
+String _statusLabel(AppLocalizations l10n, TicketStatus status) {
+  switch (status) {
+    case TicketStatus.open:
+      return l10n.ticketStatusOpen;
+    case TicketStatus.inProgress:
+      return l10n.ticketStatusInProgress;
+    case TicketStatus.resolved:
+      return l10n.ticketStatusResolved;
+    case TicketStatus.closed:
+      return l10n.ticketStatusClosed;
+  }
+}
+
+String _ticketErrorMessage(AppLocalizations l10n, TicketServiceErrorCode code) {
+  switch (code) {
+    case TicketServiceErrorCode.authRequired:
+      return l10n.ticketAuthRequired;
+    case TicketServiceErrorCode.subjectRequired:
+      return l10n.ticketSubjectRequired;
+    case TicketServiceErrorCode.descriptionTooShort:
+      return l10n.ticketDescriptionMin;
+    case TicketServiceErrorCode.permission:
+      return l10n.ticketPermissionError;
+    case TicketServiceErrorCode.offline:
+      return l10n.ticketOfflineError;
+    case TicketServiceErrorCode.missingIndex:
+      return l10n.ticketIndexError;
+    case TicketServiceErrorCode.generic:
+      return l10n.ticketGenericError;
   }
 }

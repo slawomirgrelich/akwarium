@@ -45,11 +45,25 @@ enum ReferralStatus {
 class ReferralCodeValidation {
   const ReferralCodeValidation({
     required this.isValid,
-    this.message,
+    this.errorCode,
   });
 
   final bool isValid;
-  final String? message;
+  final ReferralErrorCode? errorCode;
+}
+
+enum ReferralErrorCode {
+  codeTooShort,
+  invalidCode,
+  selfReferral,
+  alreadyUsedDevice,
+  alreadyReferred,
+  emailNotVerified,
+  operationUnavailable,
+  unauthenticated,
+  unavailable,
+  internal,
+  generic,
 }
 
 DateTime? _dateFromValue(dynamic value) {

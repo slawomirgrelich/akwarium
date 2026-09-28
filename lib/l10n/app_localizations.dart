@@ -2071,6 +2071,528 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Usuń'**
   String get deleteAction;
+
+  /// No description provided for @referralTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Program poleceń'**
+  String get referralTitle;
+
+  /// No description provided for @referralHeroTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Polecaj Akwarysta PRO i zyskaj darmowy dostęp!'**
+  String get referralHeroTitle;
+
+  /// No description provided for @referralHeroDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zyskaj 1 miesiąc PRO za każde 3 zaproszone osoby. Twoi znajomi otrzymają 50% zniżki na pierwszy rok.'**
+  String get referralHeroDescription;
+
+  /// No description provided for @referralCodeSection.
+  ///
+  /// In pl, this message translates to:
+  /// **'Twój kod'**
+  String get referralCodeSection;
+
+  /// No description provided for @copyCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kopiuj'**
+  String get copyCode;
+
+  /// No description provided for @shareLink.
+  ///
+  /// In pl, this message translates to:
+  /// **'Udostępnij'**
+  String get shareLink;
+
+  /// No description provided for @codeCopied.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod został skopiowany do schowka!'**
+  String get codeCopied;
+
+  /// No description provided for @referralProgress.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} / 3 zaliczonych poleceń'**
+  String referralProgress(int count);
+
+  /// No description provided for @invitedUsers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszone osoby'**
+  String get invitedUsers;
+
+  /// No description provided for @noReferrals.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie masz jeszcze żadnych poleceń.'**
+  String get noReferrals;
+
+  /// No description provided for @referralAccepted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rejestracja zaakceptowana'**
+  String get referralAccepted;
+
+  /// No description provided for @activePro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aktywne PRO'**
+  String get activePro;
+
+  /// No description provided for @referralCompleted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Polecenie zaliczone'**
+  String get referralCompleted;
+
+  /// No description provided for @awaitingProActivation.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oczekuje na aktywację PRO'**
+  String get awaitingProActivation;
+
+  /// No description provided for @referralGoalReached.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cel osiągnięty! Twój darmowy miesiąc PRO jest gotowy.'**
+  String get referralGoalReached;
+
+  /// No description provided for @referralProgressHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Każde aktywne polecenie przybliża Cię do darmowego miesiąca PRO.'**
+  String get referralProgressHint;
+
+  /// No description provided for @referralLoadErrorTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się załadować programu'**
+  String get referralLoadErrorTitle;
+
+  /// No description provided for @connectionRetry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź połączenie i spróbuj ponownie.'**
+  String get connectionRetry;
+
+  /// No description provided for @retry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Spróbuj ponownie'**
+  String get retry;
+
+  /// No description provided for @refreshReferrals.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odśwież polecenia'**
+  String get refreshReferrals;
+
+  /// No description provided for @referralShareText.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dołącz do mnie w Akwarysta PRO i zgarnij 50% zniżki na pierwszy rok! Użyj mojego kodu: {code}'**
+  String referralShareText(String code);
+
+  /// No description provided for @referralCodeTooShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod jest za krótki.'**
+  String get referralCodeTooShort;
+
+  /// No description provided for @referralInvalidCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie znaleziono takiego kodu polecającego.'**
+  String get referralInvalidCode;
+
+  /// No description provided for @referralSelfReferral.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie możesz użyć własnego kodu polecającego.'**
+  String get referralSelfReferral;
+
+  /// No description provided for @referralDeviceUsed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ten kod został już wykorzystany na tym urządzeniu.'**
+  String get referralDeviceUsed;
+
+  /// No description provided for @referralAlreadyReferred.
+  ///
+  /// In pl, this message translates to:
+  /// **'To konto ma już przypisany kod polecający.'**
+  String get referralAlreadyReferred;
+
+  /// No description provided for @referralEmailUnverified.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdź adres e-mail, aby zaliczyć polecenie.'**
+  String get referralEmailUnverified;
+
+  /// No description provided for @referralOperationUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie można teraz wykonać tej operacji.'**
+  String get referralOperationUnavailable;
+
+  /// No description provided for @referralUnauthenticated.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sesja wygasła. Zaloguj się ponownie.'**
+  String get referralUnauthenticated;
+
+  /// No description provided for @referralUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Program poleceń jest chwilowo niedostępny. Spróbuj ponownie.'**
+  String get referralUnavailable;
+
+  /// No description provided for @referralInternal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się przygotować kodu. Spróbuj ponownie.'**
+  String get referralInternal;
+
+  /// No description provided for @referralGenericError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wykonać operacji programu poleceń.'**
+  String get referralGenericError;
+
+  /// No description provided for @helpCenterTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Centrum pomocy'**
+  String get helpCenterTitle;
+
+  /// No description provided for @helpHeroTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jesteśmy tu, żeby pomóc'**
+  String get helpHeroTitle;
+
+  /// No description provided for @helpHeroDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opisz problem, a zespół Akwarysta PRO wróci do Ciebie z odpowiedzią.'**
+  String get helpHeroDescription;
+
+  /// No description provided for @createTicket.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utwórz nowe zgłoszenie'**
+  String get createTicket;
+
+  /// No description provided for @myTicketsCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Moje zgłoszenia ({count})'**
+  String myTicketsCount(int count);
+
+  /// No description provided for @quickAnswers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szybkie odpowiedzi'**
+  String get quickAnswers;
+
+  /// No description provided for @faqAiTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jak działa skaner AI i weryfikacja parametrów?'**
+  String get faqAiTitle;
+
+  /// No description provided for @faqAiAnswer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skaner AI pomaga rozpoznać problem na zdjęciu. Wyniki testów wody aplikacja porównuje z normami temperatury, pH i twardości dla wybranego akwarium.'**
+  String get faqAiAnswer;
+
+  /// No description provided for @faqNo3Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Co zrobić, gdy azotany (NO3) są za wysokie?'**
+  String get faqNo3Title;
+
+  /// No description provided for @faqNo3Answer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykonaj częściową podmianę wody, ogranicz przekarmianie i sprawdź filtrację biologiczną. Powtarzaj pomiary po podmianie, zamiast obniżać NO3 gwałtownie.'**
+  String get faqNo3Answer;
+
+  /// No description provided for @faqRemindersTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jak ustawić przypomnienia o podmianie i filtrze?'**
+  String get faqRemindersTitle;
+
+  /// No description provided for @faqRemindersAnswer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwórz Dziennik i przypomnienia, wybierz dodanie zadania, ustaw termin oraz częstotliwość. Powiadomienia wymagają zgody systemu.'**
+  String get faqRemindersAnswer;
+
+  /// No description provided for @faqTransferTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jak przenieść dane na nowe urządzenie?'**
+  String get faqTransferTitle;
+
+  /// No description provided for @faqTransferAnswer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się na nowym urządzeniu tym samym kontem. Dane zapisane w chmurze zostaną zsynchronizowane po chwili.'**
+  String get faqTransferAnswer;
+
+  /// No description provided for @faqSubscriptionTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jak anulować lub zmienić plan PRO?'**
+  String get faqSubscriptionTitle;
+
+  /// No description provided for @faqSubscriptionAnswer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Subskrypcją zarządza się w ustawieniach Google Play lub App Store, zależnie od miejsca zakupu. Zmiany planu nie usuwają danych akwarium.'**
+  String get faqSubscriptionAnswer;
+
+  /// No description provided for @faqMultipleAquariumsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy mogę zarządzać kilkoma akwariami?'**
+  String get faqMultipleAquariumsTitle;
+
+  /// No description provided for @faqMultipleAquariumsAnswer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tak. Przełączaj aktywne akwarium z poziomu zarządzania akwariami. Plan PRO nie ogranicza liczby zapisanych zbiorników.'**
+  String get faqMultipleAquariumsAnswer;
+
+  /// No description provided for @newTicketTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowe zgłoszenie'**
+  String get newTicketTitle;
+
+  /// No description provided for @ticketCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kategoria'**
+  String get ticketCategory;
+
+  /// No description provided for @ticketBugCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'🐛 Zgłoś błąd w aplikacji'**
+  String get ticketBugCategory;
+
+  /// No description provided for @ticketFeatureCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'💡 Propozycja funkcji / pomysł'**
+  String get ticketFeatureCategory;
+
+  /// No description provided for @ticketSubscriptionCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'💳 Problem z płatnością / subskrypcją PRO'**
+  String get ticketSubscriptionCategory;
+
+  /// No description provided for @ticketBusinessCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'🤝 Współpraca / kontakt biznesowy'**
+  String get ticketBusinessCategory;
+
+  /// No description provided for @ticketOtherCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'❓ Inne zapytanie'**
+  String get ticketOtherCategory;
+
+  /// No description provided for @ticketSubject.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tytuł'**
+  String get ticketSubject;
+
+  /// No description provided for @ticketSubjectHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krótko opisz problem'**
+  String get ticketSubjectHint;
+
+  /// No description provided for @ticketDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szczegółowy opis'**
+  String get ticketDescription;
+
+  /// No description provided for @ticketDescriptionHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Co się wydarzyło? Jak można odtworzyć problem?'**
+  String get ticketDescriptionHint;
+
+  /// No description provided for @ticketDescriptionMin.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opis musi mieć co najmniej 15 znaków.'**
+  String get ticketDescriptionMin;
+
+  /// No description provided for @ticketSubjectRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz tytuł zgłoszenia.'**
+  String get ticketSubjectRequired;
+
+  /// No description provided for @ticketAuthRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się, aby wysłać zgłoszenie.'**
+  String get ticketAuthRequired;
+
+  /// No description provided for @ticketPermissionError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak uprawnień do zgłoszeń. Zaloguj się ponownie.'**
+  String get ticketPermissionError;
+
+  /// No description provided for @ticketOfflineError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak połączenia z internetem. Sprawdź sieć i spróbuj ponownie.'**
+  String get ticketOfflineError;
+
+  /// No description provided for @ticketIndexError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie można pobrać zgłoszeń. Baza danych wymaga indeksu Firestore.'**
+  String get ticketIndexError;
+
+  /// No description provided for @ticketGenericError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wykonać operacji. Spróbuj ponownie.'**
+  String get ticketGenericError;
+
+  /// No description provided for @attachImage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Załącz zdjęcie / zrzut ekranu'**
+  String get attachImage;
+
+  /// No description provided for @changeAttachment.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmień załącznik: {name}'**
+  String changeAttachment(String name);
+
+  /// No description provided for @removeAttachment.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń załącznik'**
+  String get removeAttachment;
+
+  /// No description provided for @sendingTicket.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wysyłanie...'**
+  String get sendingTicket;
+
+  /// No description provided for @sendTicket.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyślij zgłoszenie'**
+  String get sendTicket;
+
+  /// No description provided for @ticketSent.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoszenie zostało wysłane.'**
+  String get ticketSent;
+
+  /// No description provided for @ticketPhotoReadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się odczytać zdjęcia: {error}'**
+  String ticketPhotoReadError(String error);
+
+  /// No description provided for @myTicketsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Moje zgłoszenia'**
+  String get myTicketsTitle;
+
+  /// No description provided for @noTickets.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie masz jeszcze żadnych zgłoszeń.'**
+  String get noTickets;
+
+  /// No description provided for @ticketDetails.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szczegóły zgłoszenia'**
+  String get ticketDetails;
+
+  /// No description provided for @ticketSupportReply.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odpowiedź od wsparcia'**
+  String get ticketSupportReply;
+
+  /// No description provided for @ticketCreatedAt.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utworzono: {date}'**
+  String ticketCreatedAt(String date);
+
+  /// No description provided for @ticketDescriptionSection.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opis zgłoszenia'**
+  String get ticketDescriptionSection;
+
+  /// No description provided for @ticketTechnicalInfo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Informacje techniczne'**
+  String get ticketTechnicalInfo;
+
+  /// No description provided for @ticketAttachmentError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wyświetlić załącznika.'**
+  String get ticketAttachmentError;
+
+  /// No description provided for @ticketStatusOpen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwarte'**
+  String get ticketStatusOpen;
+
+  /// No description provided for @ticketStatusInProgress.
+  ///
+  /// In pl, this message translates to:
+  /// **'W trakcie'**
+  String get ticketStatusInProgress;
+
+  /// No description provided for @ticketStatusResolved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozwiązane'**
+  String get ticketStatusResolved;
+
+  /// No description provided for @ticketStatusClosed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zamknięte'**
+  String get ticketStatusClosed;
 }
 
 class _AppLocalizationsDelegate

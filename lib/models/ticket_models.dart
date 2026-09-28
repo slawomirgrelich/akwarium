@@ -9,36 +9,6 @@ enum TicketCategory {
 
   String get firestoreValue => name;
 
-  String get label {
-    switch (this) {
-      case TicketCategory.bug:
-        return 'Zgłoś błąd w aplikacji';
-      case TicketCategory.feature:
-        return 'Propozycja funkcji / pomysł';
-      case TicketCategory.subscription:
-        return 'Problem z płatnością / subskrypcją PRO';
-      case TicketCategory.business:
-        return 'Współpraca / kontakt biznesowy';
-      case TicketCategory.other:
-        return 'Inne zapytanie';
-    }
-  }
-
-  String get shortLabel {
-    switch (this) {
-      case TicketCategory.bug:
-        return 'Błąd aplikacji';
-      case TicketCategory.feature:
-        return 'Pomysł';
-      case TicketCategory.subscription:
-        return 'Płatność / PRO';
-      case TicketCategory.business:
-        return 'Współpraca';
-      case TicketCategory.other:
-        return 'Inne';
-    }
-  }
-
   String get emoji {
     switch (this) {
       case TicketCategory.bug:
@@ -78,19 +48,6 @@ enum TicketStatus {
         return 'RESOLVED';
       case TicketStatus.closed:
         return 'CLOSED';
-    }
-  }
-
-  String get label {
-    switch (this) {
-      case TicketStatus.open:
-        return 'Otwarte';
-      case TicketStatus.inProgress:
-        return 'W trakcie';
-      case TicketStatus.resolved:
-        return 'Rozwiązane';
-      case TicketStatus.closed:
-        return 'Zamknięte';
     }
   }
 

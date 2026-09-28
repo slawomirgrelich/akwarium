@@ -1077,4 +1077,304 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get deleteAction => 'Usuń';
+
+  @override
+  String get referralTitle => 'Program poleceń';
+
+  @override
+  String get referralHeroTitle =>
+      'Polecaj Akwarysta PRO i zyskaj darmowy dostęp!';
+
+  @override
+  String get referralHeroDescription =>
+      'Zyskaj 1 miesiąc PRO za każde 3 zaproszone osoby. Twoi znajomi otrzymają 50% zniżki na pierwszy rok.';
+
+  @override
+  String get referralCodeSection => 'Twój kod';
+
+  @override
+  String get copyCode => 'Kopiuj';
+
+  @override
+  String get shareLink => 'Udostępnij';
+
+  @override
+  String get codeCopied => 'Kod został skopiowany do schowka!';
+
+  @override
+  String referralProgress(int count) {
+    return '$count / 3 zaliczonych poleceń';
+  }
+
+  @override
+  String get invitedUsers => 'Zaproszone osoby';
+
+  @override
+  String get noReferrals => 'Nie masz jeszcze żadnych poleceń.';
+
+  @override
+  String get referralAccepted => 'Rejestracja zaakceptowana';
+
+  @override
+  String get activePro => 'Aktywne PRO';
+
+  @override
+  String get referralCompleted => 'Polecenie zaliczone';
+
+  @override
+  String get awaitingProActivation => 'Oczekuje na aktywację PRO';
+
+  @override
+  String get referralGoalReached =>
+      'Cel osiągnięty! Twój darmowy miesiąc PRO jest gotowy.';
+
+  @override
+  String get referralProgressHint =>
+      'Każde aktywne polecenie przybliża Cię do darmowego miesiąca PRO.';
+
+  @override
+  String get referralLoadErrorTitle => 'Nie udało się załadować programu';
+
+  @override
+  String get connectionRetry => 'Sprawdź połączenie i spróbuj ponownie.';
+
+  @override
+  String get retry => 'Spróbuj ponownie';
+
+  @override
+  String get refreshReferrals => 'Odśwież polecenia';
+
+  @override
+  String referralShareText(String code) {
+    return 'Dołącz do mnie w Akwarysta PRO i zgarnij 50% zniżki na pierwszy rok! Użyj mojego kodu: $code';
+  }
+
+  @override
+  String get referralCodeTooShort => 'Kod jest za krótki.';
+
+  @override
+  String get referralInvalidCode => 'Nie znaleziono takiego kodu polecającego.';
+
+  @override
+  String get referralSelfReferral =>
+      'Nie możesz użyć własnego kodu polecającego.';
+
+  @override
+  String get referralDeviceUsed =>
+      'Ten kod został już wykorzystany na tym urządzeniu.';
+
+  @override
+  String get referralAlreadyReferred =>
+      'To konto ma już przypisany kod polecający.';
+
+  @override
+  String get referralEmailUnverified =>
+      'Potwierdź adres e-mail, aby zaliczyć polecenie.';
+
+  @override
+  String get referralOperationUnavailable =>
+      'Nie można teraz wykonać tej operacji.';
+
+  @override
+  String get referralUnauthenticated => 'Sesja wygasła. Zaloguj się ponownie.';
+
+  @override
+  String get referralUnavailable =>
+      'Program poleceń jest chwilowo niedostępny. Spróbuj ponownie.';
+
+  @override
+  String get referralInternal =>
+      'Nie udało się przygotować kodu. Spróbuj ponownie.';
+
+  @override
+  String get referralGenericError =>
+      'Nie udało się wykonać operacji programu poleceń.';
+
+  @override
+  String get helpCenterTitle => 'Centrum pomocy';
+
+  @override
+  String get helpHeroTitle => 'Jesteśmy tu, żeby pomóc';
+
+  @override
+  String get helpHeroDescription =>
+      'Opisz problem, a zespół Akwarysta PRO wróci do Ciebie z odpowiedzią.';
+
+  @override
+  String get createTicket => 'Utwórz nowe zgłoszenie';
+
+  @override
+  String myTicketsCount(int count) {
+    return 'Moje zgłoszenia ($count)';
+  }
+
+  @override
+  String get quickAnswers => 'Szybkie odpowiedzi';
+
+  @override
+  String get faqAiTitle => 'Jak działa skaner AI i weryfikacja parametrów?';
+
+  @override
+  String get faqAiAnswer =>
+      'Skaner AI pomaga rozpoznać problem na zdjęciu. Wyniki testów wody aplikacja porównuje z normami temperatury, pH i twardości dla wybranego akwarium.';
+
+  @override
+  String get faqNo3Title => 'Co zrobić, gdy azotany (NO3) są za wysokie?';
+
+  @override
+  String get faqNo3Answer =>
+      'Wykonaj częściową podmianę wody, ogranicz przekarmianie i sprawdź filtrację biologiczną. Powtarzaj pomiary po podmianie, zamiast obniżać NO3 gwałtownie.';
+
+  @override
+  String get faqRemindersTitle =>
+      'Jak ustawić przypomnienia o podmianie i filtrze?';
+
+  @override
+  String get faqRemindersAnswer =>
+      'Otwórz Dziennik i przypomnienia, wybierz dodanie zadania, ustaw termin oraz częstotliwość. Powiadomienia wymagają zgody systemu.';
+
+  @override
+  String get faqTransferTitle => 'Jak przenieść dane na nowe urządzenie?';
+
+  @override
+  String get faqTransferAnswer =>
+      'Zaloguj się na nowym urządzeniu tym samym kontem. Dane zapisane w chmurze zostaną zsynchronizowane po chwili.';
+
+  @override
+  String get faqSubscriptionTitle => 'Jak anulować lub zmienić plan PRO?';
+
+  @override
+  String get faqSubscriptionAnswer =>
+      'Subskrypcją zarządza się w ustawieniach Google Play lub App Store, zależnie od miejsca zakupu. Zmiany planu nie usuwają danych akwarium.';
+
+  @override
+  String get faqMultipleAquariumsTitle =>
+      'Czy mogę zarządzać kilkoma akwariami?';
+
+  @override
+  String get faqMultipleAquariumsAnswer =>
+      'Tak. Przełączaj aktywne akwarium z poziomu zarządzania akwariami. Plan PRO nie ogranicza liczby zapisanych zbiorników.';
+
+  @override
+  String get newTicketTitle => 'Nowe zgłoszenie';
+
+  @override
+  String get ticketCategory => 'Kategoria';
+
+  @override
+  String get ticketBugCategory => '🐛 Zgłoś błąd w aplikacji';
+
+  @override
+  String get ticketFeatureCategory => '💡 Propozycja funkcji / pomysł';
+
+  @override
+  String get ticketSubscriptionCategory =>
+      '💳 Problem z płatnością / subskrypcją PRO';
+
+  @override
+  String get ticketBusinessCategory => '🤝 Współpraca / kontakt biznesowy';
+
+  @override
+  String get ticketOtherCategory => '❓ Inne zapytanie';
+
+  @override
+  String get ticketSubject => 'Tytuł';
+
+  @override
+  String get ticketSubjectHint => 'Krótko opisz problem';
+
+  @override
+  String get ticketDescription => 'Szczegółowy opis';
+
+  @override
+  String get ticketDescriptionHint =>
+      'Co się wydarzyło? Jak można odtworzyć problem?';
+
+  @override
+  String get ticketDescriptionMin => 'Opis musi mieć co najmniej 15 znaków.';
+
+  @override
+  String get ticketSubjectRequired => 'Wpisz tytuł zgłoszenia.';
+
+  @override
+  String get ticketAuthRequired => 'Zaloguj się, aby wysłać zgłoszenie.';
+
+  @override
+  String get ticketPermissionError =>
+      'Brak uprawnień do zgłoszeń. Zaloguj się ponownie.';
+
+  @override
+  String get ticketOfflineError =>
+      'Brak połączenia z internetem. Sprawdź sieć i spróbuj ponownie.';
+
+  @override
+  String get ticketIndexError =>
+      'Nie można pobrać zgłoszeń. Baza danych wymaga indeksu Firestore.';
+
+  @override
+  String get ticketGenericError =>
+      'Nie udało się wykonać operacji. Spróbuj ponownie.';
+
+  @override
+  String get attachImage => 'Załącz zdjęcie / zrzut ekranu';
+
+  @override
+  String changeAttachment(String name) {
+    return 'Zmień załącznik: $name';
+  }
+
+  @override
+  String get removeAttachment => 'Usuń załącznik';
+
+  @override
+  String get sendingTicket => 'Wysyłanie...';
+
+  @override
+  String get sendTicket => 'Wyślij zgłoszenie';
+
+  @override
+  String get ticketSent => 'Zgłoszenie zostało wysłane.';
+
+  @override
+  String ticketPhotoReadError(String error) {
+    return 'Nie udało się odczytać zdjęcia: $error';
+  }
+
+  @override
+  String get myTicketsTitle => 'Moje zgłoszenia';
+
+  @override
+  String get noTickets => 'Nie masz jeszcze żadnych zgłoszeń.';
+
+  @override
+  String get ticketDetails => 'Szczegóły zgłoszenia';
+
+  @override
+  String get ticketSupportReply => 'Odpowiedź od wsparcia';
+
+  @override
+  String ticketCreatedAt(String date) {
+    return 'Utworzono: $date';
+  }
+
+  @override
+  String get ticketDescriptionSection => 'Opis zgłoszenia';
+
+  @override
+  String get ticketTechnicalInfo => 'Informacje techniczne';
+
+  @override
+  String get ticketAttachmentError => 'Nie udało się wyświetlić załącznika.';
+
+  @override
+  String get ticketStatusOpen => 'Otwarte';
+
+  @override
+  String get ticketStatusInProgress => 'W trakcie';
+
+  @override
+  String get ticketStatusResolved => 'Rozwiązane';
+
+  @override
+  String get ticketStatusClosed => 'Zamknięte';
 }

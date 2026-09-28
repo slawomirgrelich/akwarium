@@ -1071,4 +1071,300 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAction => 'Delete';
+
+  @override
+  String get referralTitle => 'Referral Program';
+
+  @override
+  String get referralHeroTitle => 'Recommend Aquarium PRO and get free access!';
+
+  @override
+  String get referralHeroDescription =>
+      'Get 1 month of PRO for every 3 invited friends. Your friends get 50% off their first year.';
+
+  @override
+  String get referralCodeSection => 'Your code';
+
+  @override
+  String get copyCode => 'Copy';
+
+  @override
+  String get shareLink => 'Share';
+
+  @override
+  String get codeCopied => 'Code copied to clipboard!';
+
+  @override
+  String referralProgress(int count) {
+    return '$count / 3 successful referrals';
+  }
+
+  @override
+  String get invitedUsers => 'Invited users';
+
+  @override
+  String get noReferrals => 'You have no referrals yet.';
+
+  @override
+  String get referralAccepted => 'Registration accepted';
+
+  @override
+  String get activePro => 'Active PRO';
+
+  @override
+  String get referralCompleted => 'Referral completed';
+
+  @override
+  String get awaitingProActivation => 'Waiting for PRO activation';
+
+  @override
+  String get referralGoalReached =>
+      'Goal reached! Your free month of PRO is ready.';
+
+  @override
+  String get referralProgressHint =>
+      'Every active referral brings you closer to a free month of PRO.';
+
+  @override
+  String get referralLoadErrorTitle => 'Could not load the program';
+
+  @override
+  String get connectionRetry => 'Check your connection and try again.';
+
+  @override
+  String get retry => 'Try again';
+
+  @override
+  String get refreshReferrals => 'Refresh referrals';
+
+  @override
+  String referralShareText(String code) {
+    return 'Join me in Aquarium PRO and get 50% off your first year! Use my code: $code';
+  }
+
+  @override
+  String get referralCodeTooShort => 'The code is too short.';
+
+  @override
+  String get referralInvalidCode => 'No referral code was found.';
+
+  @override
+  String get referralSelfReferral => 'You cannot use your own referral code.';
+
+  @override
+  String get referralDeviceUsed =>
+      'This code has already been used on this device.';
+
+  @override
+  String get referralAlreadyReferred =>
+      'This account already has a referral code assigned.';
+
+  @override
+  String get referralEmailUnverified =>
+      'Verify your email address to complete the referral.';
+
+  @override
+  String get referralOperationUnavailable =>
+      'This operation is currently unavailable.';
+
+  @override
+  String get referralUnauthenticated => 'Your session expired. Sign in again.';
+
+  @override
+  String get referralUnavailable =>
+      'The referral program is temporarily unavailable. Try again.';
+
+  @override
+  String get referralInternal => 'The code could not be prepared. Try again.';
+
+  @override
+  String get referralGenericError => 'The referral operation failed.';
+
+  @override
+  String get helpCenterTitle => 'Help Center';
+
+  @override
+  String get helpHeroTitle => 'We\'re here to help';
+
+  @override
+  String get helpHeroDescription =>
+      'Describe your issue, and the Aquarium PRO team will get back to you.';
+
+  @override
+  String get createTicket => 'Create new ticket';
+
+  @override
+  String myTicketsCount(int count) {
+    return 'My tickets ($count)';
+  }
+
+  @override
+  String get quickAnswers => 'Quick answers';
+
+  @override
+  String get faqAiTitle =>
+      'How do the AI scanner and parameter verification work?';
+
+  @override
+  String get faqAiAnswer =>
+      'The AI scanner helps identify problems from a photo. Water test results are compared with temperature, pH, and hardness standards for the selected aquarium.';
+
+  @override
+  String get faqNo3Title => 'What should I do when nitrate (NO3) is too high?';
+
+  @override
+  String get faqNo3Answer =>
+      'Perform a partial water change, reduce overfeeding, and check biological filtration. Repeat measurements after the water change instead of lowering NO3 abruptly.';
+
+  @override
+  String get faqRemindersTitle =>
+      'How do I set reminders for water changes and filter cleaning?';
+
+  @override
+  String get faqRemindersAnswer =>
+      'Open Journal and reminders, add a task, and set its due date and frequency. Notifications require system permission.';
+
+  @override
+  String get faqTransferTitle => 'How do I move my data to a new device?';
+
+  @override
+  String get faqTransferAnswer =>
+      'Sign in on the new device with the same account. Data saved in the cloud will sync shortly.';
+
+  @override
+  String get faqSubscriptionTitle => 'How do I cancel or change my PRO plan?';
+
+  @override
+  String get faqSubscriptionAnswer =>
+      'Manage your subscription in Google Play or App Store settings, depending on where you purchased it. Changing plans does not delete aquarium data.';
+
+  @override
+  String get faqMultipleAquariumsTitle => 'Can I manage multiple aquariums?';
+
+  @override
+  String get faqMultipleAquariumsAnswer =>
+      'Yes. Switch the active aquarium from aquarium management. The PRO plan does not limit the number of saved aquariums.';
+
+  @override
+  String get newTicketTitle => 'New ticket';
+
+  @override
+  String get ticketCategory => 'Category';
+
+  @override
+  String get ticketBugCategory => '🐛 Report an app bug';
+
+  @override
+  String get ticketFeatureCategory => '💡 New feature / idea';
+
+  @override
+  String get ticketSubscriptionCategory =>
+      '💳 Payment / PRO subscription issue';
+
+  @override
+  String get ticketBusinessCategory => '🤝 Partnership / business contact';
+
+  @override
+  String get ticketOtherCategory => '❓ Other question';
+
+  @override
+  String get ticketSubject => 'Subject';
+
+  @override
+  String get ticketSubjectHint => 'Briefly describe the issue';
+
+  @override
+  String get ticketDescription => 'Detailed description';
+
+  @override
+  String get ticketDescriptionHint =>
+      'What happened? How can it be reproduced?';
+
+  @override
+  String get ticketDescriptionMin =>
+      'The description must contain at least 15 characters.';
+
+  @override
+  String get ticketSubjectRequired => 'Enter a ticket subject.';
+
+  @override
+  String get ticketAuthRequired => 'Sign in to send a ticket.';
+
+  @override
+  String get ticketPermissionError =>
+      'You do not have access to tickets. Sign in again.';
+
+  @override
+  String get ticketOfflineError =>
+      'No internet connection. Check your network and try again.';
+
+  @override
+  String get ticketIndexError =>
+      'Tickets could not be loaded. A Firestore index is required.';
+
+  @override
+  String get ticketGenericError => 'The operation failed. Please try again.';
+
+  @override
+  String get attachImage => 'Attach photo / screenshot';
+
+  @override
+  String changeAttachment(String name) {
+    return 'Change attachment: $name';
+  }
+
+  @override
+  String get removeAttachment => 'Remove attachment';
+
+  @override
+  String get sendingTicket => 'Sending...';
+
+  @override
+  String get sendTicket => 'Send ticket';
+
+  @override
+  String get ticketSent => 'Ticket sent successfully.';
+
+  @override
+  String ticketPhotoReadError(String error) {
+    return 'Could not read the photo: $error';
+  }
+
+  @override
+  String get myTicketsTitle => 'My tickets';
+
+  @override
+  String get noTickets => 'No tickets yet';
+
+  @override
+  String get ticketDetails => 'Ticket details';
+
+  @override
+  String get ticketSupportReply => 'Support reply';
+
+  @override
+  String ticketCreatedAt(String date) {
+    return 'Created: $date';
+  }
+
+  @override
+  String get ticketDescriptionSection => 'Ticket description';
+
+  @override
+  String get ticketTechnicalInfo => 'Technical information';
+
+  @override
+  String get ticketAttachmentError => 'Could not display the attachment.';
+
+  @override
+  String get ticketStatusOpen => 'Open';
+
+  @override
+  String get ticketStatusInProgress => 'In progress';
+
+  @override
+  String get ticketStatusResolved => 'Resolved';
+
+  @override
+  String get ticketStatusClosed => 'Closed';
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/referral_models.dart';
 import '../services/referral_service.dart';
 
@@ -17,7 +18,7 @@ class ReferralScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Program poleceń')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.referralTitle)),
       body: RefreshIndicator(
         onRefresh: service.retry,
         child: ListView(
@@ -34,13 +35,13 @@ class ReferralScreen extends StatelessWidget {
               _CodeCard(
                 code: service.referralCode,
                 shareUrl: _shareUrl,
-                onCopied: () => _showMessage(context, 'Kod skopiowany do schowka!'),
+                onCopied: () => _showMessage(context, AppLocalizations.of(context)!.codeCopied),
               ),
               const SizedBox(height: 16),
               _ProgressCard(completed: service.successfulReferralsCount),
               const SizedBox(height: 24),
               Text(
-                'Zaproszone osoby',
+                AppLocalizations.of(context)!.invitedUsers,
                 style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 10),
@@ -57,7 +58,7 @@ class ReferralScreen extends StatelessWidget {
                   child: TextButton.icon(
                     onPressed: service.retry,
                     icon: const Icon(Icons.refresh),
-                    label: const Text('Odśwież polecenia'),
+                    label: Text(AppLocalizations.of(context)!.refreshReferrals),
                   ),
                 ),
             ],
@@ -110,7 +111,7 @@ class _ReferralHero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Polecaj Akwarysta PRO i zyskaj darmowy dostęp!',
+                  AppLocalizations.of(context)!.referralHeroTitle,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                     color: isDark ? Colors.white : scheme.onPrimaryContainer,
@@ -119,7 +120,7 @@ class _ReferralHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Zyskaj 1 miesiąc PRO za każde 3 zaproszone osoby. Twoi znajomi otrzymają 50% zniżki na pierwszy rok.',
+                  AppLocalizations.of(context)!.referralHeroDescription,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark ? const Color(0xFFD2EEF2) : scheme.onSecondaryContainer,
                     height: 1.4,
@@ -145,14 +146,14 @@ class _CodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final shareText = 'Dołącz do mnie w Akwarysta PRO i zgarnij 50% zniżki! Użyj mojego kodu: $code lub kliknij link: $shareUrl?ref=$code';
+    final shareText = '${AppLocalizations.of(context)!.referralShareText(code)} $shareUrl?ref=$code';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Twój unikalny kod i link', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+            Text(AppLocalizations.of(context)!.referralCodeSection, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -185,7 +186,7 @@ class _CodeCard extends StatelessWidget {
                             onCopied();
                           },
                     icon: const Icon(Icons.copy_outlined),
-                    label: const Text('Kopiuj kod'),
+                    label: Text(AppLocalizations.of(context)!.copyCode),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -195,7 +196,7 @@ class _CodeCard extends StatelessWidget {
                         ? null
                         : () => SharePlus.instance.share(ShareParams(text: shareText)),
                     icon: const Icon(Icons.ios_share_outlined),
-                    label: const Text('Udostępnij link'),
+                    label: Text(AppLocalizations.of(context)!.shareLink),
                   ),
                 ),
               ],
@@ -228,7 +229,7 @@ class _ProgressCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '$completed / 3 zaproszonych osób',
+                    AppLocalizations.of(context)!.referralProgress(completed),
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                   ),
                 ),
@@ -255,7 +256,7 @@ class _ProgressCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              reached ? 'Cel osiągnięty! Twój darmowy miesiąc PRO jest gotowy.' : 'Każde aktywne polecenie przybliża Cię do darmowego miesiąca PRO.',
+              reached ? AppLocalizations.of(context)!.referralGoalReached : AppLocalizations.of(context)!.referralProgressHint,
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -284,11 +285,11 @@ class _ReferralTile extends StatelessWidget {
           child: Icon(completed ? Icons.check : Icons.schedule, color: color),
         ),
         title: Text(
-          completed ? 'Aktywne PRO' : 'Rejestracja zaakceptowana',
+          completed ? AppLocalizations.of(context)!.activePro : AppLocalizations.of(context)!.referralAccepted,
           style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         subtitle: Text(
-          completed ? 'Polecenie zaliczone' : 'Oczekuje na aktywację PRO',
+          completed ? AppLocalizations.of(context)!.referralCompleted : AppLocalizations.of(context)!.awaitingProActivation,
           style: TextStyle(color: scheme.onSurfaceVariant),
         ),
         trailing: Text(_dateLabel(referral.createdAt), style: theme.textTheme.bodySmall),
@@ -311,10 +312,10 @@ class _EmptyReferralsState extends StatelessWidget {
           children: [
             Icon(Icons.group_outlined, size: 48, color: scheme.primary.withValues(alpha: 0.75)),
             const SizedBox(height: 12),
-            Text('Brak zaproszonych osób', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+            Text(AppLocalizations.of(context)!.invitedUsers, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
             Text(
-              'Udostępnij swój kod znajomym akwarystom, aby zacząć zbierać darmowe miesiące!',
+              AppLocalizations.of(context)!.noReferrals,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
             ),
@@ -363,14 +364,14 @@ class _ReferralErrorState extends StatelessWidget {
           children: [
             Icon(Icons.cloud_off_outlined, size: 44, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(height: 12),
-            Text('Nie udało się załadować programu', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+            Text(AppLocalizations.of(context)!.referralLoadErrorTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800), textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            Text('Sprawdź połączenie i spróbuj ponownie.', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+            Text(AppLocalizations.of(context)!.connectionRetry, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: () => onRetry(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Spróbuj ponownie'),
+              label: Text(AppLocalizations.of(context)!.retry),
             ),
           ],
         ),

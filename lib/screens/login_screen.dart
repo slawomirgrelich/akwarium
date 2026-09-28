@@ -183,7 +183,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                             ? Colors.green
                                             : Theme.of(context).colorScheme.error,
                                       ),
-                                helperText: _referralValidation?.message,
+                                helperText: _referralValidation == null
+                                    ? null
+                                    : _referralValidation!.isValid
+                                    ? null
+                                    : _referralErrorMessage(
+                                        AppLocalizations.of(context)!,
+                                        _referralValidation!.errorCode!,
+                                      ),
                               ),
                               onChanged: _onReferralCodeChanged,
                             ),
@@ -303,7 +310,12 @@ class _LoginScreenState extends State<LoginScreen> {
           try {
             await ReferralService().applyCode(_referralCodeController.text);
           } on ReferralException catch (error) {
-            if (mounted) setState(() => _errorMessage = error.message);
+            if (mounted) {
+              setState(() => _errorMessage = _referralErrorMessage(
+                    AppLocalizations.of(context)!,
+                    error.code,
+                  ));
+            }
             return;
           }
         }
@@ -423,6 +435,36 @@ class _LoginScreenState extends State<LoginScreen> {
       'network-request-failed' => l10n.networkError,
       _ => l10n.authError,
     };
+  }
+}
+
+String _referralErrorMessage(
+  AppLocalizations l10n,
+  ReferralErrorCode code,
+) {
+  switch (code) {
+    case ReferralErrorCode.codeTooShort:
+      return l10n.referralCodeTooShort;
+    case ReferralErrorCode.invalidCode:
+      return l10n.referralInvalidCode;
+    case ReferralErrorCode.selfReferral:
+      return l10n.referralSelfReferral;
+    case ReferralErrorCode.alreadyUsedDevice:
+      return l10n.referralDeviceUsed;
+    case ReferralErrorCode.alreadyReferred:
+      return l10n.referralAlreadyReferred;
+    case ReferralErrorCode.emailNotVerified:
+      return l10n.referralEmailUnverified;
+    case ReferralErrorCode.operationUnavailable:
+      return l10n.referralOperationUnavailable;
+    case ReferralErrorCode.unauthenticated:
+      return l10n.referralUnauthenticated;
+    case ReferralErrorCode.unavailable:
+      return l10n.referralUnavailable;
+    case ReferralErrorCode.internal:
+      return l10n.referralInternal;
+    case ReferralErrorCode.generic:
+      return l10n.referralGenericError;
   }
 }
 
