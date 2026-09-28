@@ -1,8 +1,8 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -21,14 +21,17 @@ class TicketService extends ChangeNotifier {
   TicketService({
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
   })  : _auth = auth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance {
+        _firestore = firestore ?? FirebaseFirestore.instance,
+        _storage = storage ?? FirebaseStorage.instance {
     _authSubscription = _auth.authStateChanges().listen(_syncUser);
     unawaited(_syncUser(_auth.currentUser));
   }
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
+  final FirebaseStorage _storage;
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
   _ticketsSubscription;
@@ -53,11 +56,22 @@ class TicketService extends ChangeNotifier {
       final snapshot = await _firestore
           .collection('tickets')
           .where('userId', isEqualTo: user.uid)
-          .orderBy('updatedAt', descending: true)
+          .orderBy('createdAt', descending: true)
           .get();
       _tickets = snapshot.docs.map(TicketModel.fromDocument).toList();
     } on Object catch (error) {
-      _errorMessage = _messageFor(error);
+      try {
+        final snapshot = await _firestore
+            .collection('tickets')
+            .where('userId', isEqualTo: user.uid)
+            .get();
+        _tickets = snapshot.docs.map(TicketModel.fromDocument).toList()
+          ..sort((first, second) => second.createdAt.compareTo(first.createdAt));
+        _errorMessage = null;
+      } on Object catch (_) {
+        _tickets = const [];
+        _errorMessage = _messageFor(error);
+      }
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -68,6 +82,7 @@ class TicketService extends ChangeNotifier {
     required TicketCategory category,
     required String subject,
     required String description,
+    Uint8List? imageBytes,
   }) async {
     final user = _auth.currentUser;
     if (user == null) {
@@ -91,8 +106,21 @@ class TicketService extends ChangeNotifier {
     notifyListeners();
     try {
       final deviceInfo = await _collectDeviceInfo();
+      String? imageUrl;
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        final imageReference = _storage
+            .ref()
+            .child('tickets')
+            .child(user.uid)
+            .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+        await imageReference.putData(
+          imageBytes,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+        imageUrl = await imageReference.getDownloadURL();
+      }
       final reference = _firestore.collection('tickets').doc();
-      await reference.set({
+      final ticketData = <String, dynamic>{
         'ticketId': reference.id,
         'userId': user.uid,
         'userEmail': user.email ?? '',
@@ -103,7 +131,14 @@ class TicketService extends ChangeNotifier {
         'deviceInfo': deviceInfo,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+      if (imageUrl != null) ticketData['imageUrl'] = imageUrl;
+      await reference.set(ticketData);
+      try {
+        _tickets = await _loadTicketsWithFallback(user.uid);
+      } on Object catch (error) {
+        debugPrint('Ticket sent but list refresh failed: $error');
+      }
     } on Object catch (error) {
       final exception = TicketServiceException(_messageFor(error));
       _errorMessage = exception.message;
@@ -175,7 +210,7 @@ class TicketService extends ChangeNotifier {
     _ticketsSubscription = _firestore
         .collection('tickets')
         .where('userId', isEqualTo: user.uid)
-        .orderBy('updatedAt', descending: true)
+      .orderBy('createdAt', descending: true)
         .snapshots()
         .listen(
           (snapshot) {
@@ -185,10 +220,49 @@ class TicketService extends ChangeNotifier {
           },
           onError: (Object error) {
             _isLoading = false;
-            _errorMessage = _messageFor(error);
+            unawaited(_loadFallbackAfterStreamError(user.uid, error));
             notifyListeners();
           },
         );
+  }
+
+  Future<List<TicketModel>> _loadTicketsWithFallback(String userId) async {
+    try {
+      final snapshot = await _firestore
+          .collection('tickets')
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .get();
+      return snapshot.docs.map(TicketModel.fromDocument).toList();
+    } on Object catch (firstError) {
+      try {
+        final snapshot = await _firestore
+            .collection('tickets')
+            .where('userId', isEqualTo: userId)
+            .get();
+        final tickets = snapshot.docs.map(TicketModel.fromDocument).toList();
+        tickets.sort((first, second) => second.createdAt.compareTo(first.createdAt));
+        return tickets;
+      } on Object catch (_) {
+        throw firstError;
+      }
+    }
+  }
+
+  Future<void> _loadFallbackAfterStreamError(String userId, Object error) async {
+    try {
+      final snapshot = await _firestore
+          .collection('tickets')
+          .where('userId', isEqualTo: userId)
+          .get();
+      _tickets = snapshot.docs.map(TicketModel.fromDocument).toList()
+        ..sort((first, second) => second.createdAt.compareTo(first.createdAt));
+      _errorMessage = null;
+    } on Object catch (_) {
+      _tickets = const [];
+      _errorMessage = _messageFor(error);
+    }
+    notifyListeners();
   }
 
   String _messageFor(Object error) {

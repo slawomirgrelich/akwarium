@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/ticket_models.dart';
@@ -60,15 +63,19 @@ class _HelpHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF051923),
+        color: isDark
+            ? const Color(0xFF051923)
+            : theme.colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.support_agent, color: Color(0xFF00A8E8), size: 42),
+          Icon(Icons.support_agent, size: 42),
           SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -76,12 +83,12 @@ class _HelpHero extends StatelessWidget {
               children: [
                 Text(
                   'Jesteśmy tu, żeby pomóc',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                 ),
                 SizedBox(height: 6),
                 Text(
                   'Opisz problem, a zespół Akwarysta PRO wróci do Ciebie z odpowiedzią.',
-                  style: TextStyle(color: Color(0xFFB9D3DE), height: 1.35),
+                  style: TextStyle(height: 1.35),
                 ),
               ],
             ),
@@ -101,31 +108,61 @@ class _FaqSection extends StatelessWidget {
       children: [
         ExpansionTile(
           leading: Icon(Icons.science_outlined),
-          title: Text('Jak działa weryfikacja parametrów?'),
+          title: Text('Jak działa skaner AI i weryfikacja parametrów?'),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Wybierz akwarium i dodaj wynik testu wody. Aplikacja porówna temperaturę, pH i twardość z zapisanymi normami.'),
+              child: Text('Skaner AI pomaga rozpoznać problem na zdjęciu. Wyniki testów wody aplikacja porównuje z normami temperatury, pH i twardości dla wybranego akwarium.'),
+            ),
+          ],
+        ),
+        ExpansionTile(
+          leading: Icon(Icons.water_drop_outlined),
+          title: Text('Co zrobić, gdy azotany (NO3) są za wysokie?'),
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text('Wykonaj częściową podmianę wody, ogranicz przekarmianie i sprawdź filtrację biologiczną. Powtarzaj pomiary po podmianie, zamiast obniżać NO3 gwałtownie.'),
+            ),
+          ],
+        ),
+        ExpansionTile(
+          leading: Icon(Icons.notifications_active_outlined),
+          title: Text('Jak ustawić przypomnienia o podmianie i filtrze?'),
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text('Otwórz Dziennik i przypomnienia, wybierz dodanie zadania, ustaw termin oraz częstotliwość. Powiadomienia wymagają zgody systemu.'),
+            ),
+          ],
+        ),
+        ExpansionTile(
+          leading: Icon(Icons.devices_other_outlined),
+          title: Text('Jak przenieść dane na nowe urządzenie?'),
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text('Zaloguj się na nowym urządzeniu tym samym kontem. Dane zapisane w chmurze zostaną zsynchronizowane po chwili.'),
             ),
           ],
         ),
         ExpansionTile(
           leading: Icon(Icons.credit_card_outlined),
-          title: Text('Jak anulować subskrypcję PRO?'),
+          title: Text('Jak anulować lub zmienić plan PRO?'),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Subskrypcję zarządza się w ustawieniach sklepu Google Play lub App Store, z którego została kupiona.'),
+              child: Text('Subskrypcją zarządza się w ustawieniach Google Play lub App Store, zależnie od miejsca zakupu. Zmiany planu nie usuwają danych akwarium.'),
             ),
           ],
         ),
         ExpansionTile(
-          leading: Icon(Icons.mark_email_read_outlined),
-          title: Text('Nie dostałem wiadomości weryfikacyjnej'),
+          leading: Icon(Icons.water_outlined),
+          title: Text('Czy mogę zarządzać kilkoma akwariami?'),
           children: [
             Padding(
               padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text('Sprawdź folder spam i upewnij się, że adres e-mail na koncie jest poprawny. W razie problemu wyślij zgłoszenie.'),
+              child: Text('Tak. Przełączaj aktywne akwarium z poziomu zarządzania akwariami. Plan PRO nie ogranicza liczby zapisanych zbiorników.'),
             ),
           ],
         ),
@@ -145,7 +182,10 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
   final _formKey = GlobalKey<FormState>();
   final _subjectController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _imagePicker = ImagePicker();
   TicketCategory _category = TicketCategory.bug;
+  Uint8List? _imageBytes;
+  String? _imageName;
 
   @override
   void dispose() {
@@ -218,6 +258,44 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                 return null;
               },
             ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: service.isSubmitting ? null : _pickImage,
+              icon: const Icon(Icons.attach_file_outlined),
+              label: Text(
+                _imageName == null
+                    ? 'Załącz zdjęcie / zrzut ekranu'
+                    : 'Zmień załącznik: $_imageName',
+              ),
+            ),
+            if (_imageBytes != null) ...[
+              const SizedBox(height: 10),
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.memory(
+                      _imageBytes!,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: IconButton.filledTonal(
+                      tooltip: 'Usuń załącznik',
+                      onPressed: () => setState(() {
+                        _imageBytes = null;
+                        _imageName = null;
+                      }),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             if (service.errorMessage != null)
               Padding(
@@ -250,6 +328,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
         category: _category,
         subject: _subjectController.text,
         description: _descriptionController.text,
+        imageBytes: _imageBytes,
       );
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -260,6 +339,28 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error.message)),
+      );
+    }
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 82,
+        maxWidth: 2200,
+      );
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      if (!mounted) return;
+      setState(() {
+        _imageBytes = bytes;
+        _imageName = picked.name;
+      });
+    } on Object catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nie udało się odczytać zdjęcia: $error')),
       );
     }
   }
@@ -404,6 +505,20 @@ class TicketDetailScreen extends StatelessWidget {
             title: 'Informacje techniczne',
             text: ticket.deviceInfo.entries.map((entry) => '${entry.key}: ${entry.value}').join('\n'),
           ),
+          if (ticket.imageUrl?.trim().isNotEmpty == true) ...[
+            const SizedBox(height: 12),
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: Image.network(
+                ticket.imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('Nie udało się wyświetlić załącznika.'),
+                ),
+              ),
+            ),
+          ],
           if (ticket.adminResponse?.trim().isNotEmpty == true) ...[
             const SizedBox(height: 12),
             _DetailBlock(title: 'Odpowiedź wsparcia', text: ticket.adminResponse!),

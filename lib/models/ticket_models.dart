@@ -121,6 +121,7 @@ class TicketModel {
     required this.createdAt,
     required this.updatedAt,
     this.adminResponse,
+    this.imageUrl,
   });
 
   final String ticketId;
@@ -134,6 +135,7 @@ class TicketModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? adminResponse;
+  final String? imageUrl;
 
   factory TicketModel.fromDocument(
     DocumentSnapshot<Map<String, dynamic>> document,
@@ -156,6 +158,7 @@ class TicketModel {
       createdAt: _dateFromValue(data['createdAt']) ?? DateTime.now().toUtc(),
       updatedAt: _dateFromValue(data['updatedAt']) ?? DateTime.now().toUtc(),
       adminResponse: data['adminResponse'] as String?,
+      imageUrl: data['imageUrl'] as String?,
     );
   }
 }

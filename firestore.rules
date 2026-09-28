@@ -35,7 +35,8 @@ service cloud.firestore {
         && request.resource.data.status == 'OPEN'
         && request.resource.data.keys().hasOnly([
           'ticketId', 'userId', 'userEmail', 'category', 'subject',
-          'description', 'status', 'deviceInfo', 'createdAt', 'updatedAt'
+          'description', 'status', 'deviceInfo', 'createdAt', 'updatedAt',
+          'imageUrl'
         ]);
       allow update, delete: if false;
     }
