@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 
 import '../data/species_catalog.dart';
+import '../data/species_catalog_en.dart';
+import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../models/aquarium_model.dart' as local_models;
 import '../models/species_models.dart';
@@ -36,6 +38,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final query = _search.text.trim().toLowerCase();
     final filtered = speciesCatalog.where((species) {
       final matchesQuery = query.isEmpty ||
@@ -43,26 +46,26 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
       return matchesQuery && (_category == null || species.category == _category);
     }).toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Atlas gatunków')),
+      appBar: AppBar(title: Text(l10n.speciesAtlasTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
             controller: _search,
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              labelText: 'Szukaj gatunku',
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              labelText: l10n.searchSpeciesLabel,
             ),
           ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             children: [
-              _filterChip('Wszystkie', null),
-              _filterChip('Ryby', SpeciesCategory.fish),
-              _filterChip('Rośliny', SpeciesCategory.plant),
-              _filterChip('Bezkręgowce', SpeciesCategory.invertebrate),
+              _filterChip(l10n.filterAll, null),
+              _filterChip(l10n.filterFish, SpeciesCategory.fish),
+              _filterChip(l10n.filterPlants, SpeciesCategory.plant),
+              _filterChip(l10n.filterInvertebrates, SpeciesCategory.invertebrate),
             ],
           ),
           const SizedBox(height: 16),
@@ -81,9 +84,9 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
                   onTap: () => _showDetails(species),
                 ),
               )),
-          if (filtered.isEmpty) const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: Text('Nie znaleziono gatunków.')),
+          if (filtered.isEmpty) Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(child: Text(l10n.noSpeciesFound)),
           ),
         ],
       ),
@@ -97,9 +100,10 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
       );
 
   Future<void> _showDetails(Species species) async {
+    final l10n = AppLocalizations.of(context)!;
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
-      _showAtlasMessage(context, 'Zaloguj się, aby dodać gatunek do akwarium.', isError: true);
+      _showAtlasMessage(context, l10n.loginToAddSpecies, isError: true);
       return;
     }
     await showDialog<void>(
@@ -117,28 +121,28 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(species.description),
+              Text(_localizedSpeciesText(context, species, species.description)),
               const SizedBox(height: 16),
-              const Text(
-                'Wskazówki pielęgnacyjne',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                l10n.careNotesLabel,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
-              Text(species.careNotes),
+              Text(_localizedSpeciesText(context, species, species.careNotes)),
               const SizedBox(height: 16),
-              Text('Minimum akwarium: ${species.minTankVolumeLiters} l'),
-              Text('Temperatura: ${species.tempRange.min}–${species.tempRange.max}°C'),
-              Text('pH: ${species.phRange.min}–${species.phRange.max}'),
-              Text('GH: ${species.ghRange.min}–${species.ghRange.max}'),
-              Text('Trudność: ${_difficultyLabel(species.difficulty)}'),
-              Text('Strefa pływania: ${_zoneLabel(species.swimmingZone)}'),
+              Text(l10n.minTankVolumeLabel(species.minTankVolumeLiters)),
+              Text(l10n.temperatureRangeLabel(species.tempRange.min, species.tempRange.max)),
+              Text(l10n.phRangeLabel(species.phRange.min, species.phRange.max)),
+              Text(l10n.ghRangeLabel(species.ghRange.min, species.ghRange.max)),
+              Text(l10n.difficultyLabel(_difficultyLabel(context, species.difficulty))),
+              Text(l10n.swimmingZoneLabel(_zoneLabel(context, species.swimmingZone))),
               const SizedBox(height: 16),
               _CompatibilitySection(species: species),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Anuluj')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(l10n.cancel)),
           FilledButton.icon(
             onPressed: () => _addSpeciesToAquarium(
               context,
@@ -146,7 +150,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
               species,
             ),
             icon: const Icon(Icons.water_drop_outlined),
-            label: const Text('Dodaj do mojego akwarium'),
+            label: Text(l10n.addToMyAquarium),
           ),
         ],
       ),
@@ -179,7 +183,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
           widget.onCreateAquarium!();
         } else {
           ScaffoldMessenger.of(pageContext).showSnackBar(
-            const SnackBar(content: Text('Otwórz zarządzanie akwariami, aby utworzyć akwarium.')),
+            SnackBar(content: Text(AppLocalizations.of(pageContext)!.openManagementToCreateAquarium)),
           );
         }
         return;
@@ -213,13 +217,14 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
       if (detailsContext.mounted) Navigator.pop(detailsContext);
       final messenger = ScaffoldMessenger.of(pageContext);
       messenger.hideCurrentSnackBar();
+      final pageL10n = AppLocalizations.of(pageContext)!;
       messenger.showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-          content: Text('Dodano ${species.namePl} do akwarium ${aquarium.name}'),
+          content: Text(pageL10n.addedSpeciesToAquarium(species.namePl, aquarium.name)),
           action: SnackBarAction(
-            label: 'Zobacz obsadę',
+            label: pageL10n.viewLivestock,
             onPressed: () => Navigator.of(pageContext).push<void>(
               MaterialPageRoute<void>(
                 builder: (_) => AquariumLivestockScreen(aquarium: aquarium),
@@ -320,7 +325,9 @@ class _AquariumSelectionSheet extends StatelessWidget {
   final bool onCreateAquarium;
 
   @override
-  Widget build(BuildContext context) => SafeArea(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return SafeArea(
     child: ListView(
       shrinkWrap: true,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -328,15 +335,15 @@ class _AquariumSelectionSheet extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
-            'Wybierz akwarium',
+            l10n.chooseAquarium,
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
         if (aquariums.isEmpty) ...[
           const Icon(Icons.water_drop_outlined, size: 36),
           const SizedBox(height: 12),
-          const Text(
-            'Nie masz jeszcze żadnego akwarium. Utwórz akwarium, aby dodać do niego gatunek',
+          Text(
+            l10n.noAquariumYet,
             textAlign: TextAlign.center,
           ),
           if (onCreateAquarium) ...[
@@ -347,7 +354,7 @@ class _AquariumSelectionSheet extends StatelessWidget {
                 const _AquariumPickerResult.create(),
               ),
               icon: const Icon(Icons.add),
-              label: const Text('Utwórz akwarium'),
+              label: Text(l10n.createAquariumAction),
             ),
           ],
         ] else ...[
@@ -371,12 +378,13 @@ class _AquariumSelectionSheet extends StatelessWidget {
                 const _AquariumPickerResult.create(),
               ),
               icon: const Icon(Icons.add),
-              label: const Text('Utwórz nowe akwarium'),
+              label: Text(l10n.createNewAquariumAction),
             ),
         ],
       ],
     ),
   );
+  }
 }
 
 /// Sekcja pokazująca wynik walidacji kompatybilności gatunku z aktywnym akwarium.
@@ -427,8 +435,8 @@ class _CompatibilitySection extends StatelessWidget {
                   Expanded(
                     child: Text(
                       result.isCompatible
-                          ? 'Dopasowany do akwarium "${aquarium.name}"'
-                          : 'Ostrzeżenia dla akwarium "${aquarium.name}"',
+                          ? AppLocalizations.of(context)!.compatibleWithAquarium(aquarium.name)
+                          : AppLocalizations.of(context)!.warningsForAquarium(aquarium.name),
                       style: theme.textTheme.titleSmall?.copyWith(color: color),
                     ),
                   ),
@@ -497,8 +505,10 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text('Dodaj ${widget.species.namePl}'),
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+    title: Text(l10n.addSpeciesDialogTitle(widget.species.namePl)),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -521,15 +531,15 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.calendar_today_outlined),
-            title: const Text('Data dodania'),
+            title: Text(l10n.additionDateLabel),
             subtitle: Text(_formatAdditionDate(_addedAt)),
             onTap: _pickDate,
           ),
           TextField(
             controller: _notesController,
             maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Notatki (opcjonalnie)',
+            decoration: InputDecoration(
+              labelText: l10n.notesOptionalLabel,
               alignLabelWithHint: true,
             ),
           ),
@@ -539,7 +549,7 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('Anuluj'),
+        child: Text(l10n.cancel),
       ),
       FilledButton(
         onPressed: () => Navigator.pop(
@@ -550,10 +560,11 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
             notes: _notesController.text.trim(),
           ),
         ),
-        child: const Text('Zapisz'),
+        child: Text(l10n.save),
       ),
     ],
   );
+  }
 
   Future<void> _pickDate() async {
     final selected = await showDatePicker(
@@ -576,6 +587,13 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
   }
 }
 
+/// Returns the English description/care-notes text when the app language is
+/// English and a translation exists, otherwise falls back to the Polish text.
+String _localizedSpeciesText(BuildContext context, Species species, String plText) {
+  if (Localizations.localeOf(context).languageCode != 'en') return plText;
+  return speciesDescriptionsEn[species.id] ?? plText;
+}
+
 String _categoryLabel(SpeciesCategory category) => switch (category) {
   SpeciesCategory.fish => 'Ryba',
   SpeciesCategory.plant => 'Roślina',
@@ -591,16 +609,22 @@ IconData _iconFor(SpeciesCategory category) => switch (category) {
   SpeciesCategory.invertebrate => Icons.bug_report_outlined,
 };
 
-String _difficultyLabel(SpeciesDifficulty difficulty) => switch (difficulty) {
-  SpeciesDifficulty.veryEasy => 'bardzo łatwa',
-  SpeciesDifficulty.easy => 'łatwa',
-  SpeciesDifficulty.medium => 'średnia',
-  SpeciesDifficulty.hard => 'trudna',
-};
+String _difficultyLabel(BuildContext context, SpeciesDifficulty difficulty) {
+  final l10n = AppLocalizations.of(context)!;
+  return switch (difficulty) {
+    SpeciesDifficulty.veryEasy => l10n.difficultyVeryEasy,
+    SpeciesDifficulty.easy => l10n.difficultyEasy,
+    SpeciesDifficulty.medium => l10n.difficultyMedium,
+    SpeciesDifficulty.hard => l10n.difficultyHard,
+  };
+}
 
-String _zoneLabel(SwimmingZone zone) => switch (zone) {
-  SwimmingZone.bottom => 'dno',
-  SwimmingZone.middle => 'środek',
-  SwimmingZone.top => 'powierzchnia',
-  SwimmingZone.all => 'cały zbiornik',
-};
+String _zoneLabel(BuildContext context, SwimmingZone zone) {
+  final l10n = AppLocalizations.of(context)!;
+  return switch (zone) {
+    SwimmingZone.bottom => l10n.zoneBottom,
+    SwimmingZone.middle => l10n.zoneMiddle,
+    SwimmingZone.top => l10n.zoneTop,
+    SwimmingZone.all => l10n.zoneAll,
+  };
+}

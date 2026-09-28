@@ -376,7 +376,7 @@ class _TankProfileStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
     return SizedBox(
-      height: 172,
+      height: 120,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: provider.aquariums.length + 1,
@@ -387,7 +387,7 @@ class _TankProfileStrip extends StatelessWidget {
               onTap: onAdd,
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                width: 200,
+                width: 176,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
@@ -411,7 +411,7 @@ class _TankProfileStrip extends StatelessWidget {
             onTap: () => provider.selectAquarium(aquarium.id),
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              width: 200,
+              width: 176,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
@@ -479,9 +479,9 @@ class _TankProfileStrip extends StatelessWidget {
                             );
                           }
                         },
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(value: 'edit', child: Text('Edytuj')),
-                          PopupMenuItem(value: 'delete', child: Text('Usuń')),
+                        itemBuilder: (_) => [
+                          PopupMenuItem(value: 'edit', child: Text(AppLocalizations.of(context)!.editAction)),
+                          PopupMenuItem(value: 'delete', child: Text(AppLocalizations.of(context)!.deleteAction)),
                         ],
                       ),
                     ],

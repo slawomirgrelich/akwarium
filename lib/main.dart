@@ -1767,9 +1767,9 @@ class ProfilePage extends StatelessWidget {
                 controller: controller,
                 obscureText: true,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Klucz API',
-                  hintText: 'Pozostaw puste, aby użyć klucza domyślnego',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.apiKeyLabel,
+                  hintText: AppLocalizations.of(context)!.apiKeyHint,
                 ),
               ),
               if (keyTestMessage != null) ...[
@@ -1819,13 +1819,13 @@ class ProfilePage extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Testuj klucz API'),
+                  : Text(AppLocalizations.of(context)!.testApiKey),
             ),
             TextButton(
               onPressed: isTestingKey
                   ? null
                   : () => Navigator.pop(dialogContext, ''),
-              child: const Text('Użyj domyślnego klucza'),
+              child: Text(AppLocalizations.of(context)!.useDefaultKey),
             ),
             TextButton(
               onPressed: isTestingKey
@@ -2511,7 +2511,7 @@ class _ProfileDisplayNameTile extends StatelessWidget {
           title: displayName == null || displayName.isEmpty
               ? AppLocalizations.of(context)!.setProfileName
               : displayName,
-          subtitle: 'Imię wyświetlane na pulpicie',
+          subtitle: AppLocalizations.of(context)!.nameDisplayedOnDashboard,
           onTap: () => _editProfileDisplayName(context, displayName ?? ''),
         );
       },

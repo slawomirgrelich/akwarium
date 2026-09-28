@@ -1789,6 +1789,288 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nie udało się aktywować PRO: {error}'**
   String proActivationFailed(String error);
+
+  /// No description provided for @speciesAtlasTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Atlas gatunków'**
+  String get speciesAtlasTitle;
+
+  /// No description provided for @searchSpeciesLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szukaj gatunku'**
+  String get searchSpeciesLabel;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie'**
+  String get filterAll;
+
+  /// No description provided for @filterFish.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ryby'**
+  String get filterFish;
+
+  /// No description provided for @filterPlants.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rośliny'**
+  String get filterPlants;
+
+  /// No description provided for @filterInvertebrates.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bezkręgowce'**
+  String get filterInvertebrates;
+
+  /// No description provided for @noSpeciesFound.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie znaleziono gatunków.'**
+  String get noSpeciesFound;
+
+  /// No description provided for @careNotesLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wskazówki pielęgnacyjne'**
+  String get careNotesLabel;
+
+  /// No description provided for @minTankVolumeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Minimum akwarium: {value} l'**
+  String minTankVolumeLabel(int value);
+
+  /// No description provided for @temperatureRangeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Temperatura: {min}–{max}°C'**
+  String temperatureRangeLabel(num min, num max);
+
+  /// No description provided for @phRangeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'pH: {min}–{max}'**
+  String phRangeLabel(num min, num max);
+
+  /// No description provided for @ghRangeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'GH: {min}–{max}'**
+  String ghRangeLabel(num min, num max);
+
+  /// No description provided for @difficultyLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Trudność: {value}'**
+  String difficultyLabel(String value);
+
+  /// No description provided for @swimmingZoneLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Strefa pływania: {value}'**
+  String swimmingZoneLabel(String value);
+
+  /// No description provided for @compatibleWithAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dopasowany do akwarium \"{name}\"'**
+  String compatibleWithAquarium(String name);
+
+  /// No description provided for @warningsForAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostrzeżenia dla akwarium \"{name}\"'**
+  String warningsForAquarium(String name);
+
+  /// No description provided for @addToMyAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj do mojego akwarium'**
+  String get addToMyAquarium;
+
+  /// No description provided for @loginToAddSpecies.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się, aby dodać gatunek do akwarium.'**
+  String get loginToAddSpecies;
+
+  /// No description provided for @chooseAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz akwarium'**
+  String get chooseAquarium;
+
+  /// No description provided for @noAquariumYet.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie masz jeszcze żadnego akwarium. Utwórz akwarium, aby dodać do niego gatunek'**
+  String get noAquariumYet;
+
+  /// No description provided for @createAquariumAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utwórz akwarium'**
+  String get createAquariumAction;
+
+  /// No description provided for @createNewAquariumAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utwórz nowe akwarium'**
+  String get createNewAquariumAction;
+
+  /// No description provided for @openManagementToCreateAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwórz zarządzanie akwariami, aby utworzyć akwarium.'**
+  String get openManagementToCreateAquarium;
+
+  /// No description provided for @addedSpeciesToAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano {species} do akwarium {aquarium}'**
+  String addedSpeciesToAquarium(String species, String aquarium);
+
+  /// No description provided for @viewLivestock.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zobacz obsadę'**
+  String get viewLivestock;
+
+  /// No description provided for @difficultyVeryEasy.
+  ///
+  /// In pl, this message translates to:
+  /// **'bardzo łatwa'**
+  String get difficultyVeryEasy;
+
+  /// No description provided for @difficultyEasy.
+  ///
+  /// In pl, this message translates to:
+  /// **'łatwa'**
+  String get difficultyEasy;
+
+  /// No description provided for @difficultyMedium.
+  ///
+  /// In pl, this message translates to:
+  /// **'średnia'**
+  String get difficultyMedium;
+
+  /// No description provided for @difficultyHard.
+  ///
+  /// In pl, this message translates to:
+  /// **'trudna'**
+  String get difficultyHard;
+
+  /// No description provided for @zoneBottom.
+  ///
+  /// In pl, this message translates to:
+  /// **'dno'**
+  String get zoneBottom;
+
+  /// No description provided for @zoneMiddle.
+  ///
+  /// In pl, this message translates to:
+  /// **'środek'**
+  String get zoneMiddle;
+
+  /// No description provided for @zoneTop.
+  ///
+  /// In pl, this message translates to:
+  /// **'powierzchnia'**
+  String get zoneTop;
+
+  /// No description provided for @zoneAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'cały zbiornik'**
+  String get zoneAll;
+
+  /// No description provided for @addSpeciesDialogTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj {name}'**
+  String addSpeciesDialogTitle(String name);
+
+  /// No description provided for @additionDateLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Data dodania'**
+  String get additionDateLabel;
+
+  /// No description provided for @notesOptionalLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Notatki (opcjonalnie)'**
+  String get notesOptionalLabel;
+
+  /// No description provided for @nameDisplayedOnDashboard.
+  ///
+  /// In pl, this message translates to:
+  /// **'Imię wyświetlane na pulpicie'**
+  String get nameDisplayedOnDashboard;
+
+  /// No description provided for @apiKeyLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Klucz API'**
+  String get apiKeyLabel;
+
+  /// No description provided for @apiKeyHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pozostaw puste, aby użyć klucza domyślnego'**
+  String get apiKeyHint;
+
+  /// No description provided for @testApiKey.
+  ///
+  /// In pl, this message translates to:
+  /// **'Testuj klucz API'**
+  String get testApiKey;
+
+  /// No description provided for @useDefaultKey.
+  ///
+  /// In pl, this message translates to:
+  /// **'Użyj domyślnego klucza'**
+  String get useDefaultKey;
+
+  /// No description provided for @cloudSyncDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Twoje dane są bezpiecznie synchronizowane w chmurze'**
+  String get cloudSyncDescription;
+
+  /// No description provided for @lastSyncLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnia synchronizacja:'**
+  String get lastSyncLabel;
+
+  /// No description provided for @lastSyncNone.
+  ///
+  /// In pl, this message translates to:
+  /// **'brak zapisanych danych'**
+  String get lastSyncNone;
+
+  /// No description provided for @done.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gotowe'**
+  String get done;
+
+  /// No description provided for @editAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj'**
+  String get editAction;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń'**
+  String get deleteAction;
 }
 
 class _AppLocalizationsDelegate

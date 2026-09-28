@@ -291,4 +291,61 @@
   ,"proActivatedMessage": "Aquarist PRO status activated."
   ,"proActivationFailed": "Failed to activate PRO: {error}"
   ,"@proActivationFailed": {"placeholders": {"error": {"type": "String"}}}
+  ,"speciesAtlasTitle": "Species Atlas"
+  ,"searchSpeciesLabel": "Search species"
+  ,"filterAll": "All"
+  ,"filterFish": "Fish"
+  ,"filterPlants": "Plants"
+  ,"filterInvertebrates": "Invertebrates"
+  ,"noSpeciesFound": "No species found."
+  ,"careNotesLabel": "Care notes"
+  ,"minTankVolumeLabel": "Minimum tank: {value} L"
+  ,"@minTankVolumeLabel": {"placeholders": {"value": {"type": "int"}}}
+  ,"temperatureRangeLabel": "Temperature: {min}\u2013{max}\u00b0C"
+  ,"@temperatureRangeLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"phRangeLabel": "pH: {min}\u2013{max}"
+  ,"@phRangeLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"ghRangeLabel": "GH: {min}\u2013{max}"
+  ,"@ghRangeLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"difficultyLabel": "Difficulty: {value}"
+  ,"@difficultyLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"swimmingZoneLabel": "Swimming zone: {value}"
+  ,"@swimmingZoneLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"compatibleWithAquarium": "Compatible with aquarium \"{name}\""
+  ,"@compatibleWithAquarium": {"placeholders": {"name": {"type": "String"}}}
+  ,"warningsForAquarium": "Warnings for aquarium \"{name}\""
+  ,"@warningsForAquarium": {"placeholders": {"name": {"type": "String"}}}
+  ,"addToMyAquarium": "Add to my aquarium"
+  ,"loginToAddSpecies": "Sign in to add a species to your aquarium."
+  ,"chooseAquarium": "Choose aquarium"
+  ,"noAquariumYet": "You don't have an aquarium yet. Create one to add livestock to it"
+  ,"createAquariumAction": "Create aquarium"
+  ,"createNewAquariumAction": "Create new aquarium"
+  ,"openManagementToCreateAquarium": "Open aquarium management to create an aquarium."
+  ,"addedSpeciesToAquarium": "Added {species} to aquarium {aquarium}"
+  ,"@addedSpeciesToAquarium": {"placeholders": {"species": {"type": "String"}, "aquarium": {"type": "String"}}}
+  ,"viewLivestock": "View livestock"
+  ,"difficultyVeryEasy": "very easy"
+  ,"difficultyEasy": "easy"
+  ,"difficultyMedium": "medium"
+  ,"difficultyHard": "hard"
+  ,"zoneBottom": "bottom"
+  ,"zoneMiddle": "middle"
+  ,"zoneTop": "top"
+  ,"zoneAll": "whole tank"
+  ,"addSpeciesDialogTitle": "Add {name}"
+  ,"@addSpeciesDialogTitle": {"placeholders": {"name": {"type": "String"}}}
+  ,"additionDateLabel": "Date added"
+  ,"notesOptionalLabel": "Notes (optional)"
+  ,"nameDisplayedOnDashboard": "Name displayed on dashboard"
+  ,"apiKeyLabel": "API Key"
+  ,"apiKeyHint": "Leave empty to use the default key"
+  ,"testApiKey": "Test API Key"
+  ,"useDefaultKey": "Use default key"
+  ,"cloudSyncDescription": "Your data is securely synced in the cloud"
+  ,"lastSyncLabel": "Last sync:"
+  ,"lastSyncNone": "no saved data"
+  ,"done": "Done"
+  ,"editAction": "Edit"
+  ,"deleteAction": "Delete"
 }

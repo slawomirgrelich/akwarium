@@ -291,4 +291,61 @@
   ,"proActivatedMessage": "Aktywowany status Akwarysta PRO."
   ,"proActivationFailed": "Nie udało się aktywować PRO: {error}"
   ,"@proActivationFailed": {"placeholders": {"error": {"type": "String"}}}
+  ,"speciesAtlasTitle": "Atlas gatunków"
+  ,"searchSpeciesLabel": "Szukaj gatunku"
+  ,"filterAll": "Wszystkie"
+  ,"filterFish": "Ryby"
+  ,"filterPlants": "Rośliny"
+  ,"filterInvertebrates": "Bezkręgowce"
+  ,"noSpeciesFound": "Nie znaleziono gatunków."
+  ,"careNotesLabel": "Wskazówki pielęgnacyjne"
+  ,"minTankVolumeLabel": "Minimum akwarium: {value} l"
+  ,"@minTankVolumeLabel": {"placeholders": {"value": {"type": "int"}}}
+  ,"temperatureRangeLabel": "Temperatura: {min}\u2013{max}\u00b0C"
+  ,"@temperatureRangeLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"phRangeLabel": "pH: {min}\u2013{max}"
+  ,"@phRangeLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"ghRangeLabel": "GH: {min}\u2013{max}"
+  ,"@ghRangeLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"difficultyLabel": "Trudność: {value}"
+  ,"@difficultyLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"swimmingZoneLabel": "Strefa pływania: {value}"
+  ,"@swimmingZoneLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"compatibleWithAquarium": "Dopasowany do akwarium \"{name}\""
+  ,"@compatibleWithAquarium": {"placeholders": {"name": {"type": "String"}}}
+  ,"warningsForAquarium": "Ostrzeżenia dla akwarium \"{name}\""
+  ,"@warningsForAquarium": {"placeholders": {"name": {"type": "String"}}}
+  ,"addToMyAquarium": "Dodaj do mojego akwarium"
+  ,"loginToAddSpecies": "Zaloguj się, aby dodać gatunek do akwarium."
+  ,"chooseAquarium": "Wybierz akwarium"
+  ,"noAquariumYet": "Nie masz jeszcze żadnego akwarium. Utwórz akwarium, aby dodać do niego gatunek"
+  ,"createAquariumAction": "Utwórz akwarium"
+  ,"createNewAquariumAction": "Utwórz nowe akwarium"
+  ,"openManagementToCreateAquarium": "Otwórz zarządzanie akwariami, aby utworzyć akwarium."
+  ,"addedSpeciesToAquarium": "Dodano {species} do akwarium {aquarium}"
+  ,"@addedSpeciesToAquarium": {"placeholders": {"species": {"type": "String"}, "aquarium": {"type": "String"}}}
+  ,"viewLivestock": "Zobacz obsadę"
+  ,"difficultyVeryEasy": "bardzo łatwa"
+  ,"difficultyEasy": "łatwa"
+  ,"difficultyMedium": "średnia"
+  ,"difficultyHard": "trudna"
+  ,"zoneBottom": "dno"
+  ,"zoneMiddle": "środek"
+  ,"zoneTop": "powierzchnia"
+  ,"zoneAll": "cały zbiornik"
+  ,"addSpeciesDialogTitle": "Dodaj {name}"
+  ,"@addSpeciesDialogTitle": {"placeholders": {"name": {"type": "String"}}}
+  ,"additionDateLabel": "Data dodania"
+  ,"notesOptionalLabel": "Notatki (opcjonalnie)"
+  ,"nameDisplayedOnDashboard": "Imię wyświetlane na pulpicie"
+  ,"apiKeyLabel": "Klucz API"
+  ,"apiKeyHint": "Pozostaw puste, aby użyć klucza domyślnego"
+  ,"testApiKey": "Testuj klucz API"
+  ,"useDefaultKey": "Użyj domyślnego klucza"
+  ,"cloudSyncDescription": "Twoje dane są bezpiecznie synchronizowane w chmurze"
+  ,"lastSyncLabel": "Ostatnia synchronizacja:"
+  ,"lastSyncNone": "brak zapisanych danych"
+  ,"done": "Gotowe"
+  ,"editAction": "Edytuj"
+  ,"deleteAction": "Usuń"
 }

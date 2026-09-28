@@ -907,4 +907,168 @@ class AppLocalizationsEn extends AppLocalizations {
   String proActivationFailed(String error) {
     return 'Failed to activate PRO: $error';
   }
+
+  @override
+  String get speciesAtlasTitle => 'Species Atlas';
+
+  @override
+  String get searchSpeciesLabel => 'Search species';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterFish => 'Fish';
+
+  @override
+  String get filterPlants => 'Plants';
+
+  @override
+  String get filterInvertebrates => 'Invertebrates';
+
+  @override
+  String get noSpeciesFound => 'No species found.';
+
+  @override
+  String get careNotesLabel => 'Care notes';
+
+  @override
+  String minTankVolumeLabel(int value) {
+    return 'Minimum tank: $value L';
+  }
+
+  @override
+  String temperatureRangeLabel(num min, num max) {
+    return 'Temperature: $min–$max°C';
+  }
+
+  @override
+  String phRangeLabel(num min, num max) {
+    return 'pH: $min–$max';
+  }
+
+  @override
+  String ghRangeLabel(num min, num max) {
+    return 'GH: $min–$max';
+  }
+
+  @override
+  String difficultyLabel(String value) {
+    return 'Difficulty: $value';
+  }
+
+  @override
+  String swimmingZoneLabel(String value) {
+    return 'Swimming zone: $value';
+  }
+
+  @override
+  String compatibleWithAquarium(String name) {
+    return 'Compatible with aquarium \"$name\"';
+  }
+
+  @override
+  String warningsForAquarium(String name) {
+    return 'Warnings for aquarium \"$name\"';
+  }
+
+  @override
+  String get addToMyAquarium => 'Add to my aquarium';
+
+  @override
+  String get loginToAddSpecies => 'Sign in to add a species to your aquarium.';
+
+  @override
+  String get chooseAquarium => 'Choose aquarium';
+
+  @override
+  String get noAquariumYet =>
+      'You don\'t have an aquarium yet. Create one to add livestock to it';
+
+  @override
+  String get createAquariumAction => 'Create aquarium';
+
+  @override
+  String get createNewAquariumAction => 'Create new aquarium';
+
+  @override
+  String get openManagementToCreateAquarium =>
+      'Open aquarium management to create an aquarium.';
+
+  @override
+  String addedSpeciesToAquarium(String species, String aquarium) {
+    return 'Added $species to aquarium $aquarium';
+  }
+
+  @override
+  String get viewLivestock => 'View livestock';
+
+  @override
+  String get difficultyVeryEasy => 'very easy';
+
+  @override
+  String get difficultyEasy => 'easy';
+
+  @override
+  String get difficultyMedium => 'medium';
+
+  @override
+  String get difficultyHard => 'hard';
+
+  @override
+  String get zoneBottom => 'bottom';
+
+  @override
+  String get zoneMiddle => 'middle';
+
+  @override
+  String get zoneTop => 'top';
+
+  @override
+  String get zoneAll => 'whole tank';
+
+  @override
+  String addSpeciesDialogTitle(String name) {
+    return 'Add $name';
+  }
+
+  @override
+  String get additionDateLabel => 'Date added';
+
+  @override
+  String get notesOptionalLabel => 'Notes (optional)';
+
+  @override
+  String get nameDisplayedOnDashboard => 'Name displayed on dashboard';
+
+  @override
+  String get apiKeyLabel => 'API Key';
+
+  @override
+  String get apiKeyHint => 'Leave empty to use the default key';
+
+  @override
+  String get testApiKey => 'Test API Key';
+
+  @override
+  String get useDefaultKey => 'Use default key';
+
+  @override
+  String get cloudSyncDescription =>
+      'Your data is securely synced in the cloud';
+
+  @override
+  String get lastSyncLabel => 'Last sync:';
+
+  @override
+  String get lastSyncNone => 'no saved data';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get editAction => 'Edit';
+
+  @override
+  String get deleteAction => 'Delete';
 }
