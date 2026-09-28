@@ -816,4 +816,101 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get proNotificationsRequired =>
       'Powiadomienia push i cykliczne harmonogramy wymagają aktywnego planu PRO.';
+
+  @override
+  String get setProfileName => 'Ustaw imię profilu';
+
+  @override
+  String get geminiApiKeyLabel => 'Klucz API Gemini';
+
+  @override
+  String get aiScannerConfig => 'Konfiguracja skanera AI zdjęć';
+
+  @override
+  String get cloudBackupSyncTitle => 'Kopia w chmurze i synchronizacja';
+
+  @override
+  String get cloudBackupSyncSubtitle =>
+      'Automatyczny zapis i tworzenie kopii zapasowej w chmurze';
+
+  @override
+  String get photoJournalTitle => 'Dziennik zdjęć';
+
+  @override
+  String get addFirstPhotoOfAquarium => 'Dodaj pierwsze zdjęcie akwarium.';
+
+  @override
+  String get addPhoto => 'Dodaj zdjęcie';
+
+  @override
+  String get aquariumLivestockTitle => 'Obsada akwarium';
+
+  @override
+  String compatibilityPercent(int score) {
+    return '$score% kompatybilności';
+  }
+
+  @override
+  String get livestockWithinRange =>
+      'Obsada mieści się w sprawdzonych zakresach.';
+
+  @override
+  String get noSpeciesAddedOpenAtlas =>
+      'Brak dodanych gatunków. Otwórz atlas, aby dodać obsadę.';
+
+  @override
+  String get addSpecies => 'Dodaj gatunek';
+
+  @override
+  String get addSpeciesToStock => 'Dodaj gatunek do obsady';
+
+  @override
+  String get newReminder => 'Nowe przypomnienie';
+
+  @override
+  String get taskName => 'Nazwa zadania';
+
+  @override
+  String get dueDate => 'Termin';
+
+  @override
+  String get repeatCyclically => 'Powtarzaj cyklicznie';
+
+  @override
+  String get autoScheduleNextDate => 'Automatycznie planuj kolejny termin';
+
+  @override
+  String get proBenefitUnlimitedAquariums => 'Nielimitowane akwaria';
+
+  @override
+  String get proBenefitAiScannerDiagnostics => 'Skaner AI i diagnostyka';
+
+  @override
+  String get proBenefitFullPhotoHistory => 'Pełna historia zdjęć';
+
+  @override
+  String get proBenefitNoAds => 'Brak reklam';
+
+  @override
+  String get unlockProHeadline => 'Odblokuj Akwarysta PRO';
+
+  @override
+  String get monthlyPlan => 'Miesięczny';
+
+  @override
+  String get yearlyPlan => 'Roczny';
+
+  @override
+  String get mostPopularBadge => 'Najpopularniejszy';
+
+  @override
+  String get activatingEllipsis => 'Aktywowanie…';
+
+  @override
+  String get proActivatedMessage => 'Aktywowany status Akwarysta PRO.';
+
+  @override
+  String proActivationFailed(String error) {
+    return 'Nie udało się aktywować PRO: $error';
+  }
 }

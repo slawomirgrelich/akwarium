@@ -721,31 +721,32 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Nowe przypomnienie'),
+      title: Text(l10n.newReminder),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _title,
-              decoration: const InputDecoration(
-                labelText: 'Nazwa zadania',
-                prefixIcon: Icon(Icons.task_alt),
+              decoration: InputDecoration(
+                labelText: l10n.taskName,
+                prefixIcon: const Icon(Icons.task_alt),
               ),
             ),
             const SizedBox(height: 10),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.event_outlined),
-              title: const Text('Termin'),
+              title: Text(l10n.dueDate),
               subtitle: Text(_formatDate(_nextDueDate)),
               onTap: _selectDate,
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Powtarzaj cyklicznie'),
-              subtitle: const Text('Automatycznie planuj kolejny termin'),
+              title: Text(l10n.repeatCyclically),
+              subtitle: Text(l10n.autoScheduleNextDate),
               value: _recurring,
               onChanged: (value) => setState(() => _recurring = value),
             ),
@@ -764,9 +765,9 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Anuluj'),
+          child: Text(l10n.cancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Zapisz')),
+        FilledButton(onPressed: _save, child: Text(l10n.save)),
       ],
     );
   }

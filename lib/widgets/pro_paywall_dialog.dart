@@ -62,7 +62,7 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
     return AlertDialog(
       title: Row(
         children: [
-          Expanded(child: Text(widget.headline ?? 'Odblokuj Akwarysta PRO')),
+          Expanded(child: Text(widget.headline ?? l10n.unlockProHeadline)),
           const SizedBox(width: 8),
           const ProBadge(),
         ],
@@ -78,13 +78,13 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
             ),
             const SizedBox(height: 18),
             _Benefit(icon: Icons.show_chart, text: l10n.featureUnlimitedCharts),
-            const _Benefit(
+            _Benefit(
               icon: Icons.water_drop_outlined,
-              text: 'Nielimitowane akwaria',
+              text: l10n.proBenefitUnlimitedAquariums,
             ),
-            const _Benefit(
+            _Benefit(
               icon: Icons.auto_awesome,
-              text: 'Skaner AI i diagnostyka',
+              text: l10n.proBenefitAiScannerDiagnostics,
             ),
             _Benefit(
               icon: Icons.eco_outlined,
@@ -98,23 +98,23 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
               icon: Icons.picture_as_pdf_outlined,
               text: l10n.featureExportPdf,
             ),
-            const _Benefit(
+            _Benefit(
               icon: Icons.photo_library_outlined,
-              text: 'Pełna historia zdjęć',
+              text: l10n.proBenefitFullPhotoHistory,
             ),
-            const _Benefit(icon: Icons.block, text: 'Brak reklam'),
+            _Benefit(icon: Icons.block, text: l10n.proBenefitNoAds),
             const SizedBox(height: 8),
             _PlanTile(
-              title: 'Miesięczny',
+              title: l10n.monthlyPlan,
               price: '9,99 zł / miesiąc',
               selected: !_yearlyPlanSelected,
               onTap: () => setState(() => _yearlyPlanSelected = false),
             ),
             const SizedBox(height: 8),
             _PlanTile(
-              title: 'Roczny',
+              title: l10n.yearlyPlan,
               price: '69,99 zł / rok',
-              badge: 'Najpopularniejszy',
+              badge: l10n.mostPopularBadge,
               selected: _yearlyPlanSelected,
               onTap: () => setState(() => _yearlyPlanSelected = true),
             ),
@@ -135,13 +135,14 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.auto_awesome),
-          label: Text(_activating ? 'Aktywowanie…' : 'Wypróbuj PRO'),
+          label: Text(_activating ? l10n.activatingEllipsis : l10n.tryPro),
         ),
       ],
     );
   }
 
   Future<void> _activatePro() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _activating = true);
     try {
       await context.read<ProAccessService>().setProUser(
@@ -151,13 +152,13 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aktywowany status Akwarysta PRO.')),
+        SnackBar(content: Text(l10n.proActivatedMessage)),
       );
     } on Object catch (error) {
       if (mounted) {
         setState(() => _activating = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Nie udało się aktywować PRO: $error')),
+          SnackBar(content: Text(l10n.proActivationFailed(error.toString()))),
         );
       }
     }

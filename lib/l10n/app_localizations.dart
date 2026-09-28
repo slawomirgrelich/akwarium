@@ -1609,6 +1609,186 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Powiadomienia push i cykliczne harmonogramy wymagają aktywnego planu PRO.'**
   String get proNotificationsRequired;
+
+  /// No description provided for @setProfileName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustaw imię profilu'**
+  String get setProfileName;
+
+  /// No description provided for @geminiApiKeyLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Klucz API Gemini'**
+  String get geminiApiKeyLabel;
+
+  /// No description provided for @aiScannerConfig.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konfiguracja skanera AI zdjęć'**
+  String get aiScannerConfig;
+
+  /// No description provided for @cloudBackupSyncTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kopia w chmurze i synchronizacja'**
+  String get cloudBackupSyncTitle;
+
+  /// No description provided for @cloudBackupSyncSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Automatyczny zapis i tworzenie kopii zapasowej w chmurze'**
+  String get cloudBackupSyncSubtitle;
+
+  /// No description provided for @photoJournalTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dziennik zdjęć'**
+  String get photoJournalTitle;
+
+  /// No description provided for @addFirstPhotoOfAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwsze zdjęcie akwarium.'**
+  String get addFirstPhotoOfAquarium;
+
+  /// No description provided for @addPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zdjęcie'**
+  String get addPhoto;
+
+  /// No description provided for @aquariumLivestockTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Obsada akwarium'**
+  String get aquariumLivestockTitle;
+
+  /// No description provided for @compatibilityPercent.
+  ///
+  /// In pl, this message translates to:
+  /// **'{score}% kompatybilności'**
+  String compatibilityPercent(int score);
+
+  /// No description provided for @livestockWithinRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Obsada mieści się w sprawdzonych zakresach.'**
+  String get livestockWithinRange;
+
+  /// No description provided for @noSpeciesAddedOpenAtlas.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak dodanych gatunków. Otwórz atlas, aby dodać obsadę.'**
+  String get noSpeciesAddedOpenAtlas;
+
+  /// No description provided for @addSpecies.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj gatunek'**
+  String get addSpecies;
+
+  /// No description provided for @addSpeciesToStock.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj gatunek do obsady'**
+  String get addSpeciesToStock;
+
+  /// No description provided for @newReminder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowe przypomnienie'**
+  String get newReminder;
+
+  /// No description provided for @taskName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa zadania'**
+  String get taskName;
+
+  /// No description provided for @dueDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Termin'**
+  String get dueDate;
+
+  /// No description provided for @repeatCyclically.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powtarzaj cyklicznie'**
+  String get repeatCyclically;
+
+  /// No description provided for @autoScheduleNextDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Automatycznie planuj kolejny termin'**
+  String get autoScheduleNextDate;
+
+  /// No description provided for @proBenefitUnlimitedAquariums.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nielimitowane akwaria'**
+  String get proBenefitUnlimitedAquariums;
+
+  /// No description provided for @proBenefitAiScannerDiagnostics.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skaner AI i diagnostyka'**
+  String get proBenefitAiScannerDiagnostics;
+
+  /// No description provided for @proBenefitFullPhotoHistory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pełna historia zdjęć'**
+  String get proBenefitFullPhotoHistory;
+
+  /// No description provided for @proBenefitNoAds.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak reklam'**
+  String get proBenefitNoAds;
+
+  /// No description provided for @unlockProHeadline.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odblokuj Akwarysta PRO'**
+  String get unlockProHeadline;
+
+  /// No description provided for @monthlyPlan.
+  ///
+  /// In pl, this message translates to:
+  /// **'Miesięczny'**
+  String get monthlyPlan;
+
+  /// No description provided for @yearlyPlan.
+  ///
+  /// In pl, this message translates to:
+  /// **'Roczny'**
+  String get yearlyPlan;
+
+  /// No description provided for @mostPopularBadge.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najpopularniejszy'**
+  String get mostPopularBadge;
+
+  /// No description provided for @activatingEllipsis.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aktywowanie…'**
+  String get activatingEllipsis;
+
+  /// No description provided for @proActivatedMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aktywowany status Akwarysta PRO.'**
+  String get proActivatedMessage;
+
+  /// No description provided for @proActivationFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się aktywować PRO: {error}'**
+  String proActivationFailed(String error);
 }
 
 class _AppLocalizationsDelegate

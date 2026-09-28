@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../data/species_catalog.dart';
 import '../models/aquarium_model.dart';
 import '../aquarium_management_screen.dart';
+import '../l10n/app_localizations.dart';
 import '../models/species_models.dart';
 import '../services/firestore_service.dart';
 import '../services/stocking_compatibility_service.dart';
@@ -26,7 +27,7 @@ class TankStockingScreen extends StatelessWidget {
     }
     if (aquarium == null || tankId.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Obsada akwarium')),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)!.aquariumLivestockTitle)),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -41,7 +42,7 @@ class TankStockingScreen extends StatelessWidget {
                   ),
                 ),
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj akwarium'),
+                label: Text(AppLocalizations.of(context)!.addTank),
               ),
             ],
           ),
@@ -66,7 +67,7 @@ class _StockingBody extends StatelessWidget {
         : provider.waterTests.first;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Obsada akwarium'),
+        title: Text(AppLocalizations.of(context)!.aquariumLivestockTitle),
         actions: [
           IconButton(
             tooltip: 'Atlas gatunków',
@@ -116,11 +117,11 @@ class _StockingBody extends StatelessWidget {
                   !snapshot.hasData)
                 const LinearProgressIndicator(),
               if (items.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(24),
+                Padding(
+                  padding: const EdgeInsets.all(24),
                   child: Center(
                     child: Text(
-                      'Brak dodanych gatunków. Otwórz atlas, aby dodać obsadę.',
+                      AppLocalizations.of(context)!.noSpeciesAddedOpenAtlas,
                     ),
                   ),
                 )
@@ -190,7 +191,7 @@ class _StockingBody extends StatelessWidget {
           ),
         ),
         icon: const Icon(Icons.add),
-        label: const Text('Dodaj gatunek'),
+        label: Text(AppLocalizations.of(context)!.addSpecies),
       ),
     );
   }
@@ -254,14 +255,14 @@ class _CompatibilityCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${report.score}% kompatybilności',
+                  AppLocalizations.of(context)!.compatibilityPercent(report.score),
                   style: TextStyle(color: color, fontWeight: FontWeight.w800),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             if (report.isCompatible)
-              const Text('Obsada mieści się w sprawdzonych zakresach.')
+              Text(AppLocalizations.of(context)!.livestockWithinRange)
             else
               ...report.warnings.map(
                 (warning) => Padding(

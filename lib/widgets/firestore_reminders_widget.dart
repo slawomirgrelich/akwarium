@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../local_reminder_service.dart';
+import '../l10n/app_localizations.dart';
 import '../models/aquarium_model.dart';
 import '../models/aquarium_reminder.dart';
 import '../services/database_service.dart';
@@ -236,13 +237,14 @@ class _ReminderDialogState extends State<_ReminderDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: const Text('Dodaj przypomnienie'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _title, decoration: const InputDecoration(labelText: 'Nazwa zadania')),
+            TextField(controller: _title, decoration: InputDecoration(labelText: l10n.taskName)),
             const SizedBox(height: 12),
             DropdownButtonFormField<ReminderTaskType>(
               initialValue: _type,
@@ -266,7 +268,7 @@ class _ReminderDialogState extends State<_ReminderDialog> {
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text('Termin: ${_formatDate(_dueDate)}'),
+              title: Text('${l10n.dueDate}: ${_formatDate(_dueDate)}'),
               trailing: const Icon(Icons.calendar_month_outlined),
               onTap: () async {
                 final date = await showDatePicker(
@@ -282,7 +284,7 @@ class _ReminderDialogState extends State<_ReminderDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Anuluj')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
         FilledButton(
           onPressed: () {
             if (_title.text.trim().isEmpty) return;

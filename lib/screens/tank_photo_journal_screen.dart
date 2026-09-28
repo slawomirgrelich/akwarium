@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../models/tank_photo.dart';
+import '../l10n/app_localizations.dart';
 import '../services/database_service.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
@@ -25,6 +26,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final userId = _auth.currentUser?.uid;
     if (userId == null) {
       return const Scaffold(
@@ -33,7 +35,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dziennik zdjęć'),
+        title: Text(l10n.photoJournalTitle),
         actions: [
           IconButton(
             tooltip: 'Porównaj zdjęcia',
@@ -53,8 +55,8 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
           if (snapshot.hasError)
             return const Center(child: Text('Nie udało się wczytać zdjęć.'));
           if (photos.isEmpty) {
-            return const Center(
-              child: Text('Dodaj pierwsze zdjęcie akwarium.'),
+            return Center(
+              child: Text(l10n.addFirstPhotoOfAquarium),
             );
           }
           return Column(
@@ -90,7 +92,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addPhoto(userId),
         icon: const Icon(Icons.add_a_photo_outlined),
-        label: const Text('Dodaj zdjęcie'),
+        label: Text(l10n.addPhoto),
       ),
     );
   }

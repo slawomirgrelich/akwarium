@@ -1661,8 +1661,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.key_outlined,
-              title: 'Klucz API Gemini',
-              subtitle: 'Konfiguracja skanera AI zdjęć',
+              title: l10n.geminiApiKeyLabel,
+              subtitle: l10n.aiScannerConfig,
               onTap: () => _showGeminiKeyDialog(context),
             ),
             const SizedBox(height: 10),
@@ -1672,9 +1672,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.cloud_sync_outlined,
-              title: 'Kopia w chmurze i synchronizacja',
-              subtitle:
-                  'Automatyczny zapis i tworzenie kopii zapasowej w chmurze',
+              title: l10n.cloudBackupSyncTitle,
+              subtitle: l10n.cloudBackupSyncSubtitle,
               onTap: () => _showCloudSyncDialog(context),
             ),
             const SizedBox(height: 10),
@@ -1700,6 +1699,7 @@ class ProfilePage extends StatelessWidget {
   }
 
   void _showCloudSyncDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -1708,7 +1708,7 @@ class ProfilePage extends StatelessWidget {
           color: Theme.of(context).colorScheme.primary,
           size: 36,
         ),
-        title: const Text('Kopia w chmurze i synchronizacja'),
+        title: Text(l10n.cloudBackupSyncTitle),
         content: FutureBuilder<DateTime?>(
           future: FirestoreSyncStatus.getLastSuccessfulSync(),
           builder: (context, snapshot) {
@@ -1758,7 +1758,7 @@ class ProfilePage extends StatelessWidget {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('Klucz API Gemini'),
+          title: Text(AppLocalizations.of(context)!.geminiApiKeyLabel),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2509,7 +2509,7 @@ class _ProfileDisplayNameTile extends StatelessWidget {
         return _SettingsTile(
           icon: Icons.person_outline,
           title: displayName == null || displayName.isEmpty
-              ? 'Ustaw imię profilu'
+              ? AppLocalizations.of(context)!.setProfileName
               : displayName,
           subtitle: 'Imię wyświetlane na pulpicie',
           onTap: () => _editProfileDisplayName(context, displayName ?? ''),

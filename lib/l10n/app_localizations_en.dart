@@ -812,4 +812,99 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get proNotificationsRequired =>
       'Push notifications and recurring schedules require an active PRO plan.';
+
+  @override
+  String get setProfileName => 'Set profile name';
+
+  @override
+  String get geminiApiKeyLabel => 'Gemini API Key';
+
+  @override
+  String get aiScannerConfig => 'AI Photo Scanner configuration';
+
+  @override
+  String get cloudBackupSyncTitle => 'Cloud backup & sync';
+
+  @override
+  String get cloudBackupSyncSubtitle => 'Automatic cloud save and backup';
+
+  @override
+  String get photoJournalTitle => 'Photo Journal';
+
+  @override
+  String get addFirstPhotoOfAquarium => 'Add the first photo of your aquarium.';
+
+  @override
+  String get addPhoto => 'Add photo';
+
+  @override
+  String get aquariumLivestockTitle => 'Aquarium Livestock';
+
+  @override
+  String compatibilityPercent(int score) {
+    return '$score% Compatibility';
+  }
+
+  @override
+  String get livestockWithinRange => 'Livestock is within verified parameters.';
+
+  @override
+  String get noSpeciesAddedOpenAtlas =>
+      'No species added. Open atlas to add livestock.';
+
+  @override
+  String get addSpecies => 'Add species';
+
+  @override
+  String get addSpeciesToStock => 'Add species to livestock';
+
+  @override
+  String get newReminder => 'New Reminder';
+
+  @override
+  String get taskName => 'Task name';
+
+  @override
+  String get dueDate => 'Due date';
+
+  @override
+  String get repeatCyclically => 'Repeat cyclically';
+
+  @override
+  String get autoScheduleNextDate => 'Automatically schedule next date';
+
+  @override
+  String get proBenefitUnlimitedAquariums => 'Unlimited aquariums';
+
+  @override
+  String get proBenefitAiScannerDiagnostics => 'AI scanner and diagnostics';
+
+  @override
+  String get proBenefitFullPhotoHistory => 'Full photo history';
+
+  @override
+  String get proBenefitNoAds => 'No ads';
+
+  @override
+  String get unlockProHeadline => 'Unlock Aquarist PRO';
+
+  @override
+  String get monthlyPlan => 'Monthly';
+
+  @override
+  String get yearlyPlan => 'Yearly';
+
+  @override
+  String get mostPopularBadge => 'Most popular';
+
+  @override
+  String get activatingEllipsis => 'Activating…';
+
+  @override
+  String get proActivatedMessage => 'Aquarist PRO status activated.';
+
+  @override
+  String proActivationFailed(String error) {
+    return 'Failed to activate PRO: $error';
+  }
 }

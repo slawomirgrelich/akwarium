@@ -37,7 +37,7 @@ class TankSwitcher extends StatelessWidget {
     if (activeAquarium == null) {
       return ActionChip(
         avatar: const Icon(Icons.add, size: 18),
-        label: const Text('Dodaj akwarium'),
+        label: Text(AppLocalizations.of(context)!.addTank),
         onPressed: () => Navigator.push<void>(
           context,
           MaterialPageRoute<void>(
@@ -93,7 +93,7 @@ class AquariumManagementScreen extends StatelessWidget {
         title: Text(l10n.tanksAndStockTitle),
         actions: [
           IconButton(
-            tooltip: 'Obsada akwarium',
+            tooltip: l10n.aquariumLivestockTitle,
             onPressed: () => Navigator.push<void>(
               context,
               MaterialPageRoute(builder: (_) => const TankStockingScreen()),
@@ -117,7 +117,7 @@ class AquariumManagementScreen extends StatelessWidget {
             icon: const Icon(Icons.menu_book_outlined),
           ),
           IconButton(
-            tooltip: 'Dziennik zdjęć',
+            tooltip: l10n.photoJournalTitle,
             onPressed: () {
               final tankId = context.read<AquariumProvider>().activeAquariumId;
               Navigator.push<void>(
@@ -302,7 +302,7 @@ class _ManagementContentState extends State<_ManagementContent>
               FilledButton.icon(
                 onPressed: widget.onAddInhabitant,
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj gatunek do obsady'),
+                label: Text(AppLocalizations.of(context)!.addSpeciesToStock),
               ),
             ],
           ),
@@ -387,7 +387,7 @@ class _TankProfileStrip extends StatelessWidget {
               onTap: onAdd,
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                width: 220,
+                width: 200,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
@@ -411,8 +411,8 @@ class _TankProfileStrip extends StatelessWidget {
             onTap: () => provider.selectAquarium(aquarium.id),
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              width: 240,
-              padding: const EdgeInsets.all(14),
+              width: 200,
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
@@ -443,6 +443,7 @@ class _TankProfileStrip extends StatelessWidget {
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyLarge?.color,
                             fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -856,7 +857,7 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Dodaj gatunek'),
+    title: Text(AppLocalizations.of(context)!.addSpecies),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
