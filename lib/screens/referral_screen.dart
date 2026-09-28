@@ -9,99 +9,255 @@ import '../services/referral_service.dart';
 class ReferralScreen extends StatelessWidget {
   const ReferralScreen({super.key});
 
+  static const _shareUrl = 'https://akwarysta-pro.web.app/register';
+
   @override
   Widget build(BuildContext context) {
     final service = context.watch<ReferralService>();
-    final completed = service.successfulReferralsCount;
-    final progress = (completed / 3).clamp(0.0, 1.0);
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Program poleceń')),
       body: RefreshIndicator(
-        onRefresh: () => service.init(),
+        onRefresh: service.retry,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 36),
           children: [
-            const Text(
-              'Poleć 3 znajomym',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+            const _ReferralHero(),
+            const SizedBox(height: 16),
+            if (service.isLoading && service.referralCode.isEmpty)
+              const _ReferralLoadingState()
+            else if (service.errorMessage != null && service.referralCode.isEmpty)
+              _ReferralErrorState(onRetry: service.retry)
+            else ...[
+              _CodeCard(
+                code: service.referralCode,
+                shareUrl: _shareUrl,
+                onCopied: () => _showMessage(context, 'Kod skopiowany do schowka!'),
+              ),
+              const SizedBox(height: 16),
+              _ProgressCard(completed: service.successfulReferralsCount),
+              const SizedBox(height: 24),
+              Text(
+                'Zaproszone osoby',
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 10),
+              if (service.referrals.isEmpty)
+                const _EmptyReferralsState()
+              else
+                ...service.referrals.map((referral) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _ReferralTile(referral: referral),
+                    )),
+              if (service.errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: TextButton.icon(
+                    onPressed: service.retry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Odśwież polecenia'),
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _ReferralHero extends StatelessWidget {
+  const _ReferralHero();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? const [Color(0xFF0B2630), Color(0xFF073B4C)]
+              : [scheme.primaryContainer, scheme.secondaryContainer],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: scheme.primary.withValues(alpha: isDark ? 0.22 : 0.12),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Oni dostają 50% zniżki na pierwszy miesiąc, a Ty zgarniasz darmowy miesiąc PRO.',
-              style: TextStyle(color: Colors.grey.shade700, height: 1.4),
+            child: Icon(Icons.card_giftcard_outlined, color: isDark ? const Color(0xFF67E8F9) : scheme.primary, size: 28),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Polecaj Akwarysta PRO i zyskaj darmowy dostęp!',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : scheme.onPrimaryContainer,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Zyskaj 1 miesiąc PRO za każde 3 zaproszone osoby. Twoi znajomi otrzymają 50% zniżki na pierwszy miesiąc.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark ? const Color(0xFFD2EEF2) : scheme.onSecondaryContainer,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('Twój kod', style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 12),
-                    SelectableText(
-                      service.referralCode.isEmpty ? 'Ładowanie...' : service.referralCode,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CodeCard extends StatelessWidget {
+  const _CodeCard({required this.code, required this.shareUrl, required this.onCopied});
+
+  final String code;
+  final String shareUrl;
+  final VoidCallback onCopied;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final shareText = 'Dołącz do mnie w Akwarysta PRO i zgarnij 50% zniżki! Użyj mojego kodu: $code lub kliknij link: $shareUrl?ref=$code';
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Twój unikalny kod i link', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              decoration: BoxDecoration(
+                color: scheme.primary.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: scheme.primary.withValues(alpha: 0.5), width: 1.5),
+              ),
+              child: code.isEmpty
+                  ? const Center(child: SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2)))
+                  : SelectableText(
+                      code,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 2),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 3,
+                      ),
                     ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: service.referralCode.isEmpty
-                                ? null
-                                : () async {
-                                    await Clipboard.setData(ClipboardData(text: service.referralCode));
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Kod skopiowany.')),
-                                      );
-                                    }
-                                  },
-                            icon: const Icon(Icons.copy_outlined),
-                            label: const Text('Kopiuj'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: service.referralCode.isEmpty
-                                ? null
-                                : () => SharePlus.instance.share(
-                                      ShareParams(
-                                        text: 'Dołącz do Akwarysta PRO z moim kodem ${service.referralCode}.',
-                                      ),
-                                    ),
-                            icon: const Icon(Icons.share_outlined),
-                            label: const Text('Udostępnij'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: code.isEmpty
+                        ? null
+                        : () async {
+                            await Clipboard.setData(ClipboardData(text: code));
+                            onCopied();
+                          },
+                    icon: const Icon(Icons.copy_outlined),
+                    label: const Text('Kopiuj kod'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: code.isEmpty
+                        ? null
+                        : () => SharePlus.instance.share(ShareParams(text: shareText)),
+                    icon: const Icon(Icons.ios_share_outlined),
+                    label: const Text('Udostępnij link'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProgressCard extends StatelessWidget {
+  const _ProgressCard({required this.completed});
+
+  final int completed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final value = (completed / 3).clamp(0.0, 1.0).toDouble();
+    final reached = completed >= 3;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '$completed / 3 zaproszonych osób',
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                Icon(
+                  reached ? Icons.workspace_premium : Icons.emoji_events_outlined,
+                  color: reached ? scheme.primary : scheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: value),
+                duration: const Duration(milliseconds: 650),
+                curve: Curves.easeOutCubic,
+                builder: (context, animatedValue, _) => LinearProgressIndicator(
+                  value: animatedValue,
+                  minHeight: 12,
+                  backgroundColor: scheme.surfaceContainerHighest,
+                  color: reached ? scheme.primary : scheme.secondary,
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Text('$completed / 3 zaliczonych poleceń', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(value: progress, minHeight: 10),
-            const SizedBox(height: 24),
-            if (service.errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(service.errorMessage!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-              ),
-            Text('Zaproszone osoby', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            if (service.referrals.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Text('Nie masz jeszcze żadnych poleceń.'),
-              )
-            else
-              ...service.referrals.map((referral) => _ReferralTile(referral: referral)),
+            const SizedBox(height: 10),
+            Text(
+              reached ? 'Cel osiągnięty! Twój darmowy miesiąc PRO jest gotowy.' : 'Każde aktywne polecenie przybliża Cię do darmowego miesiąca PRO.',
+              style: theme.textTheme.bodySmall,
+            ),
           ],
         ),
       ),
@@ -116,15 +272,115 @@ class _ReferralTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final completed = referral.status == ReferralStatus.completed;
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        completed ? Icons.check_circle : Icons.schedule,
-        color: completed ? Colors.green : Colors.orange,
+    final color = completed ? Colors.green : Colors.orange;
+    return Card(
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+        leading: CircleAvatar(
+          backgroundColor: color.withValues(alpha: 0.13),
+          child: Icon(completed ? Icons.check : Icons.schedule, color: color),
+        ),
+        title: Text(
+          completed ? 'Aktywne PRO' : 'Rejestracja zaakceptowana',
+          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        subtitle: Text(
+          completed ? 'Polecenie zaliczone' : 'Oczekuje na aktywację PRO',
+          style: TextStyle(color: scheme.onSurfaceVariant),
+        ),
+        trailing: Text(_dateLabel(referral.createdAt), style: theme.textTheme.bodySmall),
       ),
-      title: Text(completed ? 'Zaliczone' : 'Oczekuje na aktywację'),
-      subtitle: Text(completed ? 'Polecenie aktywne' : 'Znajomy musi zweryfikować konto lub aktywować PRO'),
     );
   }
+}
+
+class _EmptyReferralsState extends StatelessWidget {
+  const _EmptyReferralsState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 30),
+        child: Column(
+          children: [
+            Icon(Icons.group_outlined, size: 48, color: scheme.primary.withValues(alpha: 0.75)),
+            const SizedBox(height: 12),
+            Text('Brak zaproszonych osób', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            Text(
+              'Udostępnij swój kod znajomym akwarystom, aby zacząć zbierać darmowe miesiące!',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReferralLoadingState extends StatelessWidget {
+  const _ReferralLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      children: List.generate(
+        3,
+        (index) => Container(
+          height: index == 0 ? 150 : 82,
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: index == 1 ? const Center(child: CircularProgressIndicator(strokeWidth: 2)) : null,
+        ),
+      ),
+    );
+  }
+}
+
+class _ReferralErrorState extends StatelessWidget {
+  const _ReferralErrorState({required this.onRetry});
+
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Icon(Icons.cloud_off_outlined, size: 44, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(height: 12),
+            Text('Nie udało się załadować programu', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+            const SizedBox(height: 6),
+            Text('Sprawdź połączenie i spróbuj ponownie.', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => onRetry(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Spróbuj ponownie'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _dateLabel(DateTime date) {
+  final day = date.day.toString().padLeft(2, '0');
+  final month = date.month.toString().padLeft(2, '0');
+  return '$day.$month.${date.year}';
 }

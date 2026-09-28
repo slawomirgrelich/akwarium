@@ -136,7 +136,7 @@ class AuthService {
         'hasUsedTrial': false,
         'has_used_trial_v1': false,
         'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: false));
+      }, SetOptions(merge: true));
       await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       debugPrint('Firestore user profile creation failed: $error');

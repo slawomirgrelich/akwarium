@@ -59,6 +59,8 @@ class ReferralService extends ChangeNotifier {
     await _syncUser(_auth.currentUser);
   }
 
+  Future<void> retry() => init();
+
   Future<ReferralCodeValidation> validateCode(String value) async {
     final code = _normalizeCode(value);
     if (code.length < 6) {
@@ -124,30 +126,75 @@ class ReferralService extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      await _ensureCode();
+      await _loadOrEnsureCode(user);
       _referralsSubscription = _firestore
           .collection('referrals')
           .where('referrerId', isEqualTo: user.uid)
-          .orderBy('createdAt', descending: true)
           .snapshots()
           .listen(
             (snapshot) {
-              _referrals = snapshot.docs.map(ReferralModel.fromDocument).toList();
+              _referrals = snapshot.docs.map(ReferralModel.fromDocument).toList()
+                ..sort((first, second) => second.createdAt.compareTo(first.createdAt));
+              _errorMessage = null;
               notifyListeners();
             },
             onError: (Object error) {
-              _errorMessage = 'Nie udało się pobrać poleceń.';
               debugPrint('Referral stream failed: $error');
-              notifyListeners();
+              unawaited(_loadReferralsFallback(user.uid, error));
             },
           );
     } on Object catch (error) {
-      _errorMessage = 'Nie udało się przygotować programu poleceń.';
+      _errorMessage = _messageFor(error);
       debugPrint('Referral initialization failed: $error');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> _loadOrEnsureCode(User user) async {
+    try {
+      final code = await _ensureCode();
+      if (code.isNotEmpty) return;
+    } on Object catch (error) {
+      debugPrint('Referral callable unavailable: $error');
+    }
+
+    final preferences = await _getPreferences();
+    final cached = preferences.getString(_fallbackCodeKey)?.trim() ?? '';
+    if (cached.isNotEmpty) {
+      _referralCode = cached;
+      notifyListeners();
+      return;
+    }
+
+    final document = await _firestore.collection('users').doc(user.uid).get();
+    final existing = document.data()?['referralCode'] as String? ?? '';
+    if (existing.trim().isNotEmpty) {
+      _referralCode = existing.trim();
+      await preferences.setString(_fallbackCodeKey, _referralCode);
+      notifyListeners();
+      return;
+    }
+    throw const ReferralException(
+      'Nie udało się utworzyć kodu. Spróbuj ponownie za chwilę.',
+    );
+  }
+
+  Future<void> _loadReferralsFallback(String userId, Object originalError) async {
+    try {
+      final snapshot = await _firestore
+          .collection('referrals')
+          .where('referrerId', isEqualTo: userId)
+          .get();
+      _referrals = snapshot.docs.map(ReferralModel.fromDocument).toList()
+        ..sort((first, second) => second.createdAt.compareTo(first.createdAt));
+      _errorMessage = null;
+    } on Object catch (_) {
+      _referrals = const [];
+      _errorMessage = _messageFor(originalError);
+    }
+    notifyListeners();
   }
 
   Future<HttpsCallableResult<dynamic>> _call(
@@ -214,9 +261,31 @@ class ReferralService extends ChangeNotifier {
         return 'Potwierdź adres e-mail, aby zaliczyć polecenie.';
       case 'failed-precondition':
         return 'Nie można teraz wykonać tej operacji.';
+      case 'unauthenticated':
+        return 'Sesja wygasła. Zaloguj się ponownie.';
+      case 'unavailable':
+      case 'deadline-exceeded':
+        return 'Program poleceń jest chwilowo niedostępny. Spróbuj ponownie.';
+      case 'internal':
+        return 'Nie udało się przygotować kodu. Spróbuj ponownie.';
       default:
         return 'Nie udało się wykonać operacji programu poleceń.';
     }
+  }
+
+  String _messageFor(Object error) {
+    if (error is ReferralException) return error.message;
+    if (error is FirebaseFunctionsException) return _messageForCode(error.code);
+    if (error is FirebaseException) {
+      switch (error.code) {
+        case 'permission-denied':
+          return 'Brak dostępu do programu poleceń.';
+        case 'unavailable':
+        case 'network-request-failed':
+          return 'Brak połączenia. Spróbuj ponownie.';
+      }
+    }
+    return 'Nie udało się przygotować programu poleceń. Spróbuj ponownie.';
   }
 
   @override
