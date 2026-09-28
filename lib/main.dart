@@ -1620,9 +1620,9 @@ class ProfilePage extends StatelessWidget {
               title: l10n.profileTitle,
               subtitle: l10n.profileSubtitle,
             ),
-            const _ProfileDisplayNameTile(),
-            const SizedBox(height: 12),
             const _ProCard(),
+            const SizedBox(height: 10),
+            const _ProfileDisplayNameTile(),
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.card_giftcard_outlined,
