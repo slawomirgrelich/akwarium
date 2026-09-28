@@ -84,7 +84,7 @@ enum TicketStatus {
   String get label {
     switch (this) {
       case TicketStatus.open:
-        return 'Otwarty';
+        return 'Otwarte';
       case TicketStatus.inProgress:
         return 'W trakcie';
       case TicketStatus.resolved:

@@ -508,7 +508,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get co2Risk => 'ryzyko';
 
   @override
-  String get proActive => 'Akwarysta PRO (Aktywny)';
+  String get proActive => 'Akwarysta PRO (aktywny)';
 
   @override
   String get proName => 'Akwarysta PRO';
@@ -538,7 +538,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Oblicz dzienne i tygodniowe dawki dla swojego akwarium.';
 
   @override
-  String get aquaristProActive => 'Akwarysta PRO (Aktywny)';
+  String get aquaristProActive => 'Akwarysta PRO (aktywny)';
 
   @override
   String get allFeaturesUnlocked => 'Wszystkie funkcje premium są odblokowane';
@@ -824,7 +824,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get geminiApiKeyLabel => 'Klucz API Gemini';
 
   @override
-  String get aiScannerConfig => 'Konfiguracja skanera AI zdjęć';
+  String get aiScannerConfig => 'Konfiguracja skanera zdjęć AI';
 
   @override
   String get cloudBackupSyncTitle => 'Kopia w chmurze i synchronizacja';

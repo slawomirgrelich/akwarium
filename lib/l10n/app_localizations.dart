@@ -1019,7 +1019,7 @@ abstract class AppLocalizations {
   /// No description provided for @proActive.
   ///
   /// In pl, this message translates to:
-  /// **'Akwarysta PRO (Aktywny)'**
+  /// **'Akwarysta PRO (aktywny)'**
   String get proActive;
 
   /// No description provided for @proName.
@@ -1073,7 +1073,7 @@ abstract class AppLocalizations {
   /// No description provided for @aquaristProActive.
   ///
   /// In pl, this message translates to:
-  /// **'Akwarysta PRO (Aktywny)'**
+  /// **'Akwarysta PRO (aktywny)'**
   String get aquaristProActive;
 
   /// No description provided for @allFeaturesUnlocked.
@@ -1625,7 +1625,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiScannerConfig.
   ///
   /// In pl, this message translates to:
-  /// **'Konfiguracja skanera AI zdjęć'**
+  /// **'Konfiguracja skanera zdjęć AI'**
   String get aiScannerConfig;
 
   /// No description provided for @cloudBackupSyncTitle.
