@@ -84,7 +84,7 @@ class AiScannerService {
 
     final url = Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/models/'
-      'gemini-2.5-flash:generateContent?key=$key',
+      'gemini-3.8-flash:generateContent?key=$key',
     );
     try {
       final response = await _client
@@ -132,7 +132,7 @@ class AiScannerService {
         'Klucz API Gemini jest pusty. Sprawdź GitHub Secrets lub Ustawienia Profilu.',
       );
     }
-    const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+   const models = ['gemini-3.8-flash', 'gemini-2.5-flash'];
     var overloadFailures = 0;
     for (var index = 0; index < models.length; index++) {
       try {
