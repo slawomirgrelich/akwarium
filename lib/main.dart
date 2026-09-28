@@ -326,7 +326,7 @@ class DashboardPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<models.AquariumProvider>();
     final activeAquarium = provider.selectedAquarium;
-    if (activeAquarium == null) {
+    if (activeAquarium == null || activeAquarium.id.trim().isEmpty) {
       return _PageContainer(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -863,6 +863,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   }
 
   Future<void> _prefillLatestFirestoreMeasurement(String aquariumId) async {
+    if (aquariumId.trim().isEmpty) return;
     try {
       final measurements = await FirestoreService()
           .getWaterParameters(aquariumId)
@@ -2116,7 +2117,9 @@ class _DashboardTankCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) return _AquariumCard(aquarium: aquarium);
+    if (userId == null || userId.trim().isEmpty) {
+      return _AquariumCard(aquarium: aquarium);
+    }
     return StreamBuilder<List<Tank>>(
       stream: DatabaseService().getTanksStream(userId),
       builder: (context, snapshot) {

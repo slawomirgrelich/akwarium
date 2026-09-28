@@ -19,38 +19,50 @@ class DatabaseService {
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
 
-  CollectionReference<Map<String, dynamic>> _tanks(String userId) =>
-      _firestore.collection('users').doc(userId).collection('tanks');
+  CollectionReference<Map<String, dynamic>> _tanks(String userId) {
+    _requirePathId(userId, 'userId');
+    return _firestore.collection('users').doc(userId).collection('tanks');
+  }
 
   CollectionReference<Map<String, dynamic>> _waterParameters(
     String userId,
     String tankId,
-  ) =>
-      _tanks(userId).doc(tankId).collection('water_parameters');
+  ) {
+    _requirePathId(tankId, 'tankId');
+    return _tanks(userId).doc(tankId).collection('water_parameters');
+  }
 
   CollectionReference<Map<String, dynamic>> _journalLogs(
     String userId,
     String tankId,
-  ) =>
-      _tanks(userId).doc(tankId).collection('journal_logs');
+  ) {
+    _requirePathId(tankId, 'tankId');
+    return _tanks(userId).doc(tankId).collection('journal_logs');
+  }
 
   CollectionReference<Map<String, dynamic>> _reminders(
     String userId,
     String tankId,
-  ) =>
-      _tanks(userId).doc(tankId).collection('reminders');
+  ) {
+    _requirePathId(tankId, 'tankId');
+    return _tanks(userId).doc(tankId).collection('reminders');
+  }
 
   CollectionReference<Map<String, dynamic>> _stocking(
     String userId,
     String tankId,
-  ) =>
-      _tanks(userId).doc(tankId).collection('stocking');
+  ) {
+    _requirePathId(tankId, 'tankId');
+    return _tanks(userId).doc(tankId).collection('stocking');
+  }
 
   CollectionReference<Map<String, dynamic>> _photos(
     String userId,
     String tankId,
-  ) =>
-      _tanks(userId).doc(tankId).collection('photos');
+  ) {
+    _requirePathId(tankId, 'tankId');
+    return _tanks(userId).doc(tankId).collection('photos');
+  }
 
   Stream<List<Tank>> getTanksStream(String userId) => _tanks(userId)
       .orderBy('createdAt', descending: true)
@@ -70,6 +82,7 @@ class DatabaseService {
   }
 
   Future<void> deleteTank(String userId, String tankId) async {
+    _requirePathId(tankId, 'tankId');
     await _tanks(userId).doc(tankId).delete();
     await FirestoreSyncStatus.recordSuccessfulSync();
   }
@@ -144,6 +157,7 @@ class DatabaseService {
     AquariumReminder reminder,
   ) async {
     if (reminder.id.isEmpty) throw ArgumentError('Reminder id cannot be empty.');
+    _requirePathId(reminder.id, 'reminderId');
     await _reminders(userId, tankId).doc(reminder.id).set(
           reminder.copyWith(tankId: tankId).toFirestore(),
           SetOptions(merge: true),
@@ -156,6 +170,7 @@ class DatabaseService {
     String tankId,
     String reminderId,
   ) async {
+    _requirePathId(reminderId, 'reminderId');
     await _reminders(userId, tankId).doc(reminderId).delete();
     await FirestoreSyncStatus.recordSuccessfulSync();
   }
@@ -165,6 +180,7 @@ class DatabaseService {
     String tankId,
     AquariumReminder reminder,
   ) async {
+    _requirePathId(reminder.id, 'reminderId');
     final completedAt = DateTime.now();
     final nextDueDate = reminder.repeatIntervalDays == null
         ? reminder.dueDate
@@ -229,6 +245,7 @@ class DatabaseService {
     String tankId,
     String itemId,
   ) async {
+    _requirePathId(itemId, 'itemId');
     await _stocking(userId, tankId).doc(itemId).delete();
     await FirestoreSyncStatus.recordSuccessfulSync();
   }
@@ -274,6 +291,7 @@ class DatabaseService {
     String tankId,
     TankPhoto photo,
   ) async {
+    _requirePathId(photo.id, 'photoId');
     await _photos(userId, tankId).doc(photo.id).delete();
     await FirestoreSyncStatus.recordSuccessfulSync();
     if (photo.storagePath.isNotEmpty) {
@@ -298,6 +316,13 @@ class DatabaseService {
     });
     await batch.commit();
     await FirestoreSyncStatus.recordSuccessfulSync();
+  }
+
+  String _requirePathId(String value, String name) {
+    if (value.trim().isEmpty) {
+      throw ArgumentError('$name cannot be empty.');
+    }
+    return value;
   }
 }
 

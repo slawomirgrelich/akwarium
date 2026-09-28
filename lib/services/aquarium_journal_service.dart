@@ -207,6 +207,8 @@ class AquariumJournalService {
     String aquariumId,
     String collection,
   ) {
+    _requirePathId(userId, 'userId');
+    _requirePathId(aquariumId, 'aquariumId');
     return _firestore
         .collection('users')
         .doc(userId)
@@ -326,6 +328,7 @@ class AquariumJournalService {
 
   Future<void> deleteReminder(ReminderModel reminder) async {
     try {
+      _requirePathId(reminder.id, 'reminderId');
       await _collection(
         _userId(),
         reminder.aquariumId,
@@ -355,6 +358,14 @@ class AquariumJournalService {
     return stream.handleError((Object error) {
       throw AquariumJournalServiceException(_message(error));
     });
+  }
+
+  void _requirePathId(String value, String name) {
+    if (value.trim().isEmpty) {
+      throw AquariumJournalServiceException(
+        'Nie można wykonać operacji bez poprawnego identyfikatora $name.',
+      );
+    }
   }
 
   String _message(Object error) {

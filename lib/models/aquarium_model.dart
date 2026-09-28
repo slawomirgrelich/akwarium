@@ -758,6 +758,9 @@ class AquariumProvider extends ChangeNotifier {
   Future<void> deleteAquarium(String aquariumId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('Zaloguj się, aby usunąć akwarium.');
+    if (aquariumId.trim().isEmpty) {
+      throw ArgumentError('Aquarium id cannot be empty.');
+    }
     await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
@@ -785,6 +788,7 @@ class AquariumProvider extends ChangeNotifier {
   }
 
   void _listenToAquariums(String userId) {
+    if (userId.trim().isEmpty) return;
     _aquariumsSubscription?.cancel();
     _aquariumsSubscription = FirebaseFirestore.instance
         .collection('users')
@@ -808,6 +812,12 @@ class AquariumProvider extends ChangeNotifier {
     AquariumProfile profile, {
     bool merge = false,
   }) async {
+    if (userId.trim().isEmpty) {
+      throw ArgumentError('User id cannot be empty.');
+    }
+    if (profile.id.trim().isEmpty) {
+      throw ArgumentError('Aquarium id cannot be empty.');
+    }
     final reference = FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -995,6 +1005,7 @@ class AquariumProvider extends ChangeNotifier {
   }
 
   void _listenToWaterTests(String uid) {
+    if (uid.trim().isEmpty) return;
     _waterTestsSubscription?.cancel();
     _waterTestsSubscription = FirebaseFirestore.instance
         .collection('users')
@@ -1057,6 +1068,7 @@ class AquariumProvider extends ChangeNotifier {
       if (user == null) {
         return;
       }
+      if (user.uid.trim().isEmpty || test.id.trim().isEmpty) return;
 
       final data = Map<String, dynamic>.from(test.toMap())
         ..['date'] = test.date;

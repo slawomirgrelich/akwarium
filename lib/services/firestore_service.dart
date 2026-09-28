@@ -22,6 +22,7 @@ class FirestoreService {
   final FirebaseAuth _auth;
 
   CollectionReference<Map<String, dynamic>> _aquariums(String userId) {
+    _requirePathId(userId, 'userId');
     return _firestore.collection('users').doc(userId).collection('aquariums');
   }
 
@@ -29,6 +30,7 @@ class FirestoreService {
     String userId,
     String aquariumId,
   ) {
+    _requirePathId(aquariumId, 'aquariumId');
     return _aquariums(userId).doc(aquariumId).collection('water_parameters');
   }
 
@@ -36,6 +38,7 @@ class FirestoreService {
     String userId,
     String aquariumId,
   ) {
+    _requirePathId(aquariumId, 'aquariumId');
     return _aquariums(userId).doc(aquariumId).collection('livestock');
   }
 
@@ -151,6 +154,7 @@ class FirestoreService {
 
   Stream<List<WaterParametersModel>> getWaterParameters(String aquariumId) {
     try {
+      _requirePathId(aquariumId, 'aquariumId');
       final userId = _requireUserId();
       return _waterParameters(userId, aquariumId)
           .orderBy('timestamp', descending: true)
@@ -265,6 +269,7 @@ class FirestoreService {
 
   Stream<List<Map<String, dynamic>>> getLivestock(String aquariumId) {
     try {
+      _requirePathId(aquariumId, 'aquariumId');
       final userId = _requireUserId();
       return _livestock(userId, aquariumId)
           .orderBy('addedAt', descending: true)
@@ -330,6 +335,14 @@ class FirestoreService {
     if (modelUserId.isNotEmpty && modelUserId != currentUserId) {
       throw const FirestoreServiceException(
         'Nie można zapisać danych należących do innego użytkownika.',
+      );
+    }
+  }
+
+  void _requirePathId(String value, String name) {
+    if (value.trim().isEmpty) {
+      throw FirestoreServiceException(
+        'Nie można wykonać operacji bez poprawnego identyfikatora $name.',
       );
     }
   }
