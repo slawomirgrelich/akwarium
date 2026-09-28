@@ -2,7 +2,6 @@ import 'firebase_options.dart';
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +27,7 @@ import 'models/tank_firestore_models.dart' show Tank;
 import 'screens/aquarium_details_screen.dart';
 import 'screens/auth_wrapper.dart';
 import 'screens/calculators_screen.dart';
+import 'screens/help_center_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/notification_settings_screen.dart';
@@ -42,6 +42,7 @@ import 'services/pro_access_service.dart';
 import 'services/referral_service.dart';
 import 'services/theme_controller.dart';
 import 'services/locale_controller.dart';
+import 'services/ticket_service.dart';
 import 'theme/app_theme.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
@@ -186,10 +187,13 @@ class AkwarystaProApp extends StatelessWidget {
           child: firebaseReady
               ? ChangeNotifierProvider<ReferralService>(
                   create: (_) => ReferralService()..init(),
-                  child: ChangeNotifierProvider<models.AquariumProvider>(
-                    create: (_) => models.AquariumProvider()..initialize(),
-                    child: Builder(
-                      builder: (context) => _buildApp(context, firebaseReady),
+                  child: ChangeNotifierProvider<TicketService>(
+                    create: (_) => TicketService(),
+                    child: ChangeNotifierProvider<models.AquariumProvider>(
+                      create: (_) => models.AquariumProvider()..initialize(),
+                      child: Builder(
+                        builder: (context) => _buildApp(context, firebaseReady),
+                      ),
                     ),
                   ),
                 )
@@ -1628,6 +1632,16 @@ class ProfilePage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const ReferralScreen()),
               ),
             ),
+            const SizedBox(height: 10),
+            _SettingsTile(
+              icon: Icons.support_agent_outlined,
+              title: 'Centrum pomocy',
+              subtitle: 'FAQ, nowe zgłoszenia i historia kontaktu',
+              onTap: () => Navigator.push<void>(
+                context,
+                MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
+              ),
+            ),
             if (kDebugMode) ...[
               const SizedBox(height: 8),
               OutlinedButton.icon(
@@ -2577,8 +2591,9 @@ Future<void> _editProfileDisplayName(
 
   try {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null)
+    if (user == null) {
       throw StateError('Zaloguj się, aby zmienić imię profilu.');
+    }
     await user.updateDisplayName(name);
     await user.reload();
     if (context.mounted) {

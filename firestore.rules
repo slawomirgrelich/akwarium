@@ -27,6 +27,19 @@ service cloud.firestore {
       allow read, write: if ownsUser(userId);
     }
 
+    match /tickets/{ticketId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn()
+        && request.resource.data.ticketId == ticketId
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'OPEN'
+        && request.resource.data.keys().hasOnly([
+          'ticketId', 'userId', 'userEmail', 'category', 'subject',
+          'description', 'status', 'deviceInfo', 'createdAt', 'updatedAt'
+        ]);
+      allow update, delete: if false;
+    }
+
     match /referrals/{referralId} {
       allow read: if signedIn()
         && (resource.data.referrerId == request.auth.uid
