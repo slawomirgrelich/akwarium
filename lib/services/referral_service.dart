@@ -144,7 +144,9 @@ class ReferralService extends ChangeNotifier {
             },
           );
     } on Object catch (error) {
-      _errorMessage = _messageFor(error);
+      _setCode(_localFallbackCode(user.uid));
+      unawaited(_persistFallbackCode(_referralCode));
+      _errorMessage = null;
       debugPrint('Referral initialization failed: $error');
     } finally {
       _isLoading = false;
@@ -163,22 +165,46 @@ class ReferralService extends ChangeNotifier {
     final preferences = await _getPreferences();
     final cached = preferences.getString(_fallbackCodeKey)?.trim() ?? '';
     if (cached.isNotEmpty) {
-      _referralCode = cached;
-      notifyListeners();
+      _setCode(cached);
       return;
     }
 
-    final document = await _firestore.collection('users').doc(user.uid).get();
-    final existing = document.data()?['referralCode'] as String? ?? '';
-    if (existing.trim().isNotEmpty) {
-      _referralCode = existing.trim();
-      await preferences.setString(_fallbackCodeKey, _referralCode);
-      notifyListeners();
-      return;
+    try {
+      final document = await _firestore.collection('users').doc(user.uid).get();
+      final existing = document.data()?['referralCode'] as String? ?? '';
+      if (existing.trim().isNotEmpty) {
+        _setCode(existing.trim());
+        await preferences.setString(_fallbackCodeKey, _referralCode);
+        return;
+      }
+    } on Object catch (error) {
+      debugPrint('Could not read referral code from user profile: $error');
     }
-    throw const ReferralException(
-      'Nie udało się utworzyć kodu. Spróbuj ponownie za chwilę.',
-    );
+
+    final fallback = _localFallbackCode(user.uid);
+    _setCode(fallback);
+    await preferences.setString(_fallbackCodeKey, fallback);
+    unawaited(_persistFallbackCode(fallback));
+  }
+
+  void _setCode(String code) {
+    _referralCode = code;
+    notifyListeners();
+  }
+
+  String _localFallbackCode(String uid) {
+    final normalized = uid.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
+    final prefixLength = normalized.length > 5 ? 5 : normalized.length;
+    final prefix = normalized.isEmpty ? 'LOCAL' : normalized.substring(0, prefixLength);
+    return 'AKWA-$prefix';
+  }
+
+  Future<void> _persistFallbackCode(String code) async {
+    try {
+      await _call('ensureReferralCode', {'fallbackCode': code});
+    } on Object catch (error) {
+      debugPrint('Could not persist fallback referral code: $error');
+    }
   }
 
   Future<void> _loadReferralsFallback(String userId, Object originalError) async {
@@ -192,7 +218,8 @@ class ReferralService extends ChangeNotifier {
       _errorMessage = null;
     } on Object catch (_) {
       _referrals = const [];
-      _errorMessage = _messageFor(originalError);
+      _errorMessage = null;
+      debugPrint('Could not load referrals after fallback: $originalError');
     }
     notifyListeners();
   }
@@ -271,21 +298,6 @@ class ReferralService extends ChangeNotifier {
       default:
         return 'Nie udało się wykonać operacji programu poleceń.';
     }
-  }
-
-  String _messageFor(Object error) {
-    if (error is ReferralException) return error.message;
-    if (error is FirebaseFunctionsException) return _messageForCode(error.code);
-    if (error is FirebaseException) {
-      switch (error.code) {
-        case 'permission-denied':
-          return 'Brak dostępu do programu poleceń.';
-        case 'unavailable':
-        case 'network-request-failed':
-          return 'Brak połączenia. Spróbuj ponownie.';
-      }
-    }
-    return 'Nie udało się przygotować programu poleceń. Spróbuj ponownie.';
   }
 
   @override

@@ -8,6 +8,7 @@ initializeApp();
 const db = getFirestore();
 const MAX_REFERRALS_PER_REWARD = 3;
 const CODE_LENGTH = 8;
+const REFERRAL_CODE_PATTERN = /^[A-Z0-9-]{6,20}$/;
 
 function requireAuth(request: Parameters<typeof onCall>[0] extends never ? never : any) {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Authentication required.');
@@ -16,6 +17,10 @@ function requireAuth(request: Parameters<typeof onCall>[0] extends never ? never
 
 function normalizeCode(value: unknown): string {
   return typeof value === 'string' ? value.trim().toUpperCase() : '';
+}
+
+function isValidReferralCode(code: string): boolean {
+  return REFERRAL_CODE_PATTERN.test(code);
 }
 
 function makeCode(): string {
@@ -66,7 +71,16 @@ export const ensureReferralCode = onCall(async (request) => {
     return { referralCode: existing };
   }
 
-  const code = await createUniqueCode();
+  const requestedCode = normalizeCode(request.data?.fallbackCode);
+  const requestedReference = requestedCode
+    ? db.collection('referral_codes').doc(requestedCode)
+    : null;
+  const requestedExists = requestedReference
+    ? (await requestedReference.get()).exists
+    : true;
+  const code = isValidReferralCode(requestedCode) && !requestedExists
+    ? requestedCode
+    : await createUniqueCode();
   await db.runTransaction(async (transaction) => {
     const freshUser = await transaction.get(userRef);
     const freshCode = freshUser.get('referralCode');
@@ -86,7 +100,7 @@ export const ensureReferralCode = onCall(async (request) => {
 
 export const validateReferralCode = onCall(async (request) => {
   const code = normalizeCode(request.data?.code);
-  if (code.length !== CODE_LENGTH) return { valid: false };
+  if (!isValidReferralCode(code)) return { valid: false };
   const codeDocument = await db.collection('referral_codes').doc(code).get();
   if (!codeDocument.exists) return { valid: false };
   if (request.auth && codeDocument.get('ownerId') === request.auth.uid) {
@@ -101,7 +115,7 @@ export const applyReferralCode = onCall(async (request) => {
   const deviceId = typeof request.data?.deviceId === 'string'
     ? request.data.deviceId.trim()
     : '';
-  if (code.length !== CODE_LENGTH || !deviceId || deviceId.length > 512) {
+  if (!isValidReferralCode(code) || !deviceId || deviceId.length > 512) {
     throw new HttpsError('invalid-argument', 'Invalid referral data.');
   }
 

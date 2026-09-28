@@ -119,7 +119,7 @@ class _ReferralHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Zyskaj 1 miesiąc PRO za każde 3 zaproszone osoby. Twoi znajomi otrzymają 50% zniżki na pierwszy miesiąc.',
+                  'Zyskaj 1 miesiąc PRO za każde 3 zaproszone osoby. Twoi znajomi otrzymają 50% zniżki na pierwszy rok.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark ? const Color(0xFFD2EEF2) : scheme.onSecondaryContainer,
                     height: 1.4,
