@@ -23,6 +23,25 @@
           "other_platform_oauth_client": []
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760131458678:android:505dbca120a06e1e113157",
+        "android_client_info": {
+          "package_name": "pl.slawomirgrelich.akwarystapro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6RN0XYuIMi5eEOIGjkMCbAdFqxaxOqqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
   ],
   "configuration_version": "1"
