@@ -17,7 +17,10 @@ class AdminDashboardScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
-      return _AdminMessagePage(message: l10n.adminAccessDenied);
+      return _AdminRouteGuard(
+        title: l10n.adminDashboardTitle,
+        message: l10n.adminAccessDenied,
+      );
     }
 
     final service = AdminService();
@@ -31,12 +34,16 @@ class AdminDashboardScreen extends StatelessWidget {
           );
         }
         if (snapshot.hasError) {
-          return _AdminMessagePage(
+          return _AdminRouteGuard(
+            title: l10n.adminDashboardTitle,
             message: l10n.adminLoadError(snapshot.error.toString()),
           );
         }
         if (snapshot.data != true) {
-          return _AdminMessagePage(message: l10n.adminAccessDenied);
+          return _AdminRouteGuard(
+            title: l10n.adminDashboardTitle,
+            message: l10n.adminAccessDenied,
+          );
         }
         return _AdminDashboardTabs(service: service);
       },
@@ -971,18 +978,56 @@ String _periodLabel(AppLocalizations l10n, _ProGrantPeriod period) =>
       _ProGrantPeriod.indefinite => l10n.adminDurationIndefinite,
     };
 
-class _AdminMessagePage extends StatelessWidget {
-  const _AdminMessagePage({required this.message});
+class _AdminRouteGuard extends StatefulWidget {
+  const _AdminRouteGuard({required this.title, required this.message});
 
+  final String title;
   final String message;
 
   @override
+  State<_AdminRouteGuard> createState() => _AdminRouteGuardState();
+}
+
+class _AdminRouteGuardState extends State<_AdminRouteGuard> {
+  var _redirectStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _redirect());
+  }
+
+  void _redirect() {
+    if (!mounted || _redirectStarted) return;
+    _redirectStarted = true;
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.popUntil((route) => route.isFirst);
+      return;
+    }
+    final destination = FirebaseAuth.instance.currentUser == null
+        ? '/login'
+        : '/dashboard';
+    navigator.pushNamedAndRemoveUntil(destination, (_) => false);
+  }
+
+  @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(AppLocalizations.of(context)!.adminDashboardTitle),
-    ),
+    appBar: AppBar(title: Text(widget.title)),
     body: Center(
-      child: Padding(padding: const EdgeInsets.all(24), child: Text(message)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lock_outline, size: 32),
+            const SizedBox(height: 12),
+            Text(widget.message, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            const CircularProgressIndicator(),
+          ],
+        ),
+      ),
     ),
   );
 }

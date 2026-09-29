@@ -22,6 +22,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if ownsUser(userId) || isAdmin();
       allow create: if ownsUser(userId)
+        && request.resource.data.keys().hasOnly([
+          'uid', 'email', 'isPro', 'successfulReferralsCount',
+          'subscriptionStatus', 'hasUsedTrial', 'has_used_trial_v1', 'createdAt'
+        ])
         && request.resource.data.uid == userId
         && request.resource.data.isPro == false
         && request.resource.data.successfulReferralsCount == 0;

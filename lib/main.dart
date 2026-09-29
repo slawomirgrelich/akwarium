@@ -1642,11 +1642,6 @@ class ProfilePage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
               ),
             ),
-            if (FirebaseAuth.instance.currentUser
-                case final adminCandidate?) ...[
-              const SizedBox(height: 10),
-              _AdminPanelTile(userId: adminCandidate.uid),
-            ],
             if (kDebugMode) ...[
               const SizedBox(height: 8),
               OutlinedButton.icon(
@@ -1734,6 +1729,11 @@ class ProfilePage extends StatelessWidget {
               subtitle: l10n.logOutSubtitle,
               onTap: () => _signOut(context),
             ),
+            if (FirebaseAuth.instance.currentUser
+                case final adminCandidate?) ...[
+              const SizedBox(height: 10),
+              _AdminPanelTile(userId: adminCandidate.uid),
+            ],
             const SizedBox(height: 24),
             const SizedBox(height: 28),
             const AppVersionWidget(),
@@ -2563,16 +2563,38 @@ class _AdminPanelTile extends StatelessWidget {
   Widget build(BuildContext context) => StreamBuilder<bool>(
     stream: AdminService().watchAdminAccess(userId),
     builder: (context, snapshot) {
-      if (snapshot.data != true) return const SizedBox.shrink();
+      final user = (id: userId, isAdmin: snapshot.data == true);
       final l10n = AppLocalizations.of(context)!;
-      return _SettingsTile(
-        icon: Icons.admin_panel_settings_outlined,
-        title: l10n.adminDashboardTitle,
-        subtitle: l10n.adminDashboardSubtitle,
-        onTap: () => Navigator.push<void>(
-          context,
-          MaterialPageRoute<void>(builder: (_) => const AdminDashboardScreen()),
-        ),
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (user.isAdmin)
+            _SettingsTile(
+              icon: Icons.admin_panel_settings,
+              title: l10n.adminDashboardTitle,
+              subtitle: l10n.adminDashboardSubtitle,
+              onTap: () async {
+                final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+                final hasAccess =
+                    currentUserId == user.id &&
+                    await AdminService().isCurrentUserAdmin();
+                if (!context.mounted) return;
+                if (!hasAccess ||
+                    FirebaseAuth.instance.currentUser?.uid != user.id) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.adminAccessDenied)),
+                  );
+                  return;
+                }
+                await Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AdminDashboardScreen(),
+                  ),
+                );
+              },
+            ),
+        ],
       );
     },
   );
