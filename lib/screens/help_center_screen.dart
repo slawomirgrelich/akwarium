@@ -40,10 +40,17 @@ class HelpCenterScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const MyTicketsScreen()),
               ),
               icon: const Icon(Icons.inbox_outlined),
-              label: Text(service.tickets.isEmpty ? l10n.myTicketsTitle : l10n.myTicketsCount(service.tickets.length)),
+              label: Text(
+                service.tickets.isEmpty
+                    ? l10n.myTicketsTitle
+                    : l10n.myTicketsCount(service.tickets.length),
+              ),
             ),
             const SizedBox(height: 28),
-            Text(l10n.quickAnswers, style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              l10n.quickAnswers,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             const _FaqSection(),
             if (service.errorCode != null) ...[
@@ -89,10 +96,7 @@ class _HelpHero extends StatelessWidget {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                 ),
                 SizedBox(height: 6),
-                Text(
-                  l10n.helpHeroDescription,
-                  style: TextStyle(height: 1.35),
-                ),
+                Text(l10n.helpHeroDescription, style: TextStyle(height: 1.35)),
               ],
             ),
           ),
@@ -219,7 +223,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
                   .map(
                     (category) => DropdownMenuItem(
                       value: category,
-                      child: Text('${category.emoji}  ${_categoryLabel(l10n, category)}'),
+                      child: Text(_categoryLabel(l10n, category)),
                     ),
                   )
                   .toList(),
@@ -315,10 +319,15 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
               icon: service.isSubmitting
                   ? const SizedBox.square(
                       dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.send_outlined),
-              label: Text(service.isSubmitting ? l10n.sendingTicket : l10n.sendTicket),
+              label: Text(
+                service.isSubmitting ? l10n.sendingTicket : l10n.sendTicket,
+              ),
             ),
           ],
         ),
@@ -338,13 +347,16 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       Navigator.pop(context, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.ticketSent)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.ticketSent)));
     } on TicketServiceException catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_ticketErrorMessage(AppLocalizations.of(context)!, error.code))),
+        SnackBar(
+          content: Text(
+            _ticketErrorMessage(AppLocalizations.of(context)!, error.code),
+          ),
+        ),
       );
     }
   }
@@ -385,9 +397,27 @@ class MyTicketsScreen extends StatelessWidget {
       body: RefreshIndicator(
         onRefresh: service.refresh,
         child: service.isLoading && service.tickets.isEmpty
-            ? ListView(children: const [Center(child: Padding(padding: EdgeInsets.all(48), child: CircularProgressIndicator()))])
+            ? ListView(
+                children: const [
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(48),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                ],
+              )
             : service.tickets.isEmpty
-            ? ListView(children: [Center(child: Padding(padding: const EdgeInsets.all(48), child: Text(l10n.noTickets)))])
+            ? ListView(
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(48),
+                      child: Text(l10n.noTickets),
+                    ),
+                  ),
+                ],
+              )
             : ListView.separated(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                 itemCount: service.tickets.length,
@@ -398,7 +428,9 @@ class MyTicketsScreen extends StatelessWidget {
                     ticket: ticket,
                     onTap: () => Navigator.push<void>(
                       context,
-                      MaterialPageRoute(builder: (_) => TicketDetailScreen(ticket: ticket)),
+                      MaterialPageRoute(
+                        builder: (_) => TicketDetailScreen(ticket: ticket),
+                      ),
                     ),
                   );
                 },
@@ -442,7 +474,9 @@ class _TicketCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              Text('${ticket.category.emoji}  ${_categoryShortLabel(l10n, ticket.category)}'),
+              Text(
+                '${ticket.category.emoji}  ${_categoryShortLabel(l10n, ticket.category)}',
+              ),
               const SizedBox(height: 6),
               Text(
                 DateFormat('dd.MM.yyyy, HH:mm').format(ticket.updatedAt),
@@ -454,7 +488,13 @@ class _TicketCard extends StatelessWidget {
                   children: [
                     Icon(Icons.reply_outlined, size: 17, color: statusColor),
                     const SizedBox(width: 6),
-                    Text(l10n.ticketSupportReply, style: TextStyle(color: statusColor, fontWeight: FontWeight.w700)),
+                    Text(
+                      l10n.ticketSupportReply,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -480,7 +520,14 @@ class _StatusBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.13),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(_statusLabel(AppLocalizations.of(context)!, status), style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800)),
+      child: Text(
+        _statusLabel(AppLocalizations.of(context)!, status),
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
     );
   }
 }
@@ -500,20 +547,38 @@ class TicketDetailScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(ticket.subject, style: Theme.of(context).textTheme.headlineSmall)),
-              _StatusBadge(status: ticket.status, color: _statusColor(ticket.status)),
+              Expanded(
+                child: Text(
+                  ticket.subject,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+              ),
+              _StatusBadge(
+                status: ticket.status,
+                color: _statusColor(ticket.status),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Text('${ticket.category.emoji}  ${_categoryLabel(l10n, ticket.category)}'),
+          Text(_categoryLabel(l10n, ticket.category)),
           const SizedBox(height: 6),
-          Text(l10n.ticketCreatedAt(DateFormat('dd.MM.yyyy, HH:mm').format(ticket.createdAt)), style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            l10n.ticketCreatedAt(
+              DateFormat('dd.MM.yyyy, HH:mm').format(ticket.createdAt),
+            ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
           const SizedBox(height: 20),
-          _DetailBlock(title: l10n.ticketDescriptionSection, text: ticket.description),
+          _DetailBlock(
+            title: l10n.ticketDescriptionSection,
+            text: ticket.description,
+          ),
           const SizedBox(height: 12),
           _DetailBlock(
             title: l10n.ticketTechnicalInfo,
-            text: ticket.deviceInfo.entries.map((entry) => '${entry.key}: ${entry.value}').join('\n'),
+            text: ticket.deviceInfo.entries
+                .map((entry) => '${entry.key}: ${entry.value}')
+                .join('\n'),
           ),
           if (ticket.imageUrl?.trim().isNotEmpty == true) ...[
             const SizedBox(height: 12),
@@ -531,7 +596,10 @@ class TicketDetailScreen extends StatelessWidget {
           ],
           if (ticket.adminResponse?.trim().isNotEmpty == true) ...[
             const SizedBox(height: 12),
-            _DetailBlock(title: l10n.ticketSupportReply, text: ticket.adminResponse!),
+            _DetailBlock(
+              title: l10n.ticketSupportReply,
+              text: ticket.adminResponse!,
+            ),
           ],
         ],
       ),

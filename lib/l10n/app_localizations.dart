@@ -2042,6 +2042,306 @@ abstract class AppLocalizations {
   /// **'Twoje dane są bezpiecznie synchronizowane w chmurze'**
   String get cloudSyncDescription;
 
+  /// No description provided for @editProfileName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Imię profilu'**
+  String get editProfileName;
+
+  /// No description provided for @profileNameLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Imię'**
+  String get profileNameLabel;
+
+  /// No description provided for @profileNameSaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisano imię profilu: {name}'**
+  String profileNameSaved(String name);
+
+  /// No description provided for @profileNameSaveFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zapisać imienia: {error}'**
+  String profileNameSaveFailed(String error);
+
+  /// No description provided for @signInToChangeProfileName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się, aby zmienić imię profilu.'**
+  String get signInToChangeProfileName;
+
+  /// No description provided for @referralSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poleć znajomych i odbierz darmowy miesiąc PRO'**
+  String get referralSubtitle;
+
+  /// No description provided for @helpCenterSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'FAQ, nowe zgłoszenia i historia kontaktu'**
+  String get helpCenterSubtitle;
+
+  /// No description provided for @activeAquariumSection.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aktywne akwarium'**
+  String get activeAquariumSection;
+
+  /// No description provided for @noActiveAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak aktywnego akwarium'**
+  String get noActiveAquarium;
+
+  /// No description provided for @addAquariumToStart.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj akwarium, aby rozpocząć'**
+  String get addAquariumToStart;
+
+  /// No description provided for @freshwaterType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Słodkowodne'**
+  String get freshwaterType;
+
+  /// No description provided for @saltwaterType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Morskie'**
+  String get saltwaterType;
+
+  /// No description provided for @plantedTankType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Roślinne / holenderskie'**
+  String get plantedTankType;
+
+  /// No description provided for @biotopeTankType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Biotopowe'**
+  String get biotopeTankType;
+
+  /// No description provided for @shrimpTankType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krewetkarium'**
+  String get shrimpTankType;
+
+  /// No description provided for @dashboardNoAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie masz jeszcze akwarium. Dodaj akwarium, aby zobaczyć jego pulpit.'**
+  String get dashboardNoAquarium;
+
+  /// No description provided for @noScheduledTasks.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak zaplanowanych zadań.'**
+  String get noScheduledTasks;
+
+  /// No description provided for @unnamedReminder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienie'**
+  String get unnamedReminder;
+
+  /// No description provided for @manageTaskReminders.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zarządzaj przypomnieniami zadań'**
+  String get manageTaskReminders;
+
+  /// No description provided for @remindersScreenTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienia zadań'**
+  String get remindersScreenTitle;
+
+  /// No description provided for @activateProForReminders.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aktywuj PRO, aby zarządzać przypomnieniami'**
+  String get activateProForReminders;
+
+  /// No description provided for @addReminder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj przypomnienie'**
+  String get addReminder;
+
+  /// No description provided for @remindersLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać przypomnień.'**
+  String get remindersLoadError;
+
+  /// No description provided for @overdueTasks.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaległe'**
+  String get overdueTasks;
+
+  /// No description provided for @todayAndUpcomingTasks.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dzisiaj i nadchodzące'**
+  String get todayAndUpcomingTasks;
+
+  /// No description provided for @completedTasks.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykonane'**
+  String get completedTasks;
+
+  /// No description provided for @snoozeOneDay.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odłóż o 1 dzień'**
+  String get snoozeOneDay;
+
+  /// No description provided for @markReminderIncomplete.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oznacz jako niewykonane'**
+  String get markReminderIncomplete;
+
+  /// No description provided for @markReminderComplete.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oznacz jako wykonane'**
+  String get markReminderComplete;
+
+  /// No description provided for @addReminderDialogTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj przypomnienie'**
+  String get addReminderDialogTitle;
+
+  /// No description provided for @taskTypeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Typ zadania'**
+  String get taskTypeLabel;
+
+  /// No description provided for @repeatLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powtarzaj'**
+  String get repeatLabel;
+
+  /// No description provided for @oneTime.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jednorazowo'**
+  String get oneTime;
+
+  /// No description provided for @everyDays.
+  ///
+  /// In pl, this message translates to:
+  /// **'Co {days} dni'**
+  String everyDays(int days);
+
+  /// No description provided for @reminderTaskWaterChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podmiana wody'**
+  String get reminderTaskWaterChange;
+
+  /// No description provided for @reminderTaskFilterClean.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czyszczenie filtra'**
+  String get reminderTaskFilterClean;
+
+  /// No description provided for @reminderTaskWaterTest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Test parametrów'**
+  String get reminderTaskWaterTest;
+
+  /// No description provided for @reminderTaskFertilizer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nawożenie'**
+  String get reminderTaskFertilizer;
+
+  /// No description provided for @reminderTaskCustom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Własne zadanie'**
+  String get reminderTaskCustom;
+
+  /// No description provided for @scheduledAquariumTaskNotification.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaplanowane zadanie akwarystyczne'**
+  String get scheduledAquariumTaskNotification;
+
+  /// No description provided for @speciesMinimumVolumeFrom.
+  ///
+  /// In pl, this message translates to:
+  /// **'od {liters} l'**
+  String speciesMinimumVolumeFrom(int liters);
+
+  /// No description provided for @proFeatureTrialHeadline.
+  ///
+  /// In pl, this message translates to:
+  /// **'Funkcja PRO - aktywuj darmowy okres próbny'**
+  String get proFeatureTrialHeadline;
+
+  /// No description provided for @debugProStatusChanged.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zmienić PRO: {error}'**
+  String debugProStatusChanged(String error);
+
+  /// No description provided for @debugToggleProStatus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przełącz status PRO (test): {status}'**
+  String debugToggleProStatus(Object status);
+
+  /// No description provided for @debugProEnabled.
+  ///
+  /// In pl, this message translates to:
+  /// **'włączony'**
+  String get debugProEnabled;
+
+  /// No description provided for @debugProDisabled.
+  ///
+  /// In pl, this message translates to:
+  /// **'wyłączony'**
+  String get debugProDisabled;
+
+  /// No description provided for @geminiConnectionSucceeded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Połączenie z Gemini działa.'**
+  String get geminiConnectionSucceeded;
+
+  /// No description provided for @compatibilityVolumeWarning.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pojemność akwarium jest za mała: {actual} l; wymagane minimum to {minimum} l.'**
+  String compatibilityVolumeWarning(int actual, int minimum);
+
+  /// No description provided for @compatibilityPhWarning.
+  ///
+  /// In pl, this message translates to:
+  /// **'pH akwarium ({value}) jest poza zalecanym zakresem {min}-{max}.'**
+  String compatibilityPhWarning(num value, num min, num max);
+
+  /// No description provided for @compatibilityTemperatureWarning.
+  ///
+  /// In pl, this message translates to:
+  /// **'Temperatura akwarium ({value}°C) jest poza zalecanym zakresem {min}-{max}°C.'**
+  String compatibilityTemperatureWarning(num value, num min, num max);
+
   /// No description provided for @lastSyncLabel.
   ///
   /// In pl, this message translates to:

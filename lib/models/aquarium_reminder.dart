@@ -72,7 +72,7 @@ class AquariumReminder {
     return AquariumReminder(
       id: _string(data['id'], snapshot.id),
       tankId: _string(data['tankId']),
-      title: _string(data['title'], 'Przypomnienie'),
+      title: _string(data['title']),
       taskType: ReminderTaskType.values.firstWhere(
         (type) => type.name == data['taskType'],
         orElse: () => ReminderTaskType.custom,

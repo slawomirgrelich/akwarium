@@ -42,7 +42,9 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
     final query = _search.text.trim().toLowerCase();
     final filtered = speciesCatalog.where((species) {
       final matchesQuery = query.isEmpty ||
-          '${species.namePl} ${species.nameLatin}'.toLowerCase().contains(query);
+        '${_localizedSpeciesName(context, species)} ${species.namePl} ${species.nameLatin}'
+          .toLowerCase()
+          .contains(query);
       return matchesQuery && (_category == null || species.category == _category);
     }).toList();
     return Scaffold(
@@ -75,9 +77,9 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
                     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                     child: Icon(_iconFor(species.category)),
                   ),
-                  title: Text(species.namePl),
+                  title: Text(_localizedSpeciesName(context, species)),
                   subtitle: Text(
-                    '${species.nameLatin} · od ${species.minTankVolumeLiters} l',
+                    '${species.nameLatin} · ${l10n.speciesMinimumVolumeFrom(species.minTankVolumeLiters)}',
                     style: const TextStyle(fontStyle: FontStyle.italic),
                   ),
                   trailing: const Icon(Icons.chevron_right),
@@ -109,7 +111,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(species.namePl),
+        title: Text(_localizedSpeciesName(context, species)),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +224,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-          content: Text(pageL10n.addedSpeciesToAquarium(species.namePl, aquarium.name)),
+          content: Text(pageL10n.addedSpeciesToAquarium(_localizedSpeciesName(pageContext, species), aquarium.name)),
           action: SnackBarAction(
             label: pageL10n.viewLivestock,
             onPressed: () => Navigator.of(pageContext).push<void>(
@@ -442,9 +444,19 @@ class _CompatibilitySection extends StatelessWidget {
                   ),
                 ],
               ),
-              for (final warning in result.warnings) ...[
+              for (final warning in result.warningTypes) ...[
                 const SizedBox(height: 6),
-                Text('• $warning', style: theme.textTheme.bodySmall),
+                Text(
+                  '• ${_compatibilityWarningText(
+                    AppLocalizations.of(context)!,
+                    warning,
+                    species,
+                    aquarium.volumeNetLiters,
+                    latest?.ph,
+                    latest?.temp,
+                  )}',
+                  style: theme.textTheme.bodySmall,
+                ),
               ],
             ],
           ),
@@ -463,6 +475,30 @@ class _AquariumOption {
   final AquariumModel aquarium;
   final bool isStoredInFirestore;
 }
+
+String _compatibilityWarningText(
+  AppLocalizations l10n,
+  CompatibilityWarningType warning,
+  Species species,
+  double volumeLiters,
+  double? ph,
+  double? temperature,
+) => switch (warning) {
+  CompatibilityWarningType.volume => l10n.compatibilityVolumeWarning(
+    volumeLiters.round(),
+    species.minTankVolumeLiters,
+  ),
+  CompatibilityWarningType.ph => l10n.compatibilityPhWarning(
+    ph!,
+    species.phRange.min,
+    species.phRange.max,
+  ),
+  CompatibilityWarningType.temperature => l10n.compatibilityTemperatureWarning(
+    temperature!,
+    species.tempRange.min,
+    species.tempRange.max,
+  ),
+};
 
 class _AquariumPickerResult {
   const _AquariumPickerResult.select(this.aquarium) : create = false;
@@ -508,7 +544,7 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-    title: Text(l10n.addSpeciesDialogTitle(widget.species.namePl)),
+    title: Text(l10n.addSpeciesDialogTitle(_localizedSpeciesName(context, widget.species))),
     content: SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -591,7 +627,12 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
 /// English and a translation exists, otherwise falls back to the Polish text.
 String _localizedSpeciesText(BuildContext context, Species species, String plText) {
   if (Localizations.localeOf(context).languageCode != 'en') return plText;
-  return speciesDescriptionsEn[species.id] ?? plText;
+  return speciesDescriptionsEn[species.id] ?? species.nameLatin;
+}
+
+String _localizedSpeciesName(BuildContext context, Species species) {
+  if (Localizations.localeOf(context).languageCode != 'en') return species.namePl;
+  return speciesNamesEn[species.id] ?? species.nameLatin;
 }
 
 String _categoryLabel(SpeciesCategory category) => switch (category) {

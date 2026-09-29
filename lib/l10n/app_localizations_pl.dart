@@ -1064,6 +1064,180 @@ class AppLocalizationsPl extends AppLocalizations {
       'Twoje dane są bezpiecznie synchronizowane w chmurze';
 
   @override
+  String get editProfileName => 'Imię profilu';
+
+  @override
+  String get profileNameLabel => 'Imię';
+
+  @override
+  String profileNameSaved(String name) {
+    return 'Zapisano imię profilu: $name';
+  }
+
+  @override
+  String profileNameSaveFailed(String error) {
+    return 'Nie udało się zapisać imienia: $error';
+  }
+
+  @override
+  String get signInToChangeProfileName =>
+      'Zaloguj się, aby zmienić imię profilu.';
+
+  @override
+  String get referralSubtitle =>
+      'Poleć znajomych i odbierz darmowy miesiąc PRO';
+
+  @override
+  String get helpCenterSubtitle => 'FAQ, nowe zgłoszenia i historia kontaktu';
+
+  @override
+  String get activeAquariumSection => 'Aktywne akwarium';
+
+  @override
+  String get noActiveAquarium => 'Brak aktywnego akwarium';
+
+  @override
+  String get addAquariumToStart => 'Dodaj akwarium, aby rozpocząć';
+
+  @override
+  String get freshwaterType => 'Słodkowodne';
+
+  @override
+  String get saltwaterType => 'Morskie';
+
+  @override
+  String get plantedTankType => 'Roślinne / holenderskie';
+
+  @override
+  String get biotopeTankType => 'Biotopowe';
+
+  @override
+  String get shrimpTankType => 'Krewetkarium';
+
+  @override
+  String get dashboardNoAquarium =>
+      'Nie masz jeszcze akwarium. Dodaj akwarium, aby zobaczyć jego pulpit.';
+
+  @override
+  String get noScheduledTasks => 'Brak zaplanowanych zadań.';
+
+  @override
+  String get unnamedReminder => 'Przypomnienie';
+
+  @override
+  String get manageTaskReminders => 'Zarządzaj przypomnieniami zadań';
+
+  @override
+  String get remindersScreenTitle => 'Przypomnienia zadań';
+
+  @override
+  String get activateProForReminders =>
+      'Aktywuj PRO, aby zarządzać przypomnieniami';
+
+  @override
+  String get addReminder => 'Dodaj przypomnienie';
+
+  @override
+  String get remindersLoadError => 'Nie udało się wczytać przypomnień.';
+
+  @override
+  String get overdueTasks => 'Zaległe';
+
+  @override
+  String get todayAndUpcomingTasks => 'Dzisiaj i nadchodzące';
+
+  @override
+  String get completedTasks => 'Wykonane';
+
+  @override
+  String get snoozeOneDay => 'Odłóż o 1 dzień';
+
+  @override
+  String get markReminderIncomplete => 'Oznacz jako niewykonane';
+
+  @override
+  String get markReminderComplete => 'Oznacz jako wykonane';
+
+  @override
+  String get addReminderDialogTitle => 'Dodaj przypomnienie';
+
+  @override
+  String get taskTypeLabel => 'Typ zadania';
+
+  @override
+  String get repeatLabel => 'Powtarzaj';
+
+  @override
+  String get oneTime => 'Jednorazowo';
+
+  @override
+  String everyDays(int days) {
+    return 'Co $days dni';
+  }
+
+  @override
+  String get reminderTaskWaterChange => 'Podmiana wody';
+
+  @override
+  String get reminderTaskFilterClean => 'Czyszczenie filtra';
+
+  @override
+  String get reminderTaskWaterTest => 'Test parametrów';
+
+  @override
+  String get reminderTaskFertilizer => 'Nawożenie';
+
+  @override
+  String get reminderTaskCustom => 'Własne zadanie';
+
+  @override
+  String get scheduledAquariumTaskNotification =>
+      'Zaplanowane zadanie akwarystyczne';
+
+  @override
+  String speciesMinimumVolumeFrom(int liters) {
+    return 'od $liters l';
+  }
+
+  @override
+  String get proFeatureTrialHeadline =>
+      'Funkcja PRO - aktywuj darmowy okres próbny';
+
+  @override
+  String debugProStatusChanged(String error) {
+    return 'Nie udało się zmienić PRO: $error';
+  }
+
+  @override
+  String debugToggleProStatus(Object status) {
+    return 'Przełącz status PRO (test): $status';
+  }
+
+  @override
+  String get debugProEnabled => 'włączony';
+
+  @override
+  String get debugProDisabled => 'wyłączony';
+
+  @override
+  String get geminiConnectionSucceeded => 'Połączenie z Gemini działa.';
+
+  @override
+  String compatibilityVolumeWarning(int actual, int minimum) {
+    return 'Pojemność akwarium jest za mała: $actual l; wymagane minimum to $minimum l.';
+  }
+
+  @override
+  String compatibilityPhWarning(num value, num min, num max) {
+    return 'pH akwarium ($value) jest poza zalecanym zakresem $min-$max.';
+  }
+
+  @override
+  String compatibilityTemperatureWarning(num value, num min, num max) {
+    return 'Temperatura akwarium ($value°C) jest poza zalecanym zakresem $min-$max°C.';
+  }
+
+  @override
   String get lastSyncLabel => 'Ostatnia synchronizacja:';
 
   @override

@@ -54,7 +54,7 @@ class _NotificationSettingsScreenState
 
   void _showProRequiredDialog() => ProPaywallDialog.show(
     context,
-    headline: 'Funkcja PRO - aktywuj darmowy okres próbny',
+    headline: AppLocalizations.of(context)!.proFeatureTrialHeadline,
   );
 
   Widget _titleWithProBadge(String title, bool isProUser) => Row(
@@ -137,7 +137,7 @@ class _NotificationSettingsScreenState
                   )
                 : _showProRequiredDialog,
             icon: const Icon(Icons.checklist_outlined),
-            label: const Text('Zarządzaj przypomnieniami zadań'),
+            label: Text(l10n.manageTaskReminders),
           ),
           const SizedBox(height: 12),
           Text(

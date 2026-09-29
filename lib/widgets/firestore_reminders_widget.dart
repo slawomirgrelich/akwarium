@@ -22,6 +22,7 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final userId = _auth.currentUser?.uid;
     final tankId = context.watch<AquariumProvider>().activeAquariumId;
     if (userId == null || tankId.isEmpty) return const SizedBox.shrink();
@@ -42,16 +43,16 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
               children: [
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Nadchodzące zadania',
+                        l10n.upcomingTasks,
                         style: TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
                     if (overdue.isNotEmpty)
                       _CountBadge(count: overdue.length, color: Colors.red),
                     IconButton(
-                      tooltip: 'Dodaj przypomnienie',
+                      tooltip: l10n.addReminder,
                       onPressed: () => _openForm(context, userId, tankId),
                       icon: const Icon(Icons.add_alert_outlined),
                     ),
@@ -64,13 +65,13 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                     child: Center(child: CircularProgressIndicator()),
                   )
                 else if (snapshot.hasError)
-                  Text('Nie udało się wczytać przypomnień.')
+                  Text(l10n.remindersLoadError)
                 else if (reminders.isEmpty)
-                  const Text('Brak zaplanowanych zadań.')
+                  Text(l10n.noScheduledTasks)
                 else ...[
                   if (overdue.isNotEmpty)
                     _ReminderGroup(
-                      title: 'Zaległe',
+                      title: l10n.overdueTasks,
                       color: Colors.red,
                       reminders: overdue,
                       onComplete: (item) => _complete(userId, tankId, item),
@@ -78,7 +79,7 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                     ),
                   if (upcoming.isNotEmpty)
                     _ReminderGroup(
-                      title: 'Dzisiaj i nadchodzące',
+                      title: l10n.todayAndUpcomingTasks,
                       color: Theme.of(context).colorScheme.primary,
                       reminders: upcoming,
                       onComplete: (item) => _complete(userId, tankId, item),
@@ -86,7 +87,7 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                     ),
                   if (completed.isNotEmpty)
                     _ReminderGroup(
-                      title: 'Wykonane',
+                      title: l10n.completedTasks,
                       color: Colors.blueGrey,
                       reminders: completed,
                       onComplete: (item) => _complete(userId, tankId, item),
@@ -127,6 +128,8 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
     String userId,
     String tankId,
   ) async {
+    final notificationBody = AppLocalizations.of(context)!
+        .scheduledAquariumTaskNotification;
     final reminder = await showDialog<AquariumReminder>(
       context: context,
       builder: (_) => const _ReminderDialog(),
@@ -135,9 +138,11 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
     await _database.addReminder(userId, tankId, reminder);
     await LocalReminderService.instance.schedule(
       ScheduledReminder(
-        id: reminder.id.isEmpty ? reminder.hashCode.abs() : reminder.id.hashCode.abs(),
+        id: reminder.id.isEmpty
+            ? reminder.hashCode.abs()
+            : reminder.id.hashCode.abs(),
         title: reminder.title,
-        body: 'Zaplanowane zadanie akwarystyczne',
+        body: notificationBody,
         date: reminder.dueDate,
       ),
     );
@@ -161,12 +166,16 @@ class _ReminderGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 10, bottom: 4),
-          child: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+          child: Text(
+            title,
+            style: TextStyle(color: color, fontWeight: FontWeight.w700),
+          ),
         ),
         ...reminders.map(
           (item) => ListTile(
@@ -175,19 +184,23 @@ class _ReminderGroup extends StatelessWidget {
               item.isCompleted ? Icons.check_circle : Icons.schedule,
               color: color,
             ),
-            title: Text(item.title),
+            title: Text(
+              item.title.trim().isEmpty ? l10n.unnamedReminder : item.title,
+            ),
             subtitle: Text(_formatDate(item.dueDate)),
             trailing: Wrap(
               spacing: 0,
               children: [
                 if (!item.isCompleted)
                   IconButton(
-                    tooltip: 'Odłóż o 1 dzień',
+                    tooltip: l10n.snoozeOneDay,
                     onPressed: () => onSnooze(item),
                     icon: const Icon(Icons.next_plan_outlined),
                   ),
                 IconButton(
-                  tooltip: item.isCompleted ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane',
+                  tooltip: item.isCompleted
+                      ? l10n.markReminderIncomplete
+                      : l10n.markReminderComplete,
                   onPressed: () => onComplete(item),
                   icon: Icon(item.isCompleted ? Icons.undo : Icons.check),
                 ),
@@ -211,7 +224,10 @@ class _CountBadge extends StatelessWidget {
     return CircleAvatar(
       radius: 12,
       backgroundColor: color,
-      child: Text('$count', style: const TextStyle(color: Colors.white, fontSize: 12)),
+      child: Text(
+        '$count',
+        style: const TextStyle(color: Colors.white, fontSize: 12),
+      ),
     );
   }
 }
@@ -239,30 +255,38 @@ class _ReminderDialogState extends State<_ReminderDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Dodaj przypomnienie'),
+      title: Text(l10n.addReminderDialogTitle),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _title, decoration: InputDecoration(labelText: l10n.taskName)),
+            TextField(
+              controller: _title,
+              decoration: InputDecoration(labelText: l10n.taskName),
+            ),
             const SizedBox(height: 12),
             DropdownButtonFormField<ReminderTaskType>(
               initialValue: _type,
-              decoration: const InputDecoration(labelText: 'Typ zadania'),
+              decoration: InputDecoration(labelText: l10n.taskTypeLabel),
               items: ReminderTaskType.values
-                  .map((type) => DropdownMenuItem(value: type, child: Text(_taskLabel(type))))
+                  .map(
+                    (type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(_taskLabel(l10n, type)),
+                    ),
+                  )
                   .toList(),
               onChanged: (value) => setState(() => _type = value!),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<int?>(
               initialValue: _repeatDays,
-              decoration: const InputDecoration(labelText: 'Powtarzaj'),
-              items: const [
-                DropdownMenuItem(value: null, child: Text('Jednorazowo')),
-                DropdownMenuItem(value: 7, child: Text('Co 7 dni')),
-                DropdownMenuItem(value: 14, child: Text('Co 14 dni')),
-                DropdownMenuItem(value: 30, child: Text('Co 30 dni')),
+              decoration: InputDecoration(labelText: l10n.repeatLabel),
+              items: [
+                DropdownMenuItem(value: null, child: Text(l10n.oneTime)),
+                DropdownMenuItem(value: 7, child: Text(l10n.everyDays(7))),
+                DropdownMenuItem(value: 14, child: Text(l10n.everyDays(14))),
+                DropdownMenuItem(value: 30, child: Text(l10n.everyDays(30))),
               ],
               onChanged: (value) => setState(() => _repeatDays = value),
             ),
@@ -277,14 +301,27 @@ class _ReminderDialogState extends State<_ReminderDialog> {
                   lastDate: DateTime.now().add(const Duration(days: 3650)),
                   initialDate: _dueDate,
                 );
-                if (date != null) setState(() => _dueDate = DateTime(date.year, date.month, date.day, _dueDate.hour, _dueDate.minute));
+                if (date != null) {
+                  setState(
+                    () => _dueDate = DateTime(
+                      date.year,
+                      date.month,
+                      date.day,
+                      _dueDate.hour,
+                      _dueDate.minute,
+                    ),
+                  );
+                }
               },
             ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
         FilledButton(
           onPressed: () {
             if (_title.text.trim().isEmpty) return;
@@ -300,20 +337,21 @@ class _ReminderDialogState extends State<_ReminderDialog> {
               ),
             );
           },
-          child: const Text('Zapisz'),
+          child: Text(l10n.save),
         ),
       ],
     );
   }
 }
 
-String _taskLabel(ReminderTaskType type) => switch (type) {
-  ReminderTaskType.waterChange => 'Podmiana wody',
-  ReminderTaskType.filterClean => 'Czyszczenie filtra',
-  ReminderTaskType.waterTest => 'Test parametrów',
-  ReminderTaskType.fertilizer => 'Nawożenie',
-  ReminderTaskType.custom => 'Własne zadanie',
-};
+String _taskLabel(AppLocalizations l10n, ReminderTaskType type) =>
+    switch (type) {
+      ReminderTaskType.waterChange => l10n.reminderTaskWaterChange,
+      ReminderTaskType.filterClean => l10n.reminderTaskFilterClean,
+      ReminderTaskType.waterTest => l10n.reminderTaskWaterTest,
+      ReminderTaskType.fertilizer => l10n.reminderTaskFertilizer,
+      ReminderTaskType.custom => l10n.reminderTaskCustom,
+    };
 
 String _formatDate(DateTime date) =>
     '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/firestore_reminders_widget.dart';
 import '../widgets/pro_paywall_dialog.dart';
@@ -10,9 +11,10 @@ class RemindersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isProUser = context.watch<ProAccessService>().isProUser;
     return Scaffold(
-      appBar: AppBar(title: const Text('Przypomnienia zadań')),
+      appBar: AppBar(title: Text(l10n.remindersScreenTitle)),
       body: isProUser
           ? const SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -22,7 +24,7 @@ class RemindersScreen extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: () => ProPaywallDialog.show(context),
                 icon: const Icon(Icons.lock_outline),
-                label: const Text('Aktywuj PRO, aby zarządzać przypomnieniami'),
+                label: Text(l10n.activateProForReminders),
               ),
             ),
     );

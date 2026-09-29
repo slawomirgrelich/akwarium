@@ -340,10 +340,7 @@ class DashboardPage extends StatelessWidget {
                 subtitle: l10n.dashboardSubtitle,
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Nie masz jeszcze akwarium. Dodaj akwarium, aby zobaczyć jego pulpit.',
-                textAlign: TextAlign.center,
-              ),
+              Text(l10n.dashboardNoAquarium, textAlign: TextAlign.center),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: () => Navigator.push<void>(
@@ -1626,8 +1623,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.card_giftcard_outlined,
-              title: 'Program poleceń',
-              subtitle: 'Poleć znajomych i odbierz darmowy miesiąc PRO',
+              title: l10n.referralTitle,
+              subtitle: l10n.referralSubtitle,
               onTap: () => Navigator.push<void>(
                 context,
                 MaterialPageRoute(builder: (_) => const ReferralScreen()),
@@ -1636,8 +1633,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.support_agent_outlined,
-              title: 'Centrum pomocy',
-              subtitle: 'FAQ, nowe zgłoszenia i historia kontaktu',
+              title: l10n.helpCenterTitle,
+              subtitle: l10n.helpCenterSubtitle,
               onTap: () => Navigator.push<void>(
                 context,
                 MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
@@ -1653,7 +1650,9 @@ class ProfilePage extends StatelessWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Nie udało się zmienić PRO: $error'),
+                          content: Text(
+                            l10n.debugProStatusChanged(error.toString()),
+                          ),
                         ),
                       );
                     }
@@ -1661,19 +1660,23 @@ class ProfilePage extends StatelessWidget {
                 },
                 icon: const Icon(Icons.toggle_on_outlined),
                 label: Text(
-                  'Przełącz status PRO (test): ${proService.isProUser ? 'włączony' : 'wyłączony'}',
+                  l10n.debugToggleProStatus(
+                    proService.isProUser
+                        ? l10n.debugProEnabled
+                        : l10n.debugProDisabled,
+                  ),
                 ),
               ),
             ],
             const SizedBox(height: 24),
-            const _SectionHeader(title: 'Aktywne akwarium'),
+            _SectionHeader(title: l10n.activeAquariumSection),
             const SizedBox(height: 12),
             _SettingsTile(
               icon: Icons.water,
-              title: activeAquarium?.name ?? 'Brak aktywnego akwarium',
+              title: activeAquarium?.name ?? l10n.noActiveAquarium,
               subtitle: activeAquarium == null
-                  ? 'Dodaj akwarium, aby rozpocząć'
-                  : '${activeAquarium.volumeNetLiters.round()} l · ${activeAquarium.type.label}',
+                  ? l10n.addAquariumToStart
+                  : '${activeAquarium.volumeNetLiters.round()} L · ${_localizedTankType(l10n, activeAquarium.type)}',
               onTap: () => _openAquariumManagement(context),
             ),
             const SizedBox(height: 10),
@@ -1760,15 +1763,10 @@ class ProfilePage extends StatelessWidget {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Twoje dane są bezpiecznie synchronizowane w chmurze',
-                  textAlign: TextAlign.center,
-                ),
+                Text(l10n.cloudSyncDescription, textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 Text(
-                  syncedAt == null
-                      ? 'Ostatnia synchronizacja: brak zapisanych danych'
-                      : 'Ostatnia synchronizacja: ${_formatSyncDateTime(syncedAt)}',
+                  '${l10n.lastSyncLabel} ${syncedAt == null ? l10n.lastSyncNone : _formatSyncDateTime(syncedAt)}',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -1779,7 +1777,7 @@ class ProfilePage extends StatelessWidget {
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Gotowe'),
+            child: Text(l10n.done),
           ),
         ],
       ),
@@ -1840,7 +1838,8 @@ class ProfilePage extends StatelessWidget {
                         if (!dialogContext.mounted) return;
                         setDialogState(() {
                           keyTestSucceeded = true;
-                          keyTestMessage = 'Połączenie z Gemini działa.';
+                          keyTestMessage = AppLocalizations.of(context)!
+                              .geminiConnectionSucceeded;
                         });
                       } on Object catch (error) {
                         if (!dialogContext.mounted) return;
@@ -2539,6 +2538,15 @@ class _ToolCard extends StatelessWidget {
   }
 }
 
+String _localizedTankType(AppLocalizations l10n, models.TankType type) =>
+    switch (type) {
+      models.TankType.freshwater => l10n.freshwaterType,
+      models.TankType.marine => l10n.saltwaterType,
+      models.TankType.planted => l10n.plantedTankType,
+      models.TankType.biotope => l10n.biotopeTankType,
+      models.TankType.shrimp => l10n.shrimpTankType,
+    };
+
 class _ProfileDisplayNameTile extends StatelessWidget {
   const _ProfileDisplayNameTile();
 
@@ -2566,25 +2574,26 @@ Future<void> _editProfileDisplayName(
   BuildContext context,
   String currentName,
 ) async {
+  final l10n = AppLocalizations.of(context)!;
   final controller = TextEditingController(text: currentName);
   final name = await showDialog<String>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('Imię profilu'),
+      title: Text(l10n.editProfileName),
       content: TextField(
         controller: controller,
         autofocus: true,
         textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(labelText: 'Imię'),
+        decoration: InputDecoration(labelText: l10n.profileNameLabel),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(dialogContext),
-          child: const Text('Anuluj'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
-          child: const Text('Zapisz'),
+          child: Text(l10n.save),
         ),
       ],
     ),
@@ -2595,19 +2604,18 @@ Future<void> _editProfileDisplayName(
   try {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw StateError('Zaloguj się, aby zmienić imię profilu.');
+      throw StateError(l10n.signInToChangeProfileName);
     }
     await user.updateDisplayName(name);
     await user.reload();
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Zapisano imię profilu: $name')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.profileNameSaved(name))));
     }
   } on Object catch (error) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Nie udało się zapisać imienia: $error')),
+        SnackBar(content: Text(l10n.profileNameSaveFailed(error.toString()))),
       );
     }
   }

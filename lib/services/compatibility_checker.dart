@@ -1,11 +1,18 @@
 import '../models/species_models.dart';
 
+enum CompatibilityWarningType { volume, ph, temperature }
+
 /// Wynik walidacji kompatybilności gatunku z parametrami akwarium.
 class CompatibilityResult {
-  const CompatibilityResult({required this.isCompatible, required this.warnings});
+  const CompatibilityResult({
+    required this.isCompatible,
+    required this.warnings,
+    this.warningTypes = const [],
+  });
 
   final bool isCompatible;
   final List<String> warnings;
+  final List<CompatibilityWarningType> warningTypes;
 }
 
 /// Porównuje wymagania gatunku z Atlasu z parametrami obecnego akwarium.
@@ -20,8 +27,10 @@ CompatibilityResult checkCompatibility({
   double? temperature,
 }) {
   final warnings = <String>[];
+  final warningTypes = <CompatibilityWarningType>[];
 
   if (volumeLiters < species.minTankVolumeLiters) {
+    warningTypes.add(CompatibilityWarningType.volume);
     warnings.add(
       'Za mała pojemność akwarium: ${volumeLiters.round()} l, wymagane minimum '
       '${species.minTankVolumeLiters} l.',
@@ -29,6 +38,7 @@ CompatibilityResult checkCompatibility({
   }
 
   if (ph != null && !species.phRange.contains(ph)) {
+    warningTypes.add(CompatibilityWarningType.ph);
     warnings.add(
       'pH akwarium ($ph) poza zalecanym zakresem '
       '${species.phRange.min}–${species.phRange.max}.',
@@ -36,11 +46,16 @@ CompatibilityResult checkCompatibility({
   }
 
   if (temperature != null && !species.tempRange.contains(temperature)) {
+    warningTypes.add(CompatibilityWarningType.temperature);
     warnings.add(
       'Temperatura akwarium ($temperature°C) poza zalecanym zakresem '
       '${species.tempRange.min}–${species.tempRange.max}°C.',
     );
   }
 
-  return CompatibilityResult(isCompatible: warnings.isEmpty, warnings: warnings);
+  return CompatibilityResult(
+    isCompatible: warnings.isEmpty,
+    warnings: warnings,
+    warningTypes: warningTypes,
+  );
 }
