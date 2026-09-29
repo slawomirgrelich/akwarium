@@ -19,6 +19,7 @@ import 'algae_assistant_service.dart';
 import 'ai_scanner_service.dart';
 import 'app_version_widget.dart';
 import 'aquarium_management_screen.dart';
+import 'screens/admin_dashboard_screen.dart';
 import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/aquarium_firestore_model.dart' show AquariumModel;
@@ -35,6 +36,7 @@ import 'screens/reminders_screen.dart';
 import 'screens/referral_screen.dart';
 import 'screens/species_atlas_screen.dart';
 import 'services/auth_service.dart';
+import 'services/admin_service.dart';
 import 'services/database_service.dart';
 import 'services/firestore_service.dart';
 import 'services/firestore_sync_status.dart';
@@ -1640,6 +1642,11 @@ class ProfilePage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
               ),
             ),
+            if (FirebaseAuth.instance.currentUser
+                case final adminCandidate?) ...[
+              const SizedBox(height: 10),
+              _AdminPanelTile(userId: adminCandidate.uid),
+            ],
             if (kDebugMode) ...[
               const SizedBox(height: 8),
               OutlinedButton.icon(
@@ -2546,6 +2553,30 @@ String _localizedTankType(AppLocalizations l10n, models.TankType type) =>
       models.TankType.biotope => l10n.biotopeTankType,
       models.TankType.shrimp => l10n.shrimpTankType,
     };
+
+class _AdminPanelTile extends StatelessWidget {
+  const _AdminPanelTile({required this.userId});
+
+  final String userId;
+
+  @override
+  Widget build(BuildContext context) => StreamBuilder<bool>(
+    stream: AdminService().watchAdminAccess(userId),
+    builder: (context, snapshot) {
+      if (snapshot.data != true) return const SizedBox.shrink();
+      final l10n = AppLocalizations.of(context)!;
+      return _SettingsTile(
+        icon: Icons.admin_panel_settings_outlined,
+        title: l10n.adminDashboardTitle,
+        subtitle: l10n.adminDashboardSubtitle,
+        onTap: () => Navigator.push<void>(
+          context,
+          MaterialPageRoute<void>(builder: (_) => const AdminDashboardScreen()),
+        ),
+      );
+    },
+  );
+}
 
 class _ProfileDisplayNameTile extends StatelessWidget {
   const _ProfileDisplayNameTile();

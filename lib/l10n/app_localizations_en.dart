@@ -1422,6 +1422,211 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ticketCategory => 'Category';
 
   @override
+  String get adminDashboardTitle => 'Admin Dashboard';
+
+  @override
+  String get adminDashboardSubtitle =>
+      'Manage users, support tickets and subscriptions';
+
+  @override
+  String get adminStatsTab => 'Statistics';
+
+  @override
+  String get adminTicketsTab => 'Tickets';
+
+  @override
+  String get adminUsersTab => 'Users';
+
+  @override
+  String get adminAccessDenied => 'Administrator access required.';
+
+  @override
+  String get adminLoading => 'Loading admin data...';
+
+  @override
+  String adminLoadError(String error) {
+    return 'Could not load admin data: $error';
+  }
+
+  @override
+  String get adminRetry => 'Try again';
+
+  @override
+  String get adminTotalUsers => 'Registered users';
+
+  @override
+  String get adminActivePro => 'Active PRO';
+
+  @override
+  String get adminMonthlyPlans => 'Monthly plans';
+
+  @override
+  String get adminYearlyPlans => 'Yearly plans';
+
+  @override
+  String get adminManualGrants => 'Manual grants';
+
+  @override
+  String get adminTotalTickets => 'All tickets';
+
+  @override
+  String get adminOpenTickets => 'Open tickets';
+
+  @override
+  String get adminSuccessfulReferrals => 'Successful referrals';
+
+  @override
+  String get adminFilterAll => 'All';
+
+  @override
+  String get adminFilterOpen => 'Open';
+
+  @override
+  String get adminFilterInProgress => 'In progress';
+
+  @override
+  String get adminFilterClosed => 'Closed';
+
+  @override
+  String get adminNoTickets => 'No tickets to show.';
+
+  @override
+  String get adminStatusOpen => 'Open';
+
+  @override
+  String get adminStatusInProgress => 'In progress';
+
+  @override
+  String get adminStatusResolved => 'Resolved';
+
+  @override
+  String get adminStatusClosed => 'Closed';
+
+  @override
+  String get adminTicketDetails => 'Ticket details';
+
+  @override
+  String get adminTicketDescription => 'Message';
+
+  @override
+  String get adminTicketEmail => 'Reporter email';
+
+  @override
+  String get adminTicketCategory => 'Category';
+
+  @override
+  String adminTicketCreated(String date) {
+    return 'Created: $date';
+  }
+
+  @override
+  String get adminTicketAttachment => 'Attachment';
+
+  @override
+  String get adminSupportReply => 'Support reply';
+
+  @override
+  String get adminSaveTicket => 'Save ticket';
+
+  @override
+  String get adminTicketSaved => 'Ticket updated.';
+
+  @override
+  String get adminSearchUsers => 'Search by name or email';
+
+  @override
+  String get adminNoUsers => 'No users found.';
+
+  @override
+  String get adminFreePlan => 'Free';
+
+  @override
+  String get adminProPlan => 'PRO';
+
+  @override
+  String adminReferralsCount(int count) {
+    return '$count successful referrals';
+  }
+
+  @override
+  String get adminUserDetails => 'User details';
+
+  @override
+  String get adminUserEmail => 'Email';
+
+  @override
+  String get adminSubscriptionPlan => 'Subscription plan';
+
+  @override
+  String adminExpiryDate(String date) {
+    return 'Expires: $date';
+  }
+
+  @override
+  String get adminNoExpiry => 'No expiry';
+
+  @override
+  String get adminGrantPro => 'Grant PRO';
+
+  @override
+  String get adminRevokePro => 'Revoke PRO';
+
+  @override
+  String get adminGrantProTitle => 'Grant PRO access';
+
+  @override
+  String get adminGrantDuration => 'Choose access duration';
+
+  @override
+  String get adminDuration7Days => '7 days';
+
+  @override
+  String get adminDuration14Days => '14 days';
+
+  @override
+  String get adminDuration1Month => '1 month';
+
+  @override
+  String get adminDuration1Year => '1 year';
+
+  @override
+  String get adminDurationIndefinite => 'Indefinitely';
+
+  @override
+  String get adminGrantSuccess => 'PRO access granted.';
+
+  @override
+  String get adminRevokeSuccess => 'PRO access revoked.';
+
+  @override
+  String get adminInvitedUsers => 'People invited';
+
+  @override
+  String get adminNoInvitedUsers => 'No invited users yet.';
+
+  @override
+  String get adminReferralPending => 'Pending';
+
+  @override
+  String get adminReferralCompleted => 'Completed';
+
+  @override
+  String get adminNameUnavailable => 'Name unavailable';
+
+  @override
+  String get adminConfirmRevokeTitle => 'Revoke PRO access?';
+
+  @override
+  String get adminConfirmRevokeBody =>
+      'This user will lose PRO access immediately.';
+
+  @override
+  String get adminConfirm => 'Confirm';
+
+  @override
+  String get adminCancel => 'Cancel';
+
+  @override
   String get ticketBugCategory => '🐛 Report an app bug';
 
   @override

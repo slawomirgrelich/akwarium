@@ -57,6 +57,7 @@ class ProAccessService extends ChangeNotifier {
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
   _userDocumentSubscription;
+  Timer? _proExpiryTimer;
   bool _trialExpired = false;
   String? _lastTrialError;
 
@@ -232,10 +233,12 @@ class ProAccessService extends ChangeNotifier {
   void dispose() {
     unawaited(_authSubscription?.cancel());
     unawaited(_userDocumentSubscription?.cancel());
+    _proExpiryTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _syncUser(User? firebaseUser) async {
+    _proExpiryTimer?.cancel();
     await _userDocumentSubscription?.cancel();
     _userDocumentSubscription = null;
     final storedPreferences = await _getPreferences();
@@ -247,6 +250,7 @@ class ProAccessService extends ChangeNotifier {
     final uid = firebaseUser.uid;
     var isPro = false;
     var expiredTrial = false;
+    DateTime? proExpiryDate;
     final firestore = _tryGetFirestore();
     DocumentReference<Map<String, dynamic>>? userReference;
     if (firestore != null) {
@@ -268,15 +272,20 @@ class ProAccessService extends ChangeNotifier {
           final data = document.data() ?? const <String, dynamic>{};
           final trialEndsAt = _readTimestamp(data['trialEndsAt']);
           final subscriptionStatus = data['subscriptionStatus'];
+          proExpiryDate = _readTimestamp(data['proExpiryDate']);
           final trialActive =
               trialEndsAt != null &&
               trialEndsAt.isAfter(DateTime.now().toUtc());
+          final proGrantActive =
+              proExpiryDate == null ||
+              proExpiryDate.isAfter(DateTime.now().toUtc());
           final explicitlyPro =
               data['isPro'] == true ||
               subscriptionStatus == 'active' ||
               subscriptionStatus == 'pro';
           isPro =
-              trialActive || (subscriptionStatus != 'trial' && explicitlyPro);
+              proGrantActive &&
+              (trialActive || (subscriptionStatus != 'trial' && explicitlyPro));
           expiredTrial =
               subscriptionStatus == 'trial' &&
               trialEndsAt != null &&
@@ -296,6 +305,7 @@ class ProAccessService extends ChangeNotifier {
 
     if (_tryGetAuth()?.currentUser?.uid != uid) return;
     _trialExpired = expiredTrial;
+    _scheduleProExpiry(uid, proExpiryDate);
     await _applyStatus(uid: uid, isPro: isPro, preferences: storedPreferences);
     if (userReference != null) {
       _listenToUserDocument(uid, userReference);
@@ -313,16 +323,22 @@ class ProAccessService extends ChangeNotifier {
         final data = snapshot.data() ?? const <String, dynamic>{};
         final status = data['subscriptionStatus'];
         final trialEndsAt = _readTimestamp(data['trialEndsAt']);
+        final proExpiryDate = _readTimestamp(data['proExpiryDate']);
+        _scheduleProExpiry(uid, proExpiryDate);
+        final proGrantActive =
+            proExpiryDate == null ||
+            proExpiryDate.isAfter(DateTime.now().toUtc());
         final trialActive =
             status == 'trial' &&
             trialEndsAt != null &&
             trialEndsAt.isAfter(DateTime.now().toUtc());
         final isPro =
-            trialActive ||
-            (status != 'trial' &&
-                (data['isPro'] == true ||
-                    status == 'active' ||
-                    status == 'pro'));
+            proGrantActive &&
+            (trialActive ||
+                (status != 'trial' &&
+                    (data['isPro'] == true ||
+                        status == 'active' ||
+                        status == 'pro')));
         _trialExpired =
             status == 'trial' && trialEndsAt != null && !trialActive;
         unawaited(
@@ -336,6 +352,23 @@ class ProAccessService extends ChangeNotifier {
       onError: (Object error) =>
           debugPrint('Firestore PRO status listener failed: $error'),
     );
+  }
+
+  void _scheduleProExpiry(String uid, DateTime? expiresAt) {
+    _proExpiryTimer?.cancel();
+    if (expiresAt == null || !expiresAt.isAfter(DateTime.now().toUtc())) return;
+    _proExpiryTimer = Timer(expiresAt.difference(DateTime.now().toUtc()), () {
+      if (_tryGetAuth()?.currentUser?.uid != uid) return;
+      unawaited(
+        _getPreferences().then(
+          (storedPreferences) => _applyStatus(
+            uid: uid,
+            isPro: false,
+            preferences: storedPreferences,
+          ),
+        ),
+      );
+    });
   }
 
   bool _isTemporaryEmail(String email) {

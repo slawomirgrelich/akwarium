@@ -2684,6 +2684,396 @@ abstract class AppLocalizations {
   /// **'Kategoria'**
   String get ticketCategory;
 
+  /// No description provided for @adminDashboardTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Panel administratora'**
+  String get adminDashboardTitle;
+
+  /// No description provided for @adminDashboardSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zarządzaj użytkownikami, zgłoszeniami i subskrypcjami'**
+  String get adminDashboardSubtitle;
+
+  /// No description provided for @adminStatsTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'Statystyki'**
+  String get adminStatsTab;
+
+  /// No description provided for @adminTicketsTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoszenia'**
+  String get adminTicketsTab;
+
+  /// No description provided for @adminUsersTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'Użytkownicy'**
+  String get adminUsersTab;
+
+  /// No description provided for @adminAccessDenied.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymagany dostęp administratora.'**
+  String get adminAccessDenied;
+
+  /// No description provided for @adminLoading.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wczytywanie danych administratora...'**
+  String get adminLoading;
+
+  /// No description provided for @adminLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać danych administratora: {error}'**
+  String adminLoadError(String error);
+
+  /// No description provided for @adminRetry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Spróbuj ponownie'**
+  String get adminRetry;
+
+  /// No description provided for @adminTotalUsers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zarejestrowani użytkownicy'**
+  String get adminTotalUsers;
+
+  /// No description provided for @adminActivePro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aktywne PRO'**
+  String get adminActivePro;
+
+  /// No description provided for @adminMonthlyPlans.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plany miesięczne'**
+  String get adminMonthlyPlans;
+
+  /// No description provided for @adminYearlyPlans.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plany roczne'**
+  String get adminYearlyPlans;
+
+  /// No description provided for @adminManualGrants.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ręczne nadania'**
+  String get adminManualGrants;
+
+  /// No description provided for @adminTotalTickets.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie zgłoszenia'**
+  String get adminTotalTickets;
+
+  /// No description provided for @adminOpenTickets.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwarte zgłoszenia'**
+  String get adminOpenTickets;
+
+  /// No description provided for @adminSuccessfulReferrals.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pomyślne polecenia'**
+  String get adminSuccessfulReferrals;
+
+  /// No description provided for @adminFilterAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie'**
+  String get adminFilterAll;
+
+  /// No description provided for @adminFilterOpen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwarte'**
+  String get adminFilterOpen;
+
+  /// No description provided for @adminFilterInProgress.
+  ///
+  /// In pl, this message translates to:
+  /// **'W trakcie'**
+  String get adminFilterInProgress;
+
+  /// No description provided for @adminFilterClosed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zamknięte'**
+  String get adminFilterClosed;
+
+  /// No description provided for @adminNoTickets.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak zgłoszeń do wyświetlenia.'**
+  String get adminNoTickets;
+
+  /// No description provided for @adminStatusOpen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwarte'**
+  String get adminStatusOpen;
+
+  /// No description provided for @adminStatusInProgress.
+  ///
+  /// In pl, this message translates to:
+  /// **'W trakcie'**
+  String get adminStatusInProgress;
+
+  /// No description provided for @adminStatusResolved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozwiązane'**
+  String get adminStatusResolved;
+
+  /// No description provided for @adminStatusClosed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zamknięte'**
+  String get adminStatusClosed;
+
+  /// No description provided for @adminTicketDetails.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szczegóły zgłoszenia'**
+  String get adminTicketDetails;
+
+  /// No description provided for @adminTicketDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Treść zgłoszenia'**
+  String get adminTicketDescription;
+
+  /// No description provided for @adminTicketEmail.
+  ///
+  /// In pl, this message translates to:
+  /// **'E-mail zgłaszającego'**
+  String get adminTicketEmail;
+
+  /// No description provided for @adminTicketCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kategoria'**
+  String get adminTicketCategory;
+
+  /// No description provided for @adminTicketCreated.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utworzono: {date}'**
+  String adminTicketCreated(String date);
+
+  /// No description provided for @adminTicketAttachment.
+  ///
+  /// In pl, this message translates to:
+  /// **'Załącznik'**
+  String get adminTicketAttachment;
+
+  /// No description provided for @adminSupportReply.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odpowiedź wsparcia'**
+  String get adminSupportReply;
+
+  /// No description provided for @adminSaveTicket.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz zgłoszenie'**
+  String get adminSaveTicket;
+
+  /// No description provided for @adminTicketSaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoszenie zostało zaktualizowane.'**
+  String get adminTicketSaved;
+
+  /// No description provided for @adminSearchUsers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szukaj po imieniu lub e-mailu'**
+  String get adminSearchUsers;
+
+  /// No description provided for @adminNoUsers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie znaleziono użytkowników.'**
+  String get adminNoUsers;
+
+  /// No description provided for @adminFreePlan.
+  ///
+  /// In pl, this message translates to:
+  /// **'Darmowe'**
+  String get adminFreePlan;
+
+  /// No description provided for @adminProPlan.
+  ///
+  /// In pl, this message translates to:
+  /// **'PRO'**
+  String get adminProPlan;
+
+  /// No description provided for @adminReferralsCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} pomyślnych poleceń'**
+  String adminReferralsCount(int count);
+
+  /// No description provided for @adminUserDetails.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szczegóły użytkownika'**
+  String get adminUserDetails;
+
+  /// No description provided for @adminUserEmail.
+  ///
+  /// In pl, this message translates to:
+  /// **'E-mail'**
+  String get adminUserEmail;
+
+  /// No description provided for @adminSubscriptionPlan.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plan subskrypcji'**
+  String get adminSubscriptionPlan;
+
+  /// No description provided for @adminExpiryDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wygasa: {date}'**
+  String adminExpiryDate(String date);
+
+  /// No description provided for @adminNoExpiry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bezterminowo'**
+  String get adminNoExpiry;
+
+  /// No description provided for @adminGrantPro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nadaj PRO'**
+  String get adminGrantPro;
+
+  /// No description provided for @adminRevokePro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odbierz PRO'**
+  String get adminRevokePro;
+
+  /// No description provided for @adminGrantProTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przyznaj dostęp PRO'**
+  String get adminGrantProTitle;
+
+  /// No description provided for @adminGrantDuration.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz czas dostępu'**
+  String get adminGrantDuration;
+
+  /// No description provided for @adminDuration7Days.
+  ///
+  /// In pl, this message translates to:
+  /// **'7 dni'**
+  String get adminDuration7Days;
+
+  /// No description provided for @adminDuration14Days.
+  ///
+  /// In pl, this message translates to:
+  /// **'14 dni'**
+  String get adminDuration14Days;
+
+  /// No description provided for @adminDuration1Month.
+  ///
+  /// In pl, this message translates to:
+  /// **'1 miesiąc'**
+  String get adminDuration1Month;
+
+  /// No description provided for @adminDuration1Year.
+  ///
+  /// In pl, this message translates to:
+  /// **'1 rok'**
+  String get adminDuration1Year;
+
+  /// No description provided for @adminDurationIndefinite.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bezterminowo'**
+  String get adminDurationIndefinite;
+
+  /// No description provided for @adminGrantSuccess.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dostęp PRO został przyznany.'**
+  String get adminGrantSuccess;
+
+  /// No description provided for @adminRevokeSuccess.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dostęp PRO został odebrany.'**
+  String get adminRevokeSuccess;
+
+  /// No description provided for @adminInvitedUsers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszone osoby'**
+  String get adminInvitedUsers;
+
+  /// No description provided for @adminNoInvitedUsers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak zaproszonych osób.'**
+  String get adminNoInvitedUsers;
+
+  /// No description provided for @adminReferralPending.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oczekujące'**
+  String get adminReferralPending;
+
+  /// No description provided for @adminReferralCompleted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakończone'**
+  String get adminReferralCompleted;
+
+  /// No description provided for @adminNameUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak nazwy'**
+  String get adminNameUnavailable;
+
+  /// No description provided for @adminConfirmRevokeTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odebrać dostęp PRO?'**
+  String get adminConfirmRevokeTitle;
+
+  /// No description provided for @adminConfirmRevokeBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Użytkownik natychmiast utraci dostęp PRO.'**
+  String get adminConfirmRevokeBody;
+
+  /// No description provided for @adminConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdź'**
+  String get adminConfirm;
+
+  /// No description provided for @adminCancel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Anuluj'**
+  String get adminCancel;
+
   /// No description provided for @ticketBugCategory.
   ///
   /// In pl, this message translates to:
