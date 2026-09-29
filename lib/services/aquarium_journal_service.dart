@@ -177,8 +177,7 @@ class MaintenanceTaskModel {
       aquariumId: _string(data['aquariumId']),
       taskType: _string(data['taskType'], 'custom'),
       title: _string(data['title'], 'Zadanie konserwacyjne'),
-      repeatFrequencyDays:
-          (data['repeatFrequencyDays'] as num?)?.toInt() ?? 7,
+      repeatFrequencyDays: (data['repeatFrequencyDays'] as num?)?.toInt() ?? 7,
       lastPerformedDate: lastPerformed,
       nextDueDate: _date(data['nextDueDate']) ?? lastPerformed,
     );
@@ -272,16 +271,48 @@ class AquariumJournalService {
     );
   }
 
-  Future<void> completeMaintenanceTask(MaintenanceTaskModel task) async {
-    final completedAt = DateTime.now();
+  Future<MaintenanceTaskModel> saveMaintenanceTask(
+    MaintenanceTaskModel task,
+  ) async {
+    try {
+      final collection = _collection(
+        _userId(),
+        task.aquariumId,
+        'maintenance_tasks',
+      );
+      final reference = task.id.isEmpty
+          ? collection.doc()
+          : collection.doc(task.id);
+      final saved = MaintenanceTaskModel(
+        id: reference.id,
+        aquariumId: task.aquariumId,
+        taskType: task.taskType,
+        title: task.title,
+        repeatFrequencyDays: task.repeatFrequencyDays,
+        lastPerformedDate: task.lastPerformedDate,
+        nextDueDate: task.nextDueDate,
+      );
+      await reference.set(saved.toMap());
+      await FirestoreSyncStatus.recordSuccessfulSync();
+      return saved;
+    } catch (error) {
+      throw AquariumJournalServiceException(_message(error));
+    }
+  }
+
+  Future<void> completeMaintenanceTask(
+    MaintenanceTaskModel task, {
+    DateTime? completedAt,
+  }) async {
+    final performedAt = completedAt ?? DateTime.now();
     final updated = MaintenanceTaskModel(
       id: task.id,
       aquariumId: task.aquariumId,
       taskType: task.taskType,
       title: task.title,
       repeatFrequencyDays: task.repeatFrequencyDays,
-      lastPerformedDate: completedAt,
-      nextDueDate: completedAt.add(Duration(days: task.repeatFrequencyDays)),
+      lastPerformedDate: performedAt,
+      nextDueDate: performedAt.add(Duration(days: task.repeatFrequencyDays)),
     );
     await _write(
       _collection(_userId(), task.aquariumId, 'maintenance_tasks'),

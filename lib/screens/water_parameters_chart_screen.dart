@@ -5,7 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../services/firestore_service.dart';
 
-enum _ChartParameter { ph, no3, po4, temp, gh, kh, fe, k, mg }
+enum _ChartParameter { ph, no3, no2, po4, temp, gh, kh, fe, k, mg }
 
 enum _ChartRange { days7, days30, days90, all }
 
@@ -115,10 +115,17 @@ class _ChartContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final measurementsInRange = _filterMeasurements(measurements, range);
+    final parameterMeasurements = selected == _ChartParameter.no2
+        ? measurements.where((measurement) => measurement.no2 != null).toList()
+        : measurements;
+    final measurementsInRange = _filterMeasurements(
+      parameterMeasurements,
+      range,
+    );
     final visibleMeasurements = measurementsInRange.isEmpty
-      ? measurements
-      : measurementsInRange;
+        ? parameterMeasurements
+        : measurementsInRange;
+    final hasParameterData = visibleMeasurements.isNotEmpty;
     final standard = _standardFor(selected, aquarium.type);
     final values = visibleMeasurements
         .map((measurement) => _valueFor(measurement, selected))
@@ -137,14 +144,23 @@ class _ChartContent extends StatelessWidget {
               children: [
                 _AquariumHeading(aquarium: aquarium),
                 const SizedBox(height: 16),
-                _QuickStatsCard(
-                  parameter: selected,
-                  latest: visibleMeasurements.first,
-                  previous: visibleMeasurements.length > 1
-                      ? visibleMeasurements[1]
-                      : null,
-                  standard: standard,
-                ),
+                if (hasParameterData)
+                  _QuickStatsCard(
+                    parameter: selected,
+                    latest: visibleMeasurements.first,
+                    previous: visibleMeasurements.length > 1
+                        ? visibleMeasurements[1]
+                        : null,
+                    standard: standard,
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      'Brak zapisanych pomiarów ${_labelFor(selected)}.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 const SizedBox(height: 20),
                 SegmentedButton<_ChartRange>(
                   segments: _ChartRange.values
@@ -177,44 +193,45 @@ class _ChartContent extends StatelessWidget {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 18, 16, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Zmiana w czasie · ${_labelFor(selected)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                if (hasParameterData)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 18, 16, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Zmiana w czasie · ${_labelFor(selected)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Text(
-                              'Optimum ${_formatNumber(standard.min)}–${_formatNumber(standard.max)} ${standard.unit}',
-                              style: TextStyle(
-                                color: Colors.teal.shade700,
-                                fontSize: 12,
+                              Text(
+                                'Optimum ${_formatNumber(standard.min)}–${_formatNumber(standard.max)} ${standard.unit}',
+                                style: TextStyle(
+                                  color: Colors.teal.shade700,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 280,
-                          child: _LineChart(
-                            measurements: chronological,
-                            values: chronologicalValues,
-                            standard: standard,
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            height: 280,
+                            child: _LineChart(
+                              measurements: chronological,
+                              values: chronologicalValues,
+                              standard: standard,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: onAddMeasurement,
@@ -275,7 +292,10 @@ class _LineChart extends StatelessWidget {
               final measurement = measurements[spot.x.round()];
               return LineTooltipItem(
                 '${_fullDate(measurement.timestamp)}\n${_formatNumber(spot.y)} ${standard.unit}',
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               );
             }).toList(),
           ),
@@ -400,13 +420,13 @@ class _QuickStatsCard extends StatelessWidget {
         : 'Spadek względem poprzedniego';
     final inRange = latestValue >= standard.min && latestValue <= standard.max;
     final status = latestValue < standard.min
-      ? 'Poniżej zakresu'
-      : latestValue > standard.max
-      ? 'Powyżej zakresu'
-      : 'W zakresie';
+        ? 'Poniżej zakresu'
+        : latestValue > standard.max
+        ? 'Powyżej zakresu'
+        : 'W zakresie';
     final statusColor = inRange
-      ? const Color(0xFF10B981)
-      : const Color(0xFFF59E0B);
+        ? const Color(0xFF10B981)
+        : const Color(0xFFF59E0B);
 
     return Card(
       color: inRange ? Colors.white : Colors.orange.shade50,
@@ -586,6 +606,7 @@ class _FirestoreWaterParametersFormScreenState
     'KH': TextEditingController(),
     'GH': TextEditingController(),
     'NO3': TextEditingController(),
+    'NO2': TextEditingController(),
     'PO4': TextEditingController(),
     'Fe': TextEditingController(),
     'K': TextEditingController(),
@@ -651,6 +672,7 @@ class _FirestoreWaterParametersFormScreenState
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
+                                if (entry.key == 'NO2') return null;
                                 return 'Wpisz wartość.';
                               }
                               return double.tryParse(
@@ -711,6 +733,7 @@ class _FirestoreWaterParametersFormScreenState
           kh: _number('KH'),
           gh: _number('GH'),
           no3: _number('NO3'),
+          no2: _optionalNumber('NO2'),
           po4: _number('PO4'),
           fe: _number('Fe'),
           k: _number('K'),
@@ -732,6 +755,11 @@ class _FirestoreWaterParametersFormScreenState
 
   double _number(String key) {
     return double.parse(_controllers[key]!.text.trim().replaceAll(',', '.'));
+  }
+
+  double? _optionalNumber(String key) {
+    final value = _controllers[key]!.text.trim().replaceAll(',', '.');
+    return value.isEmpty ? null : double.parse(value);
   }
 }
 
@@ -777,6 +805,22 @@ _ChartStandard _standardFor(_ChartParameter parameter, String aquariumType) {
               max: 25,
               chartMin: 0,
               chartMax: 60,
+              unit: 'mg/l',
+            );
+    case _ChartParameter.no2:
+      return marine
+          ? const _ChartStandard(
+              min: 0,
+              max: 0.05,
+              chartMin: 0,
+              chartMax: 1,
+              unit: 'mg/l',
+            )
+          : const _ChartStandard(
+              min: 0,
+              max: 0.1,
+              chartMin: 0,
+              chartMax: 1,
               unit: 'mg/l',
             );
     case _ChartParameter.po4:
@@ -883,6 +927,8 @@ double _valueFor(WaterParametersModel measurement, _ChartParameter parameter) {
       return measurement.ph;
     case _ChartParameter.no3:
       return measurement.no3;
+    case _ChartParameter.no2:
+      return measurement.no2!;
     case _ChartParameter.po4:
       return measurement.po4;
     case _ChartParameter.temp:
@@ -906,6 +952,8 @@ String _labelFor(_ChartParameter parameter) {
       return 'pH';
     case _ChartParameter.no3:
       return 'NO3';
+    case _ChartParameter.no2:
+      return 'NO2';
     case _ChartParameter.po4:
       return 'PO4';
     case _ChartParameter.temp:

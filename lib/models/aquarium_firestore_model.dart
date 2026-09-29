@@ -92,6 +92,7 @@ class WaterParametersModel {
     required this.kh,
     required this.gh,
     required this.no3,
+    this.no2,
     required this.po4,
     required this.fe,
     this.k = 0,
@@ -107,6 +108,7 @@ class WaterParametersModel {
   final double kh;
   final double gh;
   final double no3;
+  final double? no2;
   final double po4;
   final double fe;
   final double k;
@@ -122,6 +124,7 @@ class WaterParametersModel {
     double? kh,
     double? gh,
     double? no3,
+    double? no2,
     double? po4,
     double? fe,
     double? k,
@@ -137,6 +140,7 @@ class WaterParametersModel {
       kh: kh ?? this.kh,
       gh: gh ?? this.gh,
       no3: no3 ?? this.no3,
+      no2: no2 ?? this.no2,
       po4: po4 ?? this.po4,
       fe: fe ?? this.fe,
       k: k ?? this.k,
@@ -155,6 +159,7 @@ class WaterParametersModel {
       'kh': kh,
       'gh': gh,
       'no3': no3,
+      if (no2 != null) 'no2': no2,
       'po4': po4,
       'fe': fe,
       'k': k,
@@ -182,6 +187,7 @@ class WaterParametersModel {
       kh: _doubleFromValue(values['kh']),
       gh: _doubleFromValue(values['gh']),
       no3: _doubleFromValue(values['no3']),
+      no2: _nullableDoubleFromValue(values['no2']),
       po4: _doubleFromValue(values['po4']),
       fe: _doubleFromValue(values['fe']),
       k: _doubleFromValue(values['k']),
@@ -210,6 +216,12 @@ String _stringFromValue(Object? value, {String fallback = ''}) {
 double _doubleFromValue(Object? value) {
   if (value is num) return value.toDouble();
   return double.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+double? _nullableDoubleFromValue(Object? value) {
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
 }
 
 DateTime? _dateFromValue(Object? value) {

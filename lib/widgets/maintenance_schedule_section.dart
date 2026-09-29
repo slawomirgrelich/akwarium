@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../local_reminder_service.dart';
 import '../services/aquarium_journal_service.dart';
 
 class MaintenanceScheduleSection extends StatefulWidget {
@@ -12,8 +15,74 @@ class MaintenanceScheduleSection extends StatefulWidget {
       _MaintenanceScheduleSectionState();
 }
 
-class _MaintenanceScheduleSectionState extends State<MaintenanceScheduleSection> {
+class _MaintenanceScheduleSectionState
+    extends State<MaintenanceScheduleSection> {
   final _service = AquariumJournalService();
+  final _scheduledDates = <String, DateTime>{};
+  StreamSubscription<List<MaintenanceTaskModel>>? _taskSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenForTaskChanges();
+  }
+
+  @override
+  void didUpdateWidget(covariant MaintenanceScheduleSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.aquariumId != widget.aquariumId) {
+      _listenForTaskChanges();
+    }
+  }
+
+  @override
+  void dispose() {
+    _taskSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _listenForTaskChanges() {
+    _taskSubscription?.cancel();
+    _scheduledDates.clear();
+    _taskSubscription = _service.getMaintenanceTasks(widget.aquariumId).listen((
+      tasks,
+    ) {
+      unawaited(_syncTaskNotifications(tasks));
+    }, onError: (Object _) {});
+  }
+
+  Future<void> _syncTaskNotifications(List<MaintenanceTaskModel> tasks) async {
+    for (final task in tasks) {
+      await _scheduleTaskNotification(task);
+    }
+  }
+
+  Future<void> _scheduleTaskNotification(MaintenanceTaskModel task) async {
+    if (task.id.isEmpty || _scheduledDates[task.id] == task.nextDueDate) return;
+    _scheduledDates[task.id] = task.nextDueDate;
+
+    final now = DateTime.now();
+    var scheduledDate = task.nextDueDate;
+    if (!scheduledDate.isAfter(now)) {
+      final isDueToday =
+          scheduledDate.year == now.year &&
+          scheduledDate.month == now.month &&
+          scheduledDate.day == now.day;
+      if (!isDueToday) return;
+      scheduledDate = now.add(const Duration(minutes: 1));
+    }
+
+    final reminderId = _notificationId(task);
+    await LocalReminderService.instance.cancel(reminderId);
+    await LocalReminderService.instance.schedule(
+      ScheduledReminder(
+        id: reminderId,
+        title: task.title,
+        body: 'Czas na zaplanowane zadanie w akwarium.',
+        date: scheduledDate,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +102,7 @@ class _MaintenanceScheduleSectionState extends State<MaintenanceScheduleSection>
                 ),
                 IconButton(
                   tooltip: 'Dodaj zadanie',
-                  onPressed: _addTask,
+                  onPressed: () => _openTaskForm(),
                   icon: const Icon(Icons.add_circle_outline),
                 ),
               ],
@@ -64,6 +133,7 @@ class _MaintenanceScheduleSectionState extends State<MaintenanceScheduleSection>
                         (task) => _MaintenanceTaskTile(
                           task: task,
                           onComplete: () => _completeTask(task),
+                          onEdit: () => _openTaskForm(task),
                         ),
                       )
                       .toList(growable: false),
@@ -76,14 +146,18 @@ class _MaintenanceScheduleSectionState extends State<MaintenanceScheduleSection>
     );
   }
 
-  Future<void> _addTask() async {
+  Future<void> _openTaskForm([MaintenanceTaskModel? existingTask]) async {
     final task = await showDialog<MaintenanceTaskModel>(
       context: context,
-      builder: (_) => _MaintenanceTaskDialog(aquariumId: widget.aquariumId),
+      builder: (_) => _MaintenanceTaskDialog(
+        aquariumId: widget.aquariumId,
+        existingTask: existingTask,
+      ),
     );
     if (task == null) return;
     try {
-      await _service.addMaintenanceTask(task);
+      final savedTask = await _service.saveMaintenanceTask(task);
+      await _scheduleTaskNotification(savedTask);
     } on Object catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -95,16 +169,31 @@ class _MaintenanceScheduleSectionState extends State<MaintenanceScheduleSection>
 
   Future<void> _completeTask(MaintenanceTaskModel task) async {
     try {
-      await _service.completeMaintenanceTask(task);
+      final performedAt = DateTime.now();
+      await _service.completeMaintenanceTask(task, completedAt: performedAt);
+      await _scheduleTaskNotification(
+        MaintenanceTaskModel(
+          id: task.id,
+          aquariumId: task.aquariumId,
+          taskType: task.taskType,
+          title: task.title,
+          repeatFrequencyDays: task.repeatFrequencyDays,
+          lastPerformedDate: performedAt,
+          nextDueDate: performedAt.add(
+            Duration(days: task.repeatFrequencyDays),
+          ),
+        ),
+      );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Wykonano: ${task.title}')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Wykonano: ${task.title}')));
       }
     } on Object catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Nie udało się zaktualizować zadania: $error')),
+          SnackBar(
+            content: Text('Nie udało się zaktualizować zadania: $error'),
+          ),
         );
       }
     }
@@ -112,10 +201,15 @@ class _MaintenanceScheduleSectionState extends State<MaintenanceScheduleSection>
 }
 
 class _MaintenanceTaskTile extends StatelessWidget {
-  const _MaintenanceTaskTile({required this.task, required this.onComplete});
+  const _MaintenanceTaskTile({
+    required this.task,
+    required this.onComplete,
+    required this.onEdit,
+  });
 
   final MaintenanceTaskModel task;
   final VoidCallback onComplete;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -151,17 +245,22 @@ class _MaintenanceTaskTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(status, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+          Text(
+            status,
+            style: TextStyle(color: color, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 4),
-          InkWell(
-            onTap: onComplete,
-            child: Text(
-              'Wykonaj',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w700,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: 'Edytuj zadanie',
+                visualDensity: VisualDensity.compact,
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 18),
               ),
-            ),
+              TextButton(onPressed: onComplete, child: const Text('Wykonaj')),
+            ],
           ),
         ],
       ),
@@ -170,9 +269,10 @@ class _MaintenanceTaskTile extends StatelessWidget {
 }
 
 class _MaintenanceTaskDialog extends StatefulWidget {
-  const _MaintenanceTaskDialog({required this.aquariumId});
+  const _MaintenanceTaskDialog({required this.aquariumId, this.existingTask});
 
   final String aquariumId;
+  final MaintenanceTaskModel? existingTask;
 
   @override
   State<_MaintenanceTaskDialog> createState() => _MaintenanceTaskDialogState();
@@ -180,6 +280,7 @@ class _MaintenanceTaskDialog extends StatefulWidget {
 
 class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
   static const _taskOptions = <String, String>{
+    'feeding': 'Karmienie',
     'waterChange': 'Podmiana wody',
     'filterCleaning': 'Czyszczenie filtra',
     'plantTrimming': 'Przycinanie roślin',
@@ -187,52 +288,113 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
     'custom': 'Inne zadanie',
   };
 
-  String _taskType = 'waterChange';
-  int _frequencyDays = 7;
-  DateTime _lastPerformedDate = DateTime.now();
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _frequencyController;
+  late String _taskType;
+  late bool _isDaily;
+  late DateTime _lastPerformedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    final existingTask = widget.existingTask;
+    _taskType = existingTask?.taskType ?? 'waterChange';
+    _isDaily =
+        _taskType == 'feeding' &&
+        (existingTask == null || existingTask.repeatFrequencyDays == 1);
+    _frequencyController = TextEditingController(
+      text: '${existingTask?.repeatFrequencyDays ?? 7}',
+    );
+    _lastPerformedDate = existingTask?.lastPerformedDate ?? DateTime.now();
+  }
+
+  @override
+  void dispose() {
+    _frequencyController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.existingTask != null;
     return AlertDialog(
-      title: const Text('Dodaj zadanie pielęgnacyjne'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          DropdownButtonFormField<String>(
-            initialValue: _taskType,
-            decoration: const InputDecoration(labelText: 'Rodzaj zadania'),
-            items: _taskOptions.entries
-                .map((entry) => DropdownMenuItem(
-                      value: entry.key,
-                      child: Text(entry.value),
-                    ))
-                .toList(growable: false),
-            onChanged: (value) {
-              if (value != null) setState(() => _taskType = value);
-            },
+      title: Text(isEditing ? 'Edytuj zadanie' : 'Dodaj zadanie pielęgnacyjne'),
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.65,
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: _taskOptions.containsKey(_taskType)
+                      ? _taskType
+                      : 'custom',
+                  decoration: const InputDecoration(
+                    labelText: 'Rodzaj zadania',
+                  ),
+                  items: _taskOptions.entries
+                      .map(
+                        (entry) => DropdownMenuItem(
+                          value: entry.key,
+                          child: Text(entry.value),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _taskType = value;
+                        _isDaily = value == 'feeding';
+                        if (_isDaily) _frequencyController.text = '1';
+                      });
+                    }
+                  },
+                ),
+                if (_taskType == 'feeding')
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Codziennie'),
+                    value: _isDaily,
+                    onChanged: (value) {
+                      setState(() {
+                        _isDaily = value;
+                        if (value) _frequencyController.text = '1';
+                      });
+                    },
+                  ),
+                if (!_isDaily) ...[
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _frequencyController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Powtarzaj co ile dni',
+                      suffixText: 'dni',
+                    ),
+                    validator: (value) {
+                      final days = int.tryParse(value?.trim() ?? '');
+                      if (days == null || days < 1) {
+                        return 'Wpisz liczbę dni większą od zera.';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Ostatnio wykonano'),
+                  subtitle: Text(_dateLabel(_lastPerformedDate)),
+                  trailing: const Icon(Icons.calendar_today_outlined),
+                  onTap: _pickLastPerformedDate,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<int>(
-            initialValue: _frequencyDays,
-            decoration: const InputDecoration(labelText: 'Powtarzaj co'),
-            items: const [7, 14, 30, 60, 90]
-                .map((days) => DropdownMenuItem(
-                      value: days,
-                      child: Text('$days dni'),
-                    ))
-                .toList(growable: false),
-            onChanged: (value) {
-              if (value != null) setState(() => _frequencyDays = value);
-            },
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Ostatnio wykonano'),
-            subtitle: Text(_dateLabel(_lastPerformedDate)),
-            trailing: const Icon(Icons.calendar_today_outlined),
-            onTap: _pickLastPerformedDate,
-          ),
-        ],
+        ),
       ),
       actions: [
         TextButton(
@@ -241,23 +403,31 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
         ),
         FilledButton(
           onPressed: () {
+            if (!(_formKey.currentState?.validate() ?? false)) return;
+            final frequencyDays = _isDaily
+                ? 1
+                : int.parse(_frequencyController.text.trim());
+            final lastPerformed = DateTime(
+              _lastPerformedDate.year,
+              _lastPerformedDate.month,
+              _lastPerformedDate.day,
+              9,
+            );
             final title = _taskOptions[_taskType]!;
             Navigator.pop(
               context,
               MaintenanceTaskModel(
-                id: '',
+                id: widget.existingTask?.id ?? '',
                 aquariumId: widget.aquariumId,
                 taskType: _taskType,
                 title: title,
-                repeatFrequencyDays: _frequencyDays,
-                lastPerformedDate: _lastPerformedDate,
-                nextDueDate: _lastPerformedDate.add(
-                  Duration(days: _frequencyDays),
-                ),
+                repeatFrequencyDays: frequencyDays,
+                lastPerformedDate: lastPerformed,
+                nextDueDate: lastPerformed.add(Duration(days: frequencyDays)),
               ),
             );
           },
-          child: const Text('Dodaj'),
+          child: Text(isEditing ? 'Zapisz' : 'Dodaj'),
         ),
       ],
     );
@@ -274,7 +444,17 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
   }
 }
 
+int _notificationId(MaintenanceTaskModel task) {
+  final value = '${task.aquariumId}:${task.id}';
+  var hash = 0x811c9dc5;
+  for (final codeUnit in value.codeUnits) {
+    hash = ((hash ^ codeUnit) * 0x01000193) & 0x7fffffff;
+  }
+  return hash;
+}
+
 IconData _taskIcon(String taskType) => switch (taskType) {
+  'feeding' => Icons.set_meal_outlined,
   'waterChange' => Icons.water_drop_outlined,
   'filterCleaning' => Icons.filter_alt_outlined,
   'plantTrimming' => Icons.content_cut_outlined,
