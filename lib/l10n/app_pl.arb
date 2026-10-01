@@ -389,11 +389,6 @@
   ,"speciesMinimumVolumeFrom": "od {liters} l"
   ,"@speciesMinimumVolumeFrom": {"placeholders": {"liters": {"type": "int"}}}
   ,"proFeatureTrialHeadline": "Funkcja PRO - aktywuj darmowy okres próbny"
-  ,"debugProStatusChanged": "Nie udało się zmienić PRO: {error}"
-  ,"@debugProStatusChanged": {"placeholders": {"error": {"type": "String"}}}
-  ,"debugToggleProStatus": "Przełącz status PRO (test): {status}"
-  ,"debugProEnabled": "włączony"
-  ,"debugProDisabled": "wyłączony"
   ,"geminiConnectionSucceeded": "Połączenie z Gemini działa."
   ,"compatibilityVolumeWarning": "Pojemność akwarium jest za mała: {actual} l; wymagane minimum to {minimum} l."
   ,"@compatibilityVolumeWarning": {"placeholders": {"actual": {"type": "int"}, "minimum": {"type": "int"}}}

@@ -1204,22 +1204,6 @@ class AppLocalizationsPl extends AppLocalizations {
       'Funkcja PRO - aktywuj darmowy okres próbny';
 
   @override
-  String debugProStatusChanged(String error) {
-    return 'Nie udało się zmienić PRO: $error';
-  }
-
-  @override
-  String debugToggleProStatus(Object status) {
-    return 'Przełącz status PRO (test): $status';
-  }
-
-  @override
-  String get debugProEnabled => 'włączony';
-
-  @override
-  String get debugProDisabled => 'wyłączony';
-
-  @override
   String get geminiConnectionSucceeded => 'Połączenie z Gemini działa.';
 
   @override

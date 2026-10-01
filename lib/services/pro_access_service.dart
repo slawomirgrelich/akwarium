@@ -223,8 +223,6 @@ class ProAccessService extends ChangeNotifier {
     if (value) await _completeReferralAfterActivation();
   }
 
-  Future<void> toggleProStatus() => setProUser(!isProUser);
-
   Future<void> activateFreeTrial() async {
     await startFreeTrial();
   }

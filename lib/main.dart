@@ -1642,34 +1642,6 @@ class ProfilePage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
               ),
             ),
-            if (kDebugMode) ...[
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  try {
-                    await proService.toggleProStatus();
-                  } on Object catch (error) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            l10n.debugProStatusChanged(error.toString()),
-                          ),
-                        ),
-                      );
-                    }
-                  }
-                },
-                icon: const Icon(Icons.toggle_on_outlined),
-                label: Text(
-                  l10n.debugToggleProStatus(
-                    proService.isProUser
-                        ? l10n.debugProEnabled
-                        : l10n.debugProDisabled,
-                  ),
-                ),
-              ),
-            ],
             const SizedBox(height: 24),
             _SectionHeader(title: l10n.activeAquariumSection),
             const SizedBox(height: 12),

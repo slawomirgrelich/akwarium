@@ -2294,30 +2294,6 @@ abstract class AppLocalizations {
   /// **'Funkcja PRO - aktywuj darmowy okres próbny'**
   String get proFeatureTrialHeadline;
 
-  /// No description provided for @debugProStatusChanged.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nie udało się zmienić PRO: {error}'**
-  String debugProStatusChanged(String error);
-
-  /// No description provided for @debugToggleProStatus.
-  ///
-  /// In pl, this message translates to:
-  /// **'Przełącz status PRO (test): {status}'**
-  String debugToggleProStatus(Object status);
-
-  /// No description provided for @debugProEnabled.
-  ///
-  /// In pl, this message translates to:
-  /// **'włączony'**
-  String get debugProEnabled;
-
-  /// No description provided for @debugProDisabled.
-  ///
-  /// In pl, this message translates to:
-  /// **'wyłączony'**
-  String get debugProDisabled;
-
   /// No description provided for @geminiConnectionSucceeded.
   ///
   /// In pl, this message translates to:

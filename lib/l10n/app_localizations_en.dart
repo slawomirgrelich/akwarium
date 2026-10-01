@@ -1194,22 +1194,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get proFeatureTrialHeadline => 'PRO feature - start your free trial';
 
   @override
-  String debugProStatusChanged(String error) {
-    return 'Could not change PRO status: $error';
-  }
-
-  @override
-  String debugToggleProStatus(Object status) {
-    return 'Toggle PRO status (test): $status';
-  }
-
-  @override
-  String get debugProEnabled => 'enabled';
-
-  @override
-  String get debugProDisabled => 'disabled';
-
-  @override
   String get geminiConnectionSucceeded => 'Gemini connection is working.';
 
   @override
