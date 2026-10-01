@@ -171,6 +171,13 @@ class _MaintenanceScheduleSectionState
     try {
       final performedAt = DateTime.now();
       await _service.completeMaintenanceTask(task, completedAt: performedAt);
+      final nextDue = DateTime(
+        performedAt.year,
+        performedAt.month,
+        performedAt.day,
+        task.nextDueDate.hour,
+        task.nextDueDate.minute,
+      ).add(Duration(days: task.repeatFrequencyDays));
       await _scheduleTaskNotification(
         MaintenanceTaskModel(
           id: task.id,
@@ -179,9 +186,7 @@ class _MaintenanceScheduleSectionState
           title: task.title,
           repeatFrequencyDays: task.repeatFrequencyDays,
           lastPerformedDate: performedAt,
-          nextDueDate: performedAt.add(
-            Duration(days: task.repeatFrequencyDays),
-          ),
+          nextDueDate: nextDue,
         ),
       );
       if (mounted) {
@@ -285,6 +290,7 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
     'filterCleaning': 'Czyszczenie filtra',
     'plantTrimming': 'Przycinanie roślin',
     'fertilizing': 'Nawożenie',
+    'quickCheck': 'Szybka kontrola',
     'custom': 'Inne zadanie',
   };
 
@@ -293,19 +299,19 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
   late String _taskType;
   late bool _isDaily;
   late DateTime _lastPerformedDate;
+  late TimeOfDay _reminderTime;
 
   @override
   void initState() {
     super.initState();
     final existingTask = widget.existingTask;
     _taskType = existingTask?.taskType ?? 'waterChange';
-    _isDaily =
-        _taskType == 'feeding' &&
-        (existingTask == null || existingTask.repeatFrequencyDays == 1);
+    _isDaily = existingTask?.repeatFrequencyDays == 1;
     _frequencyController = TextEditingController(
       text: '${existingTask?.repeatFrequencyDays ?? 7}',
     );
     _lastPerformedDate = existingTask?.lastPerformedDate ?? DateTime.now();
+    _reminderTime = TimeOfDay.fromDateTime(_lastPerformedDate);
   }
 
   @override
@@ -346,26 +352,21 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
                       .toList(growable: false),
                   onChanged: (value) {
                     if (value != null) {
-                      setState(() {
-                        _taskType = value;
-                        _isDaily = value == 'feeding';
-                        if (_isDaily) _frequencyController.text = '1';
-                      });
+                      setState(() => _taskType = value);
                     }
                   },
                 ),
-                if (_taskType == 'feeding')
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Codziennie'),
-                    value: _isDaily,
-                    onChanged: (value) {
-                      setState(() {
-                        _isDaily = value;
-                        if (value) _frequencyController.text = '1';
-                      });
-                    },
-                  ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Codziennie'),
+                  value: _isDaily,
+                  onChanged: (value) {
+                    setState(() {
+                      _isDaily = value;
+                      if (value) _frequencyController.text = '1';
+                    });
+                  },
+                ),
                 if (!_isDaily) ...[
                   const SizedBox(height: 8),
                   TextFormField(
@@ -391,6 +392,13 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
                   trailing: const Icon(Icons.calendar_today_outlined),
                   onTap: _pickLastPerformedDate,
                 ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Godzina przypomnienia'),
+                  subtitle: Text(_reminderTime.format(context)),
+                  trailing: const Icon(Icons.access_time_outlined),
+                  onTap: _pickReminderTime,
+                ),
               ],
             ),
           ),
@@ -411,7 +419,8 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
               _lastPerformedDate.year,
               _lastPerformedDate.month,
               _lastPerformedDate.day,
-              9,
+              _reminderTime.hour,
+              _reminderTime.minute,
             );
             final title = _taskOptions[_taskType]!;
             Navigator.pop(
@@ -442,6 +451,14 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
     );
     if (selected != null) setState(() => _lastPerformedDate = selected);
   }
+
+  Future<void> _pickReminderTime() async {
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: _reminderTime,
+    );
+    if (selected != null) setState(() => _reminderTime = selected);
+  }
 }
 
 int _notificationId(MaintenanceTaskModel task) {
@@ -459,6 +476,7 @@ IconData _taskIcon(String taskType) => switch (taskType) {
   'filterCleaning' => Icons.filter_alt_outlined,
   'plantTrimming' => Icons.content_cut_outlined,
   'fertilizing' => Icons.grass_outlined,
+  'quickCheck' => Icons.fact_check_outlined,
   _ => Icons.task_alt_outlined,
 };
 

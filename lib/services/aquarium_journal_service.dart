@@ -305,6 +305,14 @@ class AquariumJournalService {
     DateTime? completedAt,
   }) async {
     final performedAt = completedAt ?? DateTime.now();
+    // Keep the user-configured reminder hour instead of drifting to the completion time.
+    final nextDue = DateTime(
+      performedAt.year,
+      performedAt.month,
+      performedAt.day,
+      task.nextDueDate.hour,
+      task.nextDueDate.minute,
+    ).add(Duration(days: task.repeatFrequencyDays));
     final updated = MaintenanceTaskModel(
       id: task.id,
       aquariumId: task.aquariumId,
@@ -312,7 +320,7 @@ class AquariumJournalService {
       title: task.title,
       repeatFrequencyDays: task.repeatFrequencyDays,
       lastPerformedDate: performedAt,
-      nextDueDate: performedAt.add(Duration(days: task.repeatFrequencyDays)),
+      nextDueDate: nextDue,
     );
     await _write(
       _collection(_userId(), task.aquariumId, 'maintenance_tasks'),

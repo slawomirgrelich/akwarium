@@ -602,6 +602,12 @@ abstract class AppLocalizations {
   /// **'Pojemność brutto'**
   String get grossVolume;
 
+  /// No description provided for @setupDateLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Data założenia'**
+  String get setupDateLabel;
+
   /// No description provided for @tankType.
   ///
   /// In pl, this message translates to:

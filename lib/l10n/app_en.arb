@@ -85,6 +85,7 @@
   "add": "Add",
   "netVolume": "Net volume",
   "grossVolume": "Gross volume",
+  "setupDateLabel": "Setup date",
   "tankType": "Tank type",
   "freshwater": "Freshwater",
   "saltwater": "Saltwater",

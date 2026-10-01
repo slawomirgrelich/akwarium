@@ -2,7 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../models/aquarium_firestore_model.dart';
+import '../models/aquarium_model.dart'
+    show CreatureCategory, CreatureCategoryLabel;
 import '../services/firestore_service.dart';
+import 'species_atlas_screen.dart';
 
 class AquariumLivestockScreen extends StatelessWidget {
   const AquariumLivestockScreen({required this.aquarium, super.key});
@@ -13,6 +16,11 @@ class AquariumLivestockScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Obsada: ${aquarium.name}')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddOptions(context),
+        icon: const Icon(Icons.add),
+        label: const Text('Dodaj gatunek'),
+      ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: FirestoreService().getLivestock(aquarium.id),
         builder: (context, snapshot) {
@@ -25,10 +33,23 @@ class AquariumLivestockScreen extends StatelessWidget {
           }
           final entries = snapshot.data ?? const <Map<String, dynamic>>[];
           if (entries.isEmpty) {
-            return const Center(child: Text('To akwarium nie ma jeszcze obsady.'));
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('To akwarium nie ma jeszcze obsady.'),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    onPressed: () => _showAddOptions(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Dodaj pierwszy gatunek'),
+                  ),
+                ],
+              ),
+            );
           }
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
             children: [
               _StockHealthCard(aquarium: aquarium, entries: entries),
               const SizedBox(height: 12),
@@ -39,22 +60,24 @@ class AquariumLivestockScreen extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Card(
-                child: ListTile(
-                  leading: const Icon(Icons.pets_outlined),
-                  title: Text(entry['namePl']?.toString() ?? 'Nieznany gatunek'),
-                  subtitle: Text(
-                    [
-                      if ((entry['nameLatin']?.toString() ?? '').isNotEmpty)
-                        entry['nameLatin'].toString(),
-                        entry['categoryLabel']?.toString() ??
-                          _categoryLabel(entry['category']?.toString()),
-                      'Liczba: ${entry['count'] ?? 1}',
-                      if (date != null)
-                        'Dodano: ${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}',
-                      if (notes.isNotEmpty) notes,
-                    ].where((line) => line.isNotEmpty).join(' · '),
-                  ),
-                ),
+                    child: ListTile(
+                      leading: const Icon(Icons.pets_outlined),
+                      title: Text(
+                        entry['namePl']?.toString() ?? 'Nieznany gatunek',
+                      ),
+                      subtitle: Text(
+                        [
+                          if ((entry['nameLatin']?.toString() ?? '').isNotEmpty)
+                            entry['nameLatin'].toString(),
+                          entry['categoryLabel']?.toString() ??
+                              _categoryLabel(entry['category']?.toString()),
+                          'Liczba: ${entry['count'] ?? 1}',
+                          if (date != null)
+                            'Dodano: ${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}',
+                          if (notes.isNotEmpty) notes,
+                        ].where((line) => line.isNotEmpty).join(' · '),
+                      ),
+                    ),
                   ),
                 );
               }),
@@ -64,6 +87,62 @@ class AquariumLivestockScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _showAddOptions(BuildContext context) async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: const Text('Przeglądaj atlas gatunków'),
+              onTap: () => Navigator.pop(context, 'atlas'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_note_outlined),
+              title: const Text('Dodaj własny gatunek'),
+              onTap: () => Navigator.pop(context, 'custom'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!context.mounted || choice == null) return;
+    if (choice == 'atlas') {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => SpeciesAtlasScreen(tankId: aquarium.id),
+        ),
+      );
+      return;
+    }
+    final entry = await showDialog<_CustomSpeciesEntry>(
+      context: context,
+      builder: (_) => const _CustomSpeciesDialog(),
+    );
+    if (entry == null || !context.mounted) return;
+    try {
+      await FirestoreService().addLivestockItem(
+        aquarium.id,
+        namePl: entry.name,
+        nameLatin: entry.latinName,
+        category: entry.category.label,
+        count: entry.count,
+        phRange: '',
+        tempRange: '',
+        minTankVolume: 0,
+        notes: entry.notes,
+      );
+    } on FirestoreServiceException catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+  }
 }
 
 String _categoryLabel(String? category) => switch (category) {
@@ -71,6 +150,130 @@ String _categoryLabel(String? category) => switch (category) {
   'fauna' || 'fish' => 'Fauna',
   _ => category ?? '',
 };
+
+class _CustomSpeciesEntry {
+  const _CustomSpeciesEntry({
+    required this.name,
+    required this.latinName,
+    required this.category,
+    required this.count,
+    required this.notes,
+  });
+
+  final String name;
+  final String latinName;
+  final CreatureCategory category;
+  final int count;
+  final String notes;
+}
+
+class _CustomSpeciesDialog extends StatefulWidget {
+  const _CustomSpeciesDialog();
+
+  @override
+  State<_CustomSpeciesDialog> createState() => _CustomSpeciesDialogState();
+}
+
+class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _latin = TextEditingController();
+  final _count = TextEditingController(text: '1');
+  final _notes = TextEditingController();
+  CreatureCategory _category = CreatureCategory.fish;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _latin.dispose();
+    _count.dispose();
+    _notes.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Dodaj własny gatunek'),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _name,
+                decoration: const InputDecoration(labelText: 'Nazwa gatunkowa'),
+                validator: (value) => (value == null || value.trim().isEmpty)
+                    ? 'Wpisz nazwę'
+                    : null,
+              ),
+              TextField(
+                controller: _latin,
+                decoration: const InputDecoration(
+                  labelText: 'Nazwa łacińska (opcjonalnie)',
+                ),
+              ),
+              TextFormField(
+                controller: _count,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Liczba sztuk'),
+                validator: (value) {
+                  final count = int.tryParse(value?.trim() ?? '');
+                  return (count == null || count < 1)
+                      ? 'Wpisz liczbę większą od zera'
+                      : null;
+                },
+              ),
+              DropdownButtonFormField<CreatureCategory>(
+                initialValue: _category,
+                decoration: const InputDecoration(labelText: 'Kategoria'),
+                items: CreatureCategory.values
+                    .map(
+                      (category) => DropdownMenuItem(
+                        value: category,
+                        child: Text(category.label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => _category = value!),
+              ),
+              TextField(
+                controller: _notes,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Notatki (opcjonalnie)',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Anuluj'),
+        ),
+        FilledButton(
+          onPressed: () {
+            if (!(_formKey.currentState?.validate() ?? false)) return;
+            Navigator.pop(
+              context,
+              _CustomSpeciesEntry(
+                name: _name.text.trim(),
+                latinName: _latin.text.trim(),
+                category: _category,
+                count: int.parse(_count.text.trim()),
+                notes: _notes.text.trim(),
+              ),
+            );
+          },
+          child: const Text('Dodaj'),
+        ),
+      ],
+    );
+  }
+}
 
 class _StockHealthCard extends StatelessWidget {
   const _StockHealthCard({required this.aquarium, required this.entries});
@@ -108,7 +311,9 @@ class _StockHealthCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                if (exceedsCapacity || ph.conflicts.isNotEmpty || temperature.conflicts.isNotEmpty)
+                if (exceedsCapacity ||
+                    ph.conflicts.isNotEmpty ||
+                    temperature.conflicts.isNotEmpty)
                   const Chip(
                     avatar: Icon(Icons.warning_amber_rounded, size: 18),
                     label: Text('Ostrzeżenia'),
@@ -143,7 +348,11 @@ class _StockHealthCard extends StatelessWidget {
             const SizedBox(height: 14),
             _RangeStatusLine(label: 'Zakres pH', summary: ph),
             const SizedBox(height: 8),
-            _RangeStatusLine(label: 'Temperatura', summary: temperature, suffix: '°C'),
+            _RangeStatusLine(
+              label: 'Temperatura',
+              summary: temperature,
+              suffix: '°C',
+            ),
           ],
         ),
       ),
@@ -190,7 +399,10 @@ class _RangeStatusLine extends StatelessWidget {
             if (hasConflicts)
               Icon(Icons.warning_amber_rounded, color: color, size: 18),
             const SizedBox(width: 6),
-            Text(value, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+            Text(
+              value,
+              style: TextStyle(color: color, fontWeight: FontWeight.w600),
+            ),
           ],
         ),
         if (hasConflicts)
@@ -222,8 +434,12 @@ _RangeSummary _summarizeRange(
   }
   if (ranges.isEmpty) return const _RangeSummary();
 
-  final minimum = ranges.map((range) => range.minimum).reduce((a, b) => a > b ? a : b);
-  final maximum = ranges.map((range) => range.maximum).reduce((a, b) => a < b ? a : b);
+  final minimum = ranges
+      .map((range) => range.minimum)
+      .reduce((a, b) => a > b ? a : b);
+  final maximum = ranges
+      .map((range) => range.maximum)
+      .reduce((a, b) => a < b ? a : b);
   final conflicts = <String>{};
   for (var first = 0; first < ranges.length; first++) {
     for (var second = first + 1; second < ranges.length; second++) {
@@ -257,5 +473,6 @@ _RangeSummary _summarizeRange(
 int _integer(Object? value) =>
     value is num ? value.toInt() : int.tryParse(value?.toString() ?? '') ?? 0;
 
-String _formatRangeValue(double value) =>
-    value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toString();
+String _formatRangeValue(double value) => value == value.roundToDouble()
+    ? value.toStringAsFixed(0)
+    : value.toString();

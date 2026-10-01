@@ -272,6 +272,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get grossVolume => 'Pojemność brutto';
 
   @override
+  String get setupDateLabel => 'Data założenia';
+
+  @override
   String get tankType => 'Typ zbiornika';
 
   @override

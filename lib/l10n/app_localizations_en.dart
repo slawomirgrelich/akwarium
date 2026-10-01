@@ -273,6 +273,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get grossVolume => 'Gross volume';
 
   @override
+  String get setupDateLabel => 'Setup date';
+
+  @override
   String get tankType => 'Tank type';
 
   @override

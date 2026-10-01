@@ -85,6 +85,7 @@
   ,"add": "Dodaj"
   ,"netVolume": "Pojemność netto"
   ,"grossVolume": "Pojemność brutto"
+  ,"setupDateLabel": "Data założenia"
   ,"tankType": "Typ zbiornika"
   ,"freshwater": "Słodkowodne"
   ,"saltwater": "Morskie"

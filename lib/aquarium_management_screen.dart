@@ -27,6 +27,9 @@ String _tankTypeLabel(AppLocalizations l10n, TankType type) => switch (type) {
   _ => type.label,
 };
 
+String _formatSetupDate(DateTime date) =>
+    '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+
 class TankSwitcher extends StatelessWidget {
   const TankSwitcher({super.key});
 
@@ -480,8 +483,18 @@ class _TankProfileStrip extends StatelessWidget {
                           }
                         },
                         itemBuilder: (_) => [
-                          PopupMenuItem(value: 'edit', child: Text(AppLocalizations.of(context)!.editAction)),
-                          PopupMenuItem(value: 'delete', child: Text(AppLocalizations.of(context)!.deleteAction)),
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Text(
+                              AppLocalizations.of(context)!.editAction,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Text(
+                              AppLocalizations.of(context)!.deleteAction,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -710,11 +723,13 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
   final _net = TextEditingController(text: '100');
   final _gross = TextEditingController(text: '120');
   TankType _type = TankType.freshwater;
+  late DateTime _setupDate;
 
   @override
   void initState() {
     super.initState();
     final initial = widget.initial;
+    _setupDate = initial?.setupDate ?? DateTime.now();
     if (initial != null) {
       _name.text = initial.name;
       _net.text = initial.volumeNetLiters.toString();
@@ -778,6 +793,13 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
                 .toList(),
             onChanged: (value) => setState(() => _type = value!),
           ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(AppLocalizations.of(context)!.setupDateLabel),
+            subtitle: Text(_formatSetupDate(_setupDate)),
+            trailing: const Icon(Icons.calendar_today_outlined),
+            onTap: _pickSetupDate,
+          ),
         ],
       ),
     ),
@@ -810,7 +832,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
       name: _name.text.trim(),
       volumeNetLiters: double.tryParse(_net.text.replaceAll(',', '.')) ?? 0,
       volumeGrossLiters: double.tryParse(_gross.text.replaceAll(',', '.')),
-      setupDate: widget.initial?.setupDate ?? DateTime.now(),
+      setupDate: _setupDate,
       type: _type,
       imagePath: widget.initial?.imagePath,
     );
@@ -827,6 +849,18 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
             .showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
+  }
+
+  Future<void> _pickSetupDate() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _setupDate.isAfter(DateTime.now())
+          ? DateTime.now()
+          : _setupDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (selected != null && mounted) setState(() => _setupDate = selected);
   }
 }
 

@@ -41,15 +41,18 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
     final l10n = AppLocalizations.of(context)!;
     final query = _search.text.trim().toLowerCase();
     final filtered = speciesCatalog.where((species) {
-      final matchesQuery = query.isEmpty ||
-        '${_localizedSpeciesName(context, species)} ${species.namePl} ${species.nameLatin}'
-          .toLowerCase()
-          .contains(query);
-      return matchesQuery && (_category == null || species.category == _category);
+      final matchesQuery =
+          query.isEmpty ||
+          '${_localizedSpeciesName(context, species)} ${species.namePl} ${species.nameLatin}'
+              .toLowerCase()
+              .contains(query);
+      return matchesQuery &&
+          (_category == null || species.category == _category);
     }).toList();
     return Scaffold(
       appBar: AppBar(title: Text(l10n.speciesAtlasTitle)),
       body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
@@ -67,39 +70,47 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
               _filterChip(l10n.filterAll, null),
               _filterChip(l10n.filterFish, SpeciesCategory.fish),
               _filterChip(l10n.filterPlants, SpeciesCategory.plant),
-              _filterChip(l10n.filterInvertebrates, SpeciesCategory.invertebrate),
+              _filterChip(
+                l10n.filterInvertebrates,
+                SpeciesCategory.invertebrate,
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          ...filtered.map((species) => Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    child: Icon(_iconFor(species.category)),
-                  ),
-                  title: Text(_localizedSpeciesName(context, species)),
-                  subtitle: Text(
-                    '${species.nameLatin} · ${l10n.speciesMinimumVolumeFrom(species.minTankVolumeLiters)}',
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showDetails(species),
+          ...filtered.map(
+            (species) => Card(
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer,
+                  child: Icon(_iconFor(species.category)),
                 ),
-              )),
-          if (filtered.isEmpty) Padding(
-            padding: const EdgeInsets.all(24),
-            child: Center(child: Text(l10n.noSpeciesFound)),
+                title: Text(_localizedSpeciesName(context, species)),
+                subtitle: Text(
+                  '${species.nameLatin} · ${l10n.speciesMinimumVolumeFrom(species.minTankVolumeLiters)}',
+                  style: const TextStyle(fontStyle: FontStyle.italic),
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showDetails(species),
+              ),
+            ),
           ),
+          if (filtered.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(child: Text(l10n.noSpeciesFound)),
+            ),
         ],
       ),
     );
   }
 
   Widget _filterChip(String label, SpeciesCategory? category) => FilterChip(
-        label: Text(label),
-        selected: _category == category,
-        onSelected: (_) => setState(() => _category = category),
-      );
+    label: Text(label),
+    selected: _category == category,
+    onSelected: (_) => setState(() => _category = category),
+  );
 
   Future<void> _showDetails(Species species) async {
     final l10n = AppLocalizations.of(context)!;
@@ -118,12 +129,13 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
             children: [
               Text(
                 species.nameLatin,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontStyle: FontStyle.italic,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(fontStyle: FontStyle.italic),
               ),
               const SizedBox(height: 12),
-              Text(_localizedSpeciesText(context, species, species.description)),
+              Text(
+                _localizedSpeciesText(context, species, species.description),
+              ),
               const SizedBox(height: 16),
               Text(
                 l10n.careNotesLabel,
@@ -133,24 +145,39 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
               Text(_localizedSpeciesText(context, species, species.careNotes)),
               const SizedBox(height: 16),
               Text(l10n.minTankVolumeLabel(species.minTankVolumeLiters)),
-              Text(l10n.temperatureRangeLabel(species.tempRange.min, species.tempRange.max)),
+              Text(
+                l10n.temperatureRangeLabel(
+                  species.tempRange.min,
+                  species.tempRange.max,
+                ),
+              ),
               Text(l10n.phRangeLabel(species.phRange.min, species.phRange.max)),
               Text(l10n.ghRangeLabel(species.ghRange.min, species.ghRange.max)),
-              Text(l10n.difficultyLabel(_difficultyLabel(context, species.difficulty))),
-              Text(l10n.swimmingZoneLabel(_zoneLabel(context, species.swimmingZone))),
+              Text(
+                l10n.difficultyLabel(
+                  _difficultyLabel(context, species.difficulty),
+                ),
+              ),
+              Text(
+                l10n.swimmingZoneLabel(
+                  _zoneLabel(context, species.swimmingZone),
+                ),
+              ),
               const SizedBox(height: 16),
               _CompatibilitySection(species: species),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(l10n.cancel)),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.cancel),
+          ),
           FilledButton.icon(
-            onPressed: () => _addSpeciesToAquarium(
-              context,
-              dialogContext,
-              species,
-            ),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _addSpeciesToAquarium(context, species);
+            },
             icon: const Icon(Icons.water_drop_outlined),
             label: Text(l10n.addToMyAquarium),
           ),
@@ -161,7 +188,6 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
 
   Future<void> _addSpeciesToAquarium(
     BuildContext pageContext,
-    BuildContext detailsContext,
     Species species,
   ) async {
     final firestore = FirestoreService();
@@ -180,12 +206,16 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
             );
       if (selection == null || !pageContext.mounted) return;
       if (selection.create) {
-        if (detailsContext.mounted) Navigator.pop(detailsContext);
         if (widget.onCreateAquarium != null) {
           widget.onCreateAquarium!();
         } else {
           ScaffoldMessenger.of(pageContext).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(pageContext)!.openManagementToCreateAquarium)),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(pageContext)!
+                    .openManagementToCreateAquarium,
+              ),
+            ),
           );
         }
         return;
@@ -216,7 +246,6 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         notes: addition.notes,
       );
       if (!pageContext.mounted) return;
-      if (detailsContext.mounted) Navigator.pop(detailsContext);
       final messenger = ScaffoldMessenger.of(pageContext);
       messenger.hideCurrentSnackBar();
       final pageL10n = AppLocalizations.of(pageContext)!;
@@ -224,7 +253,12 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-          content: Text(pageL10n.addedSpeciesToAquarium(_localizedSpeciesName(pageContext, species), aquarium.name)),
+          content: Text(
+            pageL10n.addedSpeciesToAquarium(
+              _localizedSpeciesName(pageContext, species),
+              aquarium.name,
+            ),
+          ),
           action: SnackBarAction(
             label: pageL10n.viewLivestock,
             onPressed: () => Navigator.of(pageContext).push<void>(
@@ -261,8 +295,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
     final localAquariums = provider.aquariums;
     final providerAquariumId = provider.activeAquariumId.trim();
     final activeAquariumId = providerAquariumId.isNotEmpty
-      ? providerAquariumId
-      : widget.tankId.trim();
+        ? providerAquariumId
+        : widget.tankId.trim();
     final options = <String, _AquariumOption>{};
     try {
       final cloudAquariums = await firestore.getAquariums().first;
@@ -330,62 +364,59 @@ class _AquariumSelectionSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return SafeArea(
-    child: ListView(
-      shrinkWrap: true,
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            l10n.chooseAquarium,
-            style: Theme.of(context).textTheme.titleMedium,
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              l10n.chooseAquarium,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
-        ),
-        if (aquariums.isEmpty) ...[
-          const Icon(Icons.water_drop_outlined, size: 36),
-          const SizedBox(height: 12),
-          Text(
-            l10n.noAquariumYet,
-            textAlign: TextAlign.center,
-          ),
-          if (onCreateAquarium) ...[
+          if (aquariums.isEmpty) ...[
+            const Icon(Icons.water_drop_outlined, size: 36),
             const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: () => Navigator.pop(
-                context,
-                const _AquariumPickerResult.create(),
+            Text(l10n.noAquariumYet, textAlign: TextAlign.center),
+            if (onCreateAquarium) ...[
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => Navigator.pop(
+                  context,
+                  const _AquariumPickerResult.create(),
+                ),
+                icon: const Icon(Icons.add),
+                label: Text(l10n.createAquariumAction),
               ),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.createAquariumAction),
+            ],
+          ] else ...[
+            ...aquariums.map(
+              (option) => ListTile(
+                leading: const Icon(Icons.water_drop_outlined),
+                title: Text(option.aquarium.name),
+                subtitle: Text(
+                  '${option.aquarium.capacityLiters.round()} l · ${option.aquarium.type}',
+                ),
+                onTap: () => Navigator.pop(
+                  context,
+                  _AquariumPickerResult.select(option),
+                ),
+              ),
             ),
+            if (onCreateAquarium)
+              TextButton.icon(
+                onPressed: () => Navigator.pop(
+                  context,
+                  const _AquariumPickerResult.create(),
+                ),
+                icon: const Icon(Icons.add),
+                label: Text(l10n.createNewAquariumAction),
+              ),
           ],
-        ] else ...[
-          ...aquariums.map(
-            (option) => ListTile(
-              leading: const Icon(Icons.water_drop_outlined),
-              title: Text(option.aquarium.name),
-              subtitle: Text(
-                '${option.aquarium.capacityLiters.round()} l · ${option.aquarium.type}',
-              ),
-              onTap: () => Navigator.pop(
-                context,
-                _AquariumPickerResult.select(option),
-              ),
-            ),
-          ),
-          if (onCreateAquarium)
-            TextButton.icon(
-              onPressed: () => Navigator.pop(
-                context,
-                const _AquariumPickerResult.create(),
-              ),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.createNewAquariumAction),
-            ),
         ],
-      ],
-    ),
-  );
+      ),
+    );
   }
 }
 
@@ -430,15 +461,19 @@ class _CompatibilitySection extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    result.isCompatible ? Icons.check_circle_outline : Icons.warning_amber_outlined,
+                    result.isCompatible
+                        ? Icons.check_circle_outline
+                        : Icons.warning_amber_outlined,
                     color: color,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       result.isCompatible
-                          ? AppLocalizations.of(context)!.compatibleWithAquarium(aquarium.name)
-                          : AppLocalizations.of(context)!.warningsForAquarium(aquarium.name),
+                          ? AppLocalizations.of(context)!
+                                .compatibleWithAquarium(aquarium.name)
+                          : AppLocalizations.of(context)!
+                                .warningsForAquarium(aquarium.name),
                       style: theme.textTheme.titleSmall?.copyWith(color: color),
                     ),
                   ),
@@ -447,14 +482,7 @@ class _CompatibilitySection extends StatelessWidget {
               for (final warning in result.warningTypes) ...[
                 const SizedBox(height: 6),
                 Text(
-                  '• ${_compatibilityWarningText(
-                    AppLocalizations.of(context)!,
-                    warning,
-                    species,
-                    aquarium.volumeNetLiters,
-                    latest?.ph,
-                    latest?.temp,
-                  )}',
+                  '• ${_compatibilityWarningText(AppLocalizations.of(context)!, warning, species, aquarium.volumeNetLiters, latest?.ph, latest?.temp)}',
                   style: theme.textTheme.bodySmall,
                 ),
               ],
@@ -544,62 +572,66 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-    title: Text(l10n.addSpeciesDialogTitle(_localizedSpeciesName(context, widget.species))),
-    content: SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                onPressed: _count > 1 ? () => setState(() => _count--) : null,
-                icon: const Icon(Icons.remove_circle_outline),
+      title: Text(
+        l10n.addSpeciesDialogTitle(
+          _localizedSpeciesName(context, widget.species),
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: _count > 1 ? () => setState(() => _count--) : null,
+                  icon: const Icon(Icons.remove_circle_outline),
+                ),
+                Text('$_count', style: Theme.of(context).textTheme.titleLarge),
+                IconButton(
+                  onPressed: () => setState(() => _count++),
+                  icon: const Icon(Icons.add_circle_outline),
+                ),
+              ],
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.calendar_today_outlined),
+              title: Text(l10n.additionDateLabel),
+              subtitle: Text(_formatAdditionDate(_addedAt)),
+              onTap: _pickDate,
+            ),
+            TextField(
+              controller: _notesController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: l10n.notesOptionalLabel,
+                alignLabelWithHint: true,
               ),
-              Text('$_count', style: Theme.of(context).textTheme.titleLarge),
-              IconButton(
-                onPressed: () => setState(() => _count++),
-                icon: const Icon(Icons.add_circle_outline),
-              ),
-            ],
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.calendar_today_outlined),
-            title: Text(l10n.additionDateLabel),
-            subtitle: Text(_formatAdditionDate(_addedAt)),
-            onTap: _pickDate,
-          ),
-          TextField(
-            controller: _notesController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: l10n.notesOptionalLabel,
-              alignLabelWithHint: true,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(
+            context,
+            _SpeciesAddition(
+              count: _count,
+              addedAt: _addedAt,
+              notes: _notesController.text.trim(),
             ),
           ),
-        ],
-      ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text(l10n.cancel),
-      ),
-      FilledButton(
-        onPressed: () => Navigator.pop(
-          context,
-          _SpeciesAddition(
-            count: _count,
-            addedAt: _addedAt,
-            notes: _notesController.text.trim(),
-          ),
+          child: Text(l10n.save),
         ),
-        child: Text(l10n.save),
-      ),
-    ],
-  );
+      ],
+    );
   }
 
   Future<void> _pickDate() async {
@@ -625,13 +657,18 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
 
 /// Returns the English description/care-notes text when the app language is
 /// English and a translation exists, otherwise falls back to the Polish text.
-String _localizedSpeciesText(BuildContext context, Species species, String plText) {
+String _localizedSpeciesText(
+  BuildContext context,
+  Species species,
+  String plText,
+) {
   if (Localizations.localeOf(context).languageCode != 'en') return plText;
   return speciesDescriptionsEn[species.id] ?? species.nameLatin;
 }
 
 String _localizedSpeciesName(BuildContext context, Species species) {
-  if (Localizations.localeOf(context).languageCode != 'en') return species.namePl;
+  if (Localizations.localeOf(context).languageCode != 'en')
+    return species.namePl;
   return speciesNamesEn[species.id] ?? species.nameLatin;
 }
 

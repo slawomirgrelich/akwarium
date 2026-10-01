@@ -407,7 +407,15 @@ class DashboardPage extends StatelessWidget {
                 ),
               ),
             ),
-            _DashboardTankCard(aquarium: activeAquarium),
+            GestureDetector(
+              onTap: () => Navigator.push<void>(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const AquariumManagementScreen(),
+                ),
+              ),
+              child: _DashboardTankCard(aquarium: activeAquarium),
+            ),
             const SizedBox(height: 20),
             if (context.watch<ProAccessService>().isProUser) ...[
               const FirestoreRemindersWidget(),
