@@ -80,12 +80,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
           ...filtered.map(
             (species) => Card(
               child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer,
-                  child: Icon(_iconFor(species.category)),
-                ),
+                leading: _SpeciesThumbnail(species: species, size: 48),
                 title: Text(_localizedSpeciesName(context, species)),
                 subtitle: Text(
                   '${species.nameLatin} · ${l10n.speciesMinimumVolumeFrom(species.minTankVolumeLiters)}',
@@ -127,6 +122,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(child: _SpeciesThumbnail(species: species, size: 140)),
+              const SizedBox(height: 12),
               Text(
                 species.nameLatin,
                 style: Theme.of(context).textTheme.bodyMedium
@@ -686,6 +683,60 @@ IconData _iconFor(SpeciesCategory category) => switch (category) {
   SpeciesCategory.plant => Icons.local_florist,
   SpeciesCategory.invertebrate => Icons.bug_report_outlined,
 };
+
+class _SpeciesThumbnail extends StatelessWidget {
+  const _SpeciesThumbnail({required this.species, required this.size});
+
+  final Species species;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(size / 4);
+    final placeholder = Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: radius,
+      ),
+      child: Icon(
+        _iconFor(species.category),
+        size: size * 0.45,
+        color: Theme.of(context).colorScheme.onPrimaryContainer,
+      ),
+    );
+    if (species.imageUrl.isEmpty) return placeholder;
+    final isAsset = !species.imageUrl.startsWith('http');
+    final image = isAsset
+        ? Image.asset(
+            species.imageUrl,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => placeholder,
+          )
+        : Image.network(
+            species.imageUrl,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) {
+              if (progress == null) return child;
+              return SizedBox(
+                width: size,
+                height: size,
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) => placeholder,
+          );
+    return ClipRRect(borderRadius: radius, child: image);
+  }
+}
 
 String _difficultyLabel(BuildContext context, SpeciesDifficulty difficulty) {
   final l10n = AppLocalizations.of(context)!;
