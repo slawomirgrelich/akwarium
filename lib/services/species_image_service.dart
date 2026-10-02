@@ -5,17 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class SpeciesImageSource {
-  const SpeciesImageSource({
-    required this.url,
-    required this.attribution,
-  });
+  const SpeciesImageSource({required this.url, required this.attribution});
 
   final String url;
   final String attribution;
 }
 
 class SpeciesImageService {
-  SpeciesImageService({http.Client? client}) : _client = client ?? http.Client();
+  SpeciesImageService({http.Client? client})
+    : _client = client ?? http.Client();
 
   final http.Client _client;
   final Map<String, Future<SpeciesImageSource?>> _cache = {};
@@ -32,7 +30,7 @@ class SpeciesImageService {
     final uri = Uri.https('commons.wikimedia.org', '/w/api.php', {
       'action': 'query',
       'generator': 'search',
-      'gsrsearch': '"$scientificName"',
+      'gsrsearch': '"$scientificName" -label -tag -museum -card -sheet',
       'gsrnamespace': '6',
       'gsrlimit': '10',
       'prop': 'imageinfo',
@@ -82,8 +80,8 @@ class SpeciesImageService {
         final description = _plainText(
           _asMap(metadata['ImageDescription'])?['value']?.toString(),
         );
-        final searchableText =
-            '$title $objectName $description'.toLowerCase();
+        final searchableText = '$title $objectName $description'.toLowerCase();
+        if (!_isLikelySpecimenImage(searchableText)) continue;
         if (requiredTokens.any(
           (token) => !searchableText.contains(token.toLowerCase()),
         )) {
@@ -100,10 +98,7 @@ class SpeciesImageService {
           license,
           'Wikimedia Commons',
         ].join(' · ');
-        return SpeciesImageSource(
-          url: thumbnailUrl!,
-          attribution: attribution,
-        );
+        return SpeciesImageSource(url: thumbnailUrl!, attribution: attribution);
       }
       return null;
     } on TimeoutException {
@@ -134,6 +129,11 @@ class SpeciesImageService {
       .take(2)
       .toList(growable: false);
 
+  static bool _isLikelySpecimenImage(String text) => !RegExp(
+    r'\b(label|labels|labelled|labelling|tag|tags|tagged|tagging|museum|museums|card|cards|sheet|sheets)\b',
+    caseSensitive: false,
+  ).hasMatch(text);
+
   static bool _isReusableLicense(String license) {
     final normalized = license.toLowerCase();
     if (normalized.isEmpty ||
@@ -154,16 +154,13 @@ class SpeciesImageService {
     final uri = value == null ? null : Uri.tryParse(value);
     return uri != null &&
         uri.scheme == 'https' &&
-        (uri.host == 'wikimedia.org' ||
-            uri.host.endsWith('.wikimedia.org'));
+        (uri.host == 'wikimedia.org' || uri.host.endsWith('.wikimedia.org'));
   }
 
   static Map<String, dynamic>? _asMap(Object? value) {
     if (value is Map<String, dynamic>) return value;
     if (value is Map) {
-      return value.map(
-        (key, value) => MapEntry(key.toString(), value),
-      );
+      return value.map((key, value) => MapEntry(key.toString(), value));
     }
     return null;
   }

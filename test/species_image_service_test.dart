@@ -10,7 +10,10 @@ void main() {
     final client = MockClient((request) async {
       expect(request.url.host, 'commons.wikimedia.org');
       expect(request.url.queryParameters['origin'], '*');
-      expect(request.url.queryParameters['gsrsearch'], '"Caridina dennerli"');
+      expect(
+        request.url.queryParameters['gsrsearch'],
+        '"Caridina dennerli" -label -tag -museum -card -sheet',
+      );
       return http.Response(
         jsonEncode({
           'query': {
@@ -143,5 +146,50 @@ void main() {
 
     expect(requests, 1);
     client.close();
+  });
+
+  test('rejects museum labels, tags, cards, and specimen sheets', () async {
+    for (final excludedWord in [
+      'label',
+      'tag',
+      'museum',
+      'card',
+      'sheet',
+    ]) {
+      final client = MockClient((_) async {
+        return http.Response(
+          jsonEncode({
+            'query': {
+              'pages': {
+                '1': {
+                  'title': 'File:Caridina dennerli $excludedWord.jpg',
+                  'imageinfo': [
+                    {
+                      'thumburl':
+                          'https://upload.wikimedia.org/wikipedia/commons/sample.jpg',
+                      'extmetadata': {
+                        'LicenseShortName': {'value': 'CC BY 4.0'},
+                        'ObjectName': {
+                          'value': 'Caridina dennerli $excludedWord',
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          }),
+          200,
+        );
+      });
+      final service = SpeciesImageService(client: client);
+
+      expect(
+        await service.findByScientificName('Caridina dennerli'),
+        isNull,
+        reason: 'Should reject "$excludedWord" search results.',
+      );
+      client.close();
+    }
   });
 }
