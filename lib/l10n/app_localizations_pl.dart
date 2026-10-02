@@ -1057,6 +1057,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get apiKeyHint => 'Pozostaw puste, aby użyć klucza domyślnego';
 
   @override
+  String get geminiApiKeyManualHint =>
+      'Wprowadź klucz API Gemini, aby włączyć skaner AI.';
+
+  @override
   String get testApiKey => 'Testuj klucz API';
 
   @override

@@ -341,6 +341,7 @@
   ,"nameDisplayedOnDashboard": "Name displayed on dashboard"
   ,"apiKeyLabel": "API Key"
   ,"apiKeyHint": "Leave empty to use the default key"
+  ,"geminiApiKeyManualHint": "Enter a Gemini API key to enable the AI scanner."
   ,"testApiKey": "Test API Key"
   ,"useDefaultKey": "Use default key"
   ,"cloudSyncDescription": "Your data is securely synced to the cloud"

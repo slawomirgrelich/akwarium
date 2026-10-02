@@ -2030,6 +2030,12 @@ abstract class AppLocalizations {
   /// **'Pozostaw puste, aby użyć klucza domyślnego'**
   String get apiKeyHint;
 
+  /// No description provided for @geminiApiKeyManualHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wprowadź klucz API Gemini, aby włączyć skaner AI.'**
+  String get geminiApiKeyManualHint;
+
   /// No description provided for @testApiKey.
   ///
   /// In pl, this message translates to:

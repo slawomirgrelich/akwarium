@@ -26,6 +26,33 @@ void main() {
     expect(Inhabitant.fromJson(inhabitant.toJson()).aquariumId, 'tank-1');
   });
 
+  test('calculates aquarium age by calendar day without going negative', () {
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day);
+    final yesterday = todayStart.subtract(const Duration(days: 1));
+
+    AquariumProfile profileFor(DateTime setupDate) => AquariumProfile(
+      id: 'tank-1',
+      name: 'Kostka',
+      volumeNetLiters: 30,
+      setupDate: setupDate,
+      type: TankType.shrimp,
+    );
+
+    expect(
+      profileFor(DateTime(today.year, today.month, today.day, 23, 59))
+          .ageInDays,
+      0,
+    );
+    expect(
+      profileFor(
+        DateTime(yesterday.year, yesterday.month, yesterday.day, 23, 59),
+      ).ageInDays,
+      1,
+    );
+    expect(profileFor(todayStart.add(const Duration(days: 1))).ageInDays, 0);
+  });
+
   test('provider scopes inhabitants to active aquarium', () {
     final provider = AquariumProvider(
       aquariums: [

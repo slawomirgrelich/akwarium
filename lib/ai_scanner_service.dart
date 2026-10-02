@@ -40,10 +40,7 @@ class AiScanResult {
           json['tempRange'] ?? json['temp'],
           fallback: '22 - 26',
         ),
-        ph: _rangeText(
-          json['phRange'] ?? json['ph'],
-          fallback: '6.5 - 7.5',
-        ),
+        ph: _rangeText(json['phRange'] ?? json['ph'], fallback: '6.5 - 7.5'),
         minimumVolume: _numberOrDefault(
           json['minTankVolume'] ?? json['tankSize'],
         ),
@@ -58,7 +55,10 @@ class AiScanResult {
       latinName: _requiredText(json['nazwa_lacinska'], 'nazwa_lacinska'),
       type: _requiredText(json['typ'], 'typ'),
       temperature: _rangeText(requirements['temperatura'], fallback: '22 - 26'),
-      ph: _rangeText(requirements['pH'] ?? requirements['ph'], fallback: '6.5 - 7.5'),
+      ph: _rangeText(
+        requirements['pH'] ?? requirements['ph'],
+        fallback: '6.5 - 7.5',
+      ),
       minimumVolume: _numberOrDefault(requirements['min_pojemnosc_akwarium']),
       difficulty: _textOrFallback(requirements['poziom_trudnosci'], 'Łatwy'),
       description: _requiredText(json['opis'], 'opis'),
@@ -69,10 +69,11 @@ class AiScanResult {
 
 class AiScannerService {
   AiScannerService({http.Client? client, String? apiKey})
-      : _client = client ?? http.Client(),
-        apiKeyOverride = apiKey;
+    : _client = client ?? http.Client(),
+      apiKeyOverride = apiKey;
 
   static const defaultApiKey = String.fromEnvironment('GEMINI_API_KEY');
+  static const _models = ['gemini-3.8-flash', 'gemini-2.5-flash'];
   final http.Client _client;
   final String? apiKeyOverride;
 
@@ -82,36 +83,45 @@ class AiScannerService {
       throw const AiScannerException('Wpisz klucz API Gemini.');
     }
 
-    final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/'
-      'gemini-3.8-flash:generateContent?key=$key',
-    );
     try {
-      final response = await _client
-          .post(
-            url,
-            headers: const {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'contents': [
-                {
-                  'parts': [
-                    {'text': 'Odpowiedz jednym słowem: OK'},
-                  ],
-                },
-              ],
-              'generationConfig': {'maxOutputTokens': 8},
-            }),
-          )
-          .timeout(const Duration(seconds: 20));
-      if (response.statusCode != 200) {
-        throw AiScannerException(
-          'HTTP ${response.statusCode}: ${response.body}',
-        );
+      for (var index = 0; index < _models.length; index++) {
+        final response = await _client
+            .post(
+              Uri.parse(
+                'https://generativelanguage.googleapis.com/v1beta/models/'
+                '${_models[index]}:generateContent?key=$key',
+              ),
+              headers: const {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'contents': [
+                  {
+                    'parts': [
+                      {'text': 'Odpowiedz jednym słowem: OK'},
+                    ],
+                  },
+                ],
+                'generationConfig': {'maxOutputTokens': 8},
+              }),
+            )
+            .timeout(const Duration(seconds: 20));
+        if (response.statusCode == 404 && index < _models.length - 1) {
+          continue;
+        }
+        if (response.statusCode != 200) {
+          throw AiScannerException(
+            'HTTP ${response.statusCode}: ${response.body}',
+          );
+        }
+        return;
       }
     } on TimeoutException {
-      throw const AiScannerException('Test klucza Gemini przekroczył limit czasu.');
+      throw const AiScannerException(
+        'Test klucza Gemini przekroczył limit czasu.',
+      );
     } on http.ClientException catch (error) {
-      throw AiScannerException('Nie udało się połączyć z Gemini: ${error.message}');
+      throw AiScannerException(
+        'Nie udało się połączyć z Gemini: ${error.message}',
+      );
     }
   }
 
@@ -123,7 +133,6 @@ class AiScannerService {
     final environmentApiKey = defaultApiKey.trim();
     final preferences = await SharedPreferences.getInstance();
     final storedApiKey = preferences.getString('gemini_api_key')?.trim() ?? '';
-    final usesStoredApiKey = environmentApiKey.isEmpty && apiKeyOverride == null && storedApiKey.isNotEmpty;
     final apiKey = environmentApiKey.isNotEmpty
         ? environmentApiKey
         : apiKeyOverride?.trim() ?? storedApiKey;
@@ -132,43 +141,42 @@ class AiScannerService {
         'Klucz API Gemini jest pusty. Sprawdź GitHub Secrets lub Ustawienia Profilu.',
       );
     }
-   const models = ['gemini-3.8-flash', 'gemini-2.5-flash'];
     var overloadFailures = 0;
-    for (var index = 0; index < models.length; index++) {
+    for (var index = 0; index < _models.length; index++) {
       try {
         final requestUrl =
             'https://generativelanguage.googleapis.com/v1beta/models/'
-            '${models[index]}:generateContent?key=$apiKey';
+            '${_models[index]}:generateContent?key=$apiKey';
         debugPrint(
           'Requesting Gemini API via: '
           '${requestUrl.replaceAll(apiKey, 'HIDDEN_KEY')}',
         );
-        final response = await _client.post(
-          Uri.parse(requestUrl),
-          headers: const {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'contents': [
-              {
-                'parts': [
-                  {'text': _geminiPrompt},
+        final response = await _client
+            .post(
+              Uri.parse(requestUrl),
+              headers: const {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'contents': [
                   {
-                    'inline_data': {
-                      'mime_type': 'image/jpeg',
-                      'data': base64Encode(imageBytes),
-                    },
+                    'parts': [
+                      {'text': _geminiPrompt},
+                      {
+                        'inline_data': {
+                          'mime_type': 'image/jpeg',
+                          'data': base64Encode(imageBytes),
+                        },
+                      },
+                    ],
                   },
                 ],
-              },
-            ],
-            'generationConfig': {
-              'response_mime_type': 'application/json',
-            },
-          }),
-        ).timeout(const Duration(seconds: 45));
+                'generationConfig': {'response_mime_type': 'application/json'},
+              }),
+            )
+            .timeout(const Duration(seconds: 45));
         if (response.statusCode != 200) {
           if (response.statusCode == 503 || response.statusCode == 429) {
             overloadFailures++;
-            if (index < models.length - 1) {
+            if (index < _models.length - 1) {
               await Future<void>.delayed(const Duration(milliseconds: 1500));
               continue;
             }
@@ -176,8 +184,11 @@ class AiScannerService {
               'Serwery AI są obecnie przeciążone. Spróbuj ponownie za chwilę.',
             );
           }
-          if (response.statusCode == 404 && usesStoredApiKey) {
-            await preferences.remove('gemini_api_key');
+          if (response.statusCode == 404 && index < _models.length - 1) {
+            debugPrint(
+              'Gemini model ${_models[index]} is unavailable; trying fallback.',
+            );
+            continue;
           }
           throw AiScannerException(
             'HTTP ${response.statusCode}:${response.body}',
@@ -188,9 +199,13 @@ class AiScannerService {
         final candidate = candidates.isEmpty
             ? const <String, dynamic>{}
             : Map<String, dynamic>.from(candidates.first as Map);
-        final content = Map<String, dynamic>.from(candidate['content'] as Map? ?? const {});
+        final content = Map<String, dynamic>.from(
+          candidate['content'] as Map? ?? const {},
+        );
         final parts = content['parts'] as List<dynamic>? ?? const [];
-        final text = parts.isEmpty ? '' : (parts.first as Map)['text']?.toString().trim() ?? '';
+        final text = parts.isEmpty
+            ? ''
+            : (parts.first as Map)['text']?.toString().trim() ?? '';
         if (text.isEmpty) {
           throw const AiScannerException('Gemini nie zwróciło wyniku analizy.');
         }
@@ -203,10 +218,12 @@ class AiScannerService {
       } on http.ClientException catch (error) {
         throw AiScannerException('Błąd połączenia z Gemini: ${error.message}');
       } on FormatException {
-        throw const AiScannerException('Gemini zwróciło nieprawidłowy format JSON.');
+        throw const AiScannerException(
+          'Gemini zwróciło nieprawidłowy format JSON.',
+        );
       }
     }
-    if (overloadFailures == models.length) {
+    if (overloadFailures == _models.length) {
       throw const AiScannerException(
         'Serwery AI są obecnie przeciążone. Spróbuj ponownie za chwilę.',
       );
@@ -250,13 +267,14 @@ class AiScannerException implements Exception {
   String toString() => message;
 }
 
-Map<String, dynamic> _asMap(dynamic value) => value is Map
-    ? Map<String, dynamic>.from(value)
-    : <String, dynamic>{};
+Map<String, dynamic> _asMap(dynamic value) =>
+    value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
 
 String _requiredText(dynamic value, String field) {
   final text = value?.toString().trim() ?? '';
-  if (text.isEmpty) throw AiScannerException('Brak pola $field w odpowiedzi AI.');
+  if (text.isEmpty) {
+    throw AiScannerException('Brak pola $field w odpowiedzi AI.');
+  }
   return text;
 }
 

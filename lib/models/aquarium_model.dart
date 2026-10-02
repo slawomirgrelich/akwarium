@@ -115,7 +115,17 @@ class AquariumProfile {
   final String? imagePath;
   final bool isActive;
 
-  int get ageInDays => DateTime.now().difference(setupDate).inDays;
+  int get ageInDays {
+    final now = DateTime.now();
+    final today = DateTime.utc(now.year, now.month, now.day);
+    final setupDay = DateTime.utc(
+      setupDate.year,
+      setupDate.month,
+      setupDate.day,
+    );
+    final elapsedDays = today.difference(setupDay).inDays;
+    return elapsedDays < 0 ? 0 : elapsedDays;
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,

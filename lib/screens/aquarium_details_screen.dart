@@ -40,6 +40,14 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Szczegóły akwarium'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
+        ),
         actions: [_ReportIconButton(onPressed: () => _requestReport(context))],
       ),
       body: StreamBuilder<List<WaterParametersModel>>(

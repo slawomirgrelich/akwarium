@@ -1051,6 +1051,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apiKeyHint => 'Leave empty to use the default key';
 
   @override
+  String get geminiApiKeyManualHint =>
+      'Enter a Gemini API key to enable the AI scanner.';
+
+  @override
   String get testApiKey => 'Test API Key';
 
   @override

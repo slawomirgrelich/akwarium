@@ -341,6 +341,7 @@
   ,"nameDisplayedOnDashboard": "Imię wyświetlane na pulpicie"
   ,"apiKeyLabel": "Klucz API"
   ,"apiKeyHint": "Pozostaw puste, aby użyć klucza domyślnego"
+  ,"geminiApiKeyManualHint": "Wprowadź klucz API Gemini, aby włączyć skaner AI."
   ,"testApiKey": "Testuj klucz API"
   ,"useDefaultKey": "Użyj domyślnego klucza"
   ,"cloudSyncDescription": "Twoje dane są bezpiecznie synchronizowane w chmurze"

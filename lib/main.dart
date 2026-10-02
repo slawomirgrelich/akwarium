@@ -1795,7 +1795,9 @@ class ProfilePage extends StatelessWidget {
                 autofocus: true,
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.apiKeyLabel,
-                  hintText: AppLocalizations.of(context)!.apiKeyHint,
+                  hintText: AiScannerService.defaultApiKey.trim().isEmpty
+                      ? AppLocalizations.of(context)!.geminiApiKeyManualHint
+                      : AppLocalizations.of(context)!.apiKeyHint,
                 ),
               ),
               if (keyTestMessage != null) ...[
@@ -1825,7 +1827,7 @@ class ProfilePage extends StatelessWidget {
                         if (!dialogContext.mounted) return;
                         setDialogState(() {
                           keyTestSucceeded = true;
-                          keyTestMessage = AppLocalizations.of(context)!
+                          keyTestMessage = AppLocalizations.of(dialogContext)!
                               .geminiConnectionSucceeded;
                         });
                       } on Object catch (error) {
@@ -1846,25 +1848,26 @@ class ProfilePage extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(AppLocalizations.of(context)!.testApiKey),
+                  : Text(AppLocalizations.of(dialogContext)!.testApiKey),
             ),
-            TextButton(
-              onPressed: isTestingKey
-                  ? null
-                  : () => Navigator.pop(dialogContext, ''),
-              child: Text(AppLocalizations.of(context)!.useDefaultKey),
-            ),
+            if (AiScannerService.defaultApiKey.trim().isNotEmpty)
+              TextButton(
+                onPressed: isTestingKey
+                    ? null
+                    : () => Navigator.pop(dialogContext, ''),
+                child: Text(AppLocalizations.of(dialogContext)!.useDefaultKey),
+              ),
             TextButton(
               onPressed: isTestingKey
                   ? null
                   : () => Navigator.pop(dialogContext),
-              child: Text(AppLocalizations.of(context)!.cancel),
+              child: Text(AppLocalizations.of(dialogContext)!.cancel),
             ),
             FilledButton(
               onPressed: isTestingKey
                   ? null
                   : () => Navigator.pop(dialogContext, controller.text.trim()),
-              child: Text(AppLocalizations.of(context)!.save),
+              child: Text(AppLocalizations.of(dialogContext)!.save),
             ),
           ],
         ),
