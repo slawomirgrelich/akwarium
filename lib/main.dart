@@ -466,6 +466,13 @@ class DashboardPage extends StatelessWidget {
             _SectionHeader(title: l10n.recentParameters),
             const SizedBox(height: 12),
             _WaterParametersCard(test: latestTest),
+            if (provider.waterTestsSyncFailed) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.waterTestsSyncFailed,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
             const SizedBox(height: 16),
             const WaterParametersChart(),
             const SizedBox(height: 24),

@@ -616,9 +616,11 @@ class AquariumProvider extends ChangeNotifier {
   String? _currentTasksUserId;
   int _authGeneration = 0;
   bool _hasResolvedAuthState = false;
+  bool _waterTestsSyncFailed = false;
 
   String get activeAquariumId => _activeAquariumId;
   String get selectedAquariumId => _activeAquariumId;
+  bool get waterTestsSyncFailed => _waterTestsSyncFailed;
   List<AquariumProfile> get aquariums => List.unmodifiable(_aquariums);
   AquariumProfile? get selectedAquarium {
     for (final aquarium in _aquariums) {
@@ -651,13 +653,26 @@ class AquariumProvider extends ChangeNotifier {
 
     try {
       final auth = FirebaseAuth.instance;
-      await auth.setPersistence(Persistence.LOCAL);
-      _authStateSubscription?.cancel();
+      if (kIsWeb) {
+        try {
+          await auth.setPersistence(Persistence.LOCAL);
+        } on Object catch (error, stackTrace) {
+          debugPrint(
+            'Firebase web auth persistence setup failed: $error\n$stackTrace',
+          );
+        }
+      }
+      await _authStateSubscription?.cancel();
       _authStateSubscription = auth.authStateChanges().listen(
         (user) => unawaited(_handleAuthState(user)),
+        onError: (Object error) {
+          debugPrint('Firebase auth state stream failed: $error');
+        },
       );
-    } catch (_) {
-      // Do czasu konfiguracji Firebase aplikacja korzysta z danych lokalnych.
+    } on Object catch (error, stackTrace) {
+      debugPrint(
+        'Firebase auth synchronization could not start: $error\n$stackTrace',
+      );
     }
   }
 
@@ -1309,13 +1324,14 @@ class AquariumProvider extends ChangeNotifier {
                 .toList();
             _replaceWaterTests(tests);
           },
-          onError: (_) {
-            // Przy braku połączenia aplikacja nadal korzysta z cache lokalnego.
+          onError: (Object error) {
+            _recordWaterTestsSyncError(error);
           },
         );
   }
 
   void _replaceWaterTests(List<WaterTest> tests) {
+    _waterTestsSyncFailed = false;
     _waterTests
       ..clear()
       ..addAll(tests);
@@ -1354,18 +1370,54 @@ class AquariumProvider extends ChangeNotifier {
       }
       if (user.uid.trim().isEmpty || test.id.trim().isEmpty) return;
 
-      final data = Map<String, dynamic>.from(test.toMap())
-        ..['date'] = test.date;
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('water_tests')
-          .doc(test.id)
-          .set(data);
+      final firestore = FirebaseFirestore.instance;
+      final userReference = firestore.collection('users').doc(user.uid);
+      final batch = firestore.batch();
+      final timestamp = Timestamp.fromDate(test.date);
+      final testData = Map<String, dynamic>.from(test.toMap())
+        ..['date'] = timestamp;
+      batch.set(
+        userReference.collection('water_tests').doc(test.id),
+        testData,
+      );
+      if (test.aquariumId.trim().isNotEmpty) {
+        batch.set(
+          userReference
+              .collection('aquariums')
+              .doc(test.aquariumId)
+              .collection('water_parameters')
+              .doc(test.id),
+          {
+            'id': test.id,
+            'aquariumId': test.aquariumId,
+            'timestamp': timestamp,
+            'ph': test.ph,
+            'kh': test.kh,
+            'gh': test.gh,
+            'no3': test.no3,
+            'po4': test.po4,
+            'fe': test.fe,
+            'temp': test.temp,
+            'notes': '',
+          },
+          SetOptions(merge: true),
+        );
+      }
+      await batch.commit();
+      final hadSyncError = _waterTestsSyncFailed;
+      _waterTestsSyncFailed = false;
+      if (hadSyncError) notifyListeners();
       await FirestoreSyncStatus.recordSuccessfulSync();
-    } catch (_) {
-      // Lokalny zapis pozostaje źródłem danych offline.
+    } on Object catch (error) {
+      _recordWaterTestsSyncError(error);
     }
+  }
+
+  void _recordWaterTestsSyncError(Object error) {
+    debugPrint('Water-test Firestore sync failed: $error');
+    if (_waterTestsSyncFailed) return;
+    _waterTestsSyncFailed = true;
+    notifyListeners();
   }
 
   @override

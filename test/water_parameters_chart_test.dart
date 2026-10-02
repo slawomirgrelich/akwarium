@@ -26,7 +26,9 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: const Locale('en'),
-          home: const Scaffold(body: WaterParametersChart()),
+          home: const Scaffold(
+            body: SingleChildScrollView(child: WaterParametersChart()),
+          ),
         ),
       ),
     );
@@ -36,6 +38,38 @@ void main() {
     expect(find.byType(LineChart), findsOneWidget);
     expect(find.text('NO3'), findsOneWidget);
     expect(find.text('PO4'), findsOneWidget);
+  });
+
+  testWidgets('uses a compact empty state before two tests are available', (
+    tester,
+  ) async {
+    final provider = AquariumProvider(
+      activeAquariumId: 'tank-1',
+      waterTests: [_test(id: 'only', date: DateTime(2026, 1, 1), ph: 6.8)],
+    );
+    addTearDown(provider.dispose);
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: const Scaffold(
+            body: SingleChildScrollView(child: WaterParametersChart()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LineChart), findsNothing);
+    expect(
+      find.text('Add at least two measurements to see the chart.'),
+      findsOneWidget,
+    );
+    expect(tester.getSize(find.byType(Card)).height, lessThan(180));
   });
 }
 

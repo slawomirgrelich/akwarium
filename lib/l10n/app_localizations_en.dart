@@ -1398,6 +1398,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get waterAssessmentNormal => 'Within range';
 
   @override
+  String get waterTestsSyncFailed =>
+      'Water-test history could not sync. Check your connection and sign-in.';
+
+  @override
   String get waterAssessmentCriticalNo3 =>
       'Critical NO3 level. A 30% water change is recommended.';
 

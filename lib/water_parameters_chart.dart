@@ -68,12 +68,21 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
               ),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 230,
-              child: tests.length < 2
-                  ? Center(child: Text(l10n.chartTwoMeasurementsRequired))
-                  : LineChart(
-                      LineChartData(
+            if (tests.length < 2)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: Text(
+                    l10n.chartTwoMeasurementsRequired,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 230,
+                child: LineChart(
+                  LineChartData(
                         minY: standard.chartMin,
                         maxY: _maxY(standard, values),
                         minX: 0,
@@ -120,9 +129,9 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
                                   ),
                                 );
                               },
+                              ),
                             ),
                           ),
-                        ),
                         lineBarsData: [
                           LineChartBarData(
                             spots: values.indexed

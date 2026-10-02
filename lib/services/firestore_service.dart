@@ -34,6 +34,9 @@ class FirestoreService {
     return _aquariums(userId).doc(aquariumId).collection('water_parameters');
   }
 
+  CollectionReference<Map<String, dynamic>> _waterTests(String userId) =>
+      _firestore.collection('users').doc(userId).collection('water_tests');
+
   CollectionReference<Map<String, dynamic>> _livestock(
     String userId,
     String aquariumId,
@@ -193,7 +196,14 @@ class FirestoreService {
       final reference = params.id.isEmpty
           ? _waterParameters(userId, params.aquariumId).doc()
           : _waterParameters(userId, params.aquariumId).doc(params.id);
-      await reference.set(params.copyWith(id: reference.id).toMap());
+      final saved = params.copyWith(id: reference.id);
+      final batch = _firestore.batch();
+      batch.set(reference, saved.toMap());
+      batch.set(_waterTests(userId).doc(saved.id), {
+        ...saved.toMap(),
+        'date': Timestamp.fromDate(saved.timestamp),
+      }, SetOptions(merge: true));
+      await batch.commit();
       await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
@@ -209,7 +219,13 @@ class FirestoreService {
     }
 
     try {
-      await _waterParameters(userId, aquariumId).doc(paramId).delete();
+      final legacyTest = await _waterTests(userId).doc(paramId).get();
+      final batch = _firestore.batch();
+      batch.delete(_waterParameters(userId, aquariumId).doc(paramId));
+      if (legacyTest.data()?['aquariumId'] == aquariumId) {
+        batch.delete(legacyTest.reference);
+      }
+      await batch.commit();
       await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {
       throw FirestoreServiceException(_messageFor(error));
@@ -238,7 +254,8 @@ class FirestoreService {
 
     try {
       final normalizedCategory = category.toLowerCase();
-      final isFlora = normalizedCategory.contains('plant') ||
+      final isFlora =
+          normalizedCategory.contains('plant') ||
           normalizedCategory.contains('flora') ||
           normalizedCategory.contains('roślin') ||
           normalizedCategory.contains('roslin');
@@ -252,8 +269,8 @@ class FirestoreService {
         'tempRange': tempRange,
         'minTankVolume': minTankVolume,
         'addedAt': addedAt == null
-          ? FieldValue.serverTimestamp()
-          : Timestamp.fromDate(addedAt),
+            ? FieldValue.serverTimestamp()
+            : Timestamp.fromDate(addedAt),
         'notes': notes,
         'photoUrl': ?photoUrl,
       });
@@ -318,9 +335,7 @@ class FirestoreService {
       throw const FirestoreServiceException('Nieprawidłowa liczba sztuk.');
     }
     try {
-      await _livestock(userId, aquariumId)
-          .doc(itemId)
-          .update({'count': count});
+      await _livestock(userId, aquariumId).doc(itemId).update({'count': count});
       await FirestoreSyncStatus.recordSuccessfulSync();
     } on FirebaseException catch (error) {
       throw FirestoreServiceException(

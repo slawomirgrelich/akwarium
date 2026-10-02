@@ -1409,6 +1409,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get waterAssessmentNormal => 'W normie';
 
   @override
+  String get waterTestsSyncFailed =>
+      'Nie udało się zsynchronizować historii pomiarów wody. Sprawdź połączenie i logowanie.';
+
+  @override
   String get waterAssessmentCriticalNo3 =>
       'Krytyczny poziom NO3. Zalecana podmiana 30% wody.';
 

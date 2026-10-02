@@ -460,6 +460,7 @@
   ,"waterAssessmentWarning": "Uwaga"
   ,"waterAssessmentOutsideOptimum": "Poza optimum"
   ,"waterAssessmentNormal": "W normie"
+  ,"waterTestsSyncFailed": "Nie udało się zsynchronizować historii pomiarów wody. Sprawdź połączenie i logowanie."
   ,"waterAssessmentCriticalNo3": "Krytyczny poziom NO3. Zalecana podmiana 30% wody."
   ,"waterAssessmentPhOutsideSafeRange": "pH poza bezpiecznym zakresem 6,0-8,0."
   ,"waterAssessmentHighNo3": "Wysoki poziom NO3. Zalecana podmiana 30% wody."

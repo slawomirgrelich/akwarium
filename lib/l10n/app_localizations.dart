@@ -2642,6 +2642,12 @@ abstract class AppLocalizations {
   /// **'W normie'**
   String get waterAssessmentNormal;
 
+  /// No description provided for @waterTestsSyncFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zsynchronizować historii pomiarów wody. Sprawdź połączenie i logowanie.'**
+  String get waterTestsSyncFailed;
+
   /// No description provided for @waterAssessmentCriticalNo3.
   ///
   /// In pl, this message translates to:

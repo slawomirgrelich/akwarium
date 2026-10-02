@@ -225,6 +225,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         } else {
           ScaffoldMessenger.of(pageContext).showSnackBar(
             SnackBar(
+              duration: const Duration(seconds: 3),
+              showCloseIcon: true,
               content: Text(
                 AppLocalizations.of(pageContext)!
                     .openManagementToCreateAquarium,
@@ -266,6 +268,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
       messenger.showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+          showCloseIcon: true,
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
           content: Text(
             pageL10n.addedSpeciesToAquarium(
@@ -358,6 +362,8 @@ void _showAtlasMessage(
     ..showSnackBar(
       SnackBar(
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        showCloseIcon: true,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
         backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
         content: Text(message),
@@ -790,9 +796,18 @@ class _SpeciesThumbnailState extends State<_SpeciesThumbnail> {
     required bool isFallback,
   }) {
     final uri = Uri.tryParse(source);
+    final isInsecureNetworkImage =
+        uri != null && uri.scheme == 'http' && uri.host.isNotEmpty;
+    if (isInsecureNetworkImage) {
+      if (!isFallback) {
+        _useFallbackAfterError();
+        return _loading(context);
+      }
+      return _placeholder(context);
+    }
     final isNetworkImage =
         uri != null &&
-        (uri.scheme == 'https' || uri.scheme == 'http') &&
+        uri.scheme == 'https' &&
         uri.host.isNotEmpty;
     Widget errorBuilder(
       BuildContext context,

@@ -460,6 +460,7 @@
   ,"waterAssessmentWarning": "Warning"
   ,"waterAssessmentOutsideOptimum": "Outside optimum"
   ,"waterAssessmentNormal": "Within range"
+  ,"waterTestsSyncFailed": "Water-test history could not sync. Check your connection and sign-in."
   ,"waterAssessmentCriticalNo3": "Critical NO3 level. A 30% water change is recommended."
   ,"waterAssessmentPhOutsideSafeRange": "pH is outside the safe range of 6.0-8.0."
   ,"waterAssessmentHighNo3": "High NO3. A 30% water change is recommended."
