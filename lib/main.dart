@@ -2088,6 +2088,14 @@ class _AquariumCard extends StatelessWidget {
                     fontSize: 14,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.daysCount(aquarium.ageInDays),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),

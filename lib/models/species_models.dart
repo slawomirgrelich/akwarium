@@ -29,6 +29,7 @@ class Species {
     required this.description,
     String? careNotes,
     required this.imageUrl,
+    this.imageAttribution = '',
   }) : careNotes = careNotes ?? description;
 
   final String id;
@@ -44,6 +45,7 @@ class Species {
   final String description;
   final String careNotes;
   final String imageUrl;
+  final String imageAttribution;
 }
 
 class TankStockItem {

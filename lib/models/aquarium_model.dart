@@ -147,7 +147,9 @@ class AquariumProfile {
         name: json['name'] as String,
         volumeNetLiters: (json['volumeNetLiters'] as num).toDouble(),
         volumeGrossLiters: (json['volumeGrossLiters'] as num?)?.toDouble(),
-        setupDate: DateTime.parse(json['setupDate'] as String),
+        setupDate:
+            DateTime.tryParse(json['setupDate'] as String? ?? '') ??
+            DateTime.now(),
         type: TankType.values.byName(json['type'] as String? ?? 'freshwater'),
         substrate: json['substrate'] as String?,
         lighting: json['lighting'] as String?,

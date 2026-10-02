@@ -123,6 +123,17 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(child: _SpeciesThumbnail(species: species, size: 140)),
+              if (species.imageAttribution.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    species.imageAttribution,
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               Text(
                 species.nameLatin,

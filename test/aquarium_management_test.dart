@@ -26,6 +26,21 @@ void main() {
     expect(Inhabitant.fromJson(inhabitant.toJson()).aquariumId, 'tank-1');
   });
 
+  test('loads legacy aquarium profiles without a setup date', () {
+    final profile = AquariumProfile.fromJson({
+      'id': 'tank-legacy',
+      'name': 'Stare akwarium',
+      'volumeNetLiters': 30,
+      'type': 'freshwater',
+    });
+
+    final today = DateTime.now();
+    expect(profile.setupDate.year, today.year);
+    expect(profile.setupDate.month, today.month);
+    expect(profile.setupDate.day, today.day);
+    expect(profile.ageInDays, 0);
+  });
+
   test('calculates aquarium age by calendar day without going negative', () {
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);

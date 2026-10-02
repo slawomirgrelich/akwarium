@@ -42,11 +42,7 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
         title: const Text('Szczegóły akwarium'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [_ReportIconButton(onPressed: () => _requestReport(context))],
       ),
