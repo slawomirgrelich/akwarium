@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:akwarium/l10n/app_localizations.dart';
 import 'package:akwarium/services/aquarium_diagnostic_service.dart';
+import 'package:akwarium/utils/aquarium_diagnostic_localization.dart';
+import 'package:flutter/widgets.dart';
 
 void main() {
   final service = AquariumDiagnosticService();
@@ -17,7 +20,13 @@ void main() {
       ),
     );
 
-    expect(result.findings.any((item) => item.title == 'Ryzyko sinic'), true);
+    expect(
+      result.findings.any(
+        (item) =>
+            item.key == AquariumDiagnosticFindingKey.cyanobacteriaRisk,
+      ),
+      true,
+    );
   });
 
   test('wykrywa ryzyko zielenic przy braku PO4', () {
@@ -32,7 +41,12 @@ void main() {
       ),
     );
 
-    expect(result.findings.any((item) => item.title == 'Ryzyko zielenic'), true);
+    expect(
+      result.findings.any(
+        (item) => item.key == AquariumDiagnosticFindingKey.greenAlgaeRisk,
+      ),
+      true,
+    );
   });
 
   test('łączy wysokie CO2 i wahanie pH z ostrzeżeniem', () {
@@ -48,9 +62,40 @@ void main() {
     );
 
     expect(
-      result.findings.map((item) => item.title),
-      containsAll(['Niebezpieczny poziom CO2', 'Ryzyko krasnorostów']),
+      result.findings.map((item) => item.key),
+      containsAll([
+        AquariumDiagnosticFindingKey.dangerousCo2,
+        AquariumDiagnosticFindingKey.redAlgaeRisk,
+      ]),
     );
     expect(result.actionPlan, isNotEmpty);
+  });
+
+  test('lokalizuje ostrzeżenia i zalecenia diagnostyczne', () async {
+    final result = service.diagnose(
+      const AquariumDiagnosticInput(
+        ph: 7,
+        no3: 2,
+        po4: 1,
+        co2Ppm: 20,
+        previousPh: 7,
+        lightHours: 8,
+      ),
+    );
+    final finding = result.findings.first;
+    final english = await AppLocalizations.delegate.load(const Locale('en'));
+
+    expect(
+      diagnosticFindingTitle(english, finding.key),
+      'Cyanobacteria risk',
+    );
+    expect(
+      diagnosticFindingMessage(english, finding.key),
+      'Very low NO3 with the current PO4 level may encourage cyanobacteria.',
+    );
+    expect(
+      diagnosticAction(english, result.actionPlan.first),
+      'Restore a measurable, stable NO3 level without sudden fertilization.',
+    );
   });
 }

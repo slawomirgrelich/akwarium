@@ -24,6 +24,7 @@ import 'local_reminder_service.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/aquarium_firestore_model.dart' show AquariumModel;
 import 'models/water_standards.dart';
+import 'utils/water_assessment_localization.dart';
 import 'models/tank_firestore_models.dart' show Tank;
 import 'screens/aquarium_details_screen.dart';
 import 'screens/auth_wrapper.dart';
@@ -2302,7 +2303,10 @@ class _WaterParametersCard extends StatelessWidget {
                   _ParameterChip(label: 'Fe', value: '${test!.fe} mg/l'),
                   _ParameterChip(label: 'KH', value: '${test!.kh} dKH'),
                   _ParameterChip(label: 'GH', value: '${test!.gh} dGH'),
-                  _ParameterChip(label: 'Temp.', value: '${test!.temp}°C'),
+                  _ParameterChip(
+                    label: l10n.temperature,
+                    value: '${test!.temp}°C',
+                  ),
                 ],
               ),
       ),
@@ -2318,15 +2322,11 @@ class _WaterAlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isCritical = alert.status == WaterStatus.critical;
     final color = isCritical ? Colors.red.shade700 : Colors.orange.shade800;
-    final parameter = WaterParameter.values.firstWhere(
-      (item) =>
-          assessWaterValue(item, waterValue(test, item)).message ==
-          alert.message,
-      orElse: () => WaterParameter.ph,
-    );
-    final value = waterValue(test, parameter);
+    final parameter = alert.parameter;
+    final value = parameter == null ? null : waterValue(test, parameter);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -2342,7 +2342,9 @@ class _WaterAlertCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '${alert.label}: ${alert.message} (${value.toStringAsFixed(1)})',
+              '${waterAssessmentLabel(l10n, alert)}: '
+              '${waterAssessmentMessage(l10n, alert)}'
+              '${value == null ? '' : ' (${value.toStringAsFixed(1)})'}',
               style: TextStyle(color: color, fontWeight: FontWeight.w700),
             ),
           ),

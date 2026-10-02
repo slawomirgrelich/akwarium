@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'models/aquarium_model.dart' as models;
 import 'models/water_standards.dart';
+import 'utils/water_assessment_localization.dart';
 
 /// Formularz zapisu parametrów wody z dokładnym znacznikiem czasu.
 class WaterTestScreen extends StatefulWidget {
@@ -145,6 +146,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
     final assessment = rawValue == null
         ? null
         : assessWaterValue(parameter, rawValue);
+    final l10n = AppLocalizations.of(context)!;
     final color = assessment == null
         ? null
         : assessment.status == WaterStatus.good
@@ -161,7 +163,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
       suffixIcon: assessment == null
           ? null
           : Tooltip(
-              message: assessment.message,
+              message: waterAssessmentMessage(l10n, assessment),
               child: Icon(
                 assessment.status == WaterStatus.good
                     ? Icons.check_circle

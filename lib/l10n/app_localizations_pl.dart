@@ -1397,6 +1397,152 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String get waterAssessmentCritical => 'Krytyczny';
+
+  @override
+  String get waterAssessmentWarning => 'Uwaga';
+
+  @override
+  String get waterAssessmentOutsideOptimum => 'Poza optimum';
+
+  @override
+  String get waterAssessmentNormal => 'W normie';
+
+  @override
+  String get waterAssessmentCriticalNo3 =>
+      'Krytyczny poziom NO3. Zalecana podmiana 30% wody.';
+
+  @override
+  String get waterAssessmentPhOutsideSafeRange =>
+      'pH poza bezpiecznym zakresem 6,0-8,0.';
+
+  @override
+  String get waterAssessmentHighNo3 =>
+      'Wysoki poziom NO3. Zalecana podmiana 30% wody.';
+
+  @override
+  String get waterAssessmentLowPo4 => 'Niski PO4 zwiększa ryzyko zielenic.';
+
+  @override
+  String get waterAssessmentHighPo4 =>
+      'Wysoki PO4 zwiększa ryzyko krasnorostów.';
+
+  @override
+  String waterAssessmentOutsideMeasurementRange(String parameter) {
+    return '$parameter poza zakresem pomiarowym.';
+  }
+
+  @override
+  String waterAssessmentOutsideOptimalRange(
+    String parameter,
+    num min,
+    num max,
+    String unit,
+  ) {
+    return '$parameter poza optimum $min-$max$unit.';
+  }
+
+  @override
+  String get waterAssessmentWithinOptimalRange =>
+      'Parametr znajduje się w optymalnym zakresie.';
+
+  @override
+  String get waterAssessmentRedfieldRatio =>
+      'Stosunek NO3:PO4 poza sugerowanym zakresem 10:1-16:1.';
+
+  @override
+  String get diagnosticCyanobacteriaRiskTitle => 'Ryzyko sinic';
+
+  @override
+  String get diagnosticCyanobacteriaRiskMessage =>
+      'Bardzo niski NO3 przy obecnym PO4 może sprzyjać sinicom.';
+
+  @override
+  String get diagnosticGreenAlgaeRiskTitle => 'Ryzyko zielenic';
+
+  @override
+  String get diagnosticGreenAlgaeRiskMessage =>
+      'Niski PO4 przy wyższym NO3 może sprzyjać zielenicom.';
+
+  @override
+  String get diagnosticDangerousCo2Title => 'Niebezpieczny poziom CO2';
+
+  @override
+  String get diagnosticDangerousCo2Message =>
+      'CO2 powyżej 30 ppm może powodować przyduchę ryb.';
+
+  @override
+  String get diagnosticLowCo2Title => 'Niestabilne lub niskie CO2';
+
+  @override
+  String get diagnosticLowCo2Message =>
+      'Niski poziom CO2 może osłabiać rośliny i sprzyjać krasnorostom.';
+
+  @override
+  String get diagnosticRedAlgaeRiskTitle => 'Ryzyko krasnorostów';
+
+  @override
+  String get diagnosticRedAlgaeRiskMessage =>
+      'Wahania pH/CO2 osłabiają rośliny i sprzyjają krasnorostom.';
+
+  @override
+  String get diagnosticExcessiveLightingTitle => 'Długi czas świecenia';
+
+  @override
+  String get diagnosticExcessiveLightingMessage =>
+      'Ponad 9 godzin światła może wzmacniać presję glonów.';
+
+  @override
+  String get diagnosticStableParametersTitle => 'Parametry wyglądają stabilnie';
+
+  @override
+  String get diagnosticStableParametersMessage =>
+      'Nie znaleziono typowych sygnałów nierównowagi.';
+
+  @override
+  String get diagnosticActionStabilizeNo3 =>
+      'Przywróć mierzalny, stabilny poziom NO3 bez gwałtownego nawożenia.';
+
+  @override
+  String get diagnosticActionSupplementPo4 =>
+      'Sprawdź i uzupełniaj PO4 stopniowo, kontrolując NO3.';
+
+  @override
+  String get diagnosticActionReduceCo2AndIncreaseSurfaceMovement =>
+      'Natychmiast ogranicz CO2 i zwiększ ruch tafli wody.';
+
+  @override
+  String get diagnosticActionStabilizeCo2 =>
+      'Ustabilizuj podawanie CO2 i obserwuj reakcję roślin przez kilka dni.';
+
+  @override
+  String get diagnosticActionStabilizeCo2AndCirculation =>
+      'Utrzymuj stałe CO2 oraz popraw cyrkulację w całym zbiorniku.';
+
+  @override
+  String get diagnosticActionReduceLighting =>
+      'Na czas stabilizacji skróć świecenie do 6-8 godzin.';
+
+  @override
+  String get diagnosticActionContinueRegularTesting =>
+      'Kontynuuj regularne pomiary i utrzymuj stały harmonogram podmian.';
+
+  @override
+  String get diagnosticActionMaintainRedfieldRatio =>
+      'Utrzymuj NO3:PO4 w stabilnym zakresie około 10-20:1.';
+
+  @override
+  String get diagnosticRedfieldRatioNoData => 'Stosunek NO3:PO4: brak danych';
+
+  @override
+  String diagnosticRedfieldRatio(String ratio) {
+    return 'Stosunek NO3:PO4: $ratio:1';
+  }
+
+  @override
+  String get diagnosticActionPlanTitle => 'Plan działania';
+
+  @override
   String get lastSyncLabel => 'Ostatnia synchronizacja:';
 
   @override

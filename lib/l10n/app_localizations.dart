@@ -2618,6 +2618,239 @@ abstract class AppLocalizations {
   /// **'Temperatura akwarium ({value}°C) jest poza zalecanym zakresem {min}-{max}°C.'**
   String compatibilityTemperatureWarning(num value, num min, num max);
 
+  /// No description provided for @waterAssessmentCritical.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krytyczny'**
+  String get waterAssessmentCritical;
+
+  /// No description provided for @waterAssessmentWarning.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uwaga'**
+  String get waterAssessmentWarning;
+
+  /// No description provided for @waterAssessmentOutsideOptimum.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poza optimum'**
+  String get waterAssessmentOutsideOptimum;
+
+  /// No description provided for @waterAssessmentNormal.
+  ///
+  /// In pl, this message translates to:
+  /// **'W normie'**
+  String get waterAssessmentNormal;
+
+  /// No description provided for @waterAssessmentCriticalNo3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krytyczny poziom NO3. Zalecana podmiana 30% wody.'**
+  String get waterAssessmentCriticalNo3;
+
+  /// No description provided for @waterAssessmentPhOutsideSafeRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'pH poza bezpiecznym zakresem 6,0-8,0.'**
+  String get waterAssessmentPhOutsideSafeRange;
+
+  /// No description provided for @waterAssessmentHighNo3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wysoki poziom NO3. Zalecana podmiana 30% wody.'**
+  String get waterAssessmentHighNo3;
+
+  /// No description provided for @waterAssessmentLowPo4.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niski PO4 zwiększa ryzyko zielenic.'**
+  String get waterAssessmentLowPo4;
+
+  /// No description provided for @waterAssessmentHighPo4.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wysoki PO4 zwiększa ryzyko krasnorostów.'**
+  String get waterAssessmentHighPo4;
+
+  /// No description provided for @waterAssessmentOutsideMeasurementRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'{parameter} poza zakresem pomiarowym.'**
+  String waterAssessmentOutsideMeasurementRange(String parameter);
+
+  /// No description provided for @waterAssessmentOutsideOptimalRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'{parameter} poza optimum {min}-{max}{unit}.'**
+  String waterAssessmentOutsideOptimalRange(
+    String parameter,
+    num min,
+    num max,
+    String unit,
+  );
+
+  /// No description provided for @waterAssessmentWithinOptimalRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Parametr znajduje się w optymalnym zakresie.'**
+  String get waterAssessmentWithinOptimalRange;
+
+  /// No description provided for @waterAssessmentRedfieldRatio.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stosunek NO3:PO4 poza sugerowanym zakresem 10:1-16:1.'**
+  String get waterAssessmentRedfieldRatio;
+
+  /// No description provided for @diagnosticCyanobacteriaRiskTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ryzyko sinic'**
+  String get diagnosticCyanobacteriaRiskTitle;
+
+  /// No description provided for @diagnosticCyanobacteriaRiskMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bardzo niski NO3 przy obecnym PO4 może sprzyjać sinicom.'**
+  String get diagnosticCyanobacteriaRiskMessage;
+
+  /// No description provided for @diagnosticGreenAlgaeRiskTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ryzyko zielenic'**
+  String get diagnosticGreenAlgaeRiskTitle;
+
+  /// No description provided for @diagnosticGreenAlgaeRiskMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niski PO4 przy wyższym NO3 może sprzyjać zielenicom.'**
+  String get diagnosticGreenAlgaeRiskMessage;
+
+  /// No description provided for @diagnosticDangerousCo2Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niebezpieczny poziom CO2'**
+  String get diagnosticDangerousCo2Title;
+
+  /// No description provided for @diagnosticDangerousCo2Message.
+  ///
+  /// In pl, this message translates to:
+  /// **'CO2 powyżej 30 ppm może powodować przyduchę ryb.'**
+  String get diagnosticDangerousCo2Message;
+
+  /// No description provided for @diagnosticLowCo2Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niestabilne lub niskie CO2'**
+  String get diagnosticLowCo2Title;
+
+  /// No description provided for @diagnosticLowCo2Message.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niski poziom CO2 może osłabiać rośliny i sprzyjać krasnorostom.'**
+  String get diagnosticLowCo2Message;
+
+  /// No description provided for @diagnosticRedAlgaeRiskTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ryzyko krasnorostów'**
+  String get diagnosticRedAlgaeRiskTitle;
+
+  /// No description provided for @diagnosticRedAlgaeRiskMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wahania pH/CO2 osłabiają rośliny i sprzyjają krasnorostom.'**
+  String get diagnosticRedAlgaeRiskMessage;
+
+  /// No description provided for @diagnosticExcessiveLightingTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Długi czas świecenia'**
+  String get diagnosticExcessiveLightingTitle;
+
+  /// No description provided for @diagnosticExcessiveLightingMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ponad 9 godzin światła może wzmacniać presję glonów.'**
+  String get diagnosticExcessiveLightingMessage;
+
+  /// No description provided for @diagnosticStableParametersTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Parametry wyglądają stabilnie'**
+  String get diagnosticStableParametersTitle;
+
+  /// No description provided for @diagnosticStableParametersMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie znaleziono typowych sygnałów nierównowagi.'**
+  String get diagnosticStableParametersMessage;
+
+  /// No description provided for @diagnosticActionStabilizeNo3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przywróć mierzalny, stabilny poziom NO3 bez gwałtownego nawożenia.'**
+  String get diagnosticActionStabilizeNo3;
+
+  /// No description provided for @diagnosticActionSupplementPo4.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź i uzupełniaj PO4 stopniowo, kontrolując NO3.'**
+  String get diagnosticActionSupplementPo4;
+
+  /// No description provided for @diagnosticActionReduceCo2AndIncreaseSurfaceMovement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Natychmiast ogranicz CO2 i zwiększ ruch tafli wody.'**
+  String get diagnosticActionReduceCo2AndIncreaseSurfaceMovement;
+
+  /// No description provided for @diagnosticActionStabilizeCo2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustabilizuj podawanie CO2 i obserwuj reakcję roślin przez kilka dni.'**
+  String get diagnosticActionStabilizeCo2;
+
+  /// No description provided for @diagnosticActionStabilizeCo2AndCirculation.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utrzymuj stałe CO2 oraz popraw cyrkulację w całym zbiorniku.'**
+  String get diagnosticActionStabilizeCo2AndCirculation;
+
+  /// No description provided for @diagnosticActionReduceLighting.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na czas stabilizacji skróć świecenie do 6-8 godzin.'**
+  String get diagnosticActionReduceLighting;
+
+  /// No description provided for @diagnosticActionContinueRegularTesting.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kontynuuj regularne pomiary i utrzymuj stały harmonogram podmian.'**
+  String get diagnosticActionContinueRegularTesting;
+
+  /// No description provided for @diagnosticActionMaintainRedfieldRatio.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utrzymuj NO3:PO4 w stabilnym zakresie około 10-20:1.'**
+  String get diagnosticActionMaintainRedfieldRatio;
+
+  /// No description provided for @diagnosticRedfieldRatioNoData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stosunek NO3:PO4: brak danych'**
+  String get diagnosticRedfieldRatioNoData;
+
+  /// No description provided for @diagnosticRedfieldRatio.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stosunek NO3:PO4: {ratio}:1'**
+  String diagnosticRedfieldRatio(String ratio);
+
+  /// No description provided for @diagnosticActionPlanTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plan działania'**
+  String get diagnosticActionPlanTitle;
+
   /// No description provided for @lastSyncLabel.
   ///
   /// In pl, this message translates to:

@@ -4,16 +4,32 @@ enum WaterStatus { good, warning, critical }
 
 enum WaterParameter { ph, no3, po4, fe, kh, gh, temp }
 
+enum WaterAssessmentMessageKey {
+  criticalNo3,
+  phOutsideSafeRange,
+  highNo3,
+  lowPo4,
+  highPo4,
+  outsideMeasurementRange,
+  outsideOptimalRange,
+  withinOptimalRange,
+  redfieldRatio,
+}
+
 class WaterAssessment {
   const WaterAssessment({
     required this.status,
-    required this.label,
-    required this.message,
+    required this.messageKey,
+    this.parameter,
+    this.minValue,
+    this.maxValue,
   });
 
   final WaterStatus status;
-  final String label;
-  final String message;
+  final WaterAssessmentMessageKey messageKey;
+  final WaterParameter? parameter;
+  final double? minValue;
+  final double? maxValue;
 
   bool get isGood => status == WaterStatus.good;
 }
@@ -128,63 +144,66 @@ WaterAssessment assessWaterValue(WaterParameter parameter, double value) {
   if (parameter == WaterParameter.no3 && value > 50) {
     return const WaterAssessment(
       status: WaterStatus.critical,
-      label: 'Krytyczny',
-      message: 'Krytyczny poziom NO3. Zalecana podmiana wody 30%.',
+      messageKey: WaterAssessmentMessageKey.criticalNo3,
+      parameter: WaterParameter.no3,
     );
   }
   if (parameter == WaterParameter.ph && (value < 6 || value > 8)) {
     return const WaterAssessment(
       status: WaterStatus.warning,
-      label: 'Uwaga',
-      message: 'pH poza bezpiecznym zakresem 6.0-8.0.',
+      messageKey: WaterAssessmentMessageKey.phOutsideSafeRange,
+      parameter: WaterParameter.ph,
     );
   }
   if (parameter == WaterParameter.no3 && value > 30) {
     return const WaterAssessment(
       status: WaterStatus.warning,
-      label: 'Uwaga',
-      message: 'Wysoki poziom NO3. Zalecana podmiana wody 30%.',
+      messageKey: WaterAssessmentMessageKey.highNo3,
+      parameter: WaterParameter.no3,
     );
   }
   if (parameter == WaterParameter.po4 && value < 0.2) {
     return const WaterAssessment(
       status: WaterStatus.warning,
-      label: 'Uwaga',
-      message: 'Niski PO4 zwiększa ryzyko zielenic.',
+      messageKey: WaterAssessmentMessageKey.lowPo4,
+      parameter: WaterParameter.po4,
     );
   }
   if (parameter == WaterParameter.po4 && value > 2) {
     return const WaterAssessment(
       status: WaterStatus.warning,
-      label: 'Uwaga',
-      message: 'Wysoki PO4 zwiększa ryzyko krasnorostów.',
+      messageKey: WaterAssessmentMessageKey.highPo4,
+      parameter: WaterParameter.po4,
     );
   }
   if (value < standard.chartMin || value > standard.chartMax) {
     return WaterAssessment(
       status: WaterStatus.warning,
-      label: 'Uwaga',
-      message: '${standard.label} poza zakresem pomiarowym.',
+      messageKey: WaterAssessmentMessageKey.outsideMeasurementRange,
+      parameter: parameter,
     );
   }
   if (value < standard.optimalMin || value > standard.optimalMax) {
     return WaterAssessment(
       status: WaterStatus.warning,
-      label: 'Poza optimum',
-      message:
-          '${standard.label} poza optimum ${standard.optimalMin}-${standard.optimalMax}${standard.unit.isEmpty ? '' : ' ${standard.unit}'}.',
+      messageKey: WaterAssessmentMessageKey.outsideOptimalRange,
+      parameter: parameter,
+      minValue: standard.optimalMin,
+      maxValue: standard.optimalMax,
     );
   }
-  return const WaterAssessment(
+  return WaterAssessment(
     status: WaterStatus.good,
-    label: 'W normie',
-    message: 'Parametr znajduje się w optymalnym zakresie.',
+    messageKey: WaterAssessmentMessageKey.withinOptimalRange,
+    parameter: parameter,
   );
 }
 
 List<WaterAssessment> assessWaterTest(WaterTest test) {
   return WaterParameter.values
-      .map((parameter) => assessWaterValue(parameter, waterValue(test, parameter)))
+      .map(
+        (parameter) => assessWaterValue(parameter, waterValue(test, parameter)),
+      )
       .toList();
 }
 
@@ -206,8 +225,7 @@ WaterAssessment? latestWaterAlert(WaterTest? test) {
   if (ratio != null && (ratio < 10 || ratio > 16)) {
     return const WaterAssessment(
       status: WaterStatus.warning,
-      label: 'Uwaga',
-      message: 'Stosunek NO3:PO4 poza sugerowanym zakresem 10:1-16:1.',
+      messageKey: WaterAssessmentMessageKey.redfieldRatio,
     );
   }
   return null;

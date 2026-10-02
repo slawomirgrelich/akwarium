@@ -6,6 +6,7 @@ import '../data/aquarium_knowledge_base.dart';
 import '../models/aquarium_model.dart';
 import '../aquarium_management_screen.dart';
 import '../services/aquarium_diagnostic_service.dart';
+import '../utils/aquarium_diagnostic_localization.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
 
@@ -559,6 +560,7 @@ class _DiagnosticResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -567,8 +569,10 @@ class _DiagnosticResultCard extends StatelessWidget {
           children: [
             Text(
               result.redfieldRatio == null
-                  ? 'Stosunek NO3:PO4: brak danych'
-                  : 'Stosunek NO3:PO4: ${result.redfieldRatio!.toStringAsFixed(1)}:1',
+                  ? l10n.diagnosticRedfieldRatioNoData
+                  : l10n.diagnosticRedfieldRatio(
+                      result.redfieldRatio!.toStringAsFixed(1),
+                    ),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 14),
@@ -587,20 +591,22 @@ class _DiagnosticResultCard extends StatelessWidget {
                       ? Colors.orange
                       : Colors.teal,
                 ),
-                title: Text(finding.title),
-                subtitle: Text(finding.message),
+                title: Text(diagnosticFindingTitle(l10n, finding.key)),
+                subtitle: Text(diagnosticFindingMessage(l10n, finding.key)),
               ),
             ),
             const Divider(),
-            const Text(
-              'Plan działania',
+            Text(
+              l10n.diagnosticActionPlanTitle,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             ...result.actionPlan.indexed.map(
               (item) => Padding(
                 padding: const EdgeInsets.only(bottom: 6),
-                child: Text('${item.$1 + 1}. ${item.$2}'),
+                child: Text(
+                  '${item.$1 + 1}. ${diagnosticAction(l10n, item.$2)}',
+                ),
               ),
             ),
           ],

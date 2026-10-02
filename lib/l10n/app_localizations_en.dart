@@ -1386,6 +1386,153 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get waterAssessmentCritical => 'Critical';
+
+  @override
+  String get waterAssessmentWarning => 'Warning';
+
+  @override
+  String get waterAssessmentOutsideOptimum => 'Outside optimum';
+
+  @override
+  String get waterAssessmentNormal => 'Within range';
+
+  @override
+  String get waterAssessmentCriticalNo3 =>
+      'Critical NO3 level. A 30% water change is recommended.';
+
+  @override
+  String get waterAssessmentPhOutsideSafeRange =>
+      'pH is outside the safe range of 6.0-8.0.';
+
+  @override
+  String get waterAssessmentHighNo3 =>
+      'High NO3. A 30% water change is recommended.';
+
+  @override
+  String get waterAssessmentLowPo4 =>
+      'Low PO4 increases the risk of green algae.';
+
+  @override
+  String get waterAssessmentHighPo4 =>
+      'High PO4 increases the risk of red algae.';
+
+  @override
+  String waterAssessmentOutsideMeasurementRange(String parameter) {
+    return '$parameter is outside the measurement range.';
+  }
+
+  @override
+  String waterAssessmentOutsideOptimalRange(
+    String parameter,
+    num min,
+    num max,
+    String unit,
+  ) {
+    return '$parameter is outside the optimal range of $min-$max$unit.';
+  }
+
+  @override
+  String get waterAssessmentWithinOptimalRange =>
+      'The parameter is within the optimal range.';
+
+  @override
+  String get waterAssessmentRedfieldRatio =>
+      'NO3:PO4 ratio is outside the suggested range of 10:1-16:1.';
+
+  @override
+  String get diagnosticCyanobacteriaRiskTitle => 'Cyanobacteria risk';
+
+  @override
+  String get diagnosticCyanobacteriaRiskMessage =>
+      'Very low NO3 with the current PO4 level may encourage cyanobacteria.';
+
+  @override
+  String get diagnosticGreenAlgaeRiskTitle => 'Green algae risk';
+
+  @override
+  String get diagnosticGreenAlgaeRiskMessage =>
+      'Low PO4 combined with higher NO3 may encourage green algae.';
+
+  @override
+  String get diagnosticDangerousCo2Title => 'Dangerously high CO2';
+
+  @override
+  String get diagnosticDangerousCo2Message =>
+      'CO2 above 30 ppm may deprive fish of oxygen.';
+
+  @override
+  String get diagnosticLowCo2Title => 'Low or unstable CO2';
+
+  @override
+  String get diagnosticLowCo2Message =>
+      'Low CO2 may weaken plants and encourage red algae.';
+
+  @override
+  String get diagnosticRedAlgaeRiskTitle => 'Red algae risk';
+
+  @override
+  String get diagnosticRedAlgaeRiskMessage =>
+      'pH/CO2 fluctuations weaken plants and encourage red algae.';
+
+  @override
+  String get diagnosticExcessiveLightingTitle => 'Excessive lighting duration';
+
+  @override
+  String get diagnosticExcessiveLightingMessage =>
+      'More than 9 hours of light may increase algae pressure.';
+
+  @override
+  String get diagnosticStableParametersTitle => 'Parameters appear stable';
+
+  @override
+  String get diagnosticStableParametersMessage =>
+      'No common signs of imbalance were found.';
+
+  @override
+  String get diagnosticActionStabilizeNo3 =>
+      'Restore a measurable, stable NO3 level without sudden fertilization.';
+
+  @override
+  String get diagnosticActionSupplementPo4 =>
+      'Check and increase PO4 gradually while monitoring NO3.';
+
+  @override
+  String get diagnosticActionReduceCo2AndIncreaseSurfaceMovement =>
+      'Reduce CO2 immediately and increase surface agitation.';
+
+  @override
+  String get diagnosticActionStabilizeCo2 =>
+      'Stabilize CO2 dosing and monitor plant response over the next few days.';
+
+  @override
+  String get diagnosticActionStabilizeCo2AndCirculation =>
+      'Keep CO2 stable and improve circulation throughout the tank.';
+
+  @override
+  String get diagnosticActionReduceLighting =>
+      'While stabilizing the tank, reduce lighting to 6-8 hours.';
+
+  @override
+  String get diagnosticActionContinueRegularTesting =>
+      'Continue regular measurements and keep a consistent water-change schedule.';
+
+  @override
+  String get diagnosticActionMaintainRedfieldRatio =>
+      'Keep NO3:PO4 stable at around 10-20:1.';
+
+  @override
+  String get diagnosticRedfieldRatioNoData => 'NO3:PO4 ratio: no data';
+
+  @override
+  String diagnosticRedfieldRatio(String ratio) {
+    return 'NO3:PO4 ratio: $ratio:1';
+  }
+
+  @override
+  String get diagnosticActionPlanTitle => 'Action plan';
+
+  @override
   String get lastSyncLabel => 'Last sync:';
 
   @override
