@@ -1360,6 +1360,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String deleteLivestockConfirmation(String speciesName) {
+    return 'Remove $speciesName from this aquarium?';
+  }
+
+  @override
   String get proFeatureTrialHeadline => 'PRO feature - start your free trial';
 
   @override

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../models/aquarium_model.dart'
     show CreatureCategory, CreatureCategoryLabel;
+import '../models/species_models.dart';
 import '../services/firestore_service.dart';
+import '../widgets/species_autocomplete_field.dart';
 import 'species_atlas_screen.dart';
 
 class AquariumLivestockScreen extends StatelessWidget {
@@ -49,7 +51,7 @@ class AquariumLivestockScreen extends StatelessWidget {
             );
           }
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             children: [
               _StockHealthCard(aquarium: aquarium, entries: entries),
               const SizedBox(height: 12),
@@ -131,9 +133,9 @@ class AquariumLivestockScreen extends StatelessWidget {
         nameLatin: entry.latinName,
         category: entry.category.label,
         count: entry.count,
-        phRange: '',
-        tempRange: '',
-        minTankVolume: 0,
+        phRange: entry.phRange,
+        tempRange: entry.tempRange,
+        minTankVolume: entry.minTankVolume,
         notes: entry.notes,
       );
     } on FirestoreServiceException catch (error) {
@@ -158,6 +160,9 @@ class _CustomSpeciesEntry {
     required this.category,
     required this.count,
     required this.notes,
+    required this.phRange,
+    required this.tempRange,
+    required this.minTankVolume,
   });
 
   final String name;
@@ -165,6 +170,9 @@ class _CustomSpeciesEntry {
   final CreatureCategory category;
   final int count;
   final String notes;
+  final String phRange;
+  final String tempRange;
+  final int minTankVolume;
 }
 
 class _CustomSpeciesDialog extends StatefulWidget {
@@ -176,15 +184,15 @@ class _CustomSpeciesDialog extends StatefulWidget {
 
 class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _name = TextEditingController();
+  String _name = '';
   final _latin = TextEditingController();
   final _count = TextEditingController(text: '1');
   final _notes = TextEditingController();
   CreatureCategory _category = CreatureCategory.fish;
+  Species? _selectedSpecies;
 
   @override
   void dispose() {
-    _name.dispose();
     _latin.dispose();
     _count.dispose();
     _notes.dispose();
@@ -201,8 +209,23 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(
-                controller: _name,
+              SpeciesAutocompleteField(
+                onChanged: (value) => setState(() {
+                  _name = value;
+                  final selected = _selectedSpecies;
+                  if (selected != null &&
+                      value.trim() !=
+                          localizedSpeciesDisplayName(context, selected)) {
+                    if (_latin.text == selected.nameLatin) _latin.clear();
+                    _selectedSpecies = null;
+                  }
+                }),
+                onSelected: (species) => setState(() {
+                  _selectedSpecies = species;
+                  _name = localizedSpeciesDisplayName(context, species);
+                  _latin.text = species.nameLatin;
+                  _category = creatureCategoryForSpecies(species);
+                }),
                 decoration: const InputDecoration(labelText: 'Nazwa gatunkowa'),
                 validator: (value) => (value == null || value.trim().isEmpty)
                     ? 'Wpisz nazwę'
@@ -226,6 +249,7 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
                 },
               ),
               DropdownButtonFormField<CreatureCategory>(
+                key: ValueKey(_category),
                 initialValue: _category,
                 decoration: const InputDecoration(labelText: 'Kategoria'),
                 items: CreatureCategory.values
@@ -260,11 +284,20 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
             Navigator.pop(
               context,
               _CustomSpeciesEntry(
-                name: _name.text.trim(),
-                latinName: _latin.text.trim(),
+                name: _selectedSpecies?.namePl ?? _name.trim(),
+                latinName:
+                    _selectedSpecies?.nameLatin ?? _latin.text.trim(),
                 category: _category,
                 count: int.parse(_count.text.trim()),
                 notes: _notes.text.trim(),
+                phRange: _selectedSpecies == null
+                    ? ''
+                    : speciesRangeLabel(_selectedSpecies!.phRange),
+                tempRange: _selectedSpecies == null
+                    ? ''
+                    : speciesRangeLabel(_selectedSpecies!.tempRange),
+                minTankVolume:
+                    _selectedSpecies?.minTankVolumeLiters ?? 0,
               ),
             );
           },

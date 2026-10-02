@@ -446,6 +446,8 @@
   ,"optionalLabel": "optional"
   ,"speciesMinimumVolumeFrom": "from {liters} L"
   ,"@speciesMinimumVolumeFrom": {"placeholders": {"liters": {"type": "int"}}}
+  ,"deleteLivestockConfirmation": "Remove {speciesName} from this aquarium?"
+  ,"@deleteLivestockConfirmation": {"placeholders": {"speciesName": {"type": "String"}}}
   ,"proFeatureTrialHeadline": "PRO feature - start your free trial"
   ,"geminiConnectionSucceeded": "Gemini connection is working."
   ,"compatibilityVolumeWarning": "Aquarium volume is too small: {actual} L; minimum required is {minimum} L."

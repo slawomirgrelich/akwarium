@@ -6,13 +6,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import 'models/aquarium_model.dart';
+import 'models/species_models.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/species_atlas_screen.dart';
 import 'screens/tank_stocking_screen.dart';
 import 'screens/tank_photo_journal_screen.dart';
 import 'services/firestore_service.dart';
 import 'services/pro_access_service.dart';
+import 'widgets/confirm_livestock_removal_dialog.dart';
 import 'widgets/pro_paywall_dialog.dart';
+import 'widgets/species_autocomplete_field.dart';
 
 Future<void> showCreateAquariumDialog(BuildContext context) async {
   await showDialog<void>(
@@ -692,6 +695,10 @@ class _InhabitantCard extends StatelessWidget {
           color: Theme.of(context).textTheme.bodyMedium?.color,
         ),
         onPressed: () async {
+          if (!await confirmLivestockRemoval(context, item.name) ||
+              !context.mounted) {
+            return;
+          }
           try {
             await FirestoreService().deleteLivestockItem(
               item.aquariumId,
@@ -872,18 +879,19 @@ class AddInhabitantModal extends StatefulWidget {
 }
 
 class _AddInhabitantModalState extends State<AddInhabitantModal> {
-  final _name = TextEditingController();
   final _latin = TextEditingController();
   final _count = TextEditingController(text: '1');
   final _notes = TextEditingController();
   final _picker = ImagePicker();
   CreatureCategory _category = CreatureCategory.fish;
+  String _name = '';
+  Species? _selectedSpecies;
   PlantPosition? _position;
   String? _image;
 
   @override
   void dispose() {
-    for (final controller in [_name, _latin, _count, _notes]) {
+    for (final controller in [_latin, _count, _notes]) {
       controller.dispose();
     }
     super.dispose();
@@ -896,8 +904,24 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextField(
-            controller: _name,
+          SpeciesAutocompleteField(
+            onChanged: (value) => setState(() {
+              _name = value;
+              final selected = _selectedSpecies;
+              if (selected != null &&
+                  value.trim() !=
+                      localizedSpeciesDisplayName(context, selected)) {
+                if (_latin.text == selected.nameLatin) _latin.clear();
+                _selectedSpecies = null;
+              }
+            }),
+            onSelected: (species) => setState(() {
+              _selectedSpecies = species;
+              _name = localizedSpeciesDisplayName(context, species);
+              _latin.text = species.nameLatin;
+              _category = creatureCategoryForSpecies(species);
+              _position = null;
+            }),
             decoration: const InputDecoration(labelText: 'Nazwa gatunkowa'),
           ),
           TextField(
@@ -910,6 +934,7 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
             decoration: const InputDecoration(labelText: 'Liczba sztuk'),
           ),
           DropdownButtonFormField<CreatureCategory>(
+            key: ValueKey(_category),
             initialValue: _category,
             decoration: const InputDecoration(labelText: 'Kategoria'),
             items: CreatureCategory.values
@@ -990,7 +1015,7 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
   }
 
   Future<void> _save() async {
-    if (_name.text.trim().isEmpty) return;
+    if (_name.trim().isEmpty) return;
     final provider = context.read<AquariumProvider>();
     final aquariumId = provider.activeAquariumId;
     if (aquariumId.isEmpty) {
@@ -1002,13 +1027,17 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
     try {
       await FirestoreService().addLivestockItem(
         aquariumId,
-        namePl: _name.text.trim(),
-        nameLatin: _latin.text.trim(),
+        namePl: _selectedSpecies?.namePl ?? _name.trim(),
+        nameLatin: _selectedSpecies?.nameLatin ?? _latin.text.trim(),
         category: _category.label,
         count: int.tryParse(_count.text) ?? 1,
-        phRange: '',
-        tempRange: '',
-        minTankVolume: 0,
+        phRange: _selectedSpecies == null
+            ? ''
+            : speciesRangeLabel(_selectedSpecies!.phRange),
+        tempRange: _selectedSpecies == null
+            ? ''
+            : speciesRangeLabel(_selectedSpecies!.tempRange),
+        minTankVolume: _selectedSpecies?.minTankVolumeLiters ?? 0,
         addedAt: DateTime.now(),
         notes: _notes.text.trim(),
         photoUrl: _image,

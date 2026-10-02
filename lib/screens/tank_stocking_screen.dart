@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../models/species_models.dart';
 import '../services/firestore_service.dart';
 import '../services/stocking_compatibility_service.dart';
+import '../widgets/confirm_livestock_removal_dialog.dart';
 import 'species_atlas_screen.dart';
 
 class TankStockingScreen extends StatelessWidget {
@@ -99,7 +100,7 @@ class _StockingBody extends StatelessWidget {
             species: species,
           );
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             children: [
               _CompatibilityCard(report: report),
               const SizedBox(height: 16),
@@ -155,6 +156,7 @@ class _StockingBody extends StatelessWidget {
                               context,
                               tankId,
                               '${item['id'] ?? ''}',
+                              name,
                               count,
                               -1,
                             ),
@@ -166,6 +168,7 @@ class _StockingBody extends StatelessWidget {
                               context,
                               tankId,
                               '${item['id'] ?? ''}',
+                              name,
                               count,
                               1,
                             ),
@@ -200,12 +203,17 @@ class _StockingBody extends StatelessWidget {
     BuildContext context,
     String tankId,
     String itemId,
+    String speciesName,
     int currentCount,
     int delta,
   ) async {
     final count = currentCount + delta;
     try {
       if (count <= 0) {
+        if (!await confirmLivestockRemoval(context, speciesName) ||
+            !context.mounted) {
+          return;
+        }
         await FirestoreService().deleteLivestockItem(tankId, itemId);
       } else {
         await FirestoreService().updateLivestockCount(tankId, itemId, count);

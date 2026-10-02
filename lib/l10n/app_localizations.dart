@@ -2582,6 +2582,12 @@ abstract class AppLocalizations {
   /// **'od {liters} l'**
   String speciesMinimumVolumeFrom(int liters);
 
+  /// No description provided for @deleteLivestockConfirmation.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć {speciesName} z obsady akwarium?'**
+  String deleteLivestockConfirmation(String speciesName);
+
   /// No description provided for @proFeatureTrialHeadline.
   ///
   /// In pl, this message translates to:

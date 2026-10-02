@@ -446,6 +446,8 @@
   ,"optionalLabel": "opcjonalnie"
   ,"speciesMinimumVolumeFrom": "od {liters} l"
   ,"@speciesMinimumVolumeFrom": {"placeholders": {"liters": {"type": "int"}}}
+  ,"deleteLivestockConfirmation": "Czy na pewno usunąć {speciesName} z obsady akwarium?"
+  ,"@deleteLivestockConfirmation": {"placeholders": {"speciesName": {"type": "String"}}}
   ,"proFeatureTrialHeadline": "Funkcja PRO - aktywuj darmowy okres próbny"
   ,"geminiConnectionSucceeded": "Połączenie z Gemini działa."
   ,"compatibilityVolumeWarning": "Pojemność akwarium jest za mała: {actual} l; wymagane minimum to {minimum} l."
