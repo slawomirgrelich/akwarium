@@ -62,6 +62,13 @@ void main() {
     expect(speciesDescriptionsEn.keys, containsAll(newSpeciesIds));
   });
 
+  test('missing care notes stay separate from the species description', () {
+    final species = speciesCatalog.first;
+
+    expect(species.description, isNotEmpty);
+    expect(species.careNotes, isNull);
+  });
+
   test('new entries use reusable photos with attribution where required', () {
     final newEntries = speciesCatalog.where(
       (species) =>

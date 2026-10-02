@@ -142,6 +142,8 @@ const Map<String, String> speciesNamesEn = {
   'diadem-nerite': 'Diadem nerite',
 };
 
+const Map<String, String> speciesCareNotesEn = {};
+
 const Map<String, String> speciesDescriptionsEn = {
   'neon-tetra': 'A peaceful shoaling fish. It feels best in a group of at least six specimens.',
   'corydoras': 'A sociable bottom-dwelling fish that needs soft, non-abrasive substrate.',

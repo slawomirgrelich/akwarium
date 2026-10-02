@@ -10,6 +10,7 @@ import '../models/aquarium_model.dart' as local_models;
 import '../models/species_models.dart';
 import '../services/compatibility_checker.dart';
 import '../services/firestore_service.dart';
+import '../services/species_image_service.dart';
 import 'aquarium_livestock_screen.dart';
 
 class SpeciesAtlasScreen extends StatefulWidget {
@@ -122,18 +123,13 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(child: _SpeciesThumbnail(species: species, size: 140)),
-              if (species.imageAttribution.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    species.imageAttribution,
-                    textAlign: TextAlign.end,
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
+              Center(
+                child: _SpeciesThumbnail(
+                  species: species,
+                  size: 140,
+                  showAttribution: true,
                 ),
-              ],
+              ),
               const SizedBox(height: 12),
               Text(
                 species.nameLatin,
@@ -145,12 +141,22 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
                 _localizedSpeciesText(context, species, species.description),
               ),
               const SizedBox(height: 16),
-              Text(
-                l10n.careNotesLabel,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(_localizedSpeciesText(context, species, species.careNotes)),
+              if (species.careNotes?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: 16),
+                Text(
+                  l10n.careNotesLabel,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _localizedSpeciesText(
+                    context,
+                    species,
+                    species.careNotes!.trim(),
+                    careNotes: true,
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               Text(l10n.minTankVolumeLabel(species.minTankVolumeLiters)),
               Text(
@@ -668,11 +674,13 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
 String _localizedSpeciesText(
   BuildContext context,
   Species species,
-  String plText,
-) {
+  String plText, {
+  bool careNotes = false,
+}) {
   if (Localizations.localeOf(context).languageCode != 'en') {
     return plText;
   }
+  if (careNotes) return speciesCareNotesEn[species.id] ?? plText;
   return speciesDescriptionsEn[species.id] ?? species.nameLatin;
 }
 
@@ -698,57 +706,196 @@ IconData _iconFor(SpeciesCategory category) => switch (category) {
   SpeciesCategory.invertebrate => Icons.bug_report_outlined,
 };
 
-class _SpeciesThumbnail extends StatelessWidget {
-  const _SpeciesThumbnail({required this.species, required this.size});
+class _SpeciesThumbnail extends StatefulWidget {
+  const _SpeciesThumbnail({
+    required this.species,
+    required this.size,
+    this.showAttribution = false,
+  });
 
   final Species species;
   final double size;
+  final bool showAttribution;
+
+  @override
+  State<_SpeciesThumbnail> createState() => _SpeciesThumbnailState();
+}
+
+class _SpeciesThumbnailState extends State<_SpeciesThumbnail> {
+  late String _providedSource;
+  late bool _showFallback;
+  Future<SpeciesImageSource?>? _fallbackImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _providedSource = widget.species.imageUrl.trim();
+    _showFallback = _providedSource.isEmpty;
+    if (_showFallback) _fallbackImage = _findFallbackImage();
+  }
+
+  @override
+  void didUpdateWidget(covariant _SpeciesThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.species.id == widget.species.id) return;
+    _providedSource = widget.species.imageUrl.trim();
+    _showFallback = _providedSource.isEmpty;
+    _fallbackImage = _showFallback ? _findFallbackImage() : null;
+  }
+
+  Future<SpeciesImageSource?> _findFallbackImage() =>
+      speciesImageService.findByScientificName(widget.species.nameLatin);
+
+  void _useFallbackAfterError() {
+    if (_showFallback) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showFallback) return;
+      setState(() {
+        _showFallback = true;
+        _fallbackImage = _findFallbackImage();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(size / 4);
-    final placeholder = Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: radius,
+    if (_showFallback) {
+      return FutureBuilder<SpeciesImageSource?>(
+        future: _fallbackImage,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _withAttribution(_loading(context), '');
+          }
+          final source = snapshot.data;
+          if (source == null) {
+            return _withAttribution(_placeholder(context), '');
+          }
+          return _withAttribution(
+            _image(context, source.url, isFallback: true),
+            source.attribution,
+          );
+        },
+      );
+    }
+
+    return _withAttribution(
+      _image(context, _providedSource, isFallback: false),
+      widget.species.imageAttribution,
+    );
+  }
+
+  Widget _image(
+    BuildContext context,
+    String source, {
+    required bool isFallback,
+  }) {
+    final uri = Uri.tryParse(source);
+    final isNetworkImage =
+        uri != null &&
+        (uri.scheme == 'https' || uri.scheme == 'http') &&
+        uri.host.isNotEmpty;
+    Widget errorBuilder(
+      BuildContext context,
+      Object error,
+      StackTrace? stackTrace,
+    ) {
+      if (isFallback) return _placeholder(context);
+      _useFallbackAfterError();
+      return _loading(context);
+    }
+
+    final image = isNetworkImage
+        ? Image.network(
+            source,
+            width: widget.size,
+            height: widget.size,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, progress) =>
+                progress == null ? child : _loading(context),
+            errorBuilder: errorBuilder,
+          )
+        : Image.asset(
+            source.startsWith('asset:')
+                ? source
+                      .substring('asset:'.length)
+                      .replaceFirst(RegExp(r'^/+'), '')
+                : source,
+            width: widget.size,
+            height: widget.size,
+            fit: BoxFit.cover,
+            errorBuilder: errorBuilder,
+          );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(widget.size / 4),
+      child: image,
+    );
+  }
+
+  Widget _withAttribution(Widget image, String attribution) {
+    if (!widget.showAttribution || attribution.trim().isEmpty) return image;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        image,
+        const SizedBox(height: 6),
+        Text(
+          attribution,
+          textAlign: TextAlign.end,
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
+      ],
+    );
+  }
+
+  Widget _loading(BuildContext context) => SizedBox(
+    width: widget.size,
+    height: widget.size,
+    child: Center(
+      child: SizedBox(
+        width: widget.size * 0.35,
+        height: widget.size * 0.35,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
-      child: Icon(
-        _iconFor(species.category),
-        size: size * 0.45,
-        color: Theme.of(context).colorScheme.onPrimaryContainer,
+    ),
+  );
+
+  Widget _placeholder(BuildContext context) {
+    final colors = switch (widget.species.category) {
+      SpeciesCategory.fish => const [Color(0xFFD8EEF4), Color(0xFFA9D7E3)],
+      SpeciesCategory.plant => const [Color(0xFFE1F0D8), Color(0xFFB9D9A8)],
+      SpeciesCategory.invertebrate => const [
+        Color(0xFFF8E4D5),
+        Color(0xFFECC3A6),
+      ],
+    };
+    final theme = Theme.of(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(widget.size / 4),
+      child: Container(
+        width: widget.size,
+        height: widget.size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
+          ),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+          borderRadius: BorderRadius.circular(widget.size / 4),
+        ),
+        child: Icon(
+          _iconFor(widget.species.category),
+          size: widget.size * 0.45,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       ),
     );
-    if (species.imageUrl.isEmpty) return placeholder;
-    final isAsset = !species.imageUrl.startsWith('http');
-    final image = isAsset
-        ? Image.asset(
-            species.imageUrl,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => placeholder,
-          )
-        : Image.network(
-            species.imageUrl,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, progress) {
-              if (progress == null) return child;
-              return SizedBox(
-                width: size,
-                height: size,
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) => placeholder,
-          );
-    return ClipRRect(borderRadius: radius, child: image);
   }
 }
 
