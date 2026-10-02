@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../utils/recurrence_date.dart';
 import 'firestore_sync_status.dart';
 
 enum JournalEntryType { waterChange, filter, trimming, medication, cleaning }
@@ -305,14 +306,11 @@ class AquariumJournalService {
     DateTime? completedAt,
   }) async {
     final performedAt = completedAt ?? DateTime.now();
-    // Keep the user-configured reminder hour instead of drifting to the completion time.
-    final nextDue = DateTime(
-      performedAt.year,
-      performedAt.month,
-      performedAt.day,
-      task.nextDueDate.hour,
-      task.nextDueDate.minute,
-    ).add(Duration(days: task.repeatFrequencyDays));
+    final nextDue = nextRecurrenceDateAfter(
+      performedAt,
+      task.nextDueDate,
+      task.repeatFrequencyDays,
+    );
     final updated = MaintenanceTaskModel(
       id: task.id,
       aquariumId: task.aquariumId,
@@ -353,16 +351,24 @@ class AquariumJournalService {
     );
   }
 
-  Future<void> markReminderCompleted(ReminderModel reminder) async {
+  Future<ReminderModel> markReminderCompleted(
+    ReminderModel reminder, {
+    DateTime? completedAt,
+  }) async {
+    final performedAt = completedAt ?? DateTime.now();
     final nextDate = reminder.isRecurring
-        ? reminder.nextDueDate.add(Duration(days: reminder.intervalDays))
+        ? nextRecurrenceDateAfter(
+            performedAt,
+            reminder.nextDueDate,
+            reminder.intervalDays,
+          )
         : reminder.nextDueDate;
-    await updateReminder(
-      reminder.copyWith(
-        nextDueDate: nextDate,
-        isCompleted: reminder.isRecurring ? false : !reminder.isCompleted,
-      ),
+    final updated = reminder.copyWith(
+      nextDueDate: nextDate,
+      isCompleted: reminder.isRecurring ? false : !reminder.isCompleted,
     );
+    await updateReminder(updated);
+    return updated;
   }
 
   Future<void> deleteReminder(ReminderModel reminder) async {

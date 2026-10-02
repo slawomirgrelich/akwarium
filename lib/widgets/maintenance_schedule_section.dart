@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../local_reminder_service.dart';
 import '../services/aquarium_journal_service.dart';
 
@@ -218,6 +219,7 @@ class _MaintenanceTaskTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final dueDay = DateTime(
@@ -238,13 +240,16 @@ class _MaintenanceTaskTile extends StatelessWidget {
         : dueToday
         ? 'Dzisiaj'
         : 'Za $daysRemaining dni';
+    final frequency = task.repeatFrequencyDays == 1
+        ? l10n.dailyRecurrence
+        : l10n.everyDays(task.repeatFrequencyDays);
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(_taskIcon(task.taskType), color: color),
       title: Text(task.title),
       subtitle: Text(
-        'Co ${task.repeatFrequencyDays} dni · ostatnio: ${_dateLabel(task.lastPerformedDate)}',
+        '$frequency · ${l10n.lastPerformedOn(_dateLabel(task.lastPerformedDate))}',
       ),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -322,6 +327,7 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isEditing = widget.existingTask != null;
     return AlertDialog(
       title: Text(isEditing ? 'Edytuj zadanie' : 'Dodaj zadanie pielęgnacyjne'),
@@ -358,7 +364,7 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Codziennie'),
+                  title: Text(l10n.dailyRecurrence),
                   value: _isDaily,
                   onChanged: (value) {
                     setState(() {
@@ -372,14 +378,14 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
                   TextFormField(
                     controller: _frequencyController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Powtarzaj co ile dni',
-                      suffixText: 'dni',
+                    decoration: InputDecoration(
+                      labelText: l10n.repeatEveryDays,
+                      suffixText: l10n.daysUnit,
                     ),
                     validator: (value) {
                       final days = int.tryParse(value?.trim() ?? '');
                       if (days == null || days < 1) {
-                        return 'Wpisz liczbę dni większą od zera.';
+                        return l10n.enterPositiveDays;
                       }
                       return null;
                     },

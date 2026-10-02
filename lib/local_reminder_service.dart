@@ -22,28 +22,46 @@ class LocalReminderService {
         linux: LinuxInitializationSettings(defaultActionName: 'Otwórz'),
       );
       _ready = await _notifications.initialize(settings) ?? false;
-      await _notifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.requestNotificationsPermission();
-      await _notifications
-          .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin
-          >()
-          ?.requestPermissions(alert: true, badge: true, sound: true);
-      await _notifications
-          .resolvePlatformSpecificImplementation<
-            MacOSFlutterLocalNotificationsPlugin
-          >()
-          ?.requestPermissions(alert: true, badge: true, sound: true);
-    } catch (_) {
+      if (!_ready) {
+        debugPrint('Local notification plugin did not initialize.');
+        return;
+      }
+      final permissionResults = <bool?>[
+        await _notifications
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >()
+            ?.requestNotificationsPermission(),
+        await _notifications
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >()
+            ?.requestPermissions(alert: true, badge: true, sound: true),
+        await _notifications
+            .resolvePlatformSpecificImplementation<
+              MacOSFlutterLocalNotificationsPlugin
+            >()
+            ?.requestPermissions(alert: true, badge: true, sound: true),
+      ];
+      if (permissionResults.contains(false)) {
+        _ready = false;
+        debugPrint('Local notification permission was denied.');
+      }
+    } catch (error, stackTrace) {
       _ready = false;
+      debugPrint('Local notification initialization failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
   Future<void> schedule(ScheduledReminder reminder) async {
-    if (!_ready) return;
+    if (kIsWeb) return;
+    if (!_ready) {
+      debugPrint(
+        'Could not schedule local reminder ${reminder.id}: notifications are unavailable.',
+      );
+      return;
+    }
     try {
       await _notifications.zonedSchedule(
         reminder.id,
@@ -65,17 +83,25 @@ class LocalReminderService {
             UILocalNotificationDateInterpretation.absoluteTime,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
-    } catch (_) {
-      // A missing platform permission must not block offline task creation.
+    } catch (error, stackTrace) {
+      debugPrint('Failed to schedule local reminder ${reminder.id}: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
   Future<void> cancel(int id) async {
-    if (!_ready) return;
+    if (kIsWeb) return;
+    if (!_ready) {
+      debugPrint(
+        'Could not cancel local reminder $id: notifications are unavailable.',
+      );
+      return;
+    }
     try {
       await _notifications.cancel(id);
-    } catch (_) {
-      // An unavailable platform notification adapter must not block the app.
+    } catch (error, stackTrace) {
+      debugPrint('Failed to cancel local reminder $id: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 }

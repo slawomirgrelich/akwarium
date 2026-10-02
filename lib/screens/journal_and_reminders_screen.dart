@@ -178,6 +178,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     String aquariumId,
     List<ReminderModel> reminders,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final isPro = context.read<ProAccessService>().isProUser;
     final activeCount = reminders.where((item) => !item.isCompleted).length;
     if (!isPro && activeCount >= 2) {
@@ -198,7 +199,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     final saved = reminder.copyWith(aquariumId: aquariumId);
     try {
       await _service.addReminder(saved);
-      if (isPro) await _scheduleReminder(saved);
+      if (isPro) await _scheduleReminder(l10n, saved);
       if (context.mounted) {
         _showMessage(context, 'Przypomnienie zostało dodane.');
       }
@@ -211,22 +212,22 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     BuildContext context,
     ReminderModel reminder,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final isPro = context.read<ProAccessService>().isProUser;
     try {
-      await _service.markReminderCompleted(reminder);
-      if (isPro && reminder.isRecurring) {
-        await _scheduleReminder(
-          reminder.copyWith(
-            nextDueDate: reminder.nextDueDate.add(
-              Duration(days: reminder.intervalDays),
-            ),
-            isCompleted: false,
-          ),
-        );
+      final updated = await _service.markReminderCompleted(reminder);
+      if (updated.isRecurring) {
+        if (isPro) {
+          await _scheduleReminder(l10n, updated);
+        } else {
+          await LocalReminderService.instance.cancel(
+            _notificationId(updated.id),
+          );
+        }
+      } else if (!updated.isCompleted) {
+        await _scheduleReminder(l10n, updated);
       } else {
-        await LocalReminderService.instance.cancel(
-          _notificationId(reminder.id),
-        );
+        await LocalReminderService.instance.cancel(_notificationId(updated.id));
       }
     } on AquariumJournalServiceException catch (error) {
       if (context.mounted) _showMessage(context, error.message, error: true);
@@ -245,14 +246,19 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     }
   }
 
-  Future<void> _scheduleReminder(ReminderModel reminder) {
+  Future<void> _scheduleReminder(
+    AppLocalizations l10n,
+    ReminderModel reminder,
+  ) {
     return LocalReminderService.instance.schedule(
       ScheduledReminder(
         id: _notificationId(reminder.id),
         title: reminder.title,
         body: reminder.isRecurring
-            ? 'Powtarza się co ${reminder.intervalDays} dni'
-            : 'Czas wykonać zadanie w akwarium',
+            ? reminder.intervalDays == 1
+                  ? l10n.dailyRecurrence
+                  : l10n.everyDays(reminder.intervalDays)
+            : l10n.scheduledAquariumTaskNotification,
         date: reminder.nextDueDate,
       ),
     );
@@ -751,13 +757,24 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
               onChanged: (value) => setState(() => _recurring = value),
             ),
             if (_recurring)
-              TextField(
-                controller: _interval,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Powtarzaj co',
-                  suffixText: 'dni · funkcja PRO',
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _interval,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: l10n.repeatEveryLabel,
+                        suffixText: l10n.daysProFeature,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: () => _interval.text = '1',
+                    child: Text(l10n.dailyRecurrence),
+                  ),
+                ],
               ),
           ],
         ),

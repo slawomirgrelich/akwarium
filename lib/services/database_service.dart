@@ -7,14 +7,16 @@ import '../models/tank_firestore_models.dart';
 import '../models/aquarium_reminder.dart';
 import '../models/species_models.dart';
 import '../models/tank_photo.dart';
+import '../utils/recurrence_date.dart';
 import 'firestore_sync_status.dart';
 import 'tank_photo_upload_io.dart'
-  if (dart.library.html) 'tank_photo_upload_web.dart' as photo_uploader;
+    if (dart.library.html) 'tank_photo_upload_web.dart'
+    as photo_uploader;
 
 class DatabaseService {
   DatabaseService({FirebaseFirestore? firestore, FirebaseStorage? storage})
-      : _firestore = firestore ?? FirebaseFirestore.instance,
-        _storage = storage ?? FirebaseStorage.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _storage = storage ?? FirebaseStorage.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
@@ -64,20 +66,25 @@ class DatabaseService {
     return _tanks(userId).doc(tankId).collection('photos');
   }
 
-  Stream<List<Tank>> getTanksStream(String userId) => _tanks(userId)
-      .orderBy('createdAt', descending: true)
-      .snapshots()
-      .map((snapshot) => snapshot.docs.map(Tank.fromFirestore).toList());
+  Stream<List<Tank>> getTanksStream(String userId) =>
+      _tanks(userId)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.map(Tank.fromFirestore).toList());
 
   Future<void> addTank(String userId, Tank tank) async {
-    final reference = tank.id.isEmpty ? _tanks(userId).doc() : _tanks(userId).doc(tank.id);
+    final reference = tank.id.isEmpty
+        ? _tanks(userId).doc()
+        : _tanks(userId).doc(tank.id);
     await reference.set(tank.copyWithId(reference.id).toFirestore());
     await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   Future<void> updateTank(String userId, Tank tank) async {
     if (tank.id.isEmpty) throw ArgumentError('Tank id cannot be empty.');
-    await _tanks(userId).doc(tank.id).set(tank.toFirestore(), SetOptions(merge: true));
+    await _tanks(userId)
+        .doc(tank.id)
+        .set(tank.toFirestore(), SetOptions(merge: true));
     await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
@@ -102,12 +109,12 @@ class DatabaseService {
   Stream<List<WaterParameter>> getWaterParametersStream(
     String userId,
     String tankId,
-  ) =>
-      _waterParameters(userId, tankId)
-          .orderBy('timestamp', descending: true)
-          .snapshots()
-          .map((snapshot) =>
-              snapshot.docs.map(WaterParameter.fromFirestore).toList());
+  ) => _waterParameters(userId, tankId)
+      .orderBy('timestamp', descending: true)
+      .snapshots()
+      .map(
+        (snapshot) => snapshot.docs.map(WaterParameter.fromFirestore).toList(),
+      );
 
   Future<void> addJournalLog(
     String userId,
@@ -125,19 +132,22 @@ class DatabaseService {
       _journalLogs(userId, tankId)
           .orderBy('timestamp', descending: true)
           .snapshots()
-          .map((snapshot) => snapshot.docs.map(JournalLog.fromFirestore).toList());
+          .map(
+            (snapshot) => snapshot.docs.map(JournalLog.fromFirestore).toList(),
+          );
 
   Stream<List<AquariumReminder>> getRemindersStream(
     String userId,
     String tankId,
-  ) =>
-      _reminders(userId, tankId)
-          .orderBy('dueDate')
-          .snapshots()
-          .map((snapshot) =>
-              snapshot.docs.map(AquariumReminder.fromFirestore).toList());
+  ) => _reminders(userId, tankId)
+      .orderBy('dueDate')
+      .snapshots()
+      .map(
+        (snapshot) =>
+            snapshot.docs.map(AquariumReminder.fromFirestore).toList(),
+      );
 
-  Future<void> addReminder(
+  Future<AquariumReminder> addReminder(
     String userId,
     String tankId,
     AquariumReminder reminder,
@@ -145,10 +155,10 @@ class DatabaseService {
     final reference = reminder.id.isEmpty
         ? _reminders(userId, tankId).doc()
         : _reminders(userId, tankId).doc(reminder.id);
-    await reference.set(
-      reminder.copyWith(id: reference.id, tankId: tankId).toFirestore(),
-    );
+    final savedReminder = reminder.copyWith(id: reference.id, tankId: tankId);
+    await reference.set(savedReminder.toFirestore());
     await FirestoreSyncStatus.recordSuccessfulSync();
+    return savedReminder;
   }
 
   Future<void> updateReminder(
@@ -156,9 +166,13 @@ class DatabaseService {
     String tankId,
     AquariumReminder reminder,
   ) async {
-    if (reminder.id.isEmpty) throw ArgumentError('Reminder id cannot be empty.');
+    if (reminder.id.isEmpty) {
+      throw ArgumentError('Reminder id cannot be empty.');
+    }
     _requirePathId(reminder.id, 'reminderId');
-    await _reminders(userId, tankId).doc(reminder.id).set(
+    await _reminders(userId, tankId)
+        .doc(reminder.id)
+        .set(
           reminder.copyWith(tankId: tankId).toFirestore(),
           SetOptions(merge: true),
         );
@@ -175,7 +189,7 @@ class DatabaseService {
     await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
-  Future<void> completeReminder(
+  Future<AquariumReminder> completeReminder(
     String userId,
     String tankId,
     AquariumReminder reminder,
@@ -184,7 +198,11 @@ class DatabaseService {
     final completedAt = DateTime.now();
     final nextDueDate = reminder.repeatIntervalDays == null
         ? reminder.dueDate
-        : completedAt.add(Duration(days: reminder.repeatIntervalDays!));
+        : nextRecurrenceDateAfter(
+            completedAt,
+            reminder.dueDate,
+            reminder.repeatIntervalDays!,
+          );
     final updated = reminder.copyWith(
       tankId: tankId,
       dueDate: nextDueDate,
@@ -192,28 +210,35 @@ class DatabaseService {
       lastCompletedAt: completedAt,
     );
     final batch = _firestore.batch();
-    batch.set(_reminders(userId, tankId).doc(reminder.id), updated.toFirestore());
+    batch.set(
+      _reminders(userId, tankId).doc(reminder.id),
+      updated.toFirestore(),
+    );
     final journalReference = _journalLogs(userId, tankId).doc();
-    batch.set(journalReference, JournalLog(
-      id: journalReference.id,
-      timestamp: completedAt,
-      activityType: reminder.taskType.name,
-      title: reminder.title,
-      note: 'Przypomnienie wykonane',
-    ).toFirestore());
+    batch.set(
+      journalReference,
+      JournalLog(
+        id: journalReference.id,
+        timestamp: completedAt,
+        activityType: reminder.taskType.name,
+        title: reminder.title,
+        note: 'Przypomnienie wykonane',
+      ).toFirestore(),
+    );
     await batch.commit();
     await FirestoreSyncStatus.recordSuccessfulSync();
+    return updated;
   }
 
   Stream<List<TankStockItem>> getTankStockingStream(
     String userId,
     String tankId,
-  ) =>
-      _stocking(userId, tankId)
-          .orderBy('addedDate')
-          .snapshots()
-          .map((snapshot) =>
-              snapshot.docs.map(TankStockItem.fromFirestore).toList());
+  ) => _stocking(userId, tankId)
+      .orderBy('addedDate')
+      .snapshots()
+      .map(
+        (snapshot) => snapshot.docs.map(TankStockItem.fromFirestore).toList(),
+      );
 
   Future<void> addStockItem(
     String userId,
@@ -223,7 +248,9 @@ class DatabaseService {
     final reference = item.id.isEmpty
         ? _stocking(userId, tankId).doc()
         : _stocking(userId, tankId).doc(item.id);
-    await reference.set(item.copyWith(id: reference.id, tankId: tankId).toFirestore());
+    await reference.set(
+      item.copyWith(id: reference.id, tankId: tankId).toFirestore(),
+    );
     await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
@@ -233,7 +260,9 @@ class DatabaseService {
     TankStockItem item,
   ) async {
     if (item.id.isEmpty) throw ArgumentError('Stock item id cannot be empty.');
-    await _stocking(userId, tankId).doc(item.id).set(
+    await _stocking(userId, tankId)
+        .doc(item.id)
+        .set(
           item.copyWith(tankId: tankId).toFirestore(),
           SetOptions(merge: true),
         );
@@ -256,8 +285,7 @@ class DatabaseService {
     Uint8List imageBytes,
     String caption, {
     String? localFilePath,
-  }
-  ) async {
+  }) async {
     final document = _photos(userId, tankId).doc();
     final storagePath = 'users/$userId/tanks/$tankId/photos/${document.id}.jpg';
     final storageReference = _storage.ref(storagePath);
@@ -284,7 +312,9 @@ class DatabaseService {
       _photos(userId, tankId)
           .orderBy('createdAt', descending: true)
           .snapshots()
-          .map((snapshot) => snapshot.docs.map(TankPhoto.fromFirestore).toList());
+          .map(
+            (snapshot) => snapshot.docs.map(TankPhoto.fromFirestore).toList(),
+          );
 
   Future<void> deleteTankPhoto(
     String userId,
@@ -307,7 +337,9 @@ class DatabaseService {
     final snapshot = await _photos(userId, tankId).get();
     final batch = _firestore.batch();
     for (final document in snapshot.docs) {
-      batch.update(document.reference, {'isCoverPhoto': document.id == photo.id});
+      batch.update(document.reference, {
+        'isCoverPhoto': document.id == photo.id,
+      });
     }
     batch.update(_tanks(userId).doc(tankId), {
       'imageUrl': photo.photoUrl,
@@ -328,41 +360,41 @@ class DatabaseService {
 
 extension on Tank {
   Tank copyWithId(String id) => Tank(
-        id: id,
-        name: name,
-        capacityLiters: capacityLiters,
-        dimensions: dimensions,
-        createdAt: createdAt,
-        imageUrl: imageUrl,
-        coverPhotoUrl: coverPhotoUrl,
-        coverImagePath: coverImagePath,
-      );
+    id: id,
+    name: name,
+    capacityLiters: capacityLiters,
+    dimensions: dimensions,
+    createdAt: createdAt,
+    imageUrl: imageUrl,
+    coverPhotoUrl: coverPhotoUrl,
+    coverImagePath: coverImagePath,
+  );
 }
 
 extension on WaterParameter {
   WaterParameter copyWithId(String id) => WaterParameter(
-        id: id,
-        timestamp: timestamp,
-        pH: pH,
-        kh: kh,
-        gh: gh,
-        no3: no3,
-        po4: po4,
-        fe: fe,
-        k: k,
-        mg: mg,
-        temp: temp,
-        note: note,
-      );
+    id: id,
+    timestamp: timestamp,
+    pH: pH,
+    kh: kh,
+    gh: gh,
+    no3: no3,
+    po4: po4,
+    fe: fe,
+    k: k,
+    mg: mg,
+    temp: temp,
+    note: note,
+  );
 }
 
 extension on JournalLog {
   JournalLog copyWithId(String id) => JournalLog(
-        id: id,
-        timestamp: timestamp,
-        activityType: activityType,
-        title: title,
-        waterReplacedLiters: waterReplacedLiters,
-        note: note,
-      );
+    id: id,
+    timestamp: timestamp,
+    activityType: activityType,
+    title: title,
+    waterReplacedLiters: waterReplacedLiters,
+    note: note,
+  );
 }

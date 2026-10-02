@@ -75,7 +75,8 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                       color: Colors.red,
                       reminders: overdue,
                       onComplete: (item) => _complete(userId, tankId, item),
-                      onSnooze: (item) => _snooze(userId, tankId, item),
+                      onSnooze: (item) =>
+                          _snooze(context, userId, tankId, item),
                     ),
                   if (upcoming.isNotEmpty)
                     _ReminderGroup(
@@ -83,7 +84,8 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                       color: Theme.of(context).colorScheme.primary,
                       reminders: upcoming,
                       onComplete: (item) => _complete(userId, tankId, item),
-                      onSnooze: (item) => _snooze(userId, tankId, item),
+                      onSnooze: (item) =>
+                          _snooze(context, userId, tankId, item),
                     ),
                   if (completed.isNotEmpty)
                     _ReminderGroup(
@@ -91,7 +93,8 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                       color: Colors.blueGrey,
                       reminders: completed,
                       onComplete: (item) => _complete(userId, tankId, item),
-                      onSnooze: (item) => _snooze(userId, tankId, item),
+                      onSnooze: (item) =>
+                          _snooze(context, userId, tankId, item),
                     ),
                 ],
               ],
@@ -107,20 +110,37 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
     String tankId,
     AquariumReminder reminder,
   ) async {
-    await _database.completeReminder(userId, tankId, reminder);
-    await LocalReminderService.instance.cancel(reminder.id.hashCode.abs());
+    final notificationBody = AppLocalizations.of(context)!
+        .scheduledAquariumTaskNotification;
+    if (reminder.isCompleted) {
+      final updated = reminder.copyWith(isCompleted: false);
+      await _database.updateReminder(userId, tankId, updated);
+      await _schedule(updated, notificationBody);
+      return;
+    }
+
+    final updated = await _database.completeReminder(userId, tankId, reminder);
+    if (updated.repeatIntervalDays == null) {
+      await LocalReminderService.instance.cancel(updated.id.hashCode.abs());
+    } else {
+      await _schedule(updated, notificationBody);
+    }
   }
 
   Future<void> _snooze(
+    BuildContext context,
     String userId,
     String tankId,
     AquariumReminder reminder,
   ) async {
+    final notificationBody = AppLocalizations.of(context)!
+        .scheduledAquariumTaskNotification;
     final snoozed = reminder.copyWith(
       dueDate: reminder.dueDate.add(const Duration(days: 1)),
       isCompleted: false,
     );
     await _database.updateReminder(userId, tankId, snoozed);
+    await _schedule(snoozed, notificationBody);
   }
 
   Future<void> _openForm(
@@ -135,14 +155,16 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
       builder: (_) => const _ReminderDialog(),
     );
     if (reminder == null || !context.mounted) return;
-    await _database.addReminder(userId, tankId, reminder);
-    await LocalReminderService.instance.schedule(
+    final saved = await _database.addReminder(userId, tankId, reminder);
+    await _schedule(saved, notificationBody);
+  }
+
+  Future<void> _schedule(AquariumReminder reminder, String body) {
+    return LocalReminderService.instance.schedule(
       ScheduledReminder(
-        id: reminder.id.isEmpty
-            ? reminder.hashCode.abs()
-            : reminder.id.hashCode.abs(),
+        id: reminder.id.hashCode.abs(),
         title: reminder.title,
-        body: notificationBody,
+        body: body,
         date: reminder.dueDate,
       ),
     );
@@ -187,7 +209,12 @@ class _ReminderGroup extends StatelessWidget {
             title: Text(
               item.title.trim().isEmpty ? l10n.unnamedReminder : item.title,
             ),
-            subtitle: Text(_formatDate(item.dueDate)),
+            subtitle: Text(
+              item.repeatIntervalDays == null
+                  ? _formatDate(item.dueDate)
+                  : '${_formatDate(item.dueDate)} · '
+                        '${item.repeatIntervalDays == 1 ? l10n.dailyRecurrence : l10n.everyDays(item.repeatIntervalDays!)}',
+            ),
             trailing: Wrap(
               spacing: 0,
               children: [
@@ -284,6 +311,7 @@ class _ReminderDialogState extends State<_ReminderDialog> {
               decoration: InputDecoration(labelText: l10n.repeatLabel),
               items: [
                 DropdownMenuItem(value: null, child: Text(l10n.oneTime)),
+                DropdownMenuItem(value: 1, child: Text(l10n.dailyRecurrence)),
                 DropdownMenuItem(value: 7, child: Text(l10n.everyDays(7))),
                 DropdownMenuItem(value: 14, child: Text(l10n.everyDays(14))),
                 DropdownMenuItem(value: 30, child: Text(l10n.everyDays(30))),

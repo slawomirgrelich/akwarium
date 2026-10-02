@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../services/aquarium_journal_service.dart';
 import '../services/firestore_service.dart';
@@ -147,6 +148,7 @@ class _DetailsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final latest = parameters.isEmpty ? null : parameters.first;
     return SafeArea(
       child: ListView(
@@ -204,7 +206,7 @@ class _DetailsContent extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: onShowChart,
                     icon: const Icon(Icons.show_chart),
-                    label: const Text('Zobacz trendy parametrów'),
+                    label: Text(l10n.chartTrendsTitle),
                   ),
                   const SizedBox(height: 8),
                   FilledButton.icon(
@@ -238,6 +240,7 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final measurements = widget.parameters.reversed.toList(growable: false);
     final values = measurements.map(_valueForSelected).toList(growable: false);
     final minimum = values.reduce((a, b) => a < b ? a : b);
@@ -255,7 +258,7 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Historia parametrów wody',
+              l10n.chartHistoryTitle,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 10),
@@ -284,7 +287,8 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
                     show: true,
                     drawVerticalLine: false,
                     getDrawingHorizontalLine: (_) => FlLine(
-                      color: Theme.of(context).dividerColor.withValues(alpha: 0.45),
+                      color: Theme.of(context).dividerColor
+                          .withValues(alpha: 0.45),
                       strokeWidth: 1,
                     ),
                   ),
@@ -302,9 +306,8 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
                         reservedSize: 62,
                         getTitlesWidget: (value, _) => Text(
                           '${_axisValue(value)}${unit.isEmpty ? '' : ' $unit'}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontSize: 9,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(fontSize: 9),
                         ),
                       ),
                     ),
@@ -336,7 +339,10 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
                   lineTouchData: LineTouchData(
                     touchTooltipData: LineTouchTooltipData(
                       getTooltipItems: (spots) => spots.map((spot) {
-                        final index = spot.x.round().clamp(0, measurements.length - 1);
+                        final index = spot.x.round().clamp(
+                          0,
+                          measurements.length - 1,
+                        );
                         final date = measurements[index].timestamp;
                         return LineTooltipItem(
                           '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}\n${_axisValue(spot.y)}${unit.isEmpty ? '' : ' $unit'}',
@@ -373,11 +379,12 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
     );
   }
 
-  double _valueForSelected(WaterParametersModel measurement) => switch (_selected) {
-    _HistoryParameter.ph => measurement.ph,
-    _HistoryParameter.temperature => measurement.temp,
-    _HistoryParameter.no3 => measurement.no3,
-  };
+  double _valueForSelected(WaterParametersModel measurement) =>
+      switch (_selected) {
+        _HistoryParameter.ph => measurement.ph,
+        _HistoryParameter.temperature => measurement.temp,
+        _HistoryParameter.no3 => measurement.no3,
+      };
 
   String get _unit => switch (_selected) {
     _HistoryParameter.ph => '',

@@ -2246,6 +2246,66 @@ abstract class AppLocalizations {
   /// **'Jednorazowo'**
   String get oneTime;
 
+  /// No description provided for @dailyRecurrence.
+  ///
+  /// In pl, this message translates to:
+  /// **'Codziennie'**
+  String get dailyRecurrence;
+
+  /// No description provided for @everyXDays.
+  ///
+  /// In pl, this message translates to:
+  /// **'Co X dni'**
+  String get everyXDays;
+
+  /// No description provided for @weeklyRecurrence.
+  ///
+  /// In pl, this message translates to:
+  /// **'Co tydzień'**
+  String get weeklyRecurrence;
+
+  /// No description provided for @monthlyRecurrence.
+  ///
+  /// In pl, this message translates to:
+  /// **'Co miesiąc'**
+  String get monthlyRecurrence;
+
+  /// No description provided for @aquariumTaskSaveFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zapisać zadania. Spróbuj ponownie.'**
+  String get aquariumTaskSaveFailed;
+
+  /// No description provided for @aquariumTaskUpdateFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zaktualizować zadania. Spróbuj ponownie.'**
+  String get aquariumTaskUpdateFailed;
+
+  /// No description provided for @repeatEveryDays.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powtarzaj co ile dni'**
+  String get repeatEveryDays;
+
+  /// No description provided for @daysProFeature.
+  ///
+  /// In pl, this message translates to:
+  /// **'dni · funkcja PRO'**
+  String get daysProFeature;
+
+  /// No description provided for @daysUnit.
+  ///
+  /// In pl, this message translates to:
+  /// **'dni'**
+  String get daysUnit;
+
+  /// No description provided for @enterPositiveDays.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz liczbę dni większą od zera.'**
+  String get enterPositiveDays;
+
   /// No description provided for @everyDays.
   ///
   /// In pl, this message translates to:
@@ -2287,6 +2347,228 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Zaplanowane zadanie akwarystyczne'**
   String get scheduledAquariumTaskNotification;
+
+  /// No description provided for @localNotificationScheduleFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zaplanować powiadomienia.'**
+  String get localNotificationScheduleFailed;
+
+  /// No description provided for @chartHistoryTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Historia parametrów wody'**
+  String get chartHistoryTitle;
+
+  /// No description provided for @chartTrendsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Trendy parametrów wody'**
+  String get chartTrendsTitle;
+
+  /// No description provided for @chartAddMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pomiar'**
+  String get chartAddMeasurement;
+
+  /// No description provided for @chartLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać pomiarów. Spróbuj ponownie.'**
+  String get chartLoadError;
+
+  /// No description provided for @chartSaveError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zapisać pomiaru: {error}'**
+  String chartSaveError(String error);
+
+  /// No description provided for @chartNoParameterData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak zapisanych pomiarów parametru {parameter}.'**
+  String chartNoParameterData(String parameter);
+
+  /// No description provided for @chartNoParameterDataInRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak pomiarów parametru {parameter} w wybranym zakresie.'**
+  String chartNoParameterDataInRange(String parameter);
+
+  /// No description provided for @chartChooseParameter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz parametr'**
+  String get chartChooseParameter;
+
+  /// No description provided for @chartChangeOverTime.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmiana w czasie · {parameter}'**
+  String chartChangeOverTime(String parameter);
+
+  /// No description provided for @chartOptimalRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Optimum {min}–{max} {unit}'**
+  String chartOptimalRange(String min, String max, String unit);
+
+  /// No description provided for @chartAddAnotherMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj kolejny pomiar'**
+  String get chartAddAnotherMeasurement;
+
+  /// No description provided for @chartLastMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatni pomiar · {parameter}'**
+  String chartLastMeasurement(String parameter);
+
+  /// No description provided for @chartNoPreviousMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wcześniejszego pomiaru'**
+  String get chartNoPreviousMeasurement;
+
+  /// No description provided for @chartStableTrend.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stabilnie względem poprzedniego'**
+  String get chartStableTrend;
+
+  /// No description provided for @chartRisingTrend.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wzrost względem poprzedniego'**
+  String get chartRisingTrend;
+
+  /// No description provided for @chartFallingTrend.
+  ///
+  /// In pl, this message translates to:
+  /// **'Spadek względem poprzedniego'**
+  String get chartFallingTrend;
+
+  /// No description provided for @chartBelowRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poniżej zakresu'**
+  String get chartBelowRange;
+
+  /// No description provided for @chartAboveRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powyżej zakresu'**
+  String get chartAboveRange;
+
+  /// No description provided for @chartWithinRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'W zakresie'**
+  String get chartWithinRange;
+
+  /// No description provided for @chartStatus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Status: {status}'**
+  String chartStatus(String status);
+
+  /// No description provided for @chartEmptyTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak pomiarów wody'**
+  String get chartEmptyTitle;
+
+  /// No description provided for @chartEmptyDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwszy pomiar, aby zobaczyć trendy parametrów.'**
+  String get chartEmptyDescription;
+
+  /// No description provided for @chartAddFirstMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwszy pomiar'**
+  String get chartAddFirstMeasurement;
+
+  /// No description provided for @chartRange7Days.
+  ///
+  /// In pl, this message translates to:
+  /// **'7 dni'**
+  String get chartRange7Days;
+
+  /// No description provided for @chartRange30Days.
+  ///
+  /// In pl, this message translates to:
+  /// **'30 dni'**
+  String get chartRange30Days;
+
+  /// No description provided for @chartRange90Days.
+  ///
+  /// In pl, this message translates to:
+  /// **'90 dni'**
+  String get chartRange90Days;
+
+  /// No description provided for @chartRangeAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystko'**
+  String get chartRangeAll;
+
+  /// No description provided for @chartNewMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowy pomiar wody'**
+  String get chartNewMeasurement;
+
+  /// No description provided for @chartOptionalNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Notatka (opcjonalnie)'**
+  String get chartOptionalNote;
+
+  /// No description provided for @chartEnterValue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz wartość.'**
+  String get chartEnterValue;
+
+  /// No description provided for @chartInvalidNumber.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz poprawną liczbę.'**
+  String get chartInvalidNumber;
+
+  /// No description provided for @chartSaving.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisywanie...'**
+  String get chartSaving;
+
+  /// No description provided for @chartTwoMeasurementsRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj co najmniej dwa pomiary, aby zobaczyć wykres.'**
+  String get chartTwoMeasurementsRequired;
+
+  /// Label for an interval-based task recurrence
+  ///
+  /// In pl, this message translates to:
+  /// **'Powtarzaj co'**
+  String get repeatEveryLabel;
+
+  /// No description provided for @lastPerformedOn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnio: {date}'**
+  String lastPerformedOn(String date);
+
+  /// No description provided for @optionalLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'opcjonalnie'**
+  String get optionalLabel;
 
   /// No description provided for @speciesMinimumVolumeFrom.
   ///

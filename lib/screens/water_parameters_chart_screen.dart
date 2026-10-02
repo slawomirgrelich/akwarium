@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../services/firestore_service.dart';
+import '../utils/water_measurement_range.dart';
 
 enum _ChartParameter { ph, no3, no2, po4, temp, gh, kh, fe, k, mg }
-
-enum _ChartRange { days7, days30, days90, all }
 
 class WaterParametersChartScreen extends StatefulWidget {
   const WaterParametersChartScreen({required this.aquarium, super.key});
@@ -24,7 +23,7 @@ class _WaterParametersChartScreenState
   late final FirestoreService _service;
   late final Stream<List<WaterParametersModel>> _parametersStream;
   _ChartParameter _selected = _ChartParameter.ph;
-  _ChartRange _range = _ChartRange.all;
+  WaterMeasurementRange _range = WaterMeasurementRange.all;
 
   @override
   void initState() {
@@ -35,12 +34,13 @@ class _WaterParametersChartScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trendy parametrów'),
+        title: Text(l10n.chartTrendsTitle),
         actions: [
           IconButton(
-            tooltip: 'Dodaj pomiar',
+            tooltip: l10n.chartAddMeasurement,
             onPressed: () => _openMeasurementForm(context),
             icon: const Icon(Icons.add_chart_outlined),
           ),
@@ -90,7 +90,7 @@ class _WaterParametersChartScreenState
 
   String _errorMessage(Object? error) {
     if (error is FirestoreServiceException) return error.message;
-    return 'Nie udało się wczytać pomiarów. Spróbuj ponownie.';
+    return AppLocalizations.of(context)!.chartLoadError;
   }
 }
 
@@ -108,23 +108,21 @@ class _ChartContent extends StatelessWidget {
   final AquariumModel aquarium;
   final List<WaterParametersModel> measurements;
   final _ChartParameter selected;
-  final _ChartRange range;
+  final WaterMeasurementRange range;
   final ValueChanged<_ChartParameter> onParameterChanged;
-  final ValueChanged<_ChartRange> onRangeChanged;
+  final ValueChanged<WaterMeasurementRange> onRangeChanged;
   final VoidCallback onAddMeasurement;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final parameterMeasurements = selected == _ChartParameter.no2
         ? measurements.where((measurement) => measurement.no2 != null).toList()
         : measurements;
-    final measurementsInRange = _filterMeasurements(
+    final visibleMeasurements = filterWaterMeasurementsByRange(
       parameterMeasurements,
       range,
     );
-    final visibleMeasurements = measurementsInRange.isEmpty
-        ? parameterMeasurements
-        : measurementsInRange;
     final hasParameterData = visibleMeasurements.isNotEmpty;
     final standard = _standardFor(selected, aquarium.type);
     final values = visibleMeasurements
@@ -157,17 +155,21 @@ class _ChartContent extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Text(
-                      'Brak zapisanych pomiarów ${_labelFor(selected)}.',
+                      parameterMeasurements.isEmpty
+                          ? l10n.chartNoParameterData(_labelFor(selected))
+                          : l10n.chartNoParameterDataInRange(
+                              _labelFor(selected),
+                            ),
                       textAlign: TextAlign.center,
                     ),
                   ),
                 const SizedBox(height: 20),
-                SegmentedButton<_ChartRange>(
-                  segments: _ChartRange.values
+                SegmentedButton<WaterMeasurementRange>(
+                  segments: WaterMeasurementRange.values
                       .map(
                         (range) => ButtonSegment(
                           value: range,
-                          label: Text(_rangeLabel(range)),
+                          label: Text(_rangeLabel(range, l10n)),
                         ),
                       )
                       .toList(),
@@ -177,7 +179,7 @@ class _ChartContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Wybierz parametr',
+                  l10n.chartChooseParameter,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 10),
@@ -204,14 +206,18 @@ class _ChartContent extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  'Zmiana w czasie · ${_labelFor(selected)}',
+                                  l10n.chartChangeOverTime(_labelFor(selected)),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                               Text(
-                                'Optimum ${_formatNumber(standard.min)}–${_formatNumber(standard.max)} ${standard.unit}',
+                                l10n.chartOptimalRange(
+                                  _formatNumber(standard.min),
+                                  _formatNumber(standard.max),
+                                  standard.unit,
+                                ),
                                 style: TextStyle(
                                   color: Colors.teal.shade700,
                                   fontSize: 12,
@@ -236,7 +242,7 @@ class _ChartContent extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: onAddMeasurement,
                   icon: const Icon(Icons.add),
-                  label: const Text('Dodaj kolejny pomiar'),
+                  label: Text(l10n.chartAddAnotherMeasurement),
                 ),
               ],
             ),
@@ -392,6 +398,7 @@ class _QuickStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final latestValue = _valueFor(latest, parameter);
     final previousValue = previous == null
         ? null
@@ -412,18 +419,18 @@ class _QuickStatsCard extends StatelessWidget {
         ? Icons.trending_up
         : Icons.trending_down;
     final trendLabel = previous == null
-        ? 'Brak wcześniejszego pomiaru'
+        ? l10n.chartNoPreviousMeasurement
         : isStable
-        ? 'Stabilnie względem poprzedniego'
+        ? l10n.chartStableTrend
         : isUp
-        ? 'Wzrost względem poprzedniego'
-        : 'Spadek względem poprzedniego';
+        ? l10n.chartRisingTrend
+        : l10n.chartFallingTrend;
     final inRange = latestValue >= standard.min && latestValue <= standard.max;
     final status = latestValue < standard.min
-        ? 'Poniżej zakresu'
+        ? l10n.chartBelowRange
         : latestValue > standard.max
-        ? 'Powyżej zakresu'
-        : 'W zakresie';
+        ? l10n.chartAboveRange
+        : l10n.chartWithinRange;
     final statusColor = inRange
         ? const Color(0xFF10B981)
         : const Color(0xFFF59E0B);
@@ -440,7 +447,7 @@ class _QuickStatsCard extends StatelessWidget {
                 const Icon(Icons.insights_outlined, color: Colors.teal),
                 const SizedBox(width: 8),
                 Text(
-                  'Ostatni pomiar · ${_labelFor(parameter)}',
+                  l10n.chartLastMeasurement(_labelFor(parameter)),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
@@ -481,7 +488,7 @@ class _QuickStatsCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Status: $status',
+              l10n.chartStatus(status),
               style: TextStyle(color: statusColor, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
@@ -530,6 +537,7 @@ class _EmptyMeasurementsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28),
@@ -539,12 +547,12 @@ class _EmptyMeasurementsView extends StatelessWidget {
             Icon(Icons.show_chart, size: 56, color: Colors.teal.shade300),
             const SizedBox(height: 16),
             Text(
-              'Brak pomiarów wody',
+              l10n.chartEmptyTitle,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'Dodaj pierwszy pomiar, aby zobaczyć trendy parametrów.',
+              l10n.chartEmptyDescription,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.shade700),
             ),
@@ -552,7 +560,7 @@ class _EmptyMeasurementsView extends StatelessWidget {
             FilledButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add_chart_outlined),
-              label: const Text('Dodaj pierwszy pomiar'),
+              label: Text(l10n.chartAddFirstMeasurement),
             ),
           ],
         ),
@@ -628,8 +636,9 @@ class _FirestoreWaterParametersFormScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Nowy pomiar wody')),
+      appBar: AppBar(title: Text(l10n.chartNewMeasurement)),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -647,9 +656,7 @@ class _FirestoreWaterParametersFormScreenState
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Wartości zostaną zapisane z bieżącą datą i godziną.',
-                  ),
+                  Text(l10n.waterTestInfo),
                   const SizedBox(height: 20),
                   if (_error != null) ...[
                     Text(_error!, style: TextStyle(color: Colors.red.shade700)),
@@ -667,19 +674,19 @@ class _FirestoreWaterParametersFormScreenState
                             ),
                             decoration: InputDecoration(
                               labelText: entry.key == 'Temperatura'
-                                  ? AppLocalizations.of(context)!.temperature
+                                  ? l10n.temperature
                                   : entry.key,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
                                 if (entry.key == 'NO2') return null;
-                                return 'Wpisz wartość.';
+                                return l10n.chartEnterValue;
                               }
                               return double.tryParse(
                                         value.trim().replaceAll(',', '.'),
                                       ) ==
                                       null
-                                  ? 'Wpisz poprawną liczbę.'
+                                  ? l10n.chartInvalidNumber
                                   : null;
                             },
                           ),
@@ -688,8 +695,8 @@ class _FirestoreWaterParametersFormScreenState
                   TextField(
                     controller: _controllers['Notatka'],
                     maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Notatka (opcjonalnie)',
+                    decoration: InputDecoration(
+                      labelText: l10n.chartOptionalNote,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -705,7 +712,9 @@ class _FirestoreWaterParametersFormScreenState
                             ),
                           )
                         : const Icon(Icons.save_outlined),
-                    label: Text(_isSaving ? 'Zapisywanie...' : 'Zapisz pomiar'),
+                    label: Text(
+                      _isSaving ? l10n.chartSaving : l10n.saveMeasurement,
+                    ),
                   ),
                 ],
               ),
@@ -747,7 +756,7 @@ class _FirestoreWaterParametersFormScreenState
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _error = error.message;
+          _error = AppLocalizations.of(context)!.chartSaveError(error.message);
         });
       }
     }
@@ -971,34 +980,17 @@ String _labelFor(_ChartParameter parameter) {
   }
 }
 
-String _rangeLabel(_ChartRange range) {
+String _rangeLabel(WaterMeasurementRange range, AppLocalizations l10n) {
   switch (range) {
-    case _ChartRange.days7:
-      return '7 dni';
-    case _ChartRange.days30:
-      return '30 dni';
-    case _ChartRange.days90:
-      return '90 dni';
-    case _ChartRange.all:
-      return 'Wszystko';
+    case WaterMeasurementRange.days7:
+      return l10n.chartRange7Days;
+    case WaterMeasurementRange.days30:
+      return l10n.chartRange30Days;
+    case WaterMeasurementRange.days90:
+      return l10n.chartRange90Days;
+    case WaterMeasurementRange.all:
+      return l10n.chartRangeAll;
   }
-}
-
-List<WaterParametersModel> _filterMeasurements(
-  List<WaterParametersModel> measurements,
-  _ChartRange range,
-) {
-  if (range == _ChartRange.all) return measurements;
-  final days = switch (range) {
-    _ChartRange.days7 => 7,
-    _ChartRange.days30 => 30,
-    _ChartRange.days90 => 90,
-    _ChartRange.all => 0,
-  };
-  final cutoff = DateTime.now().subtract(Duration(days: days));
-  return measurements
-      .where((measurement) => !measurement.timestamp.isBefore(cutoff))
-      .toList(growable: false);
 }
 
 String _formatNumber(double value) {

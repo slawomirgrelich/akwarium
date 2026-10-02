@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'models/aquarium_model.dart';
-import 'local_reminder_service.dart';
 import 'l10n/app_localizations.dart';
 
 const _ink = Color(0xFFF2F8F6);
@@ -316,8 +315,9 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
     final dayTasks = tasks
         .where((task) => isSameDay(task.nextDueDate, _selectedDay))
         .toList();
-    final upcoming = tasks.where((task) => !task.isCompletedToday).toList()
-      ..sort((a, b) => a.nextDueDate.compareTo(b.nextDueDate));
+    final upcoming =
+        tasks.where((task) => !task.isCompletedForCurrentDay).toList()
+          ..sort((a, b) => a.nextDueDate.compareTo(b.nextDueDate));
 
     return Scaffold(
       backgroundColor: _ink,
@@ -440,33 +440,27 @@ class _TaskTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final overdue =
-        task.nextDueDate.isBefore(DateTime.now()) && !task.isCompletedToday;
+        task.nextDueDate.isBefore(DateTime.now()) &&
+        !task.isCompletedForCurrentDay;
     return Card(
       color: _surface,
       child: ListTile(
         leading: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: IconButton(
-            key: ValueKey(task.isCompletedToday),
-            tooltip: task.isCompletedToday
+            key: ValueKey(task.isCompletedForCurrentDay),
+            tooltip: task.isCompletedForCurrentDay
                 ? 'Odznacz jako zrobione'
                 : 'Oznacz jako wykonane',
             icon: Icon(
-              task.isCompletedToday
+              task.isCompletedForCurrentDay
                   ? Icons.check_circle
                   : Icons.radio_button_unchecked,
-              color: task.isCompletedToday
+              color: task.isCompletedForCurrentDay
                   ? _green
                   : (overdue ? _coral : _cyan),
             ),
-            onPressed: () {
-              final provider = context.read<AquariumProvider>();
-              if (task.isCompletedToday) {
-                provider.reopenTask(task.id);
-              } else {
-                provider.completeTask(task.id);
-              }
-            },
+            onPressed: () async => _toggleTask(context, task),
           ),
         ),
         title: Text(
@@ -486,6 +480,26 @@ class _TaskTile extends StatelessWidget {
   }
 }
 
+Future<void> _toggleTask(BuildContext context, AquariumTask task) async {
+  final provider = context.read<AquariumProvider>();
+  try {
+    if (task.isCompletedForCurrentDay) {
+      await provider.reopenTask(task.id);
+    } else {
+      await provider.completeTask(task.id);
+    }
+  } catch (error, stackTrace) {
+    debugPrint('Aquarium task update failed: $error\n$stackTrace');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.aquariumTaskUpdateFailed),
+        ),
+      );
+    }
+  }
+}
+
 class AddTaskModal extends StatefulWidget {
   const AddTaskModal({super.key});
 
@@ -494,6 +508,7 @@ class AddTaskModal extends StatefulWidget {
 }
 
 class _AddTaskModalState extends State<AddTaskModal> {
+  final _formKey = GlobalKey<FormState>();
   final _title = TextEditingController();
   final _description = TextEditingController();
   TaskRecurrence _recurrence = TaskRecurrence.weekly;
@@ -509,68 +524,78 @@ class _AddTaskModalState extends State<AddTaskModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: const Text('Nowe zadanie'),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _title,
-              decoration: const InputDecoration(labelText: 'Tytuł'),
-            ),
-            TextField(
-              controller: _description,
-              decoration: const InputDecoration(labelText: 'Opis'),
-            ),
-            DropdownButtonFormField<TaskRecurrence>(
-              initialValue: _recurrence,
-              decoration: const InputDecoration(labelText: 'Powtarzanie'),
-              items: const [
-                DropdownMenuItem(
-                  value: TaskRecurrence.once,
-                  child: Text('Jednorazowe'),
-                ),
-                DropdownMenuItem(
-                  value: TaskRecurrence.daily,
-                  child: Text('Codziennie'),
-                ),
-                DropdownMenuItem(
-                  value: TaskRecurrence.everyXDays,
-                  child: Text('Co X dni'),
-                ),
-                DropdownMenuItem(
-                  value: TaskRecurrence.weekly,
-                  child: Text('Co tydzień'),
-                ),
-                DropdownMenuItem(
-                  value: TaskRecurrence.monthly,
-                  child: Text('Co miesiąc'),
-                ),
-              ],
-              onChanged: (value) => setState(() => _recurrence = value!),
-            ),
-            if (_recurrence == TaskRecurrence.everyXDays)
-              TextFormField(
-                initialValue: '$_interval',
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Liczba dni'),
-                onChanged: (value) => _interval = int.tryParse(value) ?? 1,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _title,
+                decoration: const InputDecoration(labelText: 'Tytuł'),
               ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Przypomnienie'),
-              subtitle: Text(_reminder.format(context)),
-              trailing: const Icon(Icons.notifications_outlined),
-              onTap: () async {
-                final value = await showTimePicker(
-                  context: context,
-                  initialTime: _reminder,
-                );
-                if (value != null) setState(() => _reminder = value);
-              },
-            ),
-          ],
+              TextField(
+                controller: _description,
+                decoration: const InputDecoration(labelText: 'Opis'),
+              ),
+              DropdownButtonFormField<TaskRecurrence>(
+                initialValue: _recurrence,
+                decoration: InputDecoration(labelText: l10n.repeatLabel),
+                items: [
+                  DropdownMenuItem(
+                    value: TaskRecurrence.once,
+                    child: Text(l10n.oneTime),
+                  ),
+                  DropdownMenuItem(
+                    value: TaskRecurrence.daily,
+                    child: Text(l10n.dailyRecurrence),
+                  ),
+                  DropdownMenuItem(
+                    value: TaskRecurrence.everyXDays,
+                    child: Text(l10n.everyXDays),
+                  ),
+                  DropdownMenuItem(
+                    value: TaskRecurrence.weekly,
+                    child: Text(l10n.weeklyRecurrence),
+                  ),
+                  DropdownMenuItem(
+                    value: TaskRecurrence.monthly,
+                    child: Text(l10n.monthlyRecurrence),
+                  ),
+                ],
+                onChanged: (value) => setState(() => _recurrence = value!),
+              ),
+              if (_recurrence == TaskRecurrence.everyXDays)
+                TextFormField(
+                  initialValue: '$_interval',
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: l10n.repeatEveryDays),
+                  onChanged: (value) => _interval = int.tryParse(value) ?? 0,
+                  validator: (value) {
+                    final days = int.tryParse(value?.trim() ?? '');
+                    return days == null || days < 1
+                        ? l10n.enterPositiveDays
+                        : null;
+                  },
+                ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Przypomnienie'),
+                subtitle: Text(_reminder.format(context)),
+                trailing: const Icon(Icons.notifications_outlined),
+                onTap: () async {
+                  final value = await showTimePicker(
+                    context: context,
+                    initialTime: _reminder,
+                  );
+                  if (value != null) setState(() => _reminder = value);
+                },
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -583,8 +608,11 @@ class _AddTaskModalState extends State<AddTaskModal> {
     );
   }
 
-  void _save() {
-    if (_title.text.trim().isEmpty) return;
+  Future<void> _save() async {
+    if (_title.text.trim().isEmpty ||
+        !(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
     final now = DateTime.now();
     var firstDue = DateTime(
       now.year,
@@ -606,16 +634,19 @@ class _AddTaskModalState extends State<AddTaskModal> {
       nextDueDate: firstDue,
       reminderMinutes: _reminder.hour * 60 + _reminder.minute,
     );
-    context.read<AquariumProvider>().addTask(task);
-    LocalReminderService.instance.schedule(
-      ScheduledReminder(
-        id: int.tryParse(task.id.substring(task.id.length - 8)) ?? 1,
-        title: task.title,
-        body: task.description,
-        date: task.nextDueDate,
-      ),
-    );
-    Navigator.pop(context);
+    try {
+      await context.read<AquariumProvider>().addTask(task);
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (error, stackTrace) {
+      debugPrint('Aquarium task save failed: $error\n$stackTrace');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.aquariumTaskSaveFailed),
+        ),
+      );
+    }
   }
 }
 

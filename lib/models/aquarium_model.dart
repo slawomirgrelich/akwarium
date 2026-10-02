@@ -2,11 +2,15 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../utils/recurrence_date.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'aquarium_firestore_model.dart' as firestore_models;
+import '../local_reminder_service.dart';
 import '../services/firestore_sync_status.dart';
 
 export 'aquarium_firestore_model.dart';
@@ -399,6 +403,13 @@ class JournalEntry {
 
 enum TaskRecurrence { once, daily, everyXDays, weekly, monthly }
 
+int aquariumTaskNotificationId(String taskId) {
+  final suffix = taskId.length <= 8
+      ? taskId
+      : taskId.substring(taskId.length - 8);
+  return int.tryParse(suffix) ?? (taskId.hashCode & 0x7fffffff);
+}
+
 class AquariumTask {
   const AquariumTask({
     required this.id,
@@ -426,6 +437,16 @@ class AquariumTask {
   final int? reminderMinutes;
   final String aquariumId;
 
+  bool get isCompletedForCurrentDay {
+    final completedAt = lastCompletedDate;
+    if (!isCompletedToday || completedAt == null) return false;
+    if (recurrence == TaskRecurrence.once) return true;
+    final now = DateTime.now();
+    return completedAt.year == now.year &&
+        completedAt.month == now.month &&
+        completedAt.day == now.day;
+  }
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'title': title,
@@ -434,10 +455,18 @@ class AquariumTask {
     'intervalDays': intervalDays,
     'nextDueDate': nextDueDate.toIso8601String(),
     'lastCompletedDate': lastCompletedDate?.toIso8601String(),
-    'isCompletedToday': isCompletedToday,
+    'isCompletedToday': isCompletedForCurrentDay,
     'categoryColorHex': categoryColorHex,
     'reminderMinutes': reminderMinutes,
     'aquariumId': aquariumId,
+  };
+
+  Map<String, dynamic> toFirestore() => {
+    ...toJson(),
+    'nextDueDate': Timestamp.fromDate(nextDueDate),
+    'lastCompletedDate': lastCompletedDate == null
+        ? null
+        : Timestamp.fromDate(lastCompletedDate!),
   };
 
   factory AquariumTask.fromJson(Map<String, dynamic> json) => AquariumTask(
@@ -446,31 +475,39 @@ class AquariumTask {
     description: json['description'] as String? ?? '',
     recurrence: TaskRecurrence.values.byName(json['recurrence'] as String),
     intervalDays: json['intervalDays'] as int? ?? 1,
-    nextDueDate: DateTime.parse(json['nextDueDate'] as String),
+    nextDueDate: _readDate(json['nextDueDate']),
     lastCompletedDate: json['lastCompletedDate'] == null
         ? null
-        : DateTime.parse(json['lastCompletedDate'] as String),
+        : _readDate(json['lastCompletedDate']),
     isCompletedToday: json['isCompletedToday'] as bool? ?? false,
     categoryColorHex: json['categoryColorHex'] as String? ?? '#00E5FF',
     reminderMinutes: json['reminderMinutes'] as int?,
     aquariumId: json['aquariumId'] as String? ?? '',
   );
 
+  factory AquariumTask.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) => AquariumTask.fromJson({...?snapshot.data(), 'id': snapshot.id});
+
   AquariumTask completed(DateTime completedAt) {
     final nextDate = switch (recurrence) {
       TaskRecurrence.once => nextDueDate,
-      TaskRecurrence.daily => completedAt.add(const Duration(days: 1)),
-      TaskRecurrence.everyXDays => completedAt.add(
-        Duration(days: intervalDays),
+      TaskRecurrence.daily => nextRecurrenceDateAfter(
+        completedAt,
+        nextDueDate,
+        1,
       ),
-      TaskRecurrence.weekly => completedAt.add(const Duration(days: 7)),
-      TaskRecurrence.monthly => DateTime(
-        completedAt.year,
-        completedAt.month + 1,
-        completedAt.day,
-        completedAt.hour,
-        completedAt.minute,
+      TaskRecurrence.everyXDays => nextRecurrenceDateAfter(
+        completedAt,
+        nextDueDate,
+        intervalDays,
       ),
+      TaskRecurrence.weekly => nextRecurrenceDateAfter(
+        completedAt,
+        nextDueDate,
+        7,
+      ),
+      TaskRecurrence.monthly => _nextMonthlyDate(completedAt, nextDueDate),
     };
     return AquariumTask(
       id: id,
@@ -501,12 +538,32 @@ class AquariumTask {
   );
 }
 
+DateTime _nextMonthlyDate(DateTime completedAt, DateTime scheduledDate) {
+  final firstDayOfNextMonth = DateTime(completedAt.year, completedAt.month + 1);
+  final lastDayOfNextMonth = DateTime(
+    firstDayOfNextMonth.year,
+    firstDayOfNextMonth.month + 1,
+    0,
+  ).day;
+  return DateTime(
+    firstDayOfNextMonth.year,
+    firstDayOfNextMonth.month,
+    completedAt.day < lastDayOfNextMonth ? completedAt.day : lastDayOfNextMonth,
+    scheduledDate.hour,
+    scheduledDate.minute,
+    scheduledDate.second,
+    scheduledDate.millisecond,
+    scheduledDate.microsecond,
+  );
+}
+
 /// Stan danych akwarium udostępniany widokom przez pakiet provider.
 class AquariumProvider extends ChangeNotifier {
   static const _waterTestsKey = 'aquarium.water_tests';
   static const _waterChangesKey = 'aquarium.water_changes';
   static const _journalEntriesKey = 'aquarium.journal_entries';
   static const _tasksKey = 'aquarium.tasks';
+  static const _pendingTasksOwnerKey = 'aquarium.tasks.pending_uid';
   static const _aquariumsKey = 'aquarium.profiles';
   static const _inhabitantsKey = 'aquarium.inhabitants';
   static const _activeAquariumKey = 'aquarium.active_id';
@@ -528,8 +585,8 @@ class AquariumProvider extends ChangeNotifier {
        _activeAquariumId =
            activeAquariumId ??
            (aquariums != null && aquariums.isNotEmpty
-                ? aquariums.first.id
-                : '');
+               ? aquariums.first.id
+               : '');
 
   final List<WaterTest> _waterTests;
   final List<WaterChange> _waterChanges;
@@ -540,9 +597,13 @@ class AquariumProvider extends ChangeNotifier {
   String _activeAquariumId;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
   _waterTestsSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _tasksSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
   _aquariumsSubscription;
   StreamSubscription<User?>? _authStateSubscription;
+  String? _currentTasksUserId;
+  int _authGeneration = 0;
+  bool _hasResolvedAuthState = false;
 
   String get activeAquariumId => _activeAquariumId;
   String get selectedAquariumId => _activeAquariumId;
@@ -553,8 +614,9 @@ class AquariumProvider extends ChangeNotifier {
     }
     return _aquariums.firstOrNull;
   }
-  AquariumProfile get activeAquarium => selectedAquarium ??
-      (throw StateError('Brak aktywnego akwarium.'));
+
+  AquariumProfile get activeAquarium =>
+      selectedAquarium ?? (throw StateError('Brak aktywnego akwarium.'));
   List<WaterTest> get waterTests => List.unmodifiable(
     _waterTests.where((test) => test.aquariumId == _activeAquariumId),
   );
@@ -579,20 +641,96 @@ class AquariumProvider extends ChangeNotifier {
       final auth = FirebaseAuth.instance;
       await auth.setPersistence(Persistence.LOCAL);
       _authStateSubscription?.cancel();
-      _authStateSubscription = auth.authStateChanges().listen((user) {
-        _aquariumsSubscription?.cancel();
-        _waterTestsSubscription?.cancel();
-        if (user == null) {
-          syncCloudAquariums(const []);
-          _replaceWaterTests(const []);
-          return;
-        }
-        _listenToAquariums(user.uid);
-        _listenToWaterTests(user.uid);
-      });
+      _authStateSubscription = auth.authStateChanges().listen(
+        (user) => unawaited(_handleAuthState(user)),
+      );
     } catch (_) {
       // Do czasu konfiguracji Firebase aplikacja korzysta z danych lokalnych.
     }
+  }
+
+  Future<void> _handleAuthState(User? user) async {
+    final generation = ++_authGeneration;
+    final previousUserId = _currentTasksUserId;
+    final isFirstAuthState = !_hasResolvedAuthState;
+    _hasResolvedAuthState = true;
+    await _aquariumsSubscription?.cancel();
+    await _waterTestsSubscription?.cancel();
+    await _tasksSubscription?.cancel();
+
+    if (!isFirstAuthState && previousUserId != user?.uid) {
+      _clearTasks();
+    }
+    _currentTasksUserId = user?.uid;
+
+    if (user == null) {
+      syncCloudAquariums(const []);
+      _replaceWaterTests(const []);
+      if (!isFirstAuthState) {
+        _replaceCloudTasks(const []);
+      }
+      return;
+    }
+
+    var preserveLegacyTasks = false;
+    try {
+      await _migrateLegacyTasks(user.uid);
+    } catch (error, stackTrace) {
+      preserveLegacyTasks = true;
+      debugPrint('Legacy aquarium task migration failed: $error\n$stackTrace');
+    }
+    if (generation != _authGeneration) return;
+
+    _listenToAquariums(user.uid);
+    _listenToWaterTests(user.uid);
+    _listenToTasks(user.uid, preserveLegacyTasks: preserveLegacyTasks);
+  }
+
+  Future<void> _migrateLegacyTasks(String userId) async {
+    final preferences = await SharedPreferences.getInstance();
+    final migrationKey = '$_tasksKey.migrated.$userId';
+    final pendingOwner = preferences.getString(_pendingTasksOwnerKey);
+    if (pendingOwner != null && pendingOwner != userId) {
+      _clearTasks();
+      return;
+    }
+
+    if (preferences.getBool(migrationKey) == true) {
+      await preferences.remove(_tasksKey);
+      if (pendingOwner == userId) {
+        await preferences.remove(_pendingTasksOwnerKey);
+      }
+      _clearTasks();
+      return;
+    }
+
+    if (_tasks.isEmpty) {
+      final savedTasks = preferences.getString(_tasksKey);
+      if (savedTasks != null) {
+        _tasks.addAll(_decodeList(savedTasks, AquariumTask.fromJson));
+      }
+    }
+
+    final legacyTasks = _tasks.where((task) => task.id.isNotEmpty).toList();
+    if (legacyTasks.isNotEmpty) {
+      await preferences.setString(_pendingTasksOwnerKey, userId);
+      final collection = _aquariumTasks(userId);
+      for (var start = 0; start < legacyTasks.length; start += 450) {
+        final batch = FirebaseFirestore.instance.batch();
+        for (final task in legacyTasks.skip(start).take(450)) {
+          batch.set(collection.doc(task.id), task.toFirestore());
+        }
+        await batch.commit();
+      }
+      await FirestoreSyncStatus.recordSuccessfulSync();
+    }
+
+    await preferences.setBool(migrationKey, true);
+    await preferences.remove(_tasksKey);
+    if (preferences.getString(_pendingTasksOwnerKey) == userId) {
+      await preferences.remove(_pendingTasksOwnerKey);
+    }
+    _clearTasks();
   }
 
   /// Wczytuje zapisany stan lokalny podczas uruchamiania aplikacji.
@@ -699,15 +837,14 @@ class AquariumProvider extends ChangeNotifier {
           ),
         )
         .toList(growable: false);
-      mapped.sort((first, second) => second.setupDate.compareTo(first.setupDate));
-    final nextActiveAquariumId = mapped.any(
-      (aquarium) => aquarium.id == _activeAquariumId,
-    )
-      ? _activeAquariumId
-      : mapped.firstOrNull?.id ?? '';
+    mapped.sort((first, second) => second.setupDate.compareTo(first.setupDate));
+    final nextActiveAquariumId =
+        mapped.any((aquarium) => aquarium.id == _activeAquariumId)
+        ? _activeAquariumId
+        : mapped.firstOrNull?.id ?? '';
     final hasChanged =
         mapped.length != _aquariums.length ||
-      nextActiveAquariumId != _activeAquariumId ||
+        nextActiveAquariumId != _activeAquariumId ||
         mapped.asMap().entries.any((entry) {
           final current = entry.value;
           final previous = _aquariums[entry.key];
@@ -761,6 +898,7 @@ class AquariumProvider extends ChangeNotifier {
     if (aquariumId.trim().isEmpty) {
       throw ArgumentError('Aquarium id cannot be empty.');
     }
+    await _deleteTasksForAquarium(user.uid, aquariumId);
     await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
@@ -773,7 +911,17 @@ class AquariumProvider extends ChangeNotifier {
     _waterTests.removeWhere((item) => item.aquariumId == aquariumId);
     _waterChanges.removeWhere((item) => item.aquariumId == aquariumId);
     _journalEntries.removeWhere((item) => item.aquariumId == aquariumId);
+    final removedTasks = _tasks
+        .where((item) => item.aquariumId == aquariumId)
+        .toList();
     _tasks.removeWhere((item) => item.aquariumId == aquariumId);
+    for (final task in removedTasks) {
+      unawaited(
+        LocalReminderService.instance.cancel(
+          aquariumTaskNotificationId(task.id),
+        ),
+      );
+    }
     if (_activeAquariumId == aquariumId) {
       _activeAquariumId = _aquariums.firstOrNull?.id ?? '';
     }
@@ -861,26 +1009,48 @@ class AquariumProvider extends ChangeNotifier {
     _persist();
   }
 
-  void addTask(AquariumTask task) {
+  Future<void> addTask(AquariumTask task) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Zaloguj się, aby zapisać zadanie.');
+    }
+    await _writeTaskToFirestore(user.uid, task);
+    _tasks.removeWhere((saved) => saved.id == task.id);
     _tasks.add(task);
     notifyListeners();
-    _persist();
+    _scheduleTaskReminder(task);
   }
 
-  void completeTask(String taskId) {
+  Future<AquariumTask?> completeTask(
+    String taskId, {
+    DateTime? completedAt,
+  }) async {
     final index = _tasks.indexWhere((task) => task.id == taskId);
-    if (index == -1) return;
-    _tasks[index] = _tasks[index].completed(DateTime.now());
+    if (index == -1) return null;
+    final completed = _tasks[index].completed(completedAt ?? DateTime.now());
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Zaloguj się, aby zaktualizować zadanie.');
+    }
+    await _writeTaskToFirestore(user.uid, completed);
+    _tasks[index] = completed;
     notifyListeners();
-    _persist();
+    _scheduleTaskReminder(completed);
+    return completed;
   }
 
-  void reopenTask(String taskId) {
+  Future<void> reopenTask(String taskId) async {
     final index = _tasks.indexWhere((task) => task.id == taskId);
     if (index == -1) return;
-    _tasks[index] = _tasks[index].reopened();
+    final reopened = _tasks[index].reopened();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Zaloguj się, aby zaktualizować zadanie.');
+    }
+    await _writeTaskToFirestore(user.uid, reopened);
+    _tasks[index] = reopened;
     notifyListeners();
-    _persist();
+    _scheduleTaskReminder(reopened);
   }
 
   void updateWaterTest(WaterTest test) {
@@ -986,10 +1156,6 @@ class AquariumProvider extends ChangeNotifier {
           jsonEncode(_journalEntries.map((entry) => entry.toMap()).toList()),
         ),
         preferences.setString(
-          _tasksKey,
-          jsonEncode(_tasks.map((task) => task.toJson()).toList()),
-        ),
-        preferences.setString(
           _aquariumsKey,
           jsonEncode(_aquariums.map((aquarium) => aquarium.toJson()).toList()),
         ),
@@ -1002,6 +1168,112 @@ class AquariumProvider extends ChangeNotifier {
     } catch (_) {
       // Błąd pluginu nie może przerwać zapisu do Firestore ani działania UI.
     }
+  }
+
+  CollectionReference<Map<String, dynamic>> _aquariumTasks(String userId) =>
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('aquarium_tasks');
+
+  Future<void> _deleteTasksForAquarium(String userId, String aquariumId) async {
+    final snapshot = await _aquariumTasks(userId)
+        .where('aquariumId', isEqualTo: aquariumId)
+        .get();
+    for (var start = 0; start < snapshot.docs.length; start += 450) {
+      final batch = FirebaseFirestore.instance.batch();
+      for (final document in snapshot.docs.skip(start).take(450)) {
+        batch.delete(document.reference);
+      }
+      await batch.commit();
+    }
+  }
+
+  void _listenToTasks(String userId, {required bool preserveLegacyTasks}) {
+    _tasksSubscription = _aquariumTasks(userId).snapshots().listen(
+      (snapshot) => _replaceCloudTasks(
+        snapshot.docs.map(AquariumTask.fromFirestore).toList(),
+        preserveLegacyTasks: preserveLegacyTasks,
+      ),
+      onError: (Object error, StackTrace stackTrace) => debugPrint(
+        'Firestore aquarium task stream failed: $error\n$stackTrace',
+      ),
+    );
+  }
+
+  void _replaceCloudTasks(
+    List<AquariumTask> cloudTasks, {
+    bool preserveLegacyTasks = false,
+  }) {
+    final merged =
+        <String, AquariumTask>{
+          if (preserveLegacyTasks)
+            for (final task in _tasks) task.id: task,
+          for (final task in cloudTasks) task.id: task,
+        }.values.toList()..sort(
+          (first, second) => first.nextDueDate.compareTo(second.nextDueDate),
+        );
+    final newIds = merged.map((task) => task.id).toSet();
+    for (final previous in _tasks) {
+      if (!newIds.contains(previous.id)) {
+        unawaited(
+          LocalReminderService.instance.cancel(
+            aquariumTaskNotificationId(previous.id),
+          ),
+        );
+      }
+    }
+    _tasks
+      ..clear()
+      ..addAll(merged);
+    for (final task in _tasks) {
+      _scheduleTaskReminder(task);
+    }
+    notifyListeners();
+  }
+
+  void _clearTasks() {
+    for (final task in _tasks) {
+      unawaited(
+        LocalReminderService.instance.cancel(
+          aquariumTaskNotificationId(task.id),
+        ),
+      );
+    }
+    _tasks.clear();
+  }
+
+  Future<void> _writeTaskToFirestore(String userId, AquariumTask task) async {
+    if (userId.trim().isEmpty || task.id.trim().isEmpty) {
+      throw ArgumentError('User id and task id cannot be empty.');
+    }
+    await _aquariumTasks(userId).doc(task.id).set(task.toFirestore());
+    await FirestoreSyncStatus.recordSuccessfulSync();
+  }
+
+  void _scheduleTaskReminder(AquariumTask task) {
+    if (task.recurrence == TaskRecurrence.once &&
+        task.isCompletedForCurrentDay) {
+      unawaited(
+        LocalReminderService.instance.cancel(
+          aquariumTaskNotificationId(task.id),
+        ),
+      );
+      return;
+    }
+    final now = DateTime.now();
+    unawaited(
+      LocalReminderService.instance.schedule(
+        ScheduledReminder(
+          id: aquariumTaskNotificationId(task.id),
+          title: task.title,
+          body: task.description,
+          date: task.nextDueDate.isAfter(now)
+              ? task.nextDueDate
+              : now.add(const Duration(minutes: 1)),
+        ),
+      ),
+    );
   }
 
   void _listenToWaterTests(String uid) {
@@ -1087,6 +1359,7 @@ class AquariumProvider extends ChangeNotifier {
   @override
   void dispose() {
     _waterTestsSubscription?.cancel();
+    _tasksSubscription?.cancel();
     _aquariumsSubscription?.cancel();
     _authStateSubscription?.cancel();
     super.dispose();
@@ -1096,7 +1369,7 @@ class AquariumProvider extends ChangeNotifier {
     _waterTests.clear();
     _waterChanges.clear();
     _journalEntries.clear();
-    _tasks.clear();
+    _clearTasks();
     _aquariums.clear();
     _inhabitants.clear();
     try {
@@ -1106,6 +1379,7 @@ class AquariumProvider extends ChangeNotifier {
         preferences.remove(_waterChangesKey),
         preferences.remove(_journalEntriesKey),
         preferences.remove(_tasksKey),
+        preferences.remove(_pendingTasksOwnerKey),
         preferences.remove(_aquariumsKey),
         preferences.remove(_inhabitantsKey),
         preferences.remove(_activeAquariumKey),

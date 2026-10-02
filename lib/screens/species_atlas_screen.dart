@@ -659,13 +659,16 @@ String _localizedSpeciesText(
   Species species,
   String plText,
 ) {
-  if (Localizations.localeOf(context).languageCode != 'en') return plText;
+  if (Localizations.localeOf(context).languageCode != 'en') {
+    return plText;
+  }
   return speciesDescriptionsEn[species.id] ?? species.nameLatin;
 }
 
 String _localizedSpeciesName(BuildContext context, Species species) {
-  if (Localizations.localeOf(context).languageCode != 'en')
+  if (Localizations.localeOf(context).languageCode != 'en') {
     return species.namePl;
+  }
   return speciesNamesEn[species.id] ?? species.nameLatin;
 }
 

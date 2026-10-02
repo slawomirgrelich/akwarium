@@ -52,12 +52,11 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
               !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return const Center(child: Text('Nie udało się wczytać zdjęć.'));
+          }
           if (photos.isEmpty) {
-            return Center(
-              child: Text(l10n.addFirstPhotoOfAquarium),
-            );
+            return Center(child: Text(l10n.addFirstPhotoOfAquarium));
           }
           return Column(
             children: [
@@ -133,7 +132,9 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
       if (!mounted) return;
       _showPhotoMessage('Zdjęcie zostało zapisane.');
     } on Object catch (error) {
-      if (mounted) _showPhotoMessage(_photoErrorMessage(error), isError: true);
+      if (mounted) {
+        _showPhotoMessage(_photoErrorMessage(error), isError: true);
+      }
     }
   }
 
@@ -218,8 +219,9 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
                               widget.tankId,
                               photo,
                             );
-                            if (dialogContext.mounted)
+                            if (dialogContext.mounted) {
                               Navigator.pop(dialogContext);
+                            }
                           },
                           icon: const Icon(
                             Icons.photo_size_select_actual_outlined,
@@ -237,8 +239,9 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
                               widget.tankId,
                               photo,
                             );
-                            if (dialogContext.mounted)
+                            if (dialogContext.mounted) {
                               Navigator.pop(dialogContext);
+                            }
                           },
                           icon: const Icon(Icons.delete_outline),
                           label: const Text('Usuń'),
@@ -263,12 +266,13 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
         selectedPhotos ??
         await _database.getTankPhotosStream(userId, widget.tankId).first;
     if (!mounted || photos.length < 2) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Potrzebujesz co najmniej dwóch zdjęć.'),
           ),
         );
+      }
       return;
     }
     await Navigator.push<void>(

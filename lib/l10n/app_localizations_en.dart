@@ -1166,6 +1166,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get oneTime => 'Once';
 
   @override
+  String get dailyRecurrence => 'Daily';
+
+  @override
+  String get everyXDays => 'Every X days';
+
+  @override
+  String get weeklyRecurrence => 'Weekly';
+
+  @override
+  String get monthlyRecurrence => 'Monthly';
+
+  @override
+  String get aquariumTaskSaveFailed =>
+      'Could not save the task. Please try again.';
+
+  @override
+  String get aquariumTaskUpdateFailed =>
+      'Could not update the task. Please try again.';
+
+  @override
+  String get repeatEveryDays => 'Repeat every (days)';
+
+  @override
+  String get daysProFeature => 'days · PRO feature';
+
+  @override
+  String get daysUnit => 'days';
+
+  @override
+  String get enterPositiveDays => 'Enter a number of days greater than zero.';
+
+  @override
   String everyDays(int days) {
     return 'Every $days days';
   }
@@ -1187,6 +1219,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scheduledAquariumTaskNotification => 'Scheduled aquarium task';
+
+  @override
+  String get localNotificationScheduleFailed =>
+      'Could not schedule the notification.';
+
+  @override
+  String get chartHistoryTitle => 'Water parameter history';
+
+  @override
+  String get chartTrendsTitle => 'Water parameter trends';
+
+  @override
+  String get chartAddMeasurement => 'Add measurement';
+
+  @override
+  String get chartLoadError => 'Could not load measurements. Please try again.';
+
+  @override
+  String chartSaveError(String error) {
+    return 'Could not save the measurement: $error';
+  }
+
+  @override
+  String chartNoParameterData(String parameter) {
+    return 'No saved measurements for $parameter.';
+  }
+
+  @override
+  String chartNoParameterDataInRange(String parameter) {
+    return 'No $parameter measurements in the selected range.';
+  }
+
+  @override
+  String get chartChooseParameter => 'Choose a parameter';
+
+  @override
+  String chartChangeOverTime(String parameter) {
+    return 'Change over time · $parameter';
+  }
+
+  @override
+  String chartOptimalRange(String min, String max, String unit) {
+    return 'Optimal range $min–$max $unit';
+  }
+
+  @override
+  String get chartAddAnotherMeasurement => 'Add another measurement';
+
+  @override
+  String chartLastMeasurement(String parameter) {
+    return 'Latest measurement · $parameter';
+  }
+
+  @override
+  String get chartNoPreviousMeasurement => 'No previous measurement';
+
+  @override
+  String get chartStableTrend => 'Stable compared with previous';
+
+  @override
+  String get chartRisingTrend => 'Increasing compared with previous';
+
+  @override
+  String get chartFallingTrend => 'Decreasing compared with previous';
+
+  @override
+  String get chartBelowRange => 'Below range';
+
+  @override
+  String get chartAboveRange => 'Above range';
+
+  @override
+  String get chartWithinRange => 'In range';
+
+  @override
+  String chartStatus(String status) {
+    return 'Status: $status';
+  }
+
+  @override
+  String get chartEmptyTitle => 'No water measurements';
+
+  @override
+  String get chartEmptyDescription =>
+      'Add your first measurement to see parameter trends.';
+
+  @override
+  String get chartAddFirstMeasurement => 'Add first measurement';
+
+  @override
+  String get chartRange7Days => '7 days';
+
+  @override
+  String get chartRange30Days => '30 days';
+
+  @override
+  String get chartRange90Days => '90 days';
+
+  @override
+  String get chartRangeAll => 'All time';
+
+  @override
+  String get chartNewMeasurement => 'New water measurement';
+
+  @override
+  String get chartOptionalNote => 'Note (optional)';
+
+  @override
+  String get chartEnterValue => 'Enter a value.';
+
+  @override
+  String get chartInvalidNumber => 'Enter a valid number.';
+
+  @override
+  String get chartSaving => 'Saving...';
+
+  @override
+  String get chartTwoMeasurementsRequired =>
+      'Add at least two measurements to see the chart.';
+
+  @override
+  String get repeatEveryLabel => 'Repeat every';
+
+  @override
+  String lastPerformedOn(String date) {
+    return 'Last performed: $date';
+  }
+
+  @override
+  String get optionalLabel => 'optional';
 
   @override
   String speciesMinimumVolumeFrom(int liters) {

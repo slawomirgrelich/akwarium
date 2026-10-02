@@ -70,10 +70,10 @@ Future<void> main() async {
   final preferences = await SharedPreferences.getInstance();
   await initializeDateFormatting('en_US', null);
   await initializeDateFormatting('pl_PL', null);
+  await LocalReminderService.instance.initialize();
   runApp(
     AkwarystaProApp(firebaseReady: firebaseReady, proPreferences: preferences),
   );
-  await LocalReminderService.instance.initialize();
 }
 
 // ===========================

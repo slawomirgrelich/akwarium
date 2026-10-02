@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'l10n/app_localizations.dart';
 import 'models/aquarium_model.dart';
 import 'models/water_standards.dart';
 
@@ -17,7 +18,12 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
 
   @override
   Widget build(BuildContext context) {
-    final tests = context.watch<AquariumProvider>().waterTests.reversed.toList();
+    final l10n = AppLocalizations.of(context)!;
+    final tests = context
+        .watch<AquariumProvider>()
+        .waterTests
+        .reversed
+        .toList();
     final standard = waterStandards[_selected]!;
     final values = tests.map((test) => waterValue(test, _selected)).toList();
 
@@ -29,10 +35,13 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Historia parametrów',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                    l10n.chartHistoryTitle,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Text(
@@ -62,7 +71,7 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
             SizedBox(
               height: 230,
               child: tests.length < 2
-                  ? const Center(child: Text('Dodaj co najmniej dwa pomiary, aby zobaczyć wykres.'))
+                  ? Center(child: Text(l10n.chartTwoMeasurementsRequired))
                   : LineChart(
                       LineChartData(
                         minY: standard.chartMin,
@@ -88,7 +97,10 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
                             sideTitles: SideTitles(showTitles: false),
                           ),
                           leftTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: true, reservedSize: 36),
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 36,
+                            ),
                           ),
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
@@ -96,11 +108,16 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
                               reservedSize: 28,
                               getTitlesWidget: (value, meta) {
                                 final index = value.round();
-                                if (index < 0 || index >= tests.length) return const SizedBox();
+                                if (index < 0 || index >= tests.length) {
+                                  return const SizedBox();
+                                }
                                 final date = tests[index].date;
                                 return SideTitleWidget(
                                   axisSide: meta.axisSide,
-                                  child: Text('${date.day}.${date.month}', style: const TextStyle(fontSize: 10)),
+                                  child: Text(
+                                    '${date.day}.${date.month}',
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
                                 );
                               },
                             ),
@@ -109,7 +126,9 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
                         lineBarsData: [
                           LineChartBarData(
                             spots: values.indexed
-                                .map((item) => FlSpot(item.$1.toDouble(), item.$2))
+                                .map(
+                                  (item) => FlSpot(item.$1.toDouble(), item.$2),
+                                )
                                 .toList(),
                             isCurved: true,
                             color: Colors.teal.shade700,
