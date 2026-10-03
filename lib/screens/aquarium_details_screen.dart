@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
+import '../models/aquarium_model.dart' as local_models;
 import '../services/aquarium_journal_service.dart';
 import '../services/firestore_service.dart';
 import '../services/pdf_report_service.dart';
@@ -43,6 +44,19 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final aquariumId = context
+        .read<local_models.AquariumProvider>()
+        .resolveAquariumId(_aquarium.id);
+    if (aquariumId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.aquariumDetailsTitle)),
+        body: Center(child: Text(l10n.addAquariumToStart)),
+      );
+    }
+    final aquarium = _aquarium.id == aquariumId
+        ? _aquarium
+        : _aquarium.copyWith(id: aquariumId);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.aquariumDetailsTitle),
@@ -50,13 +64,17 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [_ReportIconButton(onPressed: () => _requestReport(context))],
+        actions: [
+          _ReportIconButton(
+            onPressed: () => _requestReport(context, aquarium: aquarium),
+          ),
+        ],
       ),
       body: StreamBuilder<List<WaterParametersModel>>(
-        stream: _firestoreService.getWaterParameters(_aquarium.id),
+        stream: _firestoreService.getWaterParameters(aquarium.id),
         builder: (context, parametersSnapshot) {
           return StreamBuilder<List<JournalEntryModel>>(
-            stream: _journalService.getJournalEntries(widget.aquarium.id),
+            stream: _journalService.getJournalEntries(aquarium.id),
             builder: (context, journalSnapshot) {
               if (parametersSnapshot.connectionState ==
                       ConnectionState.waiting &&
@@ -76,9 +94,9 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
               }
 
               return _DetailsContent(
-                aquarium: _aquarium,
+                aquarium: aquarium,
                 parameters: parameters,
-                onEditEquipment: () => _editEquipment(context),
+                onEditEquipment: () => _editEquipment(context, aquarium),
                 onShowChart: () => Navigator.push<void>(
                   context,
                   MaterialPageRoute(
@@ -88,6 +106,7 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
                 ),
                 onGenerateReport: () => _requestReport(
                   context,
+                  aquarium: aquarium,
                   parameters: parameters,
                   entries: entries,
                 ),
@@ -99,14 +118,17 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
     );
   }
 
-  Future<void> _editEquipment(BuildContext context) async {
+  Future<void> _editEquipment(
+    BuildContext context,
+    AquariumModel aquarium,
+  ) async {
     final equipment = await showDialog<AquariumEquipment>(
       context: context,
-      builder: (_) => _EquipmentFormDialog(initial: _aquarium.equipment),
+      builder: (_) => _EquipmentFormDialog(initial: aquarium.equipment),
     );
     if (equipment == null || !context.mounted) return;
 
-    final updated = _aquarium.copyWith(equipment: equipment);
+    final updated = aquarium.copyWith(equipment: equipment);
     try {
       await _firestoreService.updateAquarium(updated);
       if (!context.mounted) return;
@@ -123,6 +145,7 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
 
   Future<void> _requestReport(
     BuildContext context, {
+    required AquariumModel aquarium,
     List<WaterParametersModel>? parameters,
     List<JournalEntryModel>? entries,
   }) async {
@@ -136,14 +159,12 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
 
     try {
       parameters ??= await _firestoreService
-          .getWaterParameters(widget.aquarium.id)
+          .getWaterParameters(aquarium.id)
           .first;
-      entries ??= await _journalService
-          .getJournalEntries(widget.aquarium.id)
-          .first;
+      entries ??= await _journalService.getJournalEntries(aquarium.id).first;
       if (!context.mounted) return;
       final bytes = await _pdfService.generateAquariumReportPdf(
-        aquarium: widget.aquarium,
+        aquarium: aquarium,
         parametersHistory: parameters,
         journalEntries: entries,
       );

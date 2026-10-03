@@ -624,6 +624,14 @@ class _AddTaskModalState extends State<AddTaskModal> {
         !(_formKey.currentState?.validate() ?? false)) {
       return;
     }
+    final l10n = AppLocalizations.of(context)!;
+    final provider = context.read<AquariumProvider>();
+    final aquariumId = provider.resolveAquariumId();
+    if (aquariumId.isEmpty) {
+      context.showAppSnackBar(SnackBar(content: Text(l10n.addAquariumToStart)));
+      return;
+    }
+
     final now = DateTime.now();
     var firstDue = DateTime(
       now.year,
@@ -637,7 +645,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     }
     final task = AquariumTask(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
-      aquariumId: context.read<AquariumProvider>().activeAquariumId,
+      aquariumId: aquariumId,
       title: _title.text.trim(),
       description: _description.text.trim(),
       recurrence: _recurrence,
@@ -646,7 +654,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
       reminderMinutes: _reminder.hour * 60 + _reminder.minute,
     );
     try {
-      await context.read<AquariumProvider>().addTask(task);
+      await provider.addTask(task);
       if (!mounted) return;
       Navigator.pop(context);
     } catch (error, stackTrace) {
@@ -778,7 +786,15 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
 
   void _save() {
     if (_title.text.trim().isEmpty) return;
-    final tests = context.read<AquariumProvider>().waterTests;
+    final l10n = AppLocalizations.of(context)!;
+    final provider = context.read<AquariumProvider>();
+    final aquariumId = provider.resolveAquariumId();
+    if (aquariumId.isEmpty) {
+      context.showAppSnackBar(SnackBar(content: Text(l10n.addAquariumToStart)));
+      return;
+    }
+
+    final tests = provider.waterTests;
     final latest = tests.isEmpty ? null : tests.first;
     final attached = _attachWater && latest != null
         ? {
@@ -788,10 +804,10 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
             'Fe': ?latest.fe,
           }
         : null;
-    context.read<AquariumProvider>().addJournalEntry(
+    provider.addJournalEntry(
       JournalEntry(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
-        aquariumId: context.read<AquariumProvider>().activeAquariumId,
+        aquariumId: aquariumId,
         date: DateTime.now(),
         title: _title.text.trim(),
         description: _notes.text.trim(),

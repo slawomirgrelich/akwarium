@@ -553,12 +553,19 @@ class DashboardPage extends StatelessWidget {
                   return;
                 }
 
-                context.read<models.AquariumProvider>().addWaterChange(
+                final provider = context.read<models.AquariumProvider>();
+                final aquariumId = provider.resolveAquariumId();
+                if (aquariumId.isEmpty) {
+                  context.showAppSnackBar(
+                    SnackBar(content: Text(l10n.addAquariumToStart)),
+                  );
+                  return;
+                }
+
+                provider.addWaterChange(
                   models.WaterChange(
                     id: DateTime.now().microsecondsSinceEpoch.toString(),
-                    aquariumId: context
-                        .read<models.AquariumProvider>()
-                        .activeAquariumId,
+                    aquariumId: aquariumId,
                     date: DateTime.now(),
                     volumeLiters: volume,
                     notes: notesController.text.trim(),
@@ -764,7 +771,7 @@ class ToolsPage extends StatelessWidget {
                     builder: (_) => SpeciesAtlasScreen(
                       tankId: context
                           .read<models.AquariumProvider>()
-                          .activeAquariumId,
+                          .resolveAquariumId(),
                       onCreateAquarium: () => showCreateAquariumDialog(context),
                     ),
                   ),
@@ -874,7 +881,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   void initState() {
     super.initState();
     final provider = context.read<models.AquariumProvider>();
-    final aquariumId = provider.activeAquariumId;
+    final aquariumId = provider.resolveAquariumId();
     final latest = provider.waterTests.firstOrNull;
     _no3.text = _formatMeasurement(latest?.no3);
     _po4.text = _formatMeasurement(latest?.po4);
@@ -1272,10 +1279,16 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   void _saveToJournal(AlgaeDiagnosticResult result) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.read<models.AquariumProvider>();
+    final aquariumId = provider.resolveAquariumId();
+    if (aquariumId.isEmpty) {
+      context.showAppSnackBar(SnackBar(content: Text(l10n.addAquariumToStart)));
+      return;
+    }
+
     provider.addJournalEntry(
       models.JournalEntry(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
-        aquariumId: provider.activeAquariumId,
+        aquariumId: aquariumId,
         date: DateTime.now(),
         title: l10n.algaeDiagnosisTitle(result.algaeName),
         description:

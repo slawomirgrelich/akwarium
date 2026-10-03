@@ -24,7 +24,7 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final userId = _auth.currentUser?.uid;
-    final tankId = context.watch<AquariumProvider>().activeAquariumId;
+    final tankId = context.watch<AquariumProvider>().resolveAquariumId();
     if (userId == null || tankId.isEmpty) return const SizedBox.shrink();
 
     return StreamBuilder<List<AquariumReminder>>(

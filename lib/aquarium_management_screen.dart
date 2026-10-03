@@ -114,7 +114,9 @@ class AquariumManagementScreen extends StatelessWidget {
           IconButton(
             tooltip: l10n.speciesAtlasTitle,
             onPressed: () {
-              final tankId = context.read<AquariumProvider>().activeAquariumId;
+              final tankId = context
+                  .read<AquariumProvider>()
+                  .resolveAquariumId();
               Navigator.push<void>(
                 context,
                 MaterialPageRoute(
@@ -130,7 +132,15 @@ class AquariumManagementScreen extends StatelessWidget {
           IconButton(
             tooltip: l10n.photoJournalTitle,
             onPressed: () {
-              final tankId = context.read<AquariumProvider>().activeAquariumId;
+              final tankId = context
+                  .read<AquariumProvider>()
+                  .resolveAquariumId();
+              if (tankId.isEmpty) {
+                context.showAppSnackBar(
+                  SnackBar(content: Text(l10n.addAquariumToStart)),
+                );
+                return;
+              }
               Navigator.push<void>(
                 context,
                 MaterialPageRoute(
@@ -211,7 +221,7 @@ class _ManagementContentState extends State<_ManagementContent>
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
-    final aquariumId = provider.activeAquariumId;
+    final aquariumId = provider.resolveAquariumId();
     if (_streamAquariumId != aquariumId) {
       _streamAquariumId = aquariumId;
       _livestockStream = aquariumId.isEmpty
@@ -1092,7 +1102,7 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
   Future<void> _save() async {
     if (_name.trim().isEmpty) return;
     final provider = context.read<AquariumProvider>();
-    final aquariumId = provider.activeAquariumId;
+    final aquariumId = provider.resolveAquariumId();
     if (aquariumId.isEmpty) {
       context.showAppSnackBar(
         SnackBar(

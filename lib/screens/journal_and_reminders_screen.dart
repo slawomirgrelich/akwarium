@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../local_reminder_service.dart';
+import '../aquarium_management_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_model.dart';
 import '../services/aquarium_journal_service.dart';
@@ -31,21 +32,51 @@ class JournalAndRemindersScreen extends StatefulWidget {
 }
 
 class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
-  final _service = AquariumJournalService();
+  AquariumJournalService? _service;
   JournalEntryType? _entryFilter;
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
+
+  AquariumJournalService get _journalService =>
+      _service ??= AquariumJournalService();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AquariumProvider>();
-    final aquariumId = provider.activeAquariumId;
+    final aquariumId = provider.resolveAquariumId();
+    if (aquariumId.isEmpty) {
+      return _JournalScaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(l10n.addAquariumToStart, textAlign: TextAlign.center),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: () => Navigator.push<void>(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AquariumManagementScreen(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.addTank),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return StreamBuilder<List<JournalEntryModel>>(
-      stream: _service.getJournalEntries(aquariumId),
+      stream: _journalService.getJournalEntries(aquariumId),
       builder: (context, journalSnapshot) {
         return StreamBuilder<List<ReminderModel>>(
-          stream: _service.getReminders(aquariumId),
+          stream: _journalService.getReminders(aquariumId),
           builder: (context, reminderSnapshot) {
             if (journalSnapshot.connectionState == ConnectionState.waiting &&
                 reminderSnapshot.connectionState == ConnectionState.waiting &&
@@ -160,13 +191,23 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
   }
 
   Future<void> _openEntryForm(BuildContext context, String aquariumId) async {
+    aquariumId = context.read<AquariumProvider>().resolveAquariumId(aquariumId);
+    if (aquariumId.isEmpty) {
+      _showMessage(
+        context,
+        AppLocalizations.of(context)!.addAquariumToStart,
+        error: true,
+      );
+      return;
+    }
+
     final entry = await showDialog<JournalEntryModel>(
       context: context,
       builder: (_) => const _JournalEntryFormDialog(),
     );
     if (entry == null || !context.mounted) return;
     try {
-      await _service.addJournalEntry(
+      await _journalService.addJournalEntry(
         JournalEntryModel(
           id: entry.id,
           aquariumId: aquariumId,
@@ -191,6 +232,12 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     List<ReminderModel> reminders,
   ) async {
     final l10n = AppLocalizations.of(context)!;
+    aquariumId = context.read<AquariumProvider>().resolveAquariumId(aquariumId);
+    if (aquariumId.isEmpty) {
+      _showMessage(context, l10n.addAquariumToStart, error: true);
+      return;
+    }
+
     final isPro = context.read<ProAccessService>().isProUser;
     final activeCount = reminders.where((item) => !item.isCompleted).length;
     if (!isPro && activeCount >= 2) {
@@ -210,7 +257,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
 
     final saved = reminder.copyWith(aquariumId: aquariumId);
     try {
-      await _service.addReminder(saved);
+      await _journalService.addReminder(saved);
       if (isPro) await _scheduleReminder(l10n, saved);
       if (context.mounted) {
         _showMessage(context, l10n.reminderAddedMessage);
@@ -225,9 +272,18 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     ReminderModel reminder,
   ) async {
     final l10n = AppLocalizations.of(context)!;
+    final aquariumId = context.read<AquariumProvider>().resolveAquariumId(
+      reminder.aquariumId,
+    );
+    if (aquariumId.isEmpty) {
+      _showMessage(context, l10n.addAquariumToStart, error: true);
+      return;
+    }
+
+    reminder = reminder.copyWith(aquariumId: aquariumId);
     final isPro = context.read<ProAccessService>().isProUser;
     try {
-      final updated = await _service.markReminderCompleted(reminder);
+      final updated = await _journalService.markReminderCompleted(reminder);
       if (updated.isRecurring) {
         if (isPro) {
           await _scheduleReminder(l10n, updated);
@@ -250,8 +306,22 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     BuildContext context,
     ReminderModel reminder,
   ) async {
+    final aquariumId = context.read<AquariumProvider>().resolveAquariumId(
+      reminder.aquariumId,
+    );
+    if (aquariumId.isEmpty) {
+      _showMessage(
+        context,
+        AppLocalizations.of(context)!.addAquariumToStart,
+        error: true,
+      );
+      return;
+    }
+
     try {
-      await _service.deleteReminder(reminder);
+      await _journalService.deleteReminder(
+        reminder.copyWith(aquariumId: aquariumId),
+      );
       await LocalReminderService.instance.cancel(_notificationId(reminder.id));
     } on AquariumJournalServiceException catch (error) {
       if (context.mounted) _showMessage(context, error.message, error: true);
@@ -263,6 +333,14 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     JournalEntryModel entry,
   ) async {
     final l10n = AppLocalizations.of(context)!;
+    final aquariumId = context.read<AquariumProvider>().resolveAquariumId(
+      entry.aquariumId,
+    );
+    if (aquariumId.isEmpty) {
+      _showMessage(context, l10n.addAquariumToStart, error: true);
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -283,7 +361,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     if (confirmed != true || !context.mounted) return;
 
     try {
-      await FirestoreService().deleteWaterParameter(entry.aquariumId, entry.id);
+      await FirestoreService().deleteWaterParameter(aquariumId, entry.id);
       if (context.mounted) _showMessage(context, l10n.waterTestDeletedMessage);
     } on FirestoreServiceException catch (error) {
       debugPrint('Water-test deletion failed: $error');

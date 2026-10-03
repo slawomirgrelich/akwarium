@@ -126,9 +126,16 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
       return;
     }
 
+    final provider = context.read<models.AquariumProvider>();
+    final aquariumId = provider.resolveAquariumId();
+    if (aquariumId.isEmpty) {
+      context.showAppSnackBar(SnackBar(content: Text(l10n.addAquariumToStart)));
+      return;
+    }
+
     final test = models.WaterTest(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
-      aquariumId: context.read<models.AquariumProvider>().activeAquariumId,
+      aquariumId: aquariumId,
       date: DateTime.now(),
       ph: _optionalNumber('pH'),
       no3: _optionalNumber('NO3'),
@@ -139,7 +146,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
       temp: _optionalNumber('Temperatura'),
     );
 
-    context.read<models.AquariumProvider>().addWaterTest(test);
+    provider.addWaterTest(test);
     Navigator.of(context).pop();
   }
 

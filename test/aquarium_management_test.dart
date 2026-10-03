@@ -113,7 +113,26 @@ void main() {
 
     expect(provider.inhabitants.single.id, 'fish');
     provider.selectAquarium('two');
+    expect(provider.resolveAquariumId(), 'two');
+    expect(provider.resolveAquariumId(''), 'two');
     expect(provider.inhabitants.single.id, 'shrimp');
+  });
+
+  test('uses the first aquarium when no active id is available', () {
+    final provider = AquariumProvider(
+      aquariums: [
+        AquariumProfile(
+          id: 'first',
+          name: 'Pierwsze',
+          volumeNetLiters: 60,
+          setupDate: DateTime(2026),
+          type: TankType.freshwater,
+        ),
+      ],
+      activeAquariumId: '',
+    );
+
+    expect(provider.resolveAquariumId(), 'first');
   });
 
   test('selects the first aquarium and syncs the cloud selection', () {

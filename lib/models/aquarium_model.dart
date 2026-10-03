@@ -624,10 +624,9 @@ class AquariumProvider extends ChangeNotifier {
        _aquariums = List<AquariumProfile>.of(aquariums ?? const []),
        _inhabitants = List<Inhabitant>.of(inhabitants ?? const []),
        _activeAquariumId =
-           activeAquariumId ??
-           (aquariums != null && aquariums.isNotEmpty
-               ? aquariums.first.id
-               : '');
+           activeAquariumId != null && activeAquariumId.trim().isNotEmpty
+           ? activeAquariumId.trim()
+           : aquariums?.firstOrNull?.id ?? '';
 
   final List<WaterTest> _waterTests;
   final List<WaterChange> _waterChanges;
@@ -650,6 +649,13 @@ class AquariumProvider extends ChangeNotifier {
   String get activeAquariumId => _activeAquariumId;
   String get selectedAquariumId => _activeAquariumId;
   bool get waterTestsSyncFailed => _waterTestsSyncFailed;
+  String resolveAquariumId([String? requestedId]) {
+    final requested = requestedId?.trim() ?? '';
+    if (requested.isNotEmpty) return requested;
+    final active = _activeAquariumId.trim();
+    return active.isNotEmpty ? active : _aquariums.firstOrNull?.id.trim() ?? '';
+  }
+
   List<AquariumProfile> get aquariums => List.unmodifiable(_aquariums);
   AquariumProfile? get selectedAquarium {
     for (final aquarium in _aquariums) {
@@ -792,6 +798,7 @@ class AquariumProvider extends ChangeNotifier {
   /// Wczytuje zapisany stan lokalny podczas uruchamiania aplikacji.
   Future<void> loadData() async {
     try {
+      final activeIdBeforeLoad = _activeAquariumId;
       final preferences = await SharedPreferences.getInstance();
       final savedTests = preferences.getString(_waterTestsKey);
       final savedChanges = preferences.getString(_waterChangesKey);
@@ -834,9 +841,12 @@ class AquariumProvider extends ChangeNotifier {
       if (savedActiveId != null &&
           _aquariums.any((item) => item.id == savedActiveId)) {
         _activeAquariumId = savedActiveId;
+      } else if (!_aquariums.any((item) => item.id == _activeAquariumId)) {
+        _activeAquariumId = _aquariums.firstOrNull?.id ?? '';
       }
 
       notifyListeners();
+      if (_activeAquariumId != activeIdBeforeLoad) await _persist();
     } on FormatException {
       // Uszkodzony zapis nie blokuje startu aplikacji.
       await _clearStoredDataIfAvailable();

@@ -23,7 +23,7 @@ class TankStockingScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final userId = FirebaseAuth.instance.currentUser?.uid;
     final provider = context.watch<AquariumProvider>();
-    final tankId = provider.activeAquariumId;
+    final tankId = provider.resolveAquariumId();
     final aquarium = provider.selectedAquarium;
     if (userId == null) {
       return Scaffold(body: Center(child: Text(l10n.signInToViewLivestock)));
