@@ -260,6 +260,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         minTankVolume: species.minTankVolumeLiters,
         addedAt: addition.addedAt,
         notes: addition.notes,
+        quantityUnit: addition.quantityUnit,
       );
       if (!pageContext.mounted) return;
       final messenger = ScaffoldMessenger.of(pageContext);
@@ -561,11 +562,13 @@ class _SpeciesAddition {
     required this.count,
     required this.addedAt,
     required this.notes,
+    required this.quantityUnit,
   });
 
   final int count;
   final DateTime addedAt;
   final String notes;
+  final String quantityUnit;
 }
 
 class _SpeciesAdditionDialog extends StatefulWidget {
@@ -580,6 +583,7 @@ class _SpeciesAdditionDialog extends StatefulWidget {
 class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
   final _notesController = TextEditingController();
   int _count = 1;
+  String _quantityUnit = 'pieces';
   DateTime _addedAt = DateTime.now();
 
   @override
@@ -616,6 +620,30 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
                 ),
               ],
             ),
+            if (widget.species.category == SpeciesCategory.plant) ...[
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: _quantityUnit,
+                decoration: InputDecoration(labelText: l10n.plantQuantityUnit),
+                items: [
+                  DropdownMenuItem(
+                    value: 'pieces',
+                    child: Text(l10n.quantityPieces),
+                  ),
+                  DropdownMenuItem(
+                    value: 'portions',
+                    child: Text(l10n.quantityPortions),
+                  ),
+                  DropdownMenuItem(
+                    value: 'baskets',
+                    child: Text(l10n.quantityBaskets),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => _quantityUnit = value);
+                },
+              ),
+            ],
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today_outlined),
@@ -646,6 +674,7 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
               count: _count,
               addedAt: _addedAt,
               notes: _notesController.text.trim(),
+              quantityUnit: _quantityUnit,
             ),
           ),
           child: Text(l10n.save),
@@ -806,9 +835,7 @@ class _SpeciesThumbnailState extends State<_SpeciesThumbnail> {
       return _placeholder(context);
     }
     final isNetworkImage =
-        uri != null &&
-        uri.scheme == 'https' &&
-        uri.host.isNotEmpty;
+        uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
     Widget errorBuilder(
       BuildContext context,
       Object error,

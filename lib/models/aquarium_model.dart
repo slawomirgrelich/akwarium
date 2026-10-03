@@ -228,37 +228,37 @@ class WaterTest {
   const WaterTest({
     required this.id,
     required this.date,
-    required this.ph,
-    required this.no3,
-    required this.po4,
-    required this.fe,
-    required this.kh,
-    required this.gh,
-    required this.temp,
+    this.ph,
+    this.no3,
+    this.po4,
+    this.fe,
+    this.kh,
+    this.gh,
+    this.temp,
     this.aquariumId = '',
   });
 
   final String id;
   final DateTime date;
-  final double ph;
-  final double no3;
-  final double po4;
-  final double fe;
-  final double kh;
-  final double gh;
-  final double temp;
+  final double? ph;
+  final double? no3;
+  final double? po4;
+  final double? fe;
+  final double? kh;
+  final double? gh;
+  final double? temp;
   final String aquariumId;
 
   Map<String, dynamic> toMap() => {
     'id': id,
     'date': date.toIso8601String(),
-    'ph': ph,
-    'no3': no3,
-    'po4': po4,
-    'fe': fe,
-    'kh': kh,
-    'gh': gh,
-    'temp': temp,
+    if (ph != null) 'ph': ph,
+    if (no3 != null) 'no3': no3,
+    if (po4 != null) 'po4': po4,
+    if (fe != null) 'fe': fe,
+    if (kh != null) 'kh': kh,
+    if (gh != null) 'gh': gh,
+    if (temp != null) 'temp': temp,
     'aquariumId': aquariumId,
   };
 
@@ -266,17 +266,27 @@ class WaterTest {
     return WaterTest(
       id: map['id'] as String,
       date: _readDate(map['date']),
-      ph: (map['ph'] as num).toDouble(),
-      no3: (map['no3'] as num).toDouble(),
-      po4: (map['po4'] as num).toDouble(),
-      fe: (map['fe'] as num).toDouble(),
-      kh: (map['kh'] as num).toDouble(),
-      gh: (map['gh'] as num).toDouble(),
-      temp: (map['temp'] as num).toDouble(),
+      ph: (map['ph'] as num?)?.toDouble(),
+      no3: (map['no3'] as num?)?.toDouble(),
+      po4: (map['po4'] as num?)?.toDouble(),
+      fe: (map['fe'] as num?)?.toDouble(),
+      kh: (map['kh'] as num?)?.toDouble(),
+      gh: (map['gh'] as num?)?.toDouble(),
+      temp: (map['temp'] as num?)?.toDouble(),
       aquariumId: map['aquariumId'] as String? ?? '',
     );
   }
 }
+
+String waterTestSummary(WaterTest test) => [
+  if (test.ph != null) 'pH ${test.ph}',
+  if (test.no3 != null) 'NO3 ${test.no3} mg/l',
+  if (test.po4 != null) 'PO4 ${test.po4} mg/l',
+  if (test.fe != null) 'Fe ${test.fe} mg/l',
+  if (test.kh != null) 'KH ${test.kh} dKH',
+  if (test.gh != null) 'GH ${test.gh} dGH',
+  if (test.temp != null) 'Temp ${test.temp}°C',
+].join(' · ');
 
 DateTime _readDate(dynamic value) {
   if (value is Timestamp) {
@@ -828,8 +838,7 @@ class AquariumProvider extends ChangeNotifier {
         aquariumId: test.aquariumId,
         date: test.date,
         title: 'Test parametrów wody',
-        description:
-            'pH ${test.ph} · NO3 ${test.no3} mg/l · PO4 ${test.po4} mg/l',
+        description: waterTestSummary(test),
         type: 'waterTest',
       ),
     );
@@ -1096,8 +1105,7 @@ class AquariumProvider extends ChangeNotifier {
         aquariumId: test.aquariumId,
         date: test.date,
         title: 'Test parametrów wody',
-        description:
-            'pH ${test.ph} · NO3 ${test.no3} mg/l · PO4 ${test.po4} mg/l',
+        description: waterTestSummary(test),
         type: 'waterTest',
       );
     }
@@ -1356,8 +1364,7 @@ class AquariumProvider extends ChangeNotifier {
       aquariumId: test.aquariumId,
       date: test.date,
       title: 'Test parametrów wody',
-      description:
-          'pH ${test.ph} · NO3 ${test.no3} mg/l · PO4 ${test.po4} mg/l',
+      description: waterTestSummary(test),
       type: 'waterTest',
     );
   }
@@ -1376,10 +1383,7 @@ class AquariumProvider extends ChangeNotifier {
       final timestamp = Timestamp.fromDate(test.date);
       final testData = Map<String, dynamic>.from(test.toMap())
         ..['date'] = timestamp;
-      batch.set(
-        userReference.collection('water_tests').doc(test.id),
-        testData,
-      );
+      batch.set(userReference.collection('water_tests').doc(test.id), testData);
       if (test.aquariumId.trim().isNotEmpty) {
         batch.set(
           userReference
@@ -1391,13 +1395,13 @@ class AquariumProvider extends ChangeNotifier {
             'id': test.id,
             'aquariumId': test.aquariumId,
             'timestamp': timestamp,
-            'ph': test.ph,
-            'kh': test.kh,
-            'gh': test.gh,
-            'no3': test.no3,
-            'po4': test.po4,
-            'fe': test.fe,
-            'temp': test.temp,
+            if (test.ph != null) 'ph': test.ph,
+            if (test.kh != null) 'kh': test.kh,
+            if (test.gh != null) 'gh': test.gh,
+            if (test.no3 != null) 'no3': test.no3,
+            if (test.po4 != null) 'po4': test.po4,
+            if (test.fe != null) 'fe': test.fe,
+            if (test.temp != null) 'temp': test.temp,
             'notes': '',
           },
           SetOptions(merge: true),

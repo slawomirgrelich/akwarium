@@ -77,7 +77,7 @@ const waterStandards = <WaterParameter, WaterStandard>{
     parameter: WaterParameter.po4,
     label: 'PO4',
     unit: 'mg/l',
-    optimalMin: 0.5,
+    optimalMin: 0.02,
     optimalMax: 1.5,
     chartMin: 0,
     chartMax: 3,
@@ -86,7 +86,7 @@ const waterStandards = <WaterParameter, WaterStandard>{
     parameter: WaterParameter.fe,
     label: 'Fe',
     unit: 'mg/l',
-    optimalMin: 0.1,
+    optimalMin: 0.05,
     optimalMax: 0.5,
     chartMin: 0,
     chartMax: 1,
@@ -120,7 +120,7 @@ const waterStandards = <WaterParameter, WaterStandard>{
   ),
 };
 
-double waterValue(WaterTest test, WaterParameter parameter) {
+double? waterValue(WaterTest test, WaterParameter parameter) {
   switch (parameter) {
     case WaterParameter.ph:
       return test.ph;
@@ -141,6 +141,24 @@ double waterValue(WaterTest test, WaterParameter parameter) {
 
 WaterAssessment assessWaterValue(WaterParameter parameter, double value) {
   final standard = waterStandards[parameter]!;
+  if (parameter == WaterParameter.fe &&
+      value >= standard.chartMin &&
+      value < standard.optimalMin) {
+    return const WaterAssessment(
+      status: WaterStatus.good,
+      messageKey: WaterAssessmentMessageKey.withinOptimalRange,
+      parameter: WaterParameter.fe,
+    );
+  }
+  if (parameter == WaterParameter.po4 &&
+      value >= standard.chartMin &&
+      value < standard.optimalMin) {
+    return const WaterAssessment(
+      status: WaterStatus.good,
+      messageKey: WaterAssessmentMessageKey.withinOptimalRange,
+      parameter: WaterParameter.po4,
+    );
+  }
   if (parameter == WaterParameter.no3 && value > 50) {
     return const WaterAssessment(
       status: WaterStatus.critical,
@@ -160,13 +178,6 @@ WaterAssessment assessWaterValue(WaterParameter parameter, double value) {
       status: WaterStatus.warning,
       messageKey: WaterAssessmentMessageKey.highNo3,
       parameter: WaterParameter.no3,
-    );
-  }
-  if (parameter == WaterParameter.po4 && value < 0.2) {
-    return const WaterAssessment(
-      status: WaterStatus.warning,
-      messageKey: WaterAssessmentMessageKey.lowPo4,
-      parameter: WaterParameter.po4,
     );
   }
   if (parameter == WaterParameter.po4 && value > 2) {
@@ -200,16 +211,18 @@ WaterAssessment assessWaterValue(WaterParameter parameter, double value) {
 }
 
 List<WaterAssessment> assessWaterTest(WaterTest test) {
-  return WaterParameter.values
-      .map(
-        (parameter) => assessWaterValue(parameter, waterValue(test, parameter)),
-      )
-      .toList();
+  return [
+    for (final parameter in WaterParameter.values)
+      if (waterValue(test, parameter) case final value?)
+        assessWaterValue(parameter, value),
+  ];
 }
 
 double? redfieldRatio(WaterTest test) {
-  if (test.po4 <= 0) return null;
-  return test.no3 / test.po4;
+  final no3 = test.no3;
+  final po4 = test.po4;
+  if (no3 == null || po4 == null || po4 <= 0) return null;
+  return no3 / po4;
 }
 
 WaterAssessment? latestWaterAlert(WaterTest? test) {

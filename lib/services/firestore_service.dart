@@ -244,6 +244,7 @@ class FirestoreService {
     DateTime? addedAt,
     String notes = '',
     String? photoUrl,
+    String quantityUnit = 'pieces',
   }) async {
     final userId = _requireUserId();
     if (aquariumId.trim().isEmpty) {
@@ -265,6 +266,7 @@ class FirestoreService {
         'category': isFlora ? 'flora' : 'fauna',
         'categoryLabel': category,
         'count': count,
+        'quantityUnit': quantityUnit,
         'phRange': phRange,
         'tempRange': tempRange,
         'minTankVolume': minTankVolume,

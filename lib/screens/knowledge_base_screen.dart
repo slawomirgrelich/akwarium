@@ -202,12 +202,14 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
   ) {
     if (aquarium.volumeNetLiters < fish.minimumLiters) return false;
     if (latestTest == null) return true;
-    return latestTest.ph >= fish.phMin &&
-        latestTest.ph <= fish.phMax &&
-        latestTest.temp >= fish.temperatureMin &&
-        latestTest.temp <= fish.temperatureMax &&
-        latestTest.gh >= fish.ghMin &&
-        latestTest.gh <= fish.ghMax;
+    final ph = latestTest.ph;
+    final temperature = latestTest.temp;
+    final gh = latestTest.gh;
+    return (ph == null || (ph >= fish.phMin && ph <= fish.phMax)) &&
+        (temperature == null ||
+            (temperature >= fish.temperatureMin &&
+                temperature <= fish.temperatureMax)) &&
+        (gh == null || (gh >= fish.ghMin && gh <= fish.ghMax));
   }
 
   void _openDiagnostic(

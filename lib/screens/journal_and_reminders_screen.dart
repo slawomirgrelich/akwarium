@@ -713,14 +713,17 @@ class _ReminderFormDialog extends StatefulWidget {
 }
 
 class _ReminderFormDialogState extends State<_ReminderFormDialog> {
-  final _title = TextEditingController();
+  final _customTitle = TextEditingController();
   final _interval = TextEditingController(text: '7');
   DateTime _nextDueDate = DateTime.now().add(const Duration(days: 1));
   bool _recurring = false;
+  _ReminderTaskPreset _preset = _ReminderTaskPreset.waterChange;
+  String? _customTitleError;
+  String? _intervalError;
 
   @override
   void dispose() {
-    _title.dispose();
+    _customTitle.dispose();
     _interval.dispose();
     super.dispose();
   }
@@ -734,13 +737,52 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _title,
-              decoration: InputDecoration(
-                labelText: l10n.taskName,
-                prefixIcon: const Icon(Icons.task_alt),
-              ),
+            DropdownButtonFormField<_ReminderTaskPreset>(
+              initialValue: _preset,
+              decoration: InputDecoration(labelText: l10n.reminderTaskPreset),
+              items: [
+                DropdownMenuItem(
+                  value: _ReminderTaskPreset.waterChange,
+                  child: Text(l10n.reminderTaskWaterChange),
+                ),
+                DropdownMenuItem(
+                  value: _ReminderTaskPreset.filter,
+                  child: Text(l10n.reminderTaskFilter),
+                ),
+                DropdownMenuItem(
+                  value: _ReminderTaskPreset.waterTest,
+                  child: Text(l10n.reminderTaskWaterTest),
+                ),
+                DropdownMenuItem(
+                  value: _ReminderTaskPreset.fertilizer,
+                  child: Text(l10n.reminderTaskFertilizer),
+                ),
+                DropdownMenuItem(
+                  value: _ReminderTaskPreset.custom,
+                  child: Text(l10n.reminderTaskCustom),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _preset = value;
+                    _customTitleError = null;
+                  });
+                }
+              },
             ),
+            if (_preset == _ReminderTaskPreset.custom) ...[
+              const SizedBox(height: 10),
+              TextField(
+                controller: _customTitle,
+                decoration: InputDecoration(
+                  labelText: l10n.taskName,
+                  prefixIcon: const Icon(Icons.edit_note),
+                  errorText: _customTitleError,
+                ),
+                onChanged: (_) => setState(() => _customTitleError = null),
+              ),
+            ],
             const SizedBox(height: 10),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -766,7 +808,9 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
                       decoration: InputDecoration(
                         labelText: l10n.repeatEveryLabel,
                         suffixText: l10n.daysProFeature,
+                        errorText: _intervalError,
                       ),
+                      onChanged: (_) => setState(() => _intervalError = null),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -801,13 +845,32 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
 
   void _save() {
     final interval = int.tryParse(_interval.text) ?? 0;
-    if (_title.text.trim().isEmpty || (_recurring && interval < 1)) return;
+    if (_preset == _ReminderTaskPreset.custom &&
+        _customTitle.text.trim().isEmpty) {
+      setState(
+        () =>
+            _customTitleError = AppLocalizations.of(context)!
+                .reminderCustomNameRequired,
+      );
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    if (_recurring && interval < 1) {
+      setState(() => _intervalError = l10n.reminderInvalidInterval);
+      return;
+    }
     Navigator.pop(
       context,
       ReminderModel(
         id: '',
         aquariumId: '',
-        title: _title.text.trim(),
+        title: switch (_preset) {
+          _ReminderTaskPreset.waterChange => l10n.reminderTaskWaterChange,
+          _ReminderTaskPreset.filter => l10n.reminderTaskFilter,
+          _ReminderTaskPreset.waterTest => l10n.reminderTaskWaterTest,
+          _ReminderTaskPreset.fertilizer => l10n.reminderTaskFertilizer,
+          _ReminderTaskPreset.custom => _customTitle.text.trim(),
+        },
         intervalDays: _recurring ? interval : 1,
         nextDueDate: _nextDueDate,
         isRecurring: _recurring,
@@ -817,6 +880,8 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
     );
   }
 }
+
+enum _ReminderTaskPreset { waterChange, filter, waterTest, fertilizer, custom }
 
 class _JournalEmpty extends StatelessWidget {
   const _JournalEmpty({required this.icon, required this.text});

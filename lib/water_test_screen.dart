@@ -78,13 +78,13 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Wpisz wartość';
+                              return null;
                             }
                             if (double.tryParse(
                                   value.trim().replaceAll(',', '.'),
                                 ) ==
                                 null) {
-                              return 'Wpisz poprawną liczbę';
+                              return l10n.chartInvalidNumber;
                             }
                             return null;
                           },
@@ -113,6 +113,14 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
   }
 
   void _saveTest() {
+    final l10n = AppLocalizations.of(context)!;
+    if (_controllers.values.every(
+      (controller) => controller.text.trim().isEmpty,
+    )) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.waterAtLeastOneParameter)));
+      return;
+    }
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -121,21 +129,22 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       aquariumId: context.read<models.AquariumProvider>().activeAquariumId,
       date: DateTime.now(),
-      ph: _number('pH'),
-      no3: _number('NO3'),
-      po4: _number('PO4'),
-      fe: _number('Fe'),
-      kh: _number('KH'),
-      gh: _number('GH'),
-      temp: _number('Temperatura'),
+      ph: _optionalNumber('pH'),
+      no3: _optionalNumber('NO3'),
+      po4: _optionalNumber('PO4'),
+      fe: _optionalNumber('Fe'),
+      kh: _optionalNumber('KH'),
+      gh: _optionalNumber('GH'),
+      temp: _optionalNumber('Temperatura'),
     );
 
     context.read<models.AquariumProvider>().addWaterTest(test);
     Navigator.of(context).pop();
   }
 
-  double _number(String key) {
-    return double.parse(_controllers[key]!.text.trim().replaceAll(',', '.'));
+  double? _optionalNumber(String key) {
+    final value = _controllers[key]!.text.trim().replaceAll(',', '.');
+    return value.isEmpty ? null : double.parse(value);
   }
 
   InputDecoration _decoration(BuildContext context, String key) {

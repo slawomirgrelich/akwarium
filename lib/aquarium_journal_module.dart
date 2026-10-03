@@ -770,10 +770,10 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
     final latest = tests.isEmpty ? null : tests.first;
     final attached = _attachWater && latest != null
         ? {
-            'pH': latest.ph,
-            'NO3': latest.no3,
-            'PO4': latest.po4,
-            'Fe': latest.fe,
+            'pH': ?latest.ph,
+            'NO3': ?latest.no3,
+            'PO4': ?latest.po4,
+            'Fe': ?latest.fe,
           }
         : null;
     context.read<AquariumProvider>().addJournalEntry(

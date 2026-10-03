@@ -28,7 +28,9 @@ class TankStockingScreen extends StatelessWidget {
     }
     if (aquarium == null || tankId.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: Text(AppLocalizations.of(context)!.aquariumLivestockTitle)),
+        appBar: AppBar(
+          title: Text(AppLocalizations.of(context)!.aquariumLivestockTitle),
+        ),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -137,6 +139,8 @@ class _StockingBody extends StatelessWidget {
                   final count = item['count'] is num
                       ? (item['count'] as num).toInt()
                       : 1;
+                  final quantityUnit =
+                      item['quantityUnit']?.toString() ?? 'pieces';
                   final name = '${item['namePl'] ?? 'Nieznany gatunek'}';
                   return Card(
                     child: ListTile(
@@ -146,7 +150,7 @@ class _StockingBody extends StatelessWidget {
                       ),
                       title: Text(name),
                       subtitle: Text(
-                        '${item['nameLatin'] ?? ''} · $count szt. · ${item['categoryLabel'] ?? (isPlant ? 'Flora' : 'Fauna')}',
+                        '${item['nameLatin'] ?? ''} · $count ${_quantityUnitLabel(context, isPlant ? quantityUnit : 'pieces')} · ${item['categoryLabel'] ?? (isPlant ? 'Flora' : 'Fauna')}',
                       ),
                       trailing: Wrap(
                         children: [
@@ -197,6 +201,15 @@ class _StockingBody extends StatelessWidget {
         label: Text(AppLocalizations.of(context)!.addSpecies),
       ),
     );
+  }
+
+  String _quantityUnitLabel(BuildContext context, String unit) {
+    final l10n = AppLocalizations.of(context)!;
+    return switch (unit) {
+      'portions' => l10n.quantityPortions,
+      'baskets' => l10n.quantityBaskets,
+      _ => l10n.quantityPieces,
+    };
   }
 
   Future<void> _changeCount(
@@ -263,7 +276,8 @@ class _CompatibilityCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.compatibilityPercent(report.score),
+                  AppLocalizations.of(context)!
+                      .compatibilityPercent(report.score),
                   style: TextStyle(color: color, fontWeight: FontWeight.w800),
                 ),
               ],

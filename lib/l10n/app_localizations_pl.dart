@@ -745,7 +745,11 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get waterTestInfo =>
-      'Pomiar zostanie zapisany z aktualną datą i godziną.';
+      'Pomiń niewykonane testy, pozostawiając pola puste. Wpisz co najmniej jeden parametr; pomiar zapisze się z aktualną datą i godziną.';
+
+  @override
+  String get waterAtLeastOneParameter =>
+      'Wpisz co najmniej jeden parametr wody.';
 
   @override
   String get dailyDose => 'Dawka dzienna';
@@ -872,6 +876,31 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get taskName => 'Nazwa zadania';
+
+  @override
+  String get reminderTaskPreset => 'Rodzaj zadania';
+
+  @override
+  String get reminderTaskWaterChange => 'Podmiana wody';
+
+  @override
+  String get reminderTaskFilter => 'Czyszczenie filtra';
+
+  @override
+  String get reminderTaskWaterTest => 'Test parametrów';
+
+  @override
+  String get reminderTaskFertilizer => 'Nawożenie';
+
+  @override
+  String get reminderTaskCustom => 'Własne zadanie';
+
+  @override
+  String get reminderCustomNameRequired => 'Wpisz nazwę własnego zadania.';
+
+  @override
+  String get reminderInvalidInterval =>
+      'Podaj interwał powtarzania wynoszący co najmniej jeden dzień.';
 
   @override
   String get dueDate => 'Termin';
@@ -1215,19 +1244,7 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String get reminderTaskWaterChange => 'Podmiana wody';
-
-  @override
   String get reminderTaskFilterClean => 'Czyszczenie filtra';
-
-  @override
-  String get reminderTaskWaterTest => 'Test parametrów';
-
-  @override
-  String get reminderTaskFertilizer => 'Nawożenie';
-
-  @override
-  String get reminderTaskCustom => 'Własne zadanie';
 
   @override
   String get scheduledAquariumTaskNotification =>
@@ -1380,6 +1397,49 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get geminiConnectionSucceeded => 'Połączenie z Gemini działa.';
+
+  @override
+  String get plantQuantityUnit => 'Jednostka ilości roślin';
+
+  @override
+  String get quantityPieces => 'szt.';
+
+  @override
+  String get quantityPortions => 'porcje';
+
+  @override
+  String get quantityBaskets => 'koszyki';
+
+  @override
+  String get equipmentTitle => 'Sprzęt i pielęgnacja';
+
+  @override
+  String get equipmentLighting => 'Oświetlenie';
+
+  @override
+  String get equipmentLightingPower => 'Moc oświetlenia';
+
+  @override
+  String get equipmentPhotoperiod => 'Czas świecenia dziennie';
+
+  @override
+  String get equipmentCo2System => 'System CO2';
+
+  @override
+  String get equipmentCo2Bubbles => 'Bąbelki CO2 na sekundę';
+
+  @override
+  String get equipmentFeeding => 'Informacje o karmieniu';
+
+  @override
+  String get equipmentNotConfigured =>
+      'Nie dodano jeszcze informacji o sprzęcie ani pielęgnacji.';
+
+  @override
+  String get equipmentSaved => 'Zapisano informacje o sprzęcie i pielęgnacji.';
+
+  @override
+  String get equipmentInvalidNumber => 'Wpisz poprawną liczbę.';
 
   @override
   String compatibilityVolumeWarning(int actual, int minimum) {

@@ -25,7 +25,12 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
         .reversed
         .toList();
     final standard = waterStandards[_selected]!;
-    final values = tests.map((test) => waterValue(test, _selected)).toList();
+    final points = <({WaterTest test, double value})>[
+      for (final test in tests)
+        if (waterValue(test, _selected) case final value?)
+          (test: test, value: value),
+    ];
+    final values = points.map((point) => point.value).toList();
 
     return Card(
       child: Padding(
@@ -68,7 +73,7 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
               ),
             ),
             const SizedBox(height: 12),
-            if (tests.length < 2)
+            if (points.length < 2)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Center(
@@ -83,75 +88,73 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
                 height: 230,
                 child: LineChart(
                   LineChartData(
-                        minY: standard.chartMin,
-                        maxY: _maxY(standard, values),
-                        minX: 0,
-                        maxX: (values.length - 1).toDouble(),
-                        gridData: const FlGridData(show: true),
-                        borderData: FlBorderData(show: false),
-                        rangeAnnotations: RangeAnnotations(
-                          horizontalRangeAnnotations: [
-                            HorizontalRangeAnnotation(
-                              y1: standard.optimalMin,
-                              y2: standard.optimalMax,
-                              color: Colors.teal.withAlpha(24),
-                            ),
-                          ],
+                    minY: standard.chartMin,
+                    maxY: _maxY(standard, values),
+                    minX: 0,
+                    maxX: (points.length - 1).toDouble(),
+                    gridData: const FlGridData(show: true),
+                    borderData: FlBorderData(show: false),
+                    rangeAnnotations: RangeAnnotations(
+                      horizontalRangeAnnotations: [
+                        HorizontalRangeAnnotation(
+                          y1: standard.optimalMin,
+                          y2: standard.optimalMax,
+                          color: Colors.teal.withAlpha(24),
                         ),
-                        titlesData: FlTitlesData(
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          leftTitles: const AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 36,
-                            ),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 28,
-                              getTitlesWidget: (value, meta) {
-                                final index = value.round();
-                                if (index < 0 || index >= tests.length) {
-                                  return const SizedBox();
-                                }
-                                final date = tests[index].date;
-                                return SideTitleWidget(
-                                  axisSide: meta.axisSide,
-                                  child: Text(
-                                    '${date.day}.${date.month}',
-                                    style: const TextStyle(fontSize: 10),
-                                  ),
-                                );
-                              },
+                      ],
+                    ),
+                    titlesData: FlTitlesData(
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      leftTitles: const AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 36,
+                        ),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 28,
+                          getTitlesWidget: (value, meta) {
+                            final index = value.round();
+                            if (index < 0 || index >= points.length) {
+                              return const SizedBox();
+                            }
+                            final date = points[index].test.date;
+                            return SideTitleWidget(
+                              axisSide: meta.axisSide,
+                              child: Text(
+                                '${date.day}.${date.month}',
+                                style: const TextStyle(fontSize: 10),
                               ),
-                            ),
-                          ),
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: values.indexed
-                                .map(
-                                  (item) => FlSpot(item.$1.toDouble(), item.$2),
-                                )
-                                .toList(),
-                            isCurved: true,
-                            color: Colors.teal.shade700,
-                            barWidth: 3,
-                            dotData: const FlDotData(show: true),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              color: Colors.teal.withAlpha(24),
-                            ),
-                          ),
-                        ],
+                            );
+                          },
+                        ),
                       ),
                     ),
-            ),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: values.indexed
+                            .map((item) => FlSpot(item.$1.toDouble(), item.$2))
+                            .toList(),
+                        isCurved: true,
+                        color: Colors.teal.shade700,
+                        barWidth: 3,
+                        dotData: const FlDotData(show: true),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          color: Colors.teal.withAlpha(24),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),

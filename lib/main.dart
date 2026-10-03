@@ -2306,16 +2306,20 @@ class _WaterParametersCard extends StatelessWidget {
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  _ParameterChip(label: 'pH', value: test!.ph.toString()),
-                  _ParameterChip(label: 'NO3', value: '${test!.no3} mg/l'),
-                  _ParameterChip(label: 'PO4', value: '${test!.po4} mg/l'),
-                  _ParameterChip(label: 'Fe', value: '${test!.fe} mg/l'),
-                  _ParameterChip(label: 'KH', value: '${test!.kh} dKH'),
-                  _ParameterChip(label: 'GH', value: '${test!.gh} dGH'),
-                  _ParameterChip(
-                    label: l10n.temperature,
-                    value: '${test!.temp}°C',
-                  ),
+                  if (test!.ph case final value?)
+                    _ParameterChip(label: 'pH', value: '$value'),
+                  if (test!.no3 case final value?)
+                    _ParameterChip(label: 'NO3', value: '$value mg/l'),
+                  if (test!.po4 case final value?)
+                    _ParameterChip(label: 'PO4', value: '$value mg/l'),
+                  if (test!.fe case final value?)
+                    _ParameterChip(label: 'Fe', value: '$value mg/l'),
+                  if (test!.kh case final value?)
+                    _ParameterChip(label: 'KH', value: '$value dKH'),
+                  if (test!.gh case final value?)
+                    _ParameterChip(label: 'GH', value: '$value dGH'),
+                  if (test!.temp case final value?)
+                    _ParameterChip(label: l10n.temperature, value: '$value°C'),
                 ],
               ),
       ),

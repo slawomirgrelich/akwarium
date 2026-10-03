@@ -26,10 +26,12 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
   late final FirestoreService _firestoreService;
   late final AquariumJournalService _journalService;
   late final PdfReportService _pdfService;
+  late AquariumModel _aquarium;
 
   @override
   void initState() {
     super.initState();
+    _aquarium = widget.aquarium;
     _firestoreService = FirestoreService();
     _journalService = AquariumJournalService();
     _pdfService = PdfReportService();
@@ -47,7 +49,7 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
         actions: [_ReportIconButton(onPressed: () => _requestReport(context))],
       ),
       body: StreamBuilder<List<WaterParametersModel>>(
-        stream: _firestoreService.getWaterParameters(widget.aquarium.id),
+        stream: _firestoreService.getWaterParameters(_aquarium.id),
         builder: (context, parametersSnapshot) {
           return StreamBuilder<List<JournalEntryModel>>(
             stream: _journalService.getJournalEntries(widget.aquarium.id),
@@ -70,13 +72,14 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
               }
 
               return _DetailsContent(
-                aquarium: widget.aquarium,
+                aquarium: _aquarium,
                 parameters: parameters,
+                onEditEquipment: () => _editEquipment(context),
                 onShowChart: () => Navigator.push<void>(
                   context,
                   MaterialPageRoute(
                     builder: (_) =>
-                        WaterParametersChartScreen(aquarium: widget.aquarium),
+                        WaterParametersChartScreen(aquarium: _aquarium),
                   ),
                 ),
                 onGenerateReport: () => _requestReport(
@@ -90,6 +93,29 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _editEquipment(BuildContext context) async {
+    final equipment = await showDialog<AquariumEquipment>(
+      context: context,
+      builder: (_) => _EquipmentFormDialog(initial: _aquarium.equipment),
+    );
+    if (equipment == null || !context.mounted) return;
+
+    final updated = _aquarium.copyWith(equipment: equipment);
+    try {
+      await _firestoreService.updateAquarium(updated);
+      if (!context.mounted) return;
+      setState(() => _aquarium = updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.equipmentSaved)),
+      );
+    } on FirestoreServiceException catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
   }
 
   Future<void> _requestReport(
@@ -141,12 +167,14 @@ class _DetailsContent extends StatelessWidget {
   const _DetailsContent({
     required this.aquarium,
     required this.parameters,
+    required this.onEditEquipment,
     required this.onShowChart,
     required this.onGenerateReport,
   });
 
   final AquariumModel aquarium;
   final List<WaterParametersModel> parameters;
+  final VoidCallback onEditEquipment;
   final VoidCallback onShowChart;
   final VoidCallback onGenerateReport;
 
@@ -172,6 +200,11 @@ class _DetailsContent extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           _SummaryCard(aquarium: aquarium),
+          const SizedBox(height: 16),
+          _EquipmentCard(
+            equipment: aquarium.equipment,
+            onEdit: onEditEquipment,
+          ),
           const SizedBox(height: 16),
           if (latest == null)
             const Card(
@@ -246,7 +279,21 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final measurements = widget.parameters.reversed.toList(growable: false);
-    final values = measurements.map(_valueForSelected).toList(growable: false);
+    final chartMeasurements = measurements
+        .where((measurement) => _valueForSelected(measurement) != null)
+        .toList(growable: false);
+    final values = chartMeasurements
+        .map(_valueForSelected)
+        .whereType<double>()
+        .toList(growable: false);
+    if (values.isEmpty) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(l10n.chartNoParameterData(_parameterLabel(_selected))),
+        ),
+      );
+    }
     final minimum = values.reduce((a, b) => a < b ? a : b);
     final maximum = values.reduce((a, b) => a > b ? a : b);
     final padding = maximum == minimum ? 1.0 : (maximum - minimum) * 0.12;
@@ -282,9 +329,9 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
               child: LineChart(
                 LineChartData(
                   minX: 0,
-                  maxX: measurements.length < 2
+                  maxX: chartMeasurements.length < 2
                       ? 1
-                      : (measurements.length - 1).toDouble(),
+                      : (chartMeasurements.length - 1).toDouble(),
                   minY: minY,
                   maxY: maxY,
                   gridData: FlGridData(
@@ -319,15 +366,15 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 28,
-                        interval: measurements.length > 5
-                            ? (measurements.length / 4).ceilToDouble()
+                        interval: chartMeasurements.length > 5
+                            ? (chartMeasurements.length / 4).ceilToDouble()
                             : 1,
                         getTitlesWidget: (value, meta) {
                           final index = value.round();
-                          if (index < 0 || index >= measurements.length) {
+                          if (index < 0 || index >= chartMeasurements.length) {
                             return const SizedBox.shrink();
                           }
-                          final date = measurements[index].timestamp;
+                          final date = chartMeasurements[index].timestamp;
                           return SideTitleWidget(
                             axisSide: meta.axisSide,
                             child: Text(
@@ -345,9 +392,9 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
                       getTooltipItems: (spots) => spots.map((spot) {
                         final index = spot.x.round().clamp(
                           0,
-                          measurements.length - 1,
+                          chartMeasurements.length - 1,
                         );
-                        final date = measurements[index].timestamp;
+                        final date = chartMeasurements[index].timestamp;
                         return LineTooltipItem(
                           '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}\n${_axisValue(spot.y)}${unit.isEmpty ? '' : ' $unit'}',
                           const TextStyle(
@@ -383,7 +430,7 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
     );
   }
 
-  double _valueForSelected(WaterParametersModel measurement) =>
+  double? _valueForSelected(WaterParametersModel measurement) =>
       switch (_selected) {
         _HistoryParameter.ph => measurement.ph,
         _HistoryParameter.temperature => measurement.temp,
@@ -451,6 +498,227 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
+class _EquipmentCard extends StatelessWidget {
+  const _EquipmentCard({required this.equipment, required this.onEdit});
+
+  final AquariumEquipment? equipment;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final data = equipment;
+    final lines = <String>[
+      if (data?.lightingModel?.isNotEmpty ?? false)
+        '${l10n.equipmentLighting}: ${data!.lightingModel}',
+      if (data?.lightingPowerWatts != null)
+        '${l10n.equipmentLightingPower}: ${_formatEquipmentValue(data!.lightingPowerWatts!)} W',
+      if (data?.lightingHoursPerDay != null)
+        '${l10n.equipmentPhotoperiod}: ${_formatEquipmentValue(data!.lightingHoursPerDay!)} h',
+      if (data?.co2System?.isNotEmpty ?? false)
+        '${l10n.equipmentCo2System}: ${data!.co2System}',
+      if (data?.co2BubblesPerSecond != null)
+        '${l10n.equipmentCo2Bubbles}: ${_formatEquipmentValue(data!.co2BubblesPerSecond!)}',
+      if (data?.feedingNotes?.isNotEmpty ?? false)
+        '${l10n.equipmentFeeding}: ${data!.feedingNotes}',
+    ];
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.equipmentTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  tooltip: l10n.editAction,
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined),
+                ),
+              ],
+            ),
+            if (lines.isEmpty)
+              Text(l10n.equipmentNotConfigured)
+            else
+              ...lines.map(
+                (line) => Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(line),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EquipmentFormDialog extends StatefulWidget {
+  const _EquipmentFormDialog({required this.initial});
+
+  final AquariumEquipment? initial;
+
+  @override
+  State<_EquipmentFormDialog> createState() => _EquipmentFormDialogState();
+}
+
+class _EquipmentFormDialogState extends State<_EquipmentFormDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final _lightingModel = TextEditingController(
+    text: widget.initial?.lightingModel ?? '',
+  );
+  late final _lightingPower = TextEditingController(
+    text: _initialNumber(widget.initial?.lightingPowerWatts),
+  );
+  late final _lightingHours = TextEditingController(
+    text: _initialNumber(widget.initial?.lightingHoursPerDay),
+  );
+  late final _co2System = TextEditingController(
+    text: widget.initial?.co2System ?? '',
+  );
+  late final _co2Rate = TextEditingController(
+    text: _initialNumber(widget.initial?.co2BubblesPerSecond),
+  );
+  late final _feedingNotes = TextEditingController(
+    text: widget.initial?.feedingNotes ?? '',
+  );
+
+  @override
+  void dispose() {
+    _lightingModel.dispose();
+    _lightingPower.dispose();
+    _lightingHours.dispose();
+    _co2System.dispose();
+    _co2Rate.dispose();
+    _feedingNotes.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.equipmentTitle),
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.65,
+          maxWidth: 480,
+        ),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _lightingModel,
+                  decoration: InputDecoration(
+                    labelText: l10n.equipmentLighting,
+                  ),
+                ),
+                TextFormField(
+                  controller: _lightingPower,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.equipmentLightingPower,
+                    suffixText: 'W',
+                  ),
+                  validator: _validateOptionalNumber,
+                ),
+                TextFormField(
+                  controller: _lightingHours,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.equipmentPhotoperiod,
+                    suffixText: 'h',
+                  ),
+                  validator: _validateOptionalNumber,
+                ),
+                TextFormField(
+                  controller: _co2System,
+                  decoration: InputDecoration(
+                    labelText: l10n.equipmentCo2System,
+                  ),
+                ),
+                TextFormField(
+                  controller: _co2Rate,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: l10n.equipmentCo2Bubbles,
+                    suffixText: 'b/s',
+                  ),
+                  validator: _validateOptionalNumber,
+                ),
+                TextFormField(
+                  controller: _feedingNotes,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: l10n.equipmentFeeding,
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(onPressed: _save, child: Text(l10n.save)),
+      ],
+    );
+  }
+
+  String? _validateOptionalNumber(String? value) {
+    final text = value?.trim().replaceAll(',', '.') ?? '';
+    if (text.isEmpty || double.tryParse(text) != null) return null;
+    return AppLocalizations.of(context)!.equipmentInvalidNumber;
+  }
+
+  void _save() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    Navigator.pop(
+      context,
+      AquariumEquipment(
+        lightingModel: _optionalText(_lightingModel.text),
+        lightingPowerWatts: _optionalNumber(_lightingPower.text),
+        lightingHoursPerDay: _optionalNumber(_lightingHours.text),
+        co2System: _optionalText(_co2System.text),
+        co2BubblesPerSecond: _optionalNumber(_co2Rate.text),
+        feedingNotes: _optionalText(_feedingNotes.text),
+      ),
+    );
+  }
+
+  String? _optionalText(String value) {
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  double? _optionalNumber(String value) {
+    final trimmed = value.trim().replaceAll(',', '.');
+    return trimmed.isEmpty ? null : double.parse(trimmed);
+  }
+
+  String _initialNumber(double? value) => value == null ? '' : '$value';
+}
+
 class _LatestParametersCard extends StatelessWidget {
   const _LatestParametersCard({required this.latest});
 
@@ -469,9 +737,12 @@ class _LatestParametersCard extends StatelessWidget {
               'Ostatni pomiar',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            Text('pH ${latest.ph.toStringAsFixed(2)}'),
-            Text('NO3 ${latest.no3.toStringAsFixed(1)}'),
-            Text('PO4 ${latest.po4.toStringAsFixed(2)}'),
+            if (latest.ph case final value?)
+              Text('pH ${value.toStringAsFixed(2)}'),
+            if (latest.no3 case final value?)
+              Text('NO3 ${value.toStringAsFixed(1)}'),
+            if (latest.po4 case final value?)
+              Text('PO4 ${value.toStringAsFixed(2)}'),
             Text(_date(latest.timestamp)),
           ],
         ),
@@ -479,6 +750,10 @@ class _LatestParametersCard extends StatelessWidget {
     );
   }
 }
+
+String _formatEquipmentValue(double value) => value == value.roundToDouble()
+    ? value.toStringAsFixed(0)
+    : value.toStringAsFixed(2);
 
 String _date(DateTime value) {
   final day = value.day.toString().padLeft(2, '0');

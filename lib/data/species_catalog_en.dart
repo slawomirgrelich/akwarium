@@ -3,6 +3,8 @@
 const Map<String, String> speciesNamesEn = {
   'neon-tetra': 'Neon tetra',
   'corydoras': 'Peppered cory',
+  'glass-catfish': 'Glass catfish',
+  'spotted-synodontis': 'Spotted synodontis',
   'cherry-shrimp': 'Cherry shrimp',
   'anubias': 'Anubias',
   'java-moss': 'Java moss',
@@ -147,6 +149,8 @@ const Map<String, String> speciesCareNotesEn = {};
 const Map<String, String> speciesDescriptionsEn = {
   'neon-tetra': 'A peaceful shoaling fish. It feels best in a group of at least six specimens.',
   'corydoras': 'A sociable bottom-dwelling fish that needs soft, non-abrasive substrate.',
+  'glass-catfish': 'A peaceful transparent shoaling fish that needs a mature aquarium and a group.',
+  'spotted-synodontis': 'An active spotted bottom-dweller that does best in a group with caves and shelter.',
   'cherry-shrimp':
       'A hardy freshwater shrimp prized for its activity and vivid colors.',
   'anubias':
@@ -272,58 +276,31 @@ const Map<String, String> speciesDescriptionsEn = {
   'thai-micro-crab': 'A miniature, fully aquatic crab that needs dense plants and peaceful tankmates.',
   'orange-sulawesi-shrimp': 'An endemic shrimp from the Sulawesi lakes, needing high temperature and hard, alkaline water.',
   'trapdoor-snail': 'A livebearing snail that tolerates cooler water well and effectively cleans algae off the substrate.',
-  'hygrophila-polysperma':
-      'A fast-growing beginner stem plant. Trim it regularly; it is invasive in some regions.',
-  'bacopa-monnieri':
-      'A hardy stem plant with fleshy leaves that grows well in moderate light.',
-  'sagittaria-subulata':
-      'An undemanding rosette plant that spreads by runners into a low carpet or midground.',
-  'hydrocotyle-tripartita':
-      'A small three-lobed plant that forms an attractive carpet with good light and regular trimming.',
-  'echinodorus-grisebachii':
-      'A large Amazon sword forming a broad rosette. It needs nutrient-rich substrate and room for its leaves.',
-  'cryptocoryne-parva':
-      'One of the smallest crypts. It grows slowly and needs patience to form a dense carpet.',
-  'hygrophila-pinnatifida':
-      'A decorative plant with distinctive lobed leaves. It can grow in substrate or attached to hardscape.',
-  'alternanthera-reineckii':
-      'A red stem plant needing strong light, nutrients, and stable conditions; CO2 helps maintain its color.',
-  'micranthemum-micranthemoides':
-      'A small, fast-growing stem plant that can be trimmed into a carpet or kept as a dense bush.',
-  'pogostemon-erectus':
-      'An upright stem plant with needle-like leaves. Good lighting and regular nutrients encourage compact growth.',
-  'ludwigia-palustris':
-      'A stem plant with green or reddish leaves. Stronger light encourages deeper coloration.',
-  'vallisneria-nana':
-      'A narrow-leaved vallisneria that spreads by runners and works well in the background.',
-  'aponogeton-crispus':
-      'A bulb plant with long, wavy leaves. It needs space and nutrient-rich substrate; a dormant period can be normal.',
-  'myriophyllum-mattogrossense':
-      'A fast-growing feathery stem plant. Regular trimming keeps its clumps dense and decorative.',
-  'limnophila-aromatica':
-      'An aromatic stem plant with variable colors. Underwater growth needs strong light, nutrients, and stable CO2.',
-  'sulawesi-cardinal-shrimp':
-      'A delicate shrimp endemic to Lake Matano. It needs warm, hard water, a mature tank, and exceptionally stable conditions.',
-  'babaulti-shrimp':
-      'An active dwarf shrimp with variable coloration. Provide a mature tank, hiding places, and clean, stable water.',
-  'orange-eye-blue-tiger-shrimp':
-      'A tiger shrimp variety with a blue body and orange eyes. It prefers soft water and a mature, stable aquarium.',
-  'white-pearl-shrimp':
-      'A pale, easy-care dwarf shrimp that thrives in a mature tank with moss and biofilm.',
-  'pagoda-snail':
-      'A large snail with a ribbed, conical shell. It needs hard water, sandy substrate, and a steady food supply.',
-  'colombian-ramshorn-snail':
-      'A large snail with a flat, coiled shell. It may eat soft plants, so avoid keeping it with delicate vegetation.',
-  'least-dwarf-crayfish':
-      'One of the smallest aquarium crayfish. Provide plenty of cover; it may prey on tiny snails and shrimp.',
-  'australian-redclaw-crayfish':
-      'A large, powerful crayfish needing a spacious, secure tank and many hiding places. Avoid small fish and delicate plants.',
-  'pom-pom-crab':
-      'A small, fully aquatic crab with tufts of bristles on its claws. Provide peaceful tankmates and dense cover.',
-  'red-nose-shrimp':
-      'A slender shrimp with a distinctive red rostrum. Adults live in freshwater, but larvae need brackish water.',
-  'cajun-dwarf-crayfish':
-      'A small North American crayfish that is most active near the bottom. Provide a secure lid, cover, and carefully chosen tankmates.',
-  'diadem-nerite':
-      'A small nerite that grazes algae from glass and decor. It needs hard water; its larvae do not develop in typical freshwater aquariums.',
+  'hygrophila-polysperma': 'A fast-growing beginner stem plant. Trim it regularly; it is invasive in some regions.',
+  'bacopa-monnieri': 'A hardy stem plant with fleshy leaves that grows well in moderate light.',
+  'sagittaria-subulata': 'An undemanding rosette plant that spreads by runners into a low carpet or midground.',
+  'hydrocotyle-tripartita': 'A small three-lobed plant that forms an attractive carpet with good light and regular trimming.',
+  'echinodorus-grisebachii': 'A large Amazon sword forming a broad rosette. It needs nutrient-rich substrate and room for its leaves.',
+  'cryptocoryne-parva': 'One of the smallest crypts. It grows slowly and needs patience to form a dense carpet.',
+  'hygrophila-pinnatifida': 'A decorative plant with distinctive lobed leaves. It can grow in substrate or attached to hardscape.',
+  'alternanthera-reineckii': 'A red stem plant needing strong light, nutrients, and stable conditions; CO2 helps maintain its color.',
+  'micranthemum-micranthemoides': 'A small, fast-growing stem plant that can be trimmed into a carpet or kept as a dense bush.',
+  'pogostemon-erectus': 'An upright stem plant with needle-like leaves. Good lighting and regular nutrients encourage compact growth.',
+  'ludwigia-palustris': 'A stem plant with green or reddish leaves. Stronger light encourages deeper coloration.',
+  'vallisneria-nana': 'A narrow-leaved vallisneria that spreads by runners and works well in the background.',
+  'aponogeton-crispus': 'A bulb plant with long, wavy leaves. It needs space and nutrient-rich substrate; a dormant period can be normal.',
+  'myriophyllum-mattogrossense': 'A fast-growing feathery stem plant. Regular trimming keeps its clumps dense and decorative.',
+  'limnophila-aromatica': 'An aromatic stem plant with variable colors. Underwater growth needs strong light, nutrients, and stable CO2.',
+  'sulawesi-cardinal-shrimp': 'A delicate shrimp endemic to Lake Matano. It needs warm, hard water, a mature tank, and exceptionally stable conditions.',
+  'babaulti-shrimp': 'An active dwarf shrimp with variable coloration. Provide a mature tank, hiding places, and clean, stable water.',
+  'orange-eye-blue-tiger-shrimp': 'A tiger shrimp variety with a blue body and orange eyes. It prefers soft water and a mature, stable aquarium.',
+  'white-pearl-shrimp': 'A pale, easy-care dwarf shrimp that thrives in a mature tank with moss and biofilm.',
+  'pagoda-snail': 'A large snail with a ribbed, conical shell. It needs hard water, sandy substrate, and a steady food supply.',
+  'colombian-ramshorn-snail': 'A large snail with a flat, coiled shell. It may eat soft plants, so avoid keeping it with delicate vegetation.',
+  'least-dwarf-crayfish': 'One of the smallest aquarium crayfish. Provide plenty of cover; it may prey on tiny snails and shrimp.',
+  'australian-redclaw-crayfish': 'A large, powerful crayfish needing a spacious, secure tank and many hiding places. Avoid small fish and delicate plants.',
+  'pom-pom-crab': 'A small, fully aquatic crab with tufts of bristles on its claws. Provide peaceful tankmates and dense cover.',
+  'red-nose-shrimp': 'A slender shrimp with a distinctive red rostrum. Adults live in freshwater, but larvae need brackish water.',
+  'cajun-dwarf-crayfish': 'A small North American crayfish that is most active near the bottom. Provide a secure lid, cover, and carefully chosen tankmates.',
+  'diadem-nerite': 'A small nerite that grazes algae from glass and decor. It needs hard water; its larvae do not develop in typical freshwater aquariums.',
 };

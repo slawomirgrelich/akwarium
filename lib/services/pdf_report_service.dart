@@ -202,7 +202,8 @@ class PdfReportService {
     );
   }
 
-  pw.Widget _parameterCell(double value, double min, double max) {
+  pw.Widget _parameterCell(double? value, double min, double max) {
+    if (value == null) return _tableCell('—');
     final inRange = value >= min && value <= max;
     return pw.Container(
       padding: const pw.EdgeInsets.all(5),

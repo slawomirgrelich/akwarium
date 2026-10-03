@@ -741,7 +741,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get waterTestInfo =>
-      'Measurement will be saved with current date and time.';
+      'Leave unmeasured tests blank. Enter at least one value; the measurement is saved with the current date and time.';
+
+  @override
+  String get waterAtLeastOneParameter => 'Enter at least one water parameter.';
 
   @override
   String get dailyDose => 'Daily dose';
@@ -866,6 +869,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get taskName => 'Task name';
+
+  @override
+  String get reminderTaskPreset => 'Task type';
+
+  @override
+  String get reminderTaskWaterChange => 'Water change';
+
+  @override
+  String get reminderTaskFilter => 'Clean filter';
+
+  @override
+  String get reminderTaskWaterTest => 'Water test';
+
+  @override
+  String get reminderTaskFertilizer => 'Fertilizing';
+
+  @override
+  String get reminderTaskCustom => 'Custom task';
+
+  @override
+  String get reminderCustomNameRequired => 'Enter a name for the custom task.';
+
+  @override
+  String get reminderInvalidInterval =>
+      'Enter a repeat interval of at least one day.';
 
   @override
   String get dueDate => 'Due date';
@@ -1207,19 +1235,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get reminderTaskWaterChange => 'Water change';
-
-  @override
   String get reminderTaskFilterClean => 'Clean filter';
-
-  @override
-  String get reminderTaskWaterTest => 'Water test';
-
-  @override
-  String get reminderTaskFertilizer => 'Fertilizing';
-
-  @override
-  String get reminderTaskCustom => 'Custom task';
 
   @override
   String get scheduledAquariumTaskNotification => 'Scheduled aquarium task';
@@ -1369,6 +1385,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get geminiConnectionSucceeded => 'Gemini connection is working.';
+
+  @override
+  String get plantQuantityUnit => 'Plant quantity unit';
+
+  @override
+  String get quantityPieces => 'pcs.';
+
+  @override
+  String get quantityPortions => 'portions';
+
+  @override
+  String get quantityBaskets => 'baskets';
+
+  @override
+  String get equipmentTitle => 'Equipment and care';
+
+  @override
+  String get equipmentLighting => 'Lighting';
+
+  @override
+  String get equipmentLightingPower => 'Lighting power';
+
+  @override
+  String get equipmentPhotoperiod => 'Daily lighting time';
+
+  @override
+  String get equipmentCo2System => 'CO2 system';
+
+  @override
+  String get equipmentCo2Bubbles => 'CO2 bubbles per second';
+
+  @override
+  String get equipmentFeeding => 'Feeding information';
+
+  @override
+  String get equipmentNotConfigured =>
+      'No equipment or care details have been added.';
+
+  @override
+  String get equipmentSaved => 'Equipment and care details saved.';
+
+  @override
+  String get equipmentInvalidNumber => 'Enter a valid number.';
 
   @override
   String compatibilityVolumeWarning(int actual, int minimum) {

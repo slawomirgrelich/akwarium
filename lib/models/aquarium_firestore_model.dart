@@ -11,6 +11,7 @@ class AquariumModel {
     DateTime? establishedAt,
     required this.type,
     DateTime? createdAt,
+    this.equipment,
   }) : capacityLiters = capacityLiters ?? netVolumeLiters ?? 0,
        setupDate = setupDate ?? establishedAt ?? DateTime(1970),
        createdAt = createdAt ?? DateTime(1970);
@@ -22,6 +23,7 @@ class AquariumModel {
   final DateTime setupDate;
   final String type;
   final DateTime createdAt;
+  final AquariumEquipment? equipment;
 
   double get netVolumeLiters => capacityLiters;
   DateTime get establishedAt => setupDate;
@@ -34,6 +36,7 @@ class AquariumModel {
     DateTime? setupDate,
     String? type,
     DateTime? createdAt,
+    AquariumEquipment? equipment,
   }) {
     return AquariumModel(
       id: id ?? this.id,
@@ -43,6 +46,7 @@ class AquariumModel {
       setupDate: setupDate ?? this.setupDate,
       type: type ?? this.type,
       createdAt: createdAt ?? this.createdAt,
+      equipment: equipment ?? this.equipment,
     );
   }
 
@@ -55,6 +59,7 @@ class AquariumModel {
       'setupDate': Timestamp.fromDate(setupDate),
       'type': type,
       'createdAt': Timestamp.fromDate(createdAt),
+      if (equipment != null) 'equipment': equipment!.toMap(),
     };
   }
 
@@ -73,6 +78,11 @@ class AquariumModel {
       setupDate: _dateFromValue(values['setupDate']) ?? createdAt,
       type: _stringFromValue(values['type'], fallback: 'Słodkowodne'),
       createdAt: createdAt,
+      equipment: values['equipment'] is Map
+          ? AquariumEquipment.fromMap(
+              Map<String, dynamic>.from(values['equipment'] as Map),
+            )
+          : null,
     );
   }
 
@@ -83,37 +93,77 @@ class AquariumModel {
   }
 }
 
+class AquariumEquipment {
+  const AquariumEquipment({
+    this.lightingModel,
+    this.lightingPowerWatts,
+    this.lightingHoursPerDay,
+    this.co2System,
+    this.co2BubblesPerSecond,
+    this.feedingNotes,
+  });
+
+  final String? lightingModel;
+  final double? lightingPowerWatts;
+  final double? lightingHoursPerDay;
+  final String? co2System;
+  final double? co2BubblesPerSecond;
+  final String? feedingNotes;
+
+  Map<String, dynamic> toMap() => {
+    if (lightingModel?.trim().isNotEmpty ?? false)
+      'lightingModel': lightingModel!.trim(),
+    if (lightingPowerWatts != null) 'lightingPowerWatts': lightingPowerWatts,
+    if (lightingHoursPerDay != null) 'lightingHoursPerDay': lightingHoursPerDay,
+    if (co2System?.trim().isNotEmpty ?? false) 'co2System': co2System!.trim(),
+    if (co2BubblesPerSecond != null) 'co2BubblesPerSecond': co2BubblesPerSecond,
+    if (feedingNotes?.trim().isNotEmpty ?? false)
+      'feedingNotes': feedingNotes!.trim(),
+  };
+
+  factory AquariumEquipment.fromMap(
+    Map<String, dynamic> map,
+  ) => AquariumEquipment(
+    lightingModel: _stringFromValue(map['lightingModel']),
+    lightingPowerWatts: _nullableDoubleFromValue(map['lightingPowerWatts']),
+    lightingHoursPerDay: _nullableDoubleFromValue(map['lightingHoursPerDay']),
+    co2System: _stringFromValue(map['co2System']),
+    co2BubblesPerSecond: _nullableDoubleFromValue(map['co2BubblesPerSecond']),
+    feedingNotes: _stringFromValue(map['feedingNotes']),
+  );
+}
+
 class WaterParametersModel {
   const WaterParametersModel({
     required this.id,
     required this.aquariumId,
     required this.timestamp,
-    required this.ph,
-    required this.kh,
-    required this.gh,
-    required this.no3,
+    this.ph,
+    this.kh,
+    this.gh,
+    this.no3,
     this.no2,
-    required this.po4,
-    required this.fe,
-    this.k = 0,
-    this.mg = 0,
-    required this.temp,
+    this.po4,
+    this.fe,
+    this.k,
+    this.mg,
+    this.temp,
     required this.notes,
   });
 
   final String id;
   final String aquariumId;
   final DateTime timestamp;
-  final double ph;
-  final double kh;
-  final double gh;
-  final double no3;
+  final double? ph;
+  final double? kh;
+  final double? gh;
+  final double? no3;
   final double? no2;
-  final double po4;
-  final double fe;
-  final double k;
-  final double mg;
-  final double temp;
+  final double? po4;
+  final double? fe;
+  final double? k;
+  final double? mg;
+  final double? temp;
   final String notes;
 
   WaterParametersModel copyWith({
@@ -155,16 +205,16 @@ class WaterParametersModel {
       'id': id,
       'aquariumId': aquariumId,
       'timestamp': Timestamp.fromDate(timestamp),
-      'ph': ph,
-      'kh': kh,
-      'gh': gh,
-      'no3': no3,
+      if (ph != null) 'ph': ph,
+      if (kh != null) 'kh': kh,
+      if (gh != null) 'gh': gh,
+      if (no3 != null) 'no3': no3,
       if (no2 != null) 'no2': no2,
-      'po4': po4,
-      'fe': fe,
-      'k': k,
-      'mg': mg,
-      'temp': temp,
+      if (po4 != null) 'po4': po4,
+      if (fe != null) 'fe': fe,
+      if (k != null) 'k': k,
+      if (mg != null) 'mg': mg,
+      if (temp != null) 'temp': temp,
       'notes': notes,
     };
   }
@@ -183,16 +233,16 @@ class WaterParametersModel {
         fallback: aquariumIdFallback,
       ),
       timestamp: _dateFromValue(values['timestamp']) ?? DateTime.now(),
-      ph: _doubleFromValue(values['ph']),
-      kh: _doubleFromValue(values['kh']),
-      gh: _doubleFromValue(values['gh']),
-      no3: _doubleFromValue(values['no3']),
+      ph: _nullableDoubleFromValue(values['ph']),
+      kh: _nullableDoubleFromValue(values['kh']),
+      gh: _nullableDoubleFromValue(values['gh']),
+      no3: _nullableDoubleFromValue(values['no3']),
       no2: _nullableDoubleFromValue(values['no2']),
-      po4: _doubleFromValue(values['po4']),
-      fe: _doubleFromValue(values['fe']),
-      k: _doubleFromValue(values['k']),
-      mg: _doubleFromValue(values['mg']),
-      temp: _doubleFromValue(values['temp']),
+      po4: _nullableDoubleFromValue(values['po4']),
+      fe: _nullableDoubleFromValue(values['fe']),
+      k: _nullableDoubleFromValue(values['k']),
+      mg: _nullableDoubleFromValue(values['mg']),
+      temp: _nullableDoubleFromValue(values['temp']),
       notes: _stringFromValue(values['notes']),
     );
   }

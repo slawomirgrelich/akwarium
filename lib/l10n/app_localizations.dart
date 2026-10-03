@@ -1475,8 +1475,14 @@ abstract class AppLocalizations {
   /// No description provided for @waterTestInfo.
   ///
   /// In pl, this message translates to:
-  /// **'Pomiar zostanie zapisany z aktualną datą i godziną.'**
+  /// **'Pomiń niewykonane testy, pozostawiając pola puste. Wpisz co najmniej jeden parametr; pomiar zapisze się z aktualną datą i godziną.'**
   String get waterTestInfo;
+
+  /// No description provided for @waterAtLeastOneParameter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz co najmniej jeden parametr wody.'**
+  String get waterAtLeastOneParameter;
 
   /// No description provided for @dailyDose.
   ///
@@ -1711,6 +1717,54 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nazwa zadania'**
   String get taskName;
+
+  /// No description provided for @reminderTaskPreset.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rodzaj zadania'**
+  String get reminderTaskPreset;
+
+  /// No description provided for @reminderTaskWaterChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podmiana wody'**
+  String get reminderTaskWaterChange;
+
+  /// No description provided for @reminderTaskFilter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czyszczenie filtra'**
+  String get reminderTaskFilter;
+
+  /// No description provided for @reminderTaskWaterTest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Test parametrów'**
+  String get reminderTaskWaterTest;
+
+  /// No description provided for @reminderTaskFertilizer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nawożenie'**
+  String get reminderTaskFertilizer;
+
+  /// No description provided for @reminderTaskCustom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Własne zadanie'**
+  String get reminderTaskCustom;
+
+  /// No description provided for @reminderCustomNameRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz nazwę własnego zadania.'**
+  String get reminderCustomNameRequired;
+
+  /// No description provided for @reminderInvalidInterval.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj interwał powtarzania wynoszący co najmniej jeden dzień.'**
+  String get reminderInvalidInterval;
 
   /// No description provided for @dueDate.
   ///
@@ -2318,35 +2372,11 @@ abstract class AppLocalizations {
   /// **'Co {days} dni'**
   String everyDays(int days);
 
-  /// No description provided for @reminderTaskWaterChange.
-  ///
-  /// In pl, this message translates to:
-  /// **'Podmiana wody'**
-  String get reminderTaskWaterChange;
-
   /// No description provided for @reminderTaskFilterClean.
   ///
   /// In pl, this message translates to:
   /// **'Czyszczenie filtra'**
   String get reminderTaskFilterClean;
-
-  /// No description provided for @reminderTaskWaterTest.
-  ///
-  /// In pl, this message translates to:
-  /// **'Test parametrów'**
-  String get reminderTaskWaterTest;
-
-  /// No description provided for @reminderTaskFertilizer.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nawożenie'**
-  String get reminderTaskFertilizer;
-
-  /// No description provided for @reminderTaskCustom.
-  ///
-  /// In pl, this message translates to:
-  /// **'Własne zadanie'**
-  String get reminderTaskCustom;
 
   /// No description provided for @scheduledAquariumTaskNotification.
   ///
@@ -2599,6 +2629,90 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Połączenie z Gemini działa.'**
   String get geminiConnectionSucceeded;
+
+  /// No description provided for @plantQuantityUnit.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jednostka ilości roślin'**
+  String get plantQuantityUnit;
+
+  /// No description provided for @quantityPieces.
+  ///
+  /// In pl, this message translates to:
+  /// **'szt.'**
+  String get quantityPieces;
+
+  /// No description provided for @quantityPortions.
+  ///
+  /// In pl, this message translates to:
+  /// **'porcje'**
+  String get quantityPortions;
+
+  /// No description provided for @quantityBaskets.
+  ///
+  /// In pl, this message translates to:
+  /// **'koszyki'**
+  String get quantityBaskets;
+
+  /// No description provided for @equipmentTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprzęt i pielęgnacja'**
+  String get equipmentTitle;
+
+  /// No description provided for @equipmentLighting.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oświetlenie'**
+  String get equipmentLighting;
+
+  /// No description provided for @equipmentLightingPower.
+  ///
+  /// In pl, this message translates to:
+  /// **'Moc oświetlenia'**
+  String get equipmentLightingPower;
+
+  /// No description provided for @equipmentPhotoperiod.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czas świecenia dziennie'**
+  String get equipmentPhotoperiod;
+
+  /// No description provided for @equipmentCo2System.
+  ///
+  /// In pl, this message translates to:
+  /// **'System CO2'**
+  String get equipmentCo2System;
+
+  /// No description provided for @equipmentCo2Bubbles.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bąbelki CO2 na sekundę'**
+  String get equipmentCo2Bubbles;
+
+  /// No description provided for @equipmentFeeding.
+  ///
+  /// In pl, this message translates to:
+  /// **'Informacje o karmieniu'**
+  String get equipmentFeeding;
+
+  /// No description provided for @equipmentNotConfigured.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie dodano jeszcze informacji o sprzęcie ani pielęgnacji.'**
+  String get equipmentNotConfigured;
+
+  /// No description provided for @equipmentSaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisano informacje o sprzęcie i pielęgnacji.'**
+  String get equipmentSaved;
+
+  /// No description provided for @equipmentInvalidNumber.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz poprawną liczbę.'**
+  String get equipmentInvalidNumber;
 
   /// No description provided for @compatibilityVolumeWarning.
   ///

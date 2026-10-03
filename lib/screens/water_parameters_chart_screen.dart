@@ -116,9 +116,9 @@ class _ChartContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final parameterMeasurements = selected == _ChartParameter.no2
-        ? measurements.where((measurement) => measurement.no2 != null).toList()
-        : measurements;
+    final parameterMeasurements = measurements
+        .where((measurement) => _valueFor(measurement, selected) != null)
+        .toList();
     final visibleMeasurements = filterWaterMeasurementsByRange(
       parameterMeasurements,
       range,
@@ -127,6 +127,7 @@ class _ChartContent extends StatelessWidget {
     final standard = _standardFor(selected, aquarium.type);
     final values = visibleMeasurements
         .map((measurement) => _valueFor(measurement, selected))
+        .whereType<double>()
         .toList();
     final chronological = visibleMeasurements.reversed.toList();
     final chronologicalValues = values.reversed.toList();
@@ -399,7 +400,7 @@ class _QuickStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final latestValue = _valueFor(latest, parameter);
+    final latestValue = _valueFor(latest, parameter)!;
     final previousValue = previous == null
         ? null
         : _valueFor(previous!, parameter);
@@ -679,8 +680,7 @@ class _FirestoreWaterParametersFormScreenState
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                if (entry.key == 'NO2') return null;
-                                return l10n.chartEnterValue;
+                                return null;
                               }
                               return double.tryParse(
                                         value.trim().replaceAll(',', '.'),
@@ -726,6 +726,15 @@ class _FirestoreWaterParametersFormScreenState
   }
 
   Future<void> _save() async {
+    final l10n = AppLocalizations.of(context)!;
+    if (_controllers.entries
+        .where((entry) => entry.key != 'Notatka')
+        .every((entry) => entry.value.text.trim().isEmpty)) {
+      setState(() {
+        _error = l10n.waterAtLeastOneParameter;
+      });
+      return;
+    }
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() {
       _isSaving = true;
@@ -738,16 +747,16 @@ class _FirestoreWaterParametersFormScreenState
           id: '',
           aquariumId: widget.aquarium.id,
           timestamp: DateTime.now(),
-          ph: _number('pH'),
-          kh: _number('KH'),
-          gh: _number('GH'),
-          no3: _number('NO3'),
+          ph: _optionalNumber('pH'),
+          kh: _optionalNumber('KH'),
+          gh: _optionalNumber('GH'),
+          no3: _optionalNumber('NO3'),
           no2: _optionalNumber('NO2'),
-          po4: _number('PO4'),
-          fe: _number('Fe'),
-          k: _number('K'),
-          mg: _number('Mg'),
-          temp: _number('Temperatura'),
+          po4: _optionalNumber('PO4'),
+          fe: _optionalNumber('Fe'),
+          k: _optionalNumber('K'),
+          mg: _optionalNumber('Mg'),
+          temp: _optionalNumber('Temperatura'),
           notes: _controllers['Notatka']!.text.trim(),
         ),
       );
@@ -760,10 +769,6 @@ class _FirestoreWaterParametersFormScreenState
         });
       }
     }
-  }
-
-  double _number(String key) {
-    return double.parse(_controllers[key]!.text.trim().replaceAll(',', '.'));
   }
 
   double? _optionalNumber(String key) {
@@ -930,7 +935,7 @@ Color _pointColor(double value, _ChartStandard standard) {
   return const Color(0xFFF59E0B);
 }
 
-double _valueFor(WaterParametersModel measurement, _ChartParameter parameter) {
+double? _valueFor(WaterParametersModel measurement, _ChartParameter parameter) {
   switch (parameter) {
     case _ChartParameter.ph:
       return measurement.ph;
