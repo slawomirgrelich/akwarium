@@ -10,6 +10,8 @@ import '../services/database_service.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class TankPhotoJournalScreen extends StatefulWidget {
   const TankPhotoJournalScreen({required this.tankId, super.key});
 
@@ -137,16 +139,14 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
   }
 
   void _showPhotoMessage(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-          backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
-          content: Text(message),
-        ),
-      );
+    context.showAppSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+        backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
+        content: Text(message),
+      ),
+    );
   }
 
   String _photoErrorMessage(Object error) {
@@ -269,7 +269,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
         await _database.getTankPhotosStream(userId, widget.tankId).first;
     if (!mounted || photos.length < 2) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        context.showAppSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.twoPhotosRequired),
           ),

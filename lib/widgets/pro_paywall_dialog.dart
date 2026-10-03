@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/pro_access_service.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class ProBadge extends StatelessWidget {
   const ProBadge({super.key, this.compact = false});
 
@@ -169,12 +171,13 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
       );
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.proActivatedMessage)));
+      context.showAppSnackBar(
+        SnackBar(content: Text(l10n.proActivatedMessage)),
+      );
     } on Object catch (error) {
       if (mounted) {
         setState(() => _activating = false);
-        ScaffoldMessenger.of(context).showSnackBar(
+        context.showAppSnackBar(
           SnackBar(content: Text(l10n.proActivationFailed(error.toString()))),
         );
       }

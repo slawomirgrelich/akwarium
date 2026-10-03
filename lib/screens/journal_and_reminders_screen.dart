@@ -9,6 +9,8 @@ import '../services/aquarium_journal_service.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 String _journalTypeLabel(AppLocalizations l10n, JournalEntryType type) =>
     switch (type) {
       JournalEntryType.waterChange => l10n.filterWaterChange,
@@ -280,7 +282,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     String message, {
     bool error = false,
   }) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    context.showAppSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: error ? Colors.red.shade700 : null,

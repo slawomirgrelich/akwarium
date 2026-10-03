@@ -14,6 +14,8 @@ import '../widgets/maintenance_schedule_section.dart';
 import '../widgets/pro_paywall_dialog.dart';
 import 'water_parameters_chart_screen.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class AquariumDetailsScreen extends StatefulWidget {
   const AquariumDetailsScreen({required this.aquarium, super.key});
 
@@ -109,13 +111,12 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
       await _firestoreService.updateAquarium(updated);
       if (!context.mounted) return;
       setState(() => _aquarium = updated);
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.equipmentSaved)),
       );
     } on FirestoreServiceException catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.message)));
+        context.showAppSnackBar(SnackBar(content: Text(error.message)));
       }
     }
   }
@@ -150,7 +151,7 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
       await Printing.layoutPdf(onLayout: (_) async => bytes);
     } on Object catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        context.showAppSnackBar(
           SnackBar(
             content: Text(
               AppLocalizations.of(context)!.reportGenerationError('$error'),

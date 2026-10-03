@@ -9,6 +9,8 @@ import 'models/aquarium_model.dart';
 import 'l10n/app_localizations.dart';
 import 'utils/localized_labels.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 const _ink = Color(0xFFF2F8F6);
 const _surface = Color(0xFFFFFFFF);
 const _textPrimary = Color(0xFF0F2D2A);
@@ -111,7 +113,7 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
   void _openComparer(BuildContext context, List<JournalEntry> entries) {
     final images = entries.expand((entry) => entry.imagePaths).toList();
     if (images.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.photoCompareMinimumCount),
         ),
@@ -500,7 +502,7 @@ Future<void> _toggleTask(BuildContext context, AquariumTask task) async {
   } catch (error, stackTrace) {
     debugPrint('Aquarium task update failed: $error\n$stackTrace');
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.aquariumTaskUpdateFailed),
         ),
@@ -650,7 +652,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     } catch (error, stackTrace) {
       debugPrint('Aquarium task save failed: $error\n$stackTrace');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.aquariumTaskSaveFailed),
         ),

@@ -54,6 +54,8 @@ import 'water_test_screen.dart';
 import 'widgets/pro_paywall_dialog.dart';
 import 'widgets/firestore_reminders_widget.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   var firebaseReady = false;
@@ -563,7 +565,7 @@ class DashboardPage extends StatelessWidget {
                   ),
                 );
                 Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(
+                context.showAppSnackBar(
                   SnackBar(content: Text(l10n.saveTankParameters)),
                 );
               },
@@ -576,8 +578,7 @@ class DashboardPage extends StatelessWidget {
   }
 
   void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    context.showAppSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -623,9 +624,9 @@ class JournalPage extends StatelessWidget {
               ),
             OutlinedButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(l10n.showOlderEntries)));
+                context.showAppSnackBar(
+                  SnackBar(content: Text(l10n.showOlderEntries)),
+                );
               },
               icon: const Icon(Icons.history),
               label: Text(l10n.showOlderEntries),
@@ -1294,7 +1295,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
             : ['data:${_imageMimeType ?? 'image/jpeg'};base64,${base64Encode(_imageBytes!)}'],
       ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(
+    context.showAppSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context)!.diagnosisSaved)),
     );
   }
@@ -1592,7 +1593,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
     } on Object catch (error, stackTrace) {
       debugPrint('AI scanner paywall failed to open: $error\n$stackTrace');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        context.showAppSnackBar(
           SnackBar(
             content: Text(
               AppLocalizations.of(context)!.scannerUnexpectedFailure,
@@ -2057,8 +2058,7 @@ class ProfilePage extends StatelessWidget {
   }
 
   void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    context.showAppSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showCloudSyncDialog(BuildContext context) {
@@ -2911,7 +2911,7 @@ class _AdminPanelTile extends StatelessWidget {
                 if (!context.mounted) return;
                 if (!hasAccess ||
                     FirebaseAuth.instance.currentUser?.uid != user.id) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  context.showAppSnackBar(
                     SnackBar(content: Text(l10n.adminAccessDenied)),
                   );
                   return;
@@ -3052,12 +3052,13 @@ Future<void> _editProfileDisplayName(
     await user.updateDisplayName(name);
     await user.reload();
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.profileNameSaved(name))));
+      context.showAppSnackBar(
+        SnackBar(content: Text(l10n.profileNameSaved(name))),
+      );
     }
   } on Object catch (error) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(content: Text(l10n.profileNameSaveFailed(error.toString()))),
       );
     }
@@ -3463,8 +3464,7 @@ Future<void> _showAddToAquariumSheet(
 ) async {
   final l10n = AppLocalizations.of(context)!;
   if (FirebaseAuth.instance.currentUser == null) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(l10n.loginToAddSpecies)));
+    context.showAppSnackBar(SnackBar(content: Text(l10n.loginToAddSpecies)));
     return;
   }
 
@@ -3491,7 +3491,7 @@ Future<void> _showAddToAquariumSheet(
       photoUrl: 'data:image/jpeg;base64,${base64Encode(imageBytes)}',
     );
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    context.showAppSnackBar(
       SnackBar(
         content: Text(
           l10n.addedSpeciesToAquarium(result.polishName, aquarium.name),
@@ -3509,8 +3509,7 @@ Future<void> _showAddToAquariumSheet(
     );
   } on FirestoreServiceException catch (error) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error.message)));
+      context.showAppSnackBar(SnackBar(content: Text(error.message)));
     }
   }
 }

@@ -18,6 +18,8 @@ import 'widgets/pro_paywall_dialog.dart';
 import 'widgets/species_autocomplete_field.dart';
 import 'utils/localized_labels.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 Future<void> showCreateAquariumDialog(BuildContext context) async {
   await showDialog<void>(
     context: context,
@@ -478,7 +480,7 @@ class _TankProfileStrip extends StatelessWidget {
                               await provider.deleteAquarium(aquarium.id);
                             } on Object catch (error) {
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                context.showAppSnackBar(
                                   SnackBar(content: Text(error.toString())),
                                 );
                               }
@@ -722,8 +724,9 @@ class _InhabitantCard extends StatelessWidget {
               );
             } on Object catch (error) {
               if (context.mounted) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(error.toString())));
+                context.showAppSnackBar(
+                  SnackBar(content: Text(error.toString())),
+                );
               }
             }
           },
@@ -910,8 +913,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
       if (mounted) Navigator.pop(context);
     } on Object catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.toString())));
+        context.showAppSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }
@@ -1092,7 +1094,7 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
     final provider = context.read<AquariumProvider>();
     final aquariumId = provider.activeAquariumId;
     if (aquariumId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.selectAquariumFirst),
         ),
@@ -1120,8 +1122,7 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
       if (mounted) Navigator.pop(context);
     } on Object catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.toString())));
+        context.showAppSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }

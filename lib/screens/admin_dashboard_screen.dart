@@ -9,6 +9,8 @@ import '../l10n/app_localizations.dart';
 import '../models/ticket_models.dart';
 import '../services/admin_service.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
@@ -422,7 +424,7 @@ class _AdminTicketDetailScreenState extends State<AdminTicketDetailScreen> {
         adminResponse: _replyController.text,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.adminTicketSaved)),
       );
       Navigator.pop(context);
@@ -783,8 +785,7 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
         _expiry = expiry;
         _plan = 'manual';
       });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.adminGrantSuccess)));
+      context.showAppSnackBar(SnackBar(content: Text(l10n.adminGrantSuccess)));
     } on Object catch (error) {
       if (mounted) setState(() => _error = error.toString());
     } finally {
@@ -824,8 +825,7 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
         _expiry = null;
         _plan = '';
       });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.adminRevokeSuccess)));
+      context.showAppSnackBar(SnackBar(content: Text(l10n.adminRevokeSuccess)));
     } on Object catch (error) {
       if (mounted) setState(() => _error = error.toString());
     } finally {

@@ -6,6 +6,8 @@ import '../l10n/app_localizations.dart';
 import '../local_reminder_service.dart';
 import '../services/aquarium_journal_service.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class MaintenanceScheduleSection extends StatefulWidget {
   const MaintenanceScheduleSection({required this.aquariumId, super.key});
 
@@ -163,7 +165,7 @@ class _MaintenanceScheduleSectionState
       await _scheduleTaskNotification(savedTask);
     } on Object catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        context.showAppSnackBar(
           SnackBar(
             content: Text(
               AppLocalizations.of(context)!.maintenanceTaskAddedError('$error'),
@@ -197,7 +199,7 @@ class _MaintenanceScheduleSectionState
         ),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        context.showAppSnackBar(
           SnackBar(
             content: Text(
               AppLocalizations.of(context)!
@@ -208,7 +210,7 @@ class _MaintenanceScheduleSectionState
       }
     } on Object catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        context.showAppSnackBar(
           SnackBar(
             content: Text(
               AppLocalizations.of(context)!

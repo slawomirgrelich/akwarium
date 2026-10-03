@@ -9,6 +9,8 @@ import '../l10n/app_localizations.dart';
 import '../models/ticket_models.dart';
 import '../services/ticket_service.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class HelpCenterScreen extends StatelessWidget {
   const HelpCenterScreen({super.key});
 
@@ -347,11 +349,10 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       Navigator.pop(context, true);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.ticketSent)));
+      context.showAppSnackBar(SnackBar(content: Text(l10n.ticketSent)));
     } on TicketServiceException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(
           content: Text(
             _ticketErrorMessage(AppLocalizations.of(context)!, error.code),
@@ -378,7 +379,7 @@ class _NewTicketScreenState extends State<NewTicketScreen> {
     } on Object catch (error) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
+      context.showAppSnackBar(
         SnackBar(content: Text(l10n.ticketPhotoReadError(error.toString()))),
       );
     }

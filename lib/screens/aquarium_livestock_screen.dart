@@ -10,6 +10,8 @@ import '../utils/localized_labels.dart';
 import '../widgets/species_autocomplete_field.dart';
 import 'species_atlas_screen.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class AquariumLivestockScreen extends StatelessWidget {
   const AquariumLivestockScreen({required this.aquarium, super.key});
 
@@ -153,8 +155,7 @@ class AquariumLivestockScreen extends StatelessWidget {
       );
     } on FirestoreServiceException catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.message)));
+        context.showAppSnackBar(SnackBar(content: Text(error.message)));
       }
     }
   }

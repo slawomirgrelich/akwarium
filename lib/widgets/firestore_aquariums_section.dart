@@ -7,6 +7,8 @@ import '../screens/aquarium_details_screen.dart';
 import '../services/firestore_service.dart';
 import '../utils/localized_labels.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class FirestoreAquariumsSection extends StatefulWidget {
   const FirestoreAquariumsSection({super.key});
 
@@ -174,7 +176,7 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
     String message, {
     bool isError = false,
   }) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    context.showAppSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: isError ? Colors.red.shade700 : null,

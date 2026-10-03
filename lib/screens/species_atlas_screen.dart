@@ -15,6 +15,8 @@ import '../services/species_image_service.dart';
 import '../utils/localized_labels.dart';
 import 'aquarium_livestock_screen.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class SpeciesAtlasScreen extends StatefulWidget {
   const SpeciesAtlasScreen({
     required this.tankId,
@@ -273,7 +275,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         if (widget.onCreateAquarium != null) {
           widget.onCreateAquarium!();
         } else {
-          ScaffoldMessenger.of(pageContext).showSnackBar(
+          pageContext.showAppSnackBar(
             SnackBar(
               duration: const Duration(seconds: 3),
               showCloseIcon: true,
@@ -313,10 +315,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         quantityUnit: addition.quantityUnit,
       );
       if (!pageContext.mounted) return;
-      final messenger = ScaffoldMessenger.of(pageContext);
-      messenger.hideCurrentSnackBar();
       final pageL10n = AppLocalizations.of(pageContext)!;
-      messenger.showSnackBar(
+      pageContext.showAppSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 3),
@@ -408,18 +408,16 @@ void _showAtlasMessage(
   String message, {
   bool isError = false,
 }) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
-        showCloseIcon: true,
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-        backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
-        content: Text(message),
-      ),
-    );
+  context.showAppSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 4),
+      showCloseIcon: true,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+      backgroundColor: isError ? Theme.of(context).colorScheme.error : null,
+      content: Text(message),
+    ),
+  );
 }
 
 class _AquariumSelectionSheet extends StatelessWidget {

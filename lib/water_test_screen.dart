@@ -6,6 +6,8 @@ import 'models/aquarium_model.dart' as models;
 import 'models/water_standards.dart';
 import 'utils/water_assessment_localization.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 /// Formularz zapisu parametrów wody z dokładnym znacznikiem czasu.
 class WaterTestScreen extends StatefulWidget {
   const WaterTestScreen({super.key});
@@ -117,8 +119,9 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
     if (_controllers.values.every(
       (controller) => controller.text.trim().isEmpty,
     )) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.waterAtLeastOneParameter)));
+      context.showAppSnackBar(
+        SnackBar(content: Text(l10n.waterAtLeastOneParameter)),
+      );
       return;
     }
     if (!_formKey.currentState!.validate()) {

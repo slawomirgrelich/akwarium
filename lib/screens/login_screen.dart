@@ -7,6 +7,8 @@ import '../models/referral_models.dart';
 import '../services/auth_service.dart';
 import '../services/referral_service.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -487,8 +489,9 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _auth.sendPasswordResetEmail(email);
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(l10n.passwordResetSuccess)));
+        context.showAppSnackBar(
+          SnackBar(content: Text(l10n.passwordResetSuccess)),
+        );
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -500,7 +503,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showMessage(String message, {bool error = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    context.showAppSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: error ? Colors.red.shade700 : null,

@@ -7,6 +7,8 @@ import '../l10n/app_localizations.dart';
 import '../models/referral_models.dart';
 import '../services/referral_service.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class ReferralScreen extends StatelessWidget {
   const ReferralScreen({super.key});
 
@@ -29,29 +31,37 @@ class ReferralScreen extends StatelessWidget {
             const SizedBox(height: 16),
             if (service.isLoading && service.referralCode.isEmpty)
               const _ReferralLoadingState()
-            else if (service.errorMessage != null && service.referralCode.isEmpty)
+            else if (service.errorMessage != null &&
+                service.referralCode.isEmpty)
               _ReferralErrorState(onRetry: service.retry)
             else ...[
               _CodeCard(
                 code: service.referralCode,
                 shareUrl: _shareUrl,
-                onCopied: () => _showMessage(context, AppLocalizations.of(context)!.codeCopied),
+                onCopied: () => _showMessage(
+                  context,
+                  AppLocalizations.of(context)!.codeCopied,
+                ),
               ),
               const SizedBox(height: 16),
               _ProgressCard(completed: service.successfulReferralsCount),
               const SizedBox(height: 24),
               Text(
                 AppLocalizations.of(context)!.invitedUsers,
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 10),
               if (service.referrals.isEmpty)
                 const _EmptyReferralsState()
               else
-                ...service.referrals.map((referral) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _ReferralTile(referral: referral),
-                    )),
+                ...service.referrals.map(
+                  (referral) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _ReferralTile(referral: referral),
+                  ),
+                ),
               if (service.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -69,7 +79,7 @@ class ReferralScreen extends StatelessWidget {
   }
 
   void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    context.showAppSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -103,7 +113,11 @@ class _ReferralHero extends StatelessWidget {
               color: scheme.primary.withValues(alpha: isDark ? 0.22 : 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.card_giftcard_outlined, color: isDark ? const Color(0xFF67E8F9) : scheme.primary, size: 28),
+            child: Icon(
+              Icons.card_giftcard_outlined,
+              color: isDark ? const Color(0xFF67E8F9) : scheme.primary,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -122,7 +136,9 @@ class _ReferralHero extends StatelessWidget {
                 Text(
                   AppLocalizations.of(context)!.referralHeroDescription,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark ? const Color(0xFFD2EEF2) : scheme.onSecondaryContainer,
+                    color: isDark
+                        ? const Color(0xFFD2EEF2)
+                        : scheme.onSecondaryContainer,
                     height: 1.4,
                   ),
                 ),
@@ -136,7 +152,11 @@ class _ReferralHero extends StatelessWidget {
 }
 
 class _CodeCard extends StatelessWidget {
-  const _CodeCard({required this.code, required this.shareUrl, required this.onCopied});
+  const _CodeCard({
+    required this.code,
+    required this.shareUrl,
+    required this.onCopied,
+  });
 
   final String code;
   final String shareUrl;
@@ -146,24 +166,38 @@ class _CodeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final shareText = '${AppLocalizations.of(context)!.referralShareText(code)} $shareUrl?ref=$code';
+    final shareText =
+        '${AppLocalizations.of(context)!.referralShareText(code)} $shareUrl?ref=$code';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(AppLocalizations.of(context)!.referralCodeSection, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+            Text(
+              AppLocalizations.of(context)!.referralCodeSection,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               decoration: BoxDecoration(
                 color: scheme.primary.withValues(alpha: 0.07),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: scheme.primary.withValues(alpha: 0.5), width: 1.5),
+                border: Border.all(
+                  color: scheme.primary.withValues(alpha: 0.5),
+                  width: 1.5,
+                ),
               ),
               child: code.isEmpty
-                  ? const Center(child: SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2)))
+                  ? const Center(
+                      child: SizedBox.square(
+                        dimension: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
                   : SelectableText(
                       code,
                       textAlign: TextAlign.center,
@@ -194,7 +228,9 @@ class _CodeCard extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: code.isEmpty
                         ? null
-                        : () => SharePlus.instance.share(ShareParams(text: shareText)),
+                        : () => SharePlus.instance.share(
+                            ShareParams(text: shareText),
+                          ),
                     icon: const Icon(Icons.ios_share_outlined),
                     label: Text(AppLocalizations.of(context)!.shareLink),
                   ),
@@ -230,11 +266,15 @@ class _ProgressCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     AppLocalizations.of(context)!.referralProgress(completed),
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 Icon(
-                  reached ? Icons.workspace_premium : Icons.emoji_events_outlined,
+                  reached
+                      ? Icons.workspace_premium
+                      : Icons.emoji_events_outlined,
                   color: reached ? scheme.primary : scheme.onSurfaceVariant,
                 ),
               ],
@@ -256,7 +296,9 @@ class _ProgressCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              reached ? AppLocalizations.of(context)!.referralGoalReached : AppLocalizations.of(context)!.referralProgressHint,
+              reached
+                  ? AppLocalizations.of(context)!.referralGoalReached
+                  : AppLocalizations.of(context)!.referralProgressHint,
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -285,14 +327,23 @@ class _ReferralTile extends StatelessWidget {
           child: Icon(completed ? Icons.check : Icons.schedule, color: color),
         ),
         title: Text(
-          completed ? AppLocalizations.of(context)!.activePro : AppLocalizations.of(context)!.referralAccepted,
-          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+          completed
+              ? AppLocalizations.of(context)!.activePro
+              : AppLocalizations.of(context)!.referralAccepted,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
         ),
         subtitle: Text(
-          completed ? AppLocalizations.of(context)!.referralCompleted : AppLocalizations.of(context)!.awaitingProActivation,
+          completed
+              ? AppLocalizations.of(context)!.referralCompleted
+              : AppLocalizations.of(context)!.awaitingProActivation,
           style: TextStyle(color: scheme.onSurfaceVariant),
         ),
-        trailing: Text(_dateLabel(referral.createdAt), style: theme.textTheme.bodySmall),
+        trailing: Text(
+          _dateLabel(referral.createdAt),
+          style: theme.textTheme.bodySmall,
+        ),
       ),
     );
   }
@@ -310,9 +361,18 @@ class _EmptyReferralsState extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 30),
         child: Column(
           children: [
-            Icon(Icons.group_outlined, size: 48, color: scheme.primary.withValues(alpha: 0.75)),
+            Icon(
+              Icons.group_outlined,
+              size: 48,
+              color: scheme.primary.withValues(alpha: 0.75),
+            ),
             const SizedBox(height: 12),
-            Text(AppLocalizations.of(context)!.invitedUsers, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+            Text(
+              AppLocalizations.of(context)!.invitedUsers,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 6),
             Text(
               AppLocalizations.of(context)!.noReferrals,
@@ -342,7 +402,9 @@ class _ReferralLoadingState extends StatelessWidget {
             color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: index == 1 ? const Center(child: CircularProgressIndicator(strokeWidth: 2)) : null,
+          child: index == 1
+              ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+              : null,
         ),
       ),
     );
@@ -362,11 +424,25 @@ class _ReferralErrorState extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Icon(Icons.cloud_off_outlined, size: 44, color: theme.colorScheme.onSurfaceVariant),
+            Icon(
+              Icons.cloud_off_outlined,
+              size: 44,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
             const SizedBox(height: 12),
-            Text(AppLocalizations.of(context)!.referralLoadErrorTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+            Text(
+              AppLocalizations.of(context)!.referralLoadErrorTitle,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 6),
-            Text(AppLocalizations.of(context)!.connectionRetry, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+            Text(
+              AppLocalizations.of(context)!.connectionRetry,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: () => onRetry(),

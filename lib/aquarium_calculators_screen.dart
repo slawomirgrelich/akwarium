@@ -7,6 +7,8 @@ import 'services/aquarium_calculators_service.dart';
 import 'services/pro_access_service.dart';
 import 'widgets/pro_paywall_dialog.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 const _calculatorAccent = Color(0xFF10B981);
 
 class AquariumCalculatorsScreen extends StatefulWidget {
@@ -227,7 +229,7 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setDouble('aquarium.default_net_liters', liters);
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    context.showAppSnackBar(
       SnackBar(
         content: Text(
           'Zapisano pojemność netto: ${liters.toStringAsFixed(1)} l',

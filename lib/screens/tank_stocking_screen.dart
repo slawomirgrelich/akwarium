@@ -13,6 +13,8 @@ import '../utils/localized_labels.dart';
 import '../widgets/confirm_livestock_removal_dialog.dart';
 import 'species_atlas_screen.dart';
 
+import 'package:akwarium/utils/app_snackbar.dart';
+
 class TankStockingScreen extends StatelessWidget {
   const TankStockingScreen({super.key});
 
@@ -240,8 +242,7 @@ class _StockingBody extends StatelessWidget {
       }
     } on Object catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.toString())));
+        context.showAppSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }
