@@ -1957,6 +1957,8 @@ class ProfilePage extends StatelessWidget {
               title: l10n.profileTitle,
               subtitle: l10n.profileSubtitle,
             ),
+            const SizedBox(height: 12),
+            const _SignedInAccountCard(),
             const _ProCard(),
             const SizedBox(height: 10),
             const _ProfileDisplayNameTile(),
@@ -2926,6 +2928,66 @@ class _AdminPanelTile extends StatelessWidget {
       );
     },
   );
+}
+
+class _SignedInAccountCard extends StatelessWidget {
+  const _SignedInAccountCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.userChanges(),
+      initialData: FirebaseAuth.instance.currentUser,
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        if (user == null) return const SizedBox.shrink();
+        final displayName = user.displayName?.trim();
+        final email = user.email?.trim();
+        return Card(
+          child: ListTile(
+            leading: SizedBox(
+              width: 48,
+              height: 48,
+              child: ClipOval(
+                child: user.photoURL == null || user.photoURL!.isEmpty
+                    ? CircleAvatar(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Text(
+                          (displayName?.isNotEmpty ?? false)
+                              ? displayName![0].toUpperCase()
+                              : (email?.isNotEmpty ?? false)
+                              ? email![0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : Image.network(
+                        user.photoURL!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => CircleAvatar(
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .primaryContainer,
+                          child: const Icon(Icons.person_outline),
+                        ),
+                      ),
+              ),
+            ),
+            title: Text(
+              (displayName?.isNotEmpty ?? false)
+                  ? displayName!
+                  : email ?? l10n.signedInAccount,
+            ),
+            subtitle: Text(email ?? l10n.signedInAccount),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _ProfileDisplayNameTile extends StatelessWidget {

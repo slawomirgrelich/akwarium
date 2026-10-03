@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isRegistering = false;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String? _errorMessage;
@@ -219,6 +220,48 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                           ),
                           if (!_isRegistering) ...[
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                const Expanded(child: Divider()),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(l10n.orContinueWith),
+                                ),
+                                const Expanded(child: Divider()),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: _isLoading ? null : _signInWithGoogle,
+                              icon: _isGoogleLoading
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'G',
+                                      style: TextStyle(
+                                        color: Color(0xFF4285F4),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                              label: Text(l10n.signInWithGoogle),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.googleConfigurationHint,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                          if (!_isRegistering) ...[
                             const SizedBox(height: 8),
                             TextButton(
                               onPressed: _isLoading ? null : _resetPassword,
@@ -326,17 +369,14 @@ class _LoginScreenState extends State<LoginScreen> {
             return;
           }
         }
-        if (mounted) {
-          await Navigator.of(context).pushReplacementNamed('/dashboard');
-        }
       } else {
         await _auth.signInWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
-        if (mounted) {
-          await Navigator.of(context).pushReplacementNamed('/dashboard');
-        }
+      }
+      if (mounted) {
+        await Navigator.of(context).pushReplacementNamed('/dashboard');
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -351,7 +391,42 @@ class _LoginScreenState extends State<LoginScreen> {
         _showMessage(message, error: true);
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _isLoading = true;
+      _isGoogleLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final credential = await _auth.signInWithGoogle();
+      if (!mounted || credential == null) return;
+      await Navigator.of(context).pushReplacementNamed('/dashboard');
+    } on AuthException catch (error) {
+      if (!mounted) return;
+      final message = _authErrorMessage(error);
+      setState(() => _errorMessage = message);
+      _showMessage(message, error: true);
+    } on Object catch (error, stackTrace) {
+      debugPrint('Google sign-in screen failed: $error\n$stackTrace');
+      if (!mounted) return;
+      final message = AppLocalizations.of(context)!.googleSignInFailed;
+      setState(() => _errorMessage = message);
+      _showMessage(message, error: true);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isGoogleLoading = false;
+        });
+      }
     }
   }
 
@@ -436,6 +511,10 @@ class _LoginScreenState extends State<LoginScreen> {
   String _authErrorMessage(AuthException error) {
     final l10n = AppLocalizations.of(context)!;
     return switch (error.code) {
+      'google-sign-in-configuration' =>
+        '${l10n.googleSignInConfigurationError}\n${l10n.googleConfigurationHint}',
+      'google-sign-in-unsupported' => l10n.googleSignInUnsupported,
+      'google-sign-in-failed' => l10n.googleSignInFailed,
       'invalid-email' => l10n.invalidEmail,
       'user-disabled' => l10n.userDisabled,
       'user-not-found' ||

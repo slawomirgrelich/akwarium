@@ -158,6 +158,48 @@ abstract class AppLocalizations {
   /// **'Zaloguj się'**
   String get login;
 
+  /// No description provided for @signInWithGoogle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się przez Google'**
+  String get signInWithGoogle;
+
+  /// No description provided for @orContinueWith.
+  ///
+  /// In pl, this message translates to:
+  /// **'lub kontynuuj przez'**
+  String get orContinueWith;
+
+  /// No description provided for @signedInAccount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zalogowane konto'**
+  String get signedInAccount;
+
+  /// No description provided for @googleSignInConfigurationError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Logowanie Google nie jest skonfigurowane. Skonfiguruj klientów OAuth w Firebase i podaj identyfikator klienta web podczas budowania aplikacji.'**
+  String get googleSignInConfigurationError;
+
+  /// No description provided for @googleSignInUnsupported.
+  ///
+  /// In pl, this message translates to:
+  /// **'Logowanie Google nie jest dostępne na tej platformie.'**
+  String get googleSignInUnsupported;
+
+  /// No description provided for @googleSignInFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Logowanie przez Google nie powiodło się. Sprawdź połączenie i spróbuj ponownie.'**
+  String get googleSignInFailed;
+
+  /// No description provided for @googleConfigurationHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Logowanie Google wymaga włączenia dostawcy Google w Firebase Authentication, odcisków SHA podpisu Androida i identyfikatora klienta OAuth web. Dla iOS skonfiguruj klienta OAuth i schemat URL.'**
+  String get googleConfigurationHint;
+
   /// No description provided for @forgotPassword.
   ///
   /// In pl, this message translates to:

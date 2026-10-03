@@ -40,6 +40,31 @@ class AppLocalizationsPl extends AppLocalizations {
   String get login => 'Zaloguj się';
 
   @override
+  String get signInWithGoogle => 'Zaloguj się przez Google';
+
+  @override
+  String get orContinueWith => 'lub kontynuuj przez';
+
+  @override
+  String get signedInAccount => 'Zalogowane konto';
+
+  @override
+  String get googleSignInConfigurationError =>
+      'Logowanie Google nie jest skonfigurowane. Skonfiguruj klientów OAuth w Firebase i podaj identyfikator klienta web podczas budowania aplikacji.';
+
+  @override
+  String get googleSignInUnsupported =>
+      'Logowanie Google nie jest dostępne na tej platformie.';
+
+  @override
+  String get googleSignInFailed =>
+      'Logowanie przez Google nie powiodło się. Sprawdź połączenie i spróbuj ponownie.';
+
+  @override
+  String get googleConfigurationHint =>
+      'Logowanie Google wymaga włączenia dostawcy Google w Firebase Authentication, odcisków SHA podpisu Androida i identyfikatora klienta OAuth web. Dla iOS skonfiguruj klienta OAuth i schemat URL.';
+
+  @override
   String get forgotPassword => 'Zapomniałeś hasła?';
 
   @override

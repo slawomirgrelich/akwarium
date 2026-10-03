@@ -145,13 +145,17 @@ class AquariumManagementScreen extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddInhabitant(context),
+        icon: const Icon(Icons.add),
+        label: Text(l10n.addSpeciesToStock),
+      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             final content = _ManagementContent(
               wide: constraints.maxWidth >= 720,
               onAddAquarium: () => _showAddAquarium(context),
-              onAddInhabitant: () => _showAddInhabitant(context),
             );
             return Center(
               child: ConstrainedBox(
@@ -178,15 +182,10 @@ class AquariumManagementScreen extends StatelessWidget {
 }
 
 class _ManagementContent extends StatefulWidget {
-  const _ManagementContent({
-    required this.wide,
-    required this.onAddAquarium,
-    required this.onAddInhabitant,
-  });
+  const _ManagementContent({required this.wide, required this.onAddAquarium});
 
   final bool wide;
   final VoidCallback onAddAquarium;
-  final VoidCallback onAddInhabitant;
 
   @override
   State<_ManagementContent> createState() => _ManagementContentState();
@@ -239,7 +238,7 @@ class _ManagementContentState extends State<_ManagementContent>
             .toList();
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 112),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -308,11 +307,6 @@ class _ManagementContentState extends State<_ManagementContent>
                   fauna: fauna,
                   flora: flora,
                 ),
-              ),
-              FilledButton.icon(
-                onPressed: widget.onAddInhabitant,
-                icon: const Icon(Icons.add),
-                label: Text(AppLocalizations.of(context)!.addSpeciesToStock),
               ),
             ],
           ),

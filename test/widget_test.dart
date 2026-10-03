@@ -17,6 +17,7 @@ void main() {
 
     expect(find.text('Witaj ponownie'), findsOneWidget);
     expect(find.text('Zaloguj się'), findsOneWidget);
+    expect(find.text('Zaloguj się przez Google'), findsOneWidget);
     expect(find.text('Zapomniałeś hasła?'), findsOneWidget);
   });
 

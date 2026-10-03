@@ -41,6 +41,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login => 'Sign in';
 
   @override
+  String get signInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get orContinueWith => 'or continue with';
+
+  @override
+  String get signedInAccount => 'Signed-in account';
+
+  @override
+  String get googleSignInConfigurationError =>
+      'Google Sign-In is not configured for this app. Configure the Google OAuth clients in Firebase and provide the web client ID at build time.';
+
+  @override
+  String get googleSignInUnsupported =>
+      'Google Sign-In is not available on this platform.';
+
+  @override
+  String get googleSignInFailed =>
+      'Google Sign-In failed. Check your connection and try again.';
+
+  @override
+  String get googleConfigurationHint =>
+      'Google login requires an enabled Google provider in Firebase Authentication, the Android signing SHA fingerprints, and a web OAuth client ID. For iOS, configure the iOS OAuth client and URL scheme.';
+
+  @override
   String get forgotPassword => 'Forgot password?';
 
   @override
