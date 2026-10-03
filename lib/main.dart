@@ -3475,6 +3475,8 @@ Future<void> _showAddToAquariumSheet(
   );
   if (aquarium == null || !context.mounted) return;
 
+  context.read<models.AquariumProvider>().selectAquarium(aquarium.id);
+
   final count = await _showLivestockQuantityDialog(context, result);
   if (count == null || !context.mounted) return;
 

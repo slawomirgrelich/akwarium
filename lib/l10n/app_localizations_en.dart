@@ -772,6 +772,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get waterAtLeastOneParameter => 'Enter at least one water parameter.';
 
   @override
+  String get waterTestDeleteTitle => 'Delete water test?';
+
+  @override
+  String get waterTestDeletePrompt =>
+      'This water test and its history entry will be permanently deleted.';
+
+  @override
+  String get waterTestDeletedMessage => 'Water test deleted.';
+
+  @override
+  String get waterTestDeleteFailed =>
+      'Could not delete the water test. Please try again.';
+
+  @override
   String get dailyDose => 'Daily dose';
 
   @override

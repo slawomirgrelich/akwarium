@@ -96,6 +96,7 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
   }
 
   void _openChartScreen(BuildContext context, AquariumModel aquarium) {
+    context.read<AquariumProvider>().selectAquarium(aquarium.id);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => AquariumDetailsScreen(aquarium: aquarium),

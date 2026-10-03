@@ -6,6 +6,7 @@ import '../local_reminder_service.dart';
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_model.dart';
 import '../services/aquarium_journal_service.dart';
+import '../services/firestore_service.dart';
 import '../services/pro_access_service.dart';
 import '../widgets/pro_paywall_dialog.dart';
 
@@ -88,8 +89,13 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                           _TimelineTab(
                             entries: journal,
                             filter: _entryFilter,
+                            waterTestIds: provider.waterTests
+                                .map((test) => test.id)
+                                .toSet(),
                             onFilterChanged: (value) =>
                                 setState(() => _entryFilter = value),
+                            onDeleteWaterTest: (entry) =>
+                                _deleteWaterTest(context, entry),
                           ),
                           _CalendarTab(
                             reminders: reminders,
@@ -252,6 +258,41 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     }
   }
 
+  Future<void> _deleteWaterTest(
+    BuildContext context,
+    JournalEntryModel entry,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.waterTestDeleteTitle),
+        content: Text(l10n.waterTestDeletePrompt),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.deleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await FirestoreService().deleteWaterParameter(entry.aquariumId, entry.id);
+      if (context.mounted) _showMessage(context, l10n.waterTestDeletedMessage);
+    } on FirestoreServiceException catch (error) {
+      debugPrint('Water-test deletion failed: $error');
+      if (context.mounted) {
+        _showMessage(context, l10n.waterTestDeleteFailed, error: true);
+      }
+    }
+  }
+
   Future<void> _scheduleReminder(
     AppLocalizations l10n,
     ReminderModel reminder,
@@ -323,12 +364,16 @@ class _TimelineTab extends StatelessWidget {
   const _TimelineTab({
     required this.entries,
     required this.filter,
+    required this.waterTestIds,
     required this.onFilterChanged,
+    required this.onDeleteWaterTest,
   });
 
   final List<JournalEntryModel> entries;
   final JournalEntryType? filter;
+  final Set<String> waterTestIds;
   final ValueChanged<JournalEntryType?> onFilterChanged;
+  final ValueChanged<JournalEntryModel> onDeleteWaterTest;
 
   @override
   Widget build(BuildContext context) {
@@ -365,16 +410,29 @@ class _TimelineTab extends StatelessWidget {
         if (filtered.isEmpty)
           _JournalEmpty(icon: Icons.timeline, text: l10n.noEntriesForFilter)
         else
-          ...filtered.map((entry) => _JournalTimelineCard(entry: entry)),
+          ...filtered.map(
+            (entry) => _JournalTimelineCard(
+              entry: entry,
+              onDeleteWaterTest:
+                  entry.entryType == JournalEntryType.waterTest &&
+                      waterTestIds.contains(entry.id)
+                  ? () => onDeleteWaterTest(entry)
+                  : null,
+            ),
+          ),
       ],
     );
   }
 }
 
 class _JournalTimelineCard extends StatelessWidget {
-  const _JournalTimelineCard({required this.entry});
+  const _JournalTimelineCard({
+    required this.entry,
+    required this.onDeleteWaterTest,
+  });
 
   final JournalEntryModel entry;
+  final VoidCallback? onDeleteWaterTest;
 
   @override
   Widget build(BuildContext context) {
@@ -399,7 +457,13 @@ class _JournalTimelineCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         isThreeLine: true,
-        trailing: entry.percentageWaterChanged == null
+        trailing: onDeleteWaterTest != null
+            ? IconButton(
+                tooltip: l10n.deleteAction,
+                onPressed: onDeleteWaterTest,
+                icon: const Icon(Icons.delete_outline),
+              )
+            : entry.percentageWaterChanged == null
             ? null
             : Text('${entry.percentageWaterChanged!.toStringAsFixed(0)}%'),
       ),

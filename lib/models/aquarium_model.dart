@@ -655,7 +655,7 @@ class AquariumProvider extends ChangeNotifier {
     for (final aquarium in _aquariums) {
       if (aquarium.id == _activeAquariumId) return aquarium;
     }
-    return _aquariums.firstOrNull;
+    return _activeAquariumId.isEmpty ? _aquariums.firstOrNull : null;
   }
 
   AquariumProfile get activeAquarium =>
@@ -867,7 +867,7 @@ class AquariumProvider extends ChangeNotifier {
   }
 
   void selectAquarium(String aquariumId) {
-    if (!_aquariums.any((aquarium) => aquarium.id == aquariumId)) return;
+    if (aquariumId.trim().isEmpty || _activeAquariumId == aquariumId) return;
     _activeAquariumId = aquariumId;
     notifyListeners();
     _persist();

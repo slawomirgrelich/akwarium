@@ -1526,6 +1526,30 @@ abstract class AppLocalizations {
   /// **'Wpisz co najmniej jeden parametr wody.'**
   String get waterAtLeastOneParameter;
 
+  /// No description provided for @waterTestDeleteTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunąć test wody?'**
+  String get waterTestDeleteTitle;
+
+  /// No description provided for @waterTestDeletePrompt.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ten test wody i jego wpis w historii zostaną trwale usunięte.'**
+  String get waterTestDeletePrompt;
+
+  /// No description provided for @waterTestDeletedMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Test wody został usunięty.'**
+  String get waterTestDeletedMessage;
+
+  /// No description provided for @waterTestDeleteFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się usunąć testu wody. Spróbuj ponownie.'**
+  String get waterTestDeleteFailed;
+
   /// No description provided for @dailyDose.
   ///
   /// In pl, this message translates to:

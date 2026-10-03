@@ -151,4 +151,37 @@ void main() {
     expect(provider.selectedAquariumId, 'cloud-70');
     expect(provider.activeAquarium.volumeNetLiters, 70);
   });
+
+  test('retains a selected aquarium while its cloud profile is loading', () {
+    final provider = AquariumProvider(
+      aquariums: [
+        AquariumProfile(
+          id: 'first',
+          name: 'Pierwsze',
+          volumeNetLiters: 60,
+          setupDate: DateTime(2026),
+          type: TankType.freshwater,
+        ),
+      ],
+      activeAquariumId: 'first',
+    );
+
+    provider.selectAquarium('cloud-second');
+
+    expect(provider.selectedAquariumId, 'cloud-second');
+    expect(provider.selectedAquarium, isNull);
+
+    provider.syncCloudAquariums([
+      AquariumModel(
+        id: 'cloud-second',
+        name: 'Drugie',
+        netVolumeLiters: 30,
+        establishedAt: DateTime(2026),
+        type: 'Słodkowodne',
+      ),
+    ]);
+
+    expect(provider.selectedAquariumId, 'cloud-second');
+    expect(provider.selectedAquarium?.name, 'Drugie');
+  });
 }

@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
 import 'models/aquarium_model.dart' as models;
-import 'models/water_standards.dart';
-import 'utils/water_assessment_localization.dart';
 
 import 'package:akwarium/utils/app_snackbar.dart';
 
@@ -82,10 +80,10 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
                             if (value == null || value.trim().isEmpty) {
                               return null;
                             }
-                            if (double.tryParse(
-                                  value.trim().replaceAll(',', '.'),
-                                ) ==
-                                null) {
+                            final parsed = double.tryParse(
+                              value.trim().replaceAll(',', '.'),
+                            );
+                            if (parsed == null || !parsed.isFinite) {
                               return l10n.chartInvalidNumber;
                             }
                             return null;
@@ -151,66 +149,12 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
   }
 
   InputDecoration _decoration(BuildContext context, String key) {
-    final parameter = _parameterFor(key);
-    final rawValue = double.tryParse(
-      _controllers[key]!.text.trim().replaceAll(',', '.'),
-    );
-    final assessment = rawValue == null
-        ? null
-        : assessWaterValue(parameter, rawValue);
-    final l10n = AppLocalizations.of(context)!;
-    final color = assessment == null
-        ? null
-        : assessment.status == WaterStatus.good
-        ? Colors.green.shade700
-        : assessment.status == WaterStatus.critical
-        ? Colors.red.shade700
-        : Colors.orange.shade800;
-
     return InputDecoration(
       labelText: key == 'Temperatura'
           ? AppLocalizations.of(context)!.temperature
           : key,
-      prefixIcon: Icon(Icons.science_outlined, color: color),
-      suffixIcon: assessment == null
-          ? null
-          : Tooltip(
-              message: waterAssessmentMessage(l10n, assessment),
-              child: Icon(
-                assessment.status == WaterStatus.good
-                    ? Icons.check_circle
-                    : Icons.warning_amber_rounded,
-                color: color,
-              ),
-            ),
+      prefixIcon: const Icon(Icons.science_outlined),
       suffixText: key == 'Temperatura' ? '°C' : null,
-      focusedBorder: color == null
-          ? null
-          : OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: color, width: 2),
-            ),
     );
-  }
-
-  WaterParameter _parameterFor(String key) {
-    switch (key) {
-      case 'pH':
-        return WaterParameter.ph;
-      case 'NO3':
-        return WaterParameter.no3;
-      case 'PO4':
-        return WaterParameter.po4;
-      case 'Fe':
-        return WaterParameter.fe;
-      case 'KH':
-        return WaterParameter.kh;
-      case 'GH':
-        return WaterParameter.gh;
-      case 'Temperatura':
-        return WaterParameter.temp;
-      default:
-        return WaterParameter.ph;
-    }
   }
 }

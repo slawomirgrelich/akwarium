@@ -684,10 +684,10 @@ class _FirestoreWaterParametersFormScreenState
                               if (value == null || value.trim().isEmpty) {
                                 return null;
                               }
-                              return double.tryParse(
-                                        value.trim().replaceAll(',', '.'),
-                                      ) ==
-                                      null
+                              final parsed = double.tryParse(
+                                value.trim().replaceAll(',', '.'),
+                              );
+                              return parsed == null || !parsed.isFinite
                                   ? l10n.chartInvalidNumber
                                   : null;
                             },

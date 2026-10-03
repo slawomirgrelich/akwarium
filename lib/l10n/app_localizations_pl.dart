@@ -777,6 +777,20 @@ class AppLocalizationsPl extends AppLocalizations {
       'Wpisz co najmniej jeden parametr wody.';
 
   @override
+  String get waterTestDeleteTitle => 'Usunąć test wody?';
+
+  @override
+  String get waterTestDeletePrompt =>
+      'Ten test wody i jego wpis w historii zostaną trwale usunięte.';
+
+  @override
+  String get waterTestDeletedMessage => 'Test wody został usunięty.';
+
+  @override
+  String get waterTestDeleteFailed =>
+      'Nie udało się usunąć testu wody. Spróbuj ponownie.';
+
+  @override
   String get dailyDose => 'Dawka dzienna';
 
   @override
