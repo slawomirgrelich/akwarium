@@ -386,7 +386,9 @@ class _JournalTimelineCard extends StatelessWidget {
           child: Icon(_iconFor(entry.entryType), color: Colors.teal),
         ),
         title: Text(
-          entry.title,
+          entry.entryType == JournalEntryType.waterTest
+              ? l10n.waterTestTitle
+              : entry.title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(

@@ -593,7 +593,7 @@ class JournalPage extends StatelessWidget {
     final entries = context
         .watch<models.AquariumProvider>()
         .journalEntries
-        .map(_toJournalItem)
+        .map((entry) => _toJournalItem(entry, l10n))
         .toList();
 
     return _PageContainer(
@@ -636,12 +636,15 @@ class JournalPage extends StatelessWidget {
     );
   }
 
-  _JournalItem _toJournalItem(models.JournalEntry entry) {
+  _JournalItem _toJournalItem(
+    models.JournalEntry entry,
+    AppLocalizations l10n,
+  ) {
     final isWaterChange = entry.type == 'waterChange';
     return _JournalItem(
       icon: isWaterChange ? Icons.water_drop_outlined : Icons.science_outlined,
       color: isWaterChange ? Colors.blue : Colors.teal,
-      title: entry.title,
+      title: entry.type == 'waterTest' ? l10n.waterTestTitle : entry.title,
       description: entry.description,
       timestamp: entry.date,
     );

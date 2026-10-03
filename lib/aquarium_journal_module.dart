@@ -240,7 +240,9 @@ class _TimelineEntry extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            entry.title,
+                            entry.type == 'waterTest'
+                                ? AppLocalizations.of(context)!.waterTestTitle
+                                : entry.title,
                             style: const TextStyle(
                               color: _textPrimary,
                               fontWeight: FontWeight.bold,
