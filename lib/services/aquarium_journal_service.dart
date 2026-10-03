@@ -4,7 +4,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/recurrence_date.dart';
 import 'firestore_sync_status.dart';
 
-enum JournalEntryType { waterChange, filter, trimming, medication, cleaning }
+enum JournalEntryType {
+  waterChange,
+  filter,
+  trimming,
+  medication,
+  cleaning,
+  waterTest,
+}
 
 extension JournalEntryTypeLabel on JournalEntryType {
   String get label {
@@ -19,6 +26,8 @@ extension JournalEntryTypeLabel on JournalEntryType {
         return 'Leki';
       case JournalEntryType.cleaning:
         return 'Czyszczenie';
+      case JournalEntryType.waterTest:
+        return 'Test wody';
     }
   }
 }

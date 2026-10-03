@@ -16,6 +16,7 @@ String _journalTypeLabel(AppLocalizations l10n, JournalEntryType type) =>
       JournalEntryType.trimming => l10n.filterTrimming,
       JournalEntryType.medication => l10n.filterMeds,
       JournalEntryType.cleaning => l10n.filterCleaning,
+      JournalEntryType.waterTest => l10n.waterTestTitle,
     };
 
 class JournalAndRemindersScreen extends StatefulWidget {
@@ -139,6 +140,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
           'filter' => JournalEntryType.filter,
           'trimming' => JournalEntryType.trimming,
           'medication' => JournalEntryType.medication,
+          'waterTest' => JournalEntryType.waterTest,
           _ => JournalEntryType.cleaning,
         },
         title: entry.title,
@@ -935,6 +937,8 @@ IconData _iconFor(JournalEntryType type) {
       return Icons.medication_outlined;
     case JournalEntryType.cleaning:
       return Icons.cleaning_services_outlined;
+    case JournalEntryType.waterTest:
+      return Icons.science_outlined;
   }
 }
 
