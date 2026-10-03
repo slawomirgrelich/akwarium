@@ -1,5 +1,7 @@
 import 'package:akwarium/data/species_catalog.dart';
 import 'package:akwarium/data/species_catalog_en.dart';
+import 'package:akwarium/data/plant_care_profiles.dart';
+import 'package:akwarium/models/aquarium_model.dart' show PlantPosition;
 import 'package:akwarium/models/species_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -67,6 +69,60 @@ void main() {
 
     expect(species.description, isNotEmpty);
     expect(species.careNotes, isNull);
+  });
+
+  test('every plant has aquatic placement and technical care data', () {
+    final plants = speciesCatalog.where(
+      (species) => species.category == SpeciesCategory.plant,
+    );
+    for (final plant in plants) {
+      final profile = plantCareProfileFor(plant);
+      expect(profile, isNotNull, reason: plant.id);
+      expect(
+        profile!.targetHeightCm.min,
+        lessThanOrEqualTo(profile.targetHeightCm.max),
+        reason: plant.id,
+      );
+      expect(
+        profile.khRange.min,
+        lessThanOrEqualTo(profile.khRange.max),
+        reason: plant.id,
+      );
+      expect(profile.minimumWattsPerLiter, greaterThan(0), reason: plant.id);
+    }
+
+    final rotala = speciesCatalog.firstWhere(
+      (species) => species.id == 'rotala-rotundifolia',
+    );
+    expect(rotala.varieties, containsAll(['Green', 'Blood Red']));
+    expect(plantCareProfileFor(rotala)!.position, PlantPosition.background);
+  });
+
+  test('every catalog plant has plant-specific care data', () {
+    final plants = speciesCatalog.where(
+      (species) => species.category == SpeciesCategory.plant,
+    );
+
+    for (final plant in plants) {
+      final profile = plantCareProfileFor(plant);
+      expect(profile, isNotNull, reason: plant.id);
+      expect(
+        profile!.targetHeightCm.min,
+        lessThanOrEqualTo(profile.targetHeightCm.max),
+        reason: plant.id,
+      );
+      expect(
+        profile.khRange.min,
+        lessThanOrEqualTo(profile.khRange.max),
+        reason: plant.id,
+      );
+      expect(profile.minimumWattsPerLiter, greaterThan(0), reason: plant.id);
+    }
+
+    final rotala = speciesCatalog.firstWhere(
+      (species) => species.id == 'rotala-rotundifolia',
+    );
+    expect(rotala.varieties, containsAll(['Green', 'Blood Red']));
   });
 
   test('new entries use reusable photos with attribution where required', () {

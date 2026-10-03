@@ -1004,6 +1004,53 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get plantsTabTitle => 'Plants';
+
+  @override
+  String get animalsTabTitle => 'Fish and invertebrates';
+
+  @override
+  String plantTargetHeightLabel(num min, num max) {
+    return 'Target height: $min–$max cm';
+  }
+
+  @override
+  String plantPositionDetailsLabel(String value) {
+    return 'Aquarium position: $value';
+  }
+
+  @override
+  String plantKhRangeLabel(num min, num max) {
+    return 'KH range: $min–$max dKH';
+  }
+
+  @override
+  String plantCo2Label(String value) {
+    return 'CO2 requirement: $value';
+  }
+
+  @override
+  String plantLightingPowerLabel(String value) {
+    return 'Minimum lighting power: $value W/L';
+  }
+
+  @override
+  String plantVarietiesLabel(String value) {
+    return 'Varieties: $value';
+  }
+
+  @override
+  String get plantLightingPowerNote =>
+      'Approximate LED-equivalent power; actual light intensity depends on the fixture and tank depth.';
+
+  @override
+  String get co2Required => 'Required';
+
+  @override
+  String get plantCareDataUnavailable =>
+      'Plant care data is not available yet.';
+
+  @override
   String compatibleWithAquarium(String name) {
     return 'Compatible with aquarium \"$name\"';
   }
@@ -2703,6 +2750,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plantPositionFront => 'Foreground';
+
+  @override
+  String get plantPositionCarpet => 'Carpet';
 
   @override
   String get algaeNameBlackBeard => 'Black beard algae';

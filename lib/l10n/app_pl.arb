@@ -322,6 +322,23 @@
   ,"difficultyLabel": "Trudność: {value}"
   ,"@difficultyLabel": {"placeholders": {"value": {"type": "String"}}}
   ,"swimmingZoneLabel": "Strefa pływania: {value}"
+  ,"plantsTabTitle": "Rośliny"
+  ,"animalsTabTitle": "Ryby i bezkręgowce"
+  ,"plantTargetHeightLabel": "Docelowa wysokość: {min}–{max} cm"
+  ,"@plantTargetHeightLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"plantPositionDetailsLabel": "Pozycja w akwarium: {value}"
+  ,"@plantPositionDetailsLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"plantKhRangeLabel": "Zakres KH: {min}–{max} dKH"
+  ,"@plantKhRangeLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"plantCo2Label": "Wymagania CO2: {value}"
+  ,"@plantCo2Label": {"placeholders": {"value": {"type": "String"}}}
+  ,"plantLightingPowerLabel": "Minimalna moc oświetlenia: {value} W/L"
+  ,"@plantLightingPowerLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"plantVarietiesLabel": "Odmiany: {value}"
+  ,"@plantVarietiesLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"plantLightingPowerNote": "Orientacyjna moc dla oświetlenia LED; rzeczywista intensywność zależy od lampy i głębokości zbiornika."
+  ,"co2Required": "Wymagane"
+  ,"plantCareDataUnavailable": "Brak danych pielęgnacyjnych dla tej rośliny."
   ,"@swimmingZoneLabel": {"placeholders": {"value": {"type": "String"}}}
   ,"compatibleWithAquarium": "Dopasowany do akwarium \"{name}\""
   ,"@compatibleWithAquarium": {"placeholders": {"name": {"type": "String"}}}
@@ -884,6 +901,7 @@
   ,"plantPositionMiddle": "Środek"
   ,"plantPositionBack": "Tył"
   ,"plantPositionFront": "Przód"
+  ,"plantPositionCarpet": "Trawnik"
   ,"algaeNameBlackBeard": "Krasnorosty"
   ,"algaeNameGreen": "Zielenice"
   ,"algaeNameCyanobacteria": "Sinice"

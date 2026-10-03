@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/plant_care_profiles.dart';
 import '../data/species_catalog.dart';
 import '../data/species_catalog_en.dart';
 import '../l10n/app_localizations.dart';
@@ -29,12 +30,17 @@ class SpeciesAutocompleteField extends StatelessWidget {
       optionsBuilder: (value) {
         final query = value.text.trim().toLowerCase();
         if (query.isEmpty) return const Iterable<Species>.empty();
-        return speciesCatalog.where((species) {
-          final englishName = speciesNamesEn[species.id] ?? '';
-          return species.namePl.toLowerCase().contains(query) ||
-              species.nameLatin.toLowerCase().contains(query) ||
-              englishName.toLowerCase().contains(query);
-        }).take(8);
+        return speciesCatalog
+            .where((species) {
+              final englishName = speciesNamesEn[species.id] ?? '';
+              return species.namePl.toLowerCase().contains(query) ||
+                  species.nameLatin.toLowerCase().contains(query) ||
+                  englishName.toLowerCase().contains(query) ||
+                  species.varieties.any(
+                    (variety) => variety.toLowerCase().contains(query),
+                  );
+            })
+            .take(8);
       },
       onSelected: onSelected,
       optionsViewBuilder: (context, onOptionSelected, options) => Align(
@@ -51,12 +57,14 @@ class SpeciesAutocompleteField extends StatelessWidget {
               itemCount: options.length,
               itemBuilder: (context, index) {
                 final species = options.elementAt(index);
+                final plantCare = plantCareProfileFor(species);
                 return ListTile(
                   dense: true,
                   title: Text(localizedSpeciesDisplayName(context, species)),
                   subtitle: Text(
                     '${species.nameLatin} · '
-                    '${l10n.speciesMinimumVolumeFrom(species.minTankVolumeLiters)}',
+                    '${plantCare == null ? l10n.speciesMinimumVolumeFrom(species.aquariumMinimumLiters ?? 0) : l10n.plantTargetHeightLabel(plantCare.targetHeightCm.min, plantCare.targetHeightCm.max)}'
+                    '${species.varieties.isEmpty ? '' : ' · ${species.varieties.join(', ')}'}',
                   ),
                   onTap: () => onOptionSelected(species),
                 );
@@ -85,8 +93,7 @@ String localizedSpeciesDisplayName(BuildContext context, Species species) {
   return species.namePl;
 }
 
-String speciesRangeLabel(SpeciesRange range) =>
-    '${range.min} - ${range.max}';
+String speciesRangeLabel(SpeciesRange range) => '${range.min} - ${range.max}';
 
 CreatureCategory creatureCategoryForSpecies(Species species) {
   switch (species.category) {

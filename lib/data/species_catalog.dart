@@ -814,6 +814,7 @@ const speciesCatalog = <Species>[
     difficulty: SpeciesDifficulty.medium,
     swimmingZone: SwimmingZone.all,
     description: 'Roślina łodygowa, która przy dobrym świetle i nawożeniu może wybarwiać się na różowo lub czerwono.',
+    varieties: ['Green', 'Blood Red', 'H’ra', 'Orange Juice'],
     imageUrl: '',
   ),
   Species(

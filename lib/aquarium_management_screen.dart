@@ -296,8 +296,16 @@ class _ManagementContentState extends State<_ManagementContent>
                     .bodyMedium
                     ?.color,
                 tabs: [
-                  Tab(text: 'Fauna (${fauna.length})'),
-                  Tab(text: 'Flora (${flora.length})'),
+                  Tab(
+                    icon: const Icon(Icons.phishing_outlined),
+                    text:
+                        '${AppLocalizations.of(context)!.animalsTabTitle} (${fauna.length})',
+                  ),
+                  Tab(
+                    icon: const Icon(Icons.eco_outlined),
+                    text:
+                        '${AppLocalizations.of(context)!.plantsTabTitle} (${flora.length})',
+                  ),
                 ],
               ),
               SizedBox(
@@ -653,14 +661,18 @@ class _InhabitantList extends StatelessWidget {
     }
     return ListView.builder(
       itemCount: items.length,
-      itemBuilder: (context, index) => _InhabitantCard(item: items[index]),
+      itemBuilder: (context, index) => _InhabitantCard(
+        item: items[index],
+        onTap: () => _showInhabitantDetails(context, items[index]),
+      ),
     );
   }
 }
 
 class _InhabitantCard extends StatelessWidget {
-  const _InhabitantCard({required this.item});
+  const _InhabitantCard({required this.item, required this.onTap});
   final Inhabitant item;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -669,6 +681,7 @@ class _InhabitantCard extends StatelessWidget {
     return Card(
       color: Theme.of(context).cardColor,
       child: ListTile(
+        onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).primaryColor.withAlpha(25),
           child: Icon(
@@ -718,6 +731,47 @@ class _InhabitantCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _showInhabitantDetails(
+  BuildContext context,
+  Inhabitant item,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final status = item.status == 'Zdrowe' ? l10n.healthy : item.status;
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(item.name),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (item.latinName.isNotEmpty)
+            Text(
+              item.latinName,
+              style: const TextStyle(fontStyle: FontStyle.italic),
+            ),
+          const SizedBox(height: 8),
+          Text(creatureCategoryLabel(l10n, item.category)),
+          Text(l10n.livestockCount(item.count)),
+          Text(status),
+          if (item.plantPosition != null)
+            Text(plantPositionLabel(l10n, item.plantPosition!)),
+          if (item.notes?.trim().isNotEmpty == true) ...[
+            const SizedBox(height: 8),
+            Text(item.notes!.trim()),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: Text(l10n.closeAction),
+        ),
+      ],
+    ),
+  );
 }
 
 class AddAquariumModal extends StatefulWidget {
@@ -930,17 +984,20 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
               }),
               decoration: InputDecoration(labelText: l10n.speciesNameLabel),
             ),
+            const SizedBox(height: 12),
             TextField(
               controller: _latin,
               decoration: InputDecoration(
                 labelText: l10n.latinNameOptionalLabel,
               ),
             ),
+            const SizedBox(height: 12),
             TextField(
               controller: _count,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(labelText: l10n.speciesCountLabel),
             ),
+            const SizedBox(height: 12),
             DropdownButtonFormField<CreatureCategory>(
               key: ValueKey(_category),
               initialValue: _category,
@@ -959,26 +1016,31 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
               }),
             ),
             if (_category == CreatureCategory.plant)
-              DropdownButtonFormField<PlantPosition>(
-                initialValue: _position,
-                decoration: InputDecoration(
-                  labelText: l10n.plantPositionFieldLabel,
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: DropdownButtonFormField<PlantPosition>(
+                  initialValue: _position,
+                  decoration: InputDecoration(
+                    labelText: l10n.plantPositionFieldLabel,
+                  ),
+                  items: PlantPosition.values
+                      .map(
+                        (position) => DropdownMenuItem(
+                          value: position,
+                          child: Text(plantPositionLabel(l10n, position)),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) => setState(() => _position = value),
                 ),
-                items: PlantPosition.values
-                    .map(
-                      (position) => DropdownMenuItem(
-                        value: position,
-                        child: Text(plantPositionLabel(l10n, position)),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() => _position = value),
               ),
+            const SizedBox(height: 12),
             TextField(
               controller: _notes,
               maxLines: 3,
               decoration: InputDecoration(labelText: l10n.notesOptionalLabel),
             ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 OutlinedButton.icon(
@@ -1050,7 +1112,7 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
         tempRange: _selectedSpecies == null
             ? ''
             : speciesRangeLabel(_selectedSpecies!.tempRange),
-        minTankVolume: _selectedSpecies?.minTankVolumeLiters ?? 0,
+        minTankVolume: _selectedSpecies?.aquariumMinimumLiters ?? 0,
         addedAt: DateTime.now(),
         notes: _notes.text.trim(),
         photoUrl: _image,

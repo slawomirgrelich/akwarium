@@ -1946,6 +1946,72 @@ abstract class AppLocalizations {
   /// **'Strefa pływania: {value}'**
   String swimmingZoneLabel(String value);
 
+  /// No description provided for @plantsTabTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rośliny'**
+  String get plantsTabTitle;
+
+  /// No description provided for @animalsTabTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ryby i bezkręgowce'**
+  String get animalsTabTitle;
+
+  /// No description provided for @plantTargetHeightLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Docelowa wysokość: {min}–{max} cm'**
+  String plantTargetHeightLabel(num min, num max);
+
+  /// No description provided for @plantPositionDetailsLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pozycja w akwarium: {value}'**
+  String plantPositionDetailsLabel(String value);
+
+  /// No description provided for @plantKhRangeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakres KH: {min}–{max} dKH'**
+  String plantKhRangeLabel(num min, num max);
+
+  /// No description provided for @plantCo2Label.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymagania CO2: {value}'**
+  String plantCo2Label(String value);
+
+  /// No description provided for @plantLightingPowerLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Minimalna moc oświetlenia: {value} W/L'**
+  String plantLightingPowerLabel(String value);
+
+  /// No description provided for @plantVarietiesLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odmiany: {value}'**
+  String plantVarietiesLabel(String value);
+
+  /// No description provided for @plantLightingPowerNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Orientacyjna moc dla oświetlenia LED; rzeczywista intensywność zależy od lampy i głębokości zbiornika.'**
+  String get plantLightingPowerNote;
+
+  /// No description provided for @co2Required.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymagane'**
+  String get co2Required;
+
+  /// No description provided for @plantCareDataUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak danych pielęgnacyjnych dla tej rośliny.'**
+  String get plantCareDataUnavailable;
+
   /// No description provided for @compatibleWithAquarium.
   ///
   /// In pl, this message translates to:
@@ -5010,6 +5076,12 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Przód'**
   String get plantPositionFront;
+
+  /// No description provided for @plantPositionCarpet.
+  ///
+  /// In pl, this message translates to:
+  /// **'Trawnik'**
+  String get plantPositionCarpet;
 
   /// No description provided for @algaeNameBlackBeard.
   ///

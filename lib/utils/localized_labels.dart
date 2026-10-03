@@ -66,6 +66,7 @@ String plantPositionLabel(AppLocalizations l10n, PlantPosition position) =>
       PlantPosition.background => l10n.plantPositionBackground,
       PlantPosition.epiphyte => l10n.plantPositionEpiphyte,
       PlantPosition.floating => l10n.plantPositionFloating,
+      PlantPosition.carpet => l10n.plantPositionCarpet,
     };
 
 String journalCategoryLabel(AppLocalizations l10n, JournalCategory category) =>

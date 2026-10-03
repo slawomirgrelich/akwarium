@@ -22,7 +22,14 @@ enum TankType { freshwater, marine, planted, biotope, shrimp }
 
 enum CreatureCategory { fish, shrimp, snail, crab, plant, other }
 
-enum PlantPosition { foreground, midground, background, epiphyte, floating }
+enum PlantPosition {
+  foreground,
+  midground,
+  background,
+  epiphyte,
+  floating,
+  carpet,
+}
 
 extension TankTypeLabel on TankType {
   String get label {
@@ -94,6 +101,8 @@ extension PlantPositionLabel on PlantPosition {
         return 'Epifit';
       case PlantPosition.floating:
         return 'Pływająca';
+      case PlantPosition.carpet:
+        return 'Trawnik';
     }
   }
 }

@@ -43,13 +43,14 @@ class StockingCompatibilityService {
   }) {
     final warnings = <CompatibilityWarning>[];
     for (final item in species) {
-      if (volumeLiters < item.minTankVolumeLiters) {
+      final minimumLiters = item.aquariumMinimumLiters;
+      if (minimumLiters != null && volumeLiters < minimumLiters) {
         warnings.add(
           CompatibilityWarning(
             type: CompatibilityWarningType.insufficientVolume,
             speciesLatinName: item.nameLatin,
             actualValue: volumeLiters,
-            minimumValue: item.minTankVolumeLiters.toDouble(),
+            minimumValue: minimumLiters.toDouble(),
             isCritical: true,
           ),
         );

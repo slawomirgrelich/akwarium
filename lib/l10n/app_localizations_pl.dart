@@ -1011,6 +1011,53 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String get plantsTabTitle => 'Rośliny';
+
+  @override
+  String get animalsTabTitle => 'Ryby i bezkręgowce';
+
+  @override
+  String plantTargetHeightLabel(num min, num max) {
+    return 'Docelowa wysokość: $min–$max cm';
+  }
+
+  @override
+  String plantPositionDetailsLabel(String value) {
+    return 'Pozycja w akwarium: $value';
+  }
+
+  @override
+  String plantKhRangeLabel(num min, num max) {
+    return 'Zakres KH: $min–$max dKH';
+  }
+
+  @override
+  String plantCo2Label(String value) {
+    return 'Wymagania CO2: $value';
+  }
+
+  @override
+  String plantLightingPowerLabel(String value) {
+    return 'Minimalna moc oświetlenia: $value W/L';
+  }
+
+  @override
+  String plantVarietiesLabel(String value) {
+    return 'Odmiany: $value';
+  }
+
+  @override
+  String get plantLightingPowerNote =>
+      'Orientacyjna moc dla oświetlenia LED; rzeczywista intensywność zależy od lampy i głębokości zbiornika.';
+
+  @override
+  String get co2Required => 'Wymagane';
+
+  @override
+  String get plantCareDataUnavailable =>
+      'Brak danych pielęgnacyjnych dla tej rośliny.';
+
+  @override
   String compatibleWithAquarium(String name) {
     return 'Dopasowany do akwarium \"$name\"';
   }
@@ -2720,6 +2767,9 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get plantPositionFront => 'Przód';
+
+  @override
+  String get plantPositionCarpet => 'Trawnik';
 
   @override
   String get algaeNameBlackBeard => 'Krasnorosty';

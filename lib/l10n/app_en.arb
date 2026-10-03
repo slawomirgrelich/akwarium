@@ -322,6 +322,23 @@
   ,"difficultyLabel": "Difficulty: {value}"
   ,"@difficultyLabel": {"placeholders": {"value": {"type": "String"}}}
   ,"swimmingZoneLabel": "Swimming zone: {value}"
+  ,"plantsTabTitle": "Plants"
+  ,"animalsTabTitle": "Fish and invertebrates"
+  ,"plantTargetHeightLabel": "Target height: {min}–{max} cm"
+  ,"@plantTargetHeightLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"plantPositionDetailsLabel": "Aquarium position: {value}"
+  ,"@plantPositionDetailsLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"plantKhRangeLabel": "KH range: {min}–{max} dKH"
+  ,"@plantKhRangeLabel": {"placeholders": {"min": {"type": "num"}, "max": {"type": "num"}}}
+  ,"plantCo2Label": "CO2 requirement: {value}"
+  ,"@plantCo2Label": {"placeholders": {"value": {"type": "String"}}}
+  ,"plantLightingPowerLabel": "Minimum lighting power: {value} W/L"
+  ,"@plantLightingPowerLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"plantVarietiesLabel": "Varieties: {value}"
+  ,"@plantVarietiesLabel": {"placeholders": {"value": {"type": "String"}}}
+  ,"plantLightingPowerNote": "Approximate LED-equivalent power; actual light intensity depends on the fixture and tank depth."
+  ,"co2Required": "Required"
+  ,"plantCareDataUnavailable": "Plant care data is not available yet."
   ,"@swimmingZoneLabel": {"placeholders": {"value": {"type": "String"}}}
   ,"compatibleWithAquarium": "Compatible with aquarium \"{name}\""
   ,"@compatibleWithAquarium": {"placeholders": {"name": {"type": "String"}}}
@@ -884,6 +901,7 @@
   ,"plantPositionMiddle": "Midground"
   ,"plantPositionBack": "Background"
   ,"plantPositionFront": "Foreground"
+  ,"plantPositionCarpet": "Carpet"
   ,"algaeNameBlackBeard": "Black beard algae"
   ,"algaeNameGreen": "Green algae"
   ,"algaeNameCyanobacteria": "Cyanobacteria"

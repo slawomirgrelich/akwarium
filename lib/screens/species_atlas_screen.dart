@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/species_catalog.dart';
 import '../data/species_catalog_en.dart';
+import '../data/plant_care_profiles.dart';
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../models/aquarium_model.dart' as local_models;
@@ -11,6 +12,7 @@ import '../models/species_models.dart';
 import '../services/compatibility_checker.dart';
 import '../services/firestore_service.dart';
 import '../services/species_image_service.dart';
+import '../utils/localized_labels.dart';
 import 'aquarium_livestock_screen.dart';
 
 class SpeciesAtlasScreen extends StatefulWidget {
@@ -44,7 +46,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
     final filtered = speciesCatalog.where((species) {
       final matchesQuery =
           query.isEmpty ||
-          '${_localizedSpeciesName(context, species)} ${species.namePl} ${species.nameLatin}'
+          '${_localizedSpeciesName(context, species)} ${species.namePl} ${species.nameLatin} ${species.varieties.join(' ')}'
               .toLowerCase()
               .contains(query);
       return matchesQuery &&
@@ -78,20 +80,29 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          ...filtered.map(
-            (species) => Card(
+          ...filtered.map((species) {
+            final plantCare = plantCareProfileFor(species);
+            final details = plantCare == null
+                ? l10n.speciesMinimumVolumeFrom(
+                    species.aquariumMinimumLiters ?? 0,
+                  )
+                : l10n.plantTargetHeightLabel(
+                    plantCare.targetHeightCm.min,
+                    plantCare.targetHeightCm.max,
+                  );
+            return Card(
               child: ListTile(
                 leading: _SpeciesThumbnail(species: species, size: 48),
                 title: Text(_localizedSpeciesName(context, species)),
                 subtitle: Text(
-                  '${species.nameLatin} · ${l10n.speciesMinimumVolumeFrom(species.minTankVolumeLiters)}',
+                  '${species.nameLatin} · $details',
                   style: const TextStyle(fontStyle: FontStyle.italic),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showDetails(species),
               ),
-            ),
-          ),
+            );
+          }),
           if (filtered.isEmpty)
             Padding(
               padding: const EdgeInsets.all(24),
@@ -110,6 +121,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
 
   Future<void> _showDetails(Species species) async {
     final l10n = AppLocalizations.of(context)!;
+    final plantCare = plantCareProfileFor(species);
+    final minimumLiters = species.aquariumMinimumLiters;
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
       _showAtlasMessage(context, l10n.loginToAddSpecies, isError: true);
@@ -158,7 +171,8 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
                 ),
               ],
               const SizedBox(height: 16),
-              Text(l10n.minTankVolumeLabel(species.minTankVolumeLiters)),
+              if (plantCare == null && minimumLiters != null)
+                Text(l10n.minTankVolumeLabel(minimumLiters)),
               Text(
                 l10n.temperatureRangeLabel(
                   species.tempRange.min,
@@ -166,17 +180,53 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
                 ),
               ),
               Text(l10n.phRangeLabel(species.phRange.min, species.phRange.max)),
-              Text(l10n.ghRangeLabel(species.ghRange.min, species.ghRange.max)),
+              if (plantCare == null)
+                Text(
+                  l10n.ghRangeLabel(species.ghRange.min, species.ghRange.max),
+                ),
               Text(
                 l10n.difficultyLabel(
                   _difficultyLabel(context, species.difficulty),
                 ),
               ),
-              Text(
-                l10n.swimmingZoneLabel(
-                  _zoneLabel(context, species.swimmingZone),
+              if (plantCare == null)
+                Text(
+                  l10n.swimmingZoneLabel(
+                    _zoneLabel(context, species.swimmingZone),
+                  ),
+                )
+              else ...[
+                Text(
+                  l10n.plantTargetHeightLabel(
+                    plantCare.targetHeightCm.min,
+                    plantCare.targetHeightCm.max,
+                  ),
                 ),
-              ),
+                Text(
+                  l10n.plantPositionDetailsLabel(
+                    plantPositionLabel(l10n, plantCare.position),
+                  ),
+                ),
+                Text(
+                  l10n.plantKhRangeLabel(
+                    plantCare.khRange.min,
+                    plantCare.khRange.max,
+                  ),
+                ),
+                Text(
+                  l10n.plantCo2Label(
+                    _co2RequirementLabel(l10n, plantCare.co2Requirement),
+                  ),
+                ),
+                Text(
+                  l10n.plantLightingPowerLabel(
+                    _formatLightingPower(plantCare.minimumWattsPerLiter),
+                  ),
+                ),
+                Text(l10n.plantLightingPowerNote),
+                if (species.varieties.isNotEmpty)
+                  Text(l10n.plantVarietiesLabel(species.varieties.join(', '))),
+              ],
               const SizedBox(height: 16),
               _CompatibilitySection(species: species),
             ],
@@ -257,7 +307,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         count: addition.count,
         phRange: '${species.phRange.min} - ${species.phRange.max}',
         tempRange: '${species.tempRange.min} - ${species.tempRange.max} °C',
-        minTankVolume: species.minTankVolumeLiters,
+        minTankVolume: species.aquariumMinimumLiters ?? 0,
         addedAt: addition.addedAt,
         notes: addition.notes,
         quantityUnit: addition.quantityUnit,
@@ -535,7 +585,7 @@ String _compatibilityWarningText(
 ) => switch (warning) {
   CompatibilityWarningType.volume => l10n.compatibilityVolumeWarning(
     volumeLiters.round(),
-    species.minTankVolumeLiters,
+    species.aquariumMinimumLiters!,
   ),
   CompatibilityWarningType.ph => l10n.compatibilityPhWarning(
     ph!,
@@ -548,6 +598,20 @@ String _compatibilityWarningText(
     species.tempRange.max,
   ),
 };
+
+String _co2RequirementLabel(
+  AppLocalizations l10n,
+  Co2Requirement requirement,
+) => switch (requirement) {
+  Co2Requirement.notRequired => l10n.co2NotRequired,
+  Co2Requirement.optional => l10n.co2Optional,
+  Co2Requirement.recommended => l10n.co2Recommended,
+  Co2Requirement.required => l10n.co2Required,
+};
+
+String _formatLightingPower(double value) => value == value.roundToDouble()
+    ? value.toStringAsFixed(0)
+    : value.toStringAsFixed(2);
 
 class _AquariumPickerResult {
   const _AquariumPickerResult.select(this.aquarium) : create = false;

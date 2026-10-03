@@ -29,11 +29,12 @@ CompatibilityResult checkCompatibility({
   final warnings = <String>[];
   final warningTypes = <CompatibilityWarningType>[];
 
-  if (volumeLiters < species.minTankVolumeLiters) {
+  final minimumLiters = species.aquariumMinimumLiters;
+  if (minimumLiters != null && volumeLiters < minimumLiters) {
     warningTypes.add(CompatibilityWarningType.volume);
     warnings.add(
       'Za mała pojemność akwarium: ${volumeLiters.round()} l, wymagane minimum '
-      '${species.minTankVolumeLiters} l.',
+      '$minimumLiters l.',
     );
   }
 

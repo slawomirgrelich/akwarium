@@ -67,6 +67,7 @@ class AquariumLivestockScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Card(
                     child: ListTile(
+                      onTap: () => _showLivestockDetails(context, entry),
                       leading: const Icon(Icons.pets_outlined),
                       title: Text(
                         entry['namePl']?.toString() ?? l10n.unknownSpecies,
@@ -159,6 +160,60 @@ class AquariumLivestockScreen extends StatelessWidget {
   }
 }
 
+Future<void> _showLivestockDetails(
+  BuildContext context,
+  Map<String, dynamic> entry,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final latinName = entry['nameLatin']?.toString() ?? '';
+  final notes = entry['notes']?.toString().trim() ?? '';
+  final addedAt = entry['addedAt'];
+  final addedDate = addedAt is Timestamp
+      ? addedAt.toDate()
+      : addedAt is DateTime
+      ? addedAt
+      : null;
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(entry['namePl']?.toString() ?? l10n.unknownSpecies),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (latinName.isNotEmpty)
+            Text(
+              latinName,
+              style: const TextStyle(fontStyle: FontStyle.italic),
+            ),
+          const SizedBox(height: 8),
+          Text(
+            speciesCategoryLabel(
+              l10n,
+              entry['categoryLabel']?.toString() ??
+                  entry['category']?.toString(),
+            ),
+          ),
+          Text(l10n.livestockCount((entry['count'] as num?)?.toInt() ?? 1)),
+          if (addedDate != null)
+            Text(
+              l10n.addedOnDate(
+                '${addedDate.day.toString().padLeft(2, '0')}.${addedDate.month.toString().padLeft(2, '0')}.${addedDate.year}',
+              ),
+            ),
+          if (notes.isNotEmpty) ...[const SizedBox(height: 8), Text(notes)],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: Text(l10n.closeAction),
+        ),
+      ],
+    ),
+  );
+}
+
 class _CustomSpeciesEntry {
   const _CustomSpeciesEntry({
     required this.name,
@@ -238,12 +293,14 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
                     ? l10n.speciesNameRequired
                     : null,
               ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _latin,
                 decoration: InputDecoration(
                   labelText: l10n.latinNameOptionalLabel,
                 ),
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _count,
                 keyboardType: TextInputType.number,
@@ -255,6 +312,7 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
                       : null;
                 },
               ),
+              const SizedBox(height: 12),
               DropdownButtonFormField<CreatureCategory>(
                 key: ValueKey(_category),
                 initialValue: _category,
@@ -269,6 +327,7 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
                     .toList(),
                 onChanged: (value) => setState(() => _category = value!),
               ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _notes,
                 maxLines: 3,
@@ -300,7 +359,7 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
                 tempRange: _selectedSpecies == null
                     ? ''
                     : speciesRangeLabel(_selectedSpecies!.tempRange),
-                minTankVolume: _selectedSpecies?.minTankVolumeLiters ?? 0,
+                minTankVolume: _selectedSpecies?.aquariumMinimumLiters ?? 0,
               ),
             );
           },
@@ -320,10 +379,12 @@ class _StockHealthCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final requiredVolume = entries.fold<int>(
-      0,
-      (total, entry) => total + _integer(entry['minTankVolume']),
-    );
+    final requiredVolume = entries
+        .where((entry) => !_isPlantEntry(entry))
+        .fold<int>(
+          0,
+          (total, entry) => total + _integer(entry['minTankVolume']),
+        );
     final capacity = aquarium.capacityLiters;
     final exceedsCapacity = capacity > 0 && requiredVolume > capacity;
     final volumeRatio = capacity <= 0
@@ -513,6 +574,15 @@ _RangeSummary _summarizeRange(
 
 int _integer(Object? value) =>
     value is num ? value.toInt() : int.tryParse(value?.toString() ?? '') ?? 0;
+
+bool _isPlantEntry(Map<String, dynamic> entry) {
+  final category = '${entry['categoryLabel'] ?? entry['category'] ?? ''}'
+      .toLowerCase();
+  return category == 'flora' ||
+      category == 'plant' ||
+      category.contains('roślin') ||
+      category.contains('roslin');
+}
 
 String _formatRangeValue(double value) => value == value.roundToDouble()
     ? value.toStringAsFixed(0)

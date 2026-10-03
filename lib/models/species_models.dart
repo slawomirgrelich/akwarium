@@ -1,8 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'aquarium_model.dart' show PlantPosition;
+
 enum SpeciesCategory { fish, plant, invertebrate }
+
 enum SpeciesDifficulty { veryEasy, easy, medium, hard }
+
 enum SwimmingZone { bottom, middle, top, all }
+
+enum Co2Requirement { notRequired, optional, recommended, required }
 
 class SpeciesRange {
   const SpeciesRange(this.min, this.max);
@@ -28,6 +34,7 @@ class Species {
     required this.swimmingZone,
     required this.description,
     this.careNotes,
+    this.varieties = const [],
     required this.imageUrl,
     this.imageAttribution = '',
   });
@@ -44,8 +51,28 @@ class Species {
   final SwimmingZone swimmingZone;
   final String description;
   final String? careNotes;
+  final List<String> varieties;
   final String imageUrl;
   final String imageAttribution;
+
+  int? get aquariumMinimumLiters =>
+      category == SpeciesCategory.plant ? null : minTankVolumeLiters;
+}
+
+class PlantCareProfile {
+  const PlantCareProfile({
+    required this.targetHeightCm,
+    required this.position,
+    required this.khRange,
+    required this.co2Requirement,
+    required this.minimumWattsPerLiter,
+  });
+
+  final SpeciesRange targetHeightCm;
+  final PlantPosition position;
+  final SpeciesRange khRange;
+  final Co2Requirement co2Requirement;
+  final double minimumWattsPerLiter;
 }
 
 class TankStockItem {
@@ -63,24 +90,30 @@ class TankStockItem {
   final int count;
   final DateTime addedDate;
 
-  TankStockItem copyWith({String? id, String? tankId, String? speciesId, int? count}) =>
-      TankStockItem(
-        id: id ?? this.id,
-        tankId: tankId ?? this.tankId,
-        speciesId: speciesId ?? this.speciesId,
-        count: count ?? this.count,
-        addedDate: addedDate,
-      );
+  TankStockItem copyWith({
+    String? id,
+    String? tankId,
+    String? speciesId,
+    int? count,
+  }) => TankStockItem(
+    id: id ?? this.id,
+    tankId: tankId ?? this.tankId,
+    speciesId: speciesId ?? this.speciesId,
+    count: count ?? this.count,
+    addedDate: addedDate,
+  );
 
   Map<String, dynamic> toFirestore() => {
-        'id': id,
-        'tankId': tankId,
-        'speciesId': speciesId,
-        'count': count,
-        'addedDate': Timestamp.fromDate(addedDate),
-      };
+    'id': id,
+    'tankId': tankId,
+    'speciesId': speciesId,
+    'count': count,
+    'addedDate': Timestamp.fromDate(addedDate),
+  };
 
-  factory TankStockItem.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot) {
+  factory TankStockItem.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
     final data = snapshot.data() ?? const <String, dynamic>{};
     return TankStockItem(
       id: _string(data['id'], snapshot.id),
