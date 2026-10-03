@@ -9,10 +9,15 @@
       "client_info": {
         "mobilesdk_app_id": "1:760131458678:android:f8e04c550b9f6ddf113157",
         "android_client_info": {
-          "package_name": "com.slawek.grelich.akwarium"
+          "package_name": "com.example.akwarium"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC6RN0XYuIMi5eEOIGjkMCbAdFqxaxOqqE"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "760131458678-fdlqoal3kaf6st74kkttldiggllidukg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.akwarium"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +48,20 @@
           "package_name": "pl.slawomirgrelich.akwarystapro"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "760131458678-8pa2j0n9cdciks9jei8m7k3ahdl4cuv2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pl.slawomirgrelich.akwarystapro",
+            "certificate_hash": "335a5808081321120ef28fea4f13cf50c3f40ec5"
+          }
+        },
+        {
+          "client_id": "760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC6RN0XYuIMi5eEOIGjkMCbAdFqxaxOqqE"
@@ -39,7 +69,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "760131458678-fdlqoal3kaf6st74kkttldiggllidukg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.akwarium"
+              }
+            }
+          ]
         }
       }
     }
