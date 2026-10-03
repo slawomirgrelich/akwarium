@@ -67,20 +67,250 @@ class AiScanResult {
   }
 }
 
+enum AiDiagnosisCategory { fishDisease, plantIssue, algae, other }
+
+class AiDiagnosisResult {
+  const AiDiagnosisResult({
+    required this.problemName,
+    required this.category,
+    required this.confidence,
+    required this.summary,
+    required this.actions,
+  });
+
+  final String problemName;
+  final AiDiagnosisCategory category;
+  final int confidence;
+  final String summary;
+  final List<String> actions;
+
+  factory AiDiagnosisResult.fromJson(Map<String, dynamic> json) {
+    final name = json['problemName']?.toString().trim() ?? '';
+    final summary = json['summary']?.toString().trim() ?? '';
+    final rawActions = json['actions'];
+    final actions = rawActions is List
+        ? rawActions
+              .whereType<String>()
+              .map((action) => action.trim())
+              .where((action) => action.isNotEmpty)
+              .toList(growable: false)
+        : const <String>[];
+    final rawConfidence = json['confidence'];
+    final confidence = rawConfidence is num
+        ? rawConfidence.round()
+        : int.tryParse('$rawConfidence');
+    if (name.isEmpty ||
+        summary.isEmpty ||
+        actions.isEmpty ||
+        confidence == null ||
+        confidence < 0 ||
+        confidence > 100) {
+      throw const AiDiagnosisException(AiDiagnosisFailure.invalidResponse);
+    }
+
+    return AiDiagnosisResult(
+      problemName: name,
+      category: switch (json['category']?.toString().toLowerCase()) {
+        'fish_disease' || 'fish disease' => AiDiagnosisCategory.fishDisease,
+        'plant_issue' || 'plant problem' => AiDiagnosisCategory.plantIssue,
+        'algae' => AiDiagnosisCategory.algae,
+        _ => AiDiagnosisCategory.other,
+      },
+      confidence: confidence,
+      summary: summary,
+      actions: actions,
+    );
+  }
+}
+
+enum AiDiagnosisFailure {
+  missingApiKey,
+  invalidApiKey,
+  network,
+  timeout,
+  overloaded,
+  invalidResponse,
+  requestFailed,
+  invalidImage,
+  cameraPermissionDenied,
+  cameraUnavailable,
+  imagePicker,
+  unavailable,
+}
+
+class AiDiagnosisException implements Exception {
+  const AiDiagnosisException(this.failure);
+
+  final AiDiagnosisFailure failure;
+}
+
 class AiScannerService {
-  AiScannerService({http.Client? client, String? apiKey})
+  AiScannerService({http.Client? client, String? apiKey, bool? useMock})
     : _client = client ?? http.Client(),
-      apiKeyOverride = apiKey;
+      apiKeyOverride = apiKey,
+      useMock =
+          useMock ??
+          (kDebugMode &&
+              const bool.fromEnvironment(
+                'AI_SCANNER_MOCK',
+                defaultValue: false,
+              ));
 
   static const defaultApiKey = String.fromEnvironment('GEMINI_API_KEY');
   static const _models = ['gemini-3.8-flash', 'gemini-2.5-flash'];
   final http.Client _client;
   final String? apiKeyOverride;
+  final bool useMock;
+
+  void close() => _client.close();
+
+  Future<AiDiagnosisResult> diagnose({
+    required Uint8List imageBytes,
+    required String mimeType,
+    required String languageCode,
+  }) async {
+    if (useMock) return _mockDiagnosis(languageCode);
+
+    final apiKey = await _effectiveApiKey();
+    if (apiKey.isEmpty) {
+      throw const AiDiagnosisException(AiDiagnosisFailure.missingApiKey);
+    }
+
+    for (var index = 0; index < _models.length; index++) {
+      http.Response response;
+      try {
+        response = await _client
+            .post(
+              Uri.https(
+                'generativelanguage.googleapis.com',
+                '/v1beta/models/${_models[index]}:generateContent',
+                {'key': apiKey},
+              ),
+              headers: const {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'contents': [
+                  {
+                    'parts': [
+                      {'text': _diagnosisPrompt(languageCode)},
+                      {
+                        'inline_data': {
+                          'mime_type': mimeType,
+                          'data': base64Encode(imageBytes),
+                        },
+                      },
+                    ],
+                  },
+                ],
+                'generationConfig': {
+                  'response_mime_type': 'application/json',
+                  'temperature': 0.2,
+                },
+              }),
+            )
+            .timeout(const Duration(seconds: 45));
+      } on TimeoutException {
+        throw const AiDiagnosisException(AiDiagnosisFailure.timeout);
+      } on http.ClientException {
+        throw const AiDiagnosisException(AiDiagnosisFailure.network);
+      } on Object {
+        throw const AiDiagnosisException(AiDiagnosisFailure.unavailable);
+      }
+
+      if (response.statusCode == 404 && index < _models.length - 1) continue;
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const AiDiagnosisException(AiDiagnosisFailure.invalidApiKey);
+      }
+      if (response.statusCode == 429 || response.statusCode == 503) {
+        throw const AiDiagnosisException(AiDiagnosisFailure.overloaded);
+      }
+      if (response.statusCode != 200) {
+        throw const AiDiagnosisException(AiDiagnosisFailure.requestFailed);
+      }
+
+      try {
+        final payload = Map<String, dynamic>.from(
+          jsonDecode(response.body) as Map,
+        );
+        final candidates = payload['candidates'];
+        if (candidates is! List || candidates.isEmpty) {
+          throw const AiDiagnosisException(AiDiagnosisFailure.invalidResponse);
+        }
+        final candidate = Map<String, dynamic>.from(candidates.first as Map);
+        final content = Map<String, dynamic>.from(candidate['content'] as Map);
+        final parts = content['parts'];
+        if (parts is! List || parts.isEmpty) {
+          throw const AiDiagnosisException(AiDiagnosisFailure.invalidResponse);
+        }
+        final text = (parts.first as Map)['text']?.toString() ?? '';
+        final cleaned = text.replaceAll(RegExp(r'```(?:json)?|```'), '').trim();
+        if (cleaned.isEmpty) {
+          throw const AiDiagnosisException(AiDiagnosisFailure.invalidResponse);
+        }
+        return AiDiagnosisResult.fromJson(
+          Map<String, dynamic>.from(jsonDecode(cleaned) as Map),
+        );
+      } on AiDiagnosisException {
+        rethrow;
+      } on Object {
+        throw const AiDiagnosisException(AiDiagnosisFailure.invalidResponse);
+      }
+    }
+
+    throw const AiDiagnosisException(AiDiagnosisFailure.requestFailed);
+  }
+
+  Future<String> _effectiveApiKey() async {
+    final environmentApiKey = defaultApiKey.trim();
+    if (environmentApiKey.isNotEmpty) return environmentApiKey;
+    final overrideKey = apiKeyOverride?.trim() ?? '';
+    if (overrideKey.isNotEmpty) return overrideKey;
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      return preferences.getString('gemini_api_key')?.trim() ?? '';
+    } on Object {
+      throw const AiDiagnosisException(AiDiagnosisFailure.unavailable);
+    }
+  }
+
+  String _diagnosisPrompt(String languageCode) {
+    final language = languageCode == 'pl' ? 'Polish' : 'English';
+    return '''
+You are a cautious aquarium health assistant. Analyze the attached aquarium photo for visible fish disease, plant problems, or algae. Do not claim a definite veterinary diagnosis; describe the most likely visible issue and recommend safe, observable next steps. Do not prescribe medication doses.
+Respond only with valid JSON, written in $language, with this exact shape:
+{"problemName":"short issue name","category":"fish_disease|plant_issue|algae|other","confidence":0,"summary":"brief explanation","actions":["specific safe step 1","specific safe step 2"]}
+Confidence must be an integer from 0 to 100. If the photo does not show a recognizable issue, say so clearly, lower confidence, and recommend checking water parameters or taking a clearer photo.
+''';
+  }
+
+  AiDiagnosisResult _mockDiagnosis(String languageCode) {
+    final isPolish = languageCode == 'pl';
+    return AiDiagnosisResult(
+      problemName: isPolish
+          ? 'Możliwy problem zdrowotny'
+          : 'Possible health issue',
+      category: AiDiagnosisCategory.fishDisease,
+      confidence: 72,
+      summary: isPolish
+          ? 'To demonstracyjny wynik. Obejrzyj rybę w dobrym świetle i porównaj objawy z pozostałymi mieszkańcami.'
+          : 'This is a demo result. Observe the fish in good light and compare its symptoms with other tank inhabitants.',
+      actions: isPolish
+          ? const [
+              'Sprawdź pH, temperaturę, amoniak i azotyny.',
+              'Odizoluj rybę tylko wtedy, gdy objawy są widoczne lub stan się pogarsza.',
+              'Skonsultuj leczenie z doświadczonym akwarystą przed użyciem preparatów.',
+            ]
+          : const [
+              'Check pH, temperature, ammonia and nitrite.',
+              'Isolate the fish only if symptoms are visible or its condition worsens.',
+              'Consult an experienced aquarist before using treatments.',
+            ],
+    );
+  }
 
   Future<void> testApiKey(String apiKey) async {
     final key = apiKey.trim();
     if (key.isEmpty) {
-      throw const AiScannerException('Wpisz klucz API Gemini.');
+      throw const AiDiagnosisException(AiDiagnosisFailure.missingApiKey);
     }
 
     try {
@@ -108,20 +338,20 @@ class AiScannerService {
           continue;
         }
         if (response.statusCode != 200) {
-          throw AiScannerException(
-            'HTTP ${response.statusCode}: ${response.body}',
-          );
+          if (response.statusCode == 401 || response.statusCode == 403) {
+            throw const AiDiagnosisException(AiDiagnosisFailure.invalidApiKey);
+          }
+          if (response.statusCode == 429 || response.statusCode == 503) {
+            throw const AiDiagnosisException(AiDiagnosisFailure.overloaded);
+          }
+          throw const AiDiagnosisException(AiDiagnosisFailure.requestFailed);
         }
         return;
       }
     } on TimeoutException {
-      throw const AiScannerException(
-        'Test klucza Gemini przekroczył limit czasu.',
-      );
-    } on http.ClientException catch (error) {
-      throw AiScannerException(
-        'Nie udało się połączyć z Gemini: ${error.message}',
-      );
+      throw const AiDiagnosisException(AiDiagnosisFailure.timeout);
+    } on http.ClientException {
+      throw const AiDiagnosisException(AiDiagnosisFailure.network);
     }
   }
 

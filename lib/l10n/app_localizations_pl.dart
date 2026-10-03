@@ -2851,6 +2851,124 @@ class AppLocalizationsPl extends AppLocalizations {
       'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.';
 
   @override
+  String get scannerLockedTitle => 'Odblokuj inteligentny skaner AI';
+
+  @override
+  String get scannerLockedDescription =>
+      'PRO analizuje zdrowie ryb, problemy roślin i glony na zdjęciach akwarium oraz proponuje konkretne dalsze kroki.';
+
+  @override
+  String get scannerUnlockPro => 'Odblokuj skaner PRO';
+
+  @override
+  String get scannerIntro =>
+      'Zrób zdjęcie ryby, rośliny lub glonów, aby uzyskać ostrożną ocenę AI i zalecane działania.';
+
+  @override
+  String get scannerTakePhoto => 'Zrób zdjęcie';
+
+  @override
+  String get scannerChoosePhoto => 'Wybierz z galerii';
+
+  @override
+  String get scannerNoPhotoSelected =>
+      'Wybierz lub zrób zdjęcie akwarium, aby rozpocząć.';
+
+  @override
+  String get scannerSelectingPhoto => 'Wczytuję wybrane zdjęcie...';
+
+  @override
+  String get scannerAnalyzeAction => 'Analizuj zdjęcie';
+
+  @override
+  String get scannerNewAnalysis => 'Rozpocznij nową analizę';
+
+  @override
+  String get scannerLoadingTitle => 'Analizuję obraz i objawy w akwarium...';
+
+  @override
+  String get scannerLoadingDescription =>
+      'AI sprawdza widoczne oznaki. To może chwilę potrwać.';
+
+  @override
+  String get scannerErrorTitle => 'Nie udało się zakończyć analizy';
+
+  @override
+  String get scannerTryAgain => 'Spróbuj ponownie';
+
+  @override
+  String get scannerCameraPermissionDenied =>
+      'Brak dostępu do aparatu. Zezwól na dostęp w ustawieniach urządzenia lub wybierz zdjęcie z galerii.';
+
+  @override
+  String get scannerCameraUnavailable =>
+      'Aparat jest niedostępny na tym urządzeniu. Wybierz zdjęcie z galerii.';
+
+  @override
+  String get scannerPhotoPickerFailure =>
+      'Nie udało się wybrać zdjęcia. Sprawdź uprawnienia i spróbuj ponownie.';
+
+  @override
+  String get scannerInvalidImage =>
+      'Wybrane zdjęcie jest puste lub nie można go odczytać.';
+
+  @override
+  String get scannerApiKeyMissing =>
+      'Skaner AI nie jest skonfigurowany. Dodaj klucz API Gemini w ustawieniach profilu.';
+
+  @override
+  String get scannerApiKeyInvalid =>
+      'Usługa AI odrzuciła klucz API. Sprawdź klucz w ustawieniach profilu.';
+
+  @override
+  String get scannerNetworkFailure =>
+      'Nie udało się połączyć z usługą AI. Sprawdź internet i spróbuj ponownie.';
+
+  @override
+  String get scannerServiceBusy =>
+      'Usługa AI jest chwilowo zajęta. Spróbuj ponownie za chwilę.';
+
+  @override
+  String get scannerInvalidResponse =>
+      'Usługa AI zwróciła nieczytelny wynik. Spróbuj zrobić wyraźniejsze zdjęcie.';
+
+  @override
+  String get scannerRequestFailure =>
+      'Żądanie do AI nie powiodło się. Spróbuj ponownie.';
+
+  @override
+  String get scannerUnexpectedFailure =>
+      'Wystąpił nieoczekiwany błąd podczas analizy zdjęcia.';
+
+  @override
+  String scannerConfidence(int percent) {
+    return 'Pewność: $percent%';
+  }
+
+  @override
+  String get scannerCategoryFishDisease => 'Możliwy problem zdrowotny ryby';
+
+  @override
+  String get scannerCategoryPlantIssue => 'Problem rośliny';
+
+  @override
+  String get scannerCategoryAlgae => 'Glony';
+
+  @override
+  String get scannerCategoryOther => 'Ogólna obserwacja';
+
+  @override
+  String get scannerCareNotice =>
+      'Wskazówki AI to wstępna ocena, nie diagnoza weterynaryjna. Przed leczeniem potwierdź objawy i parametry wody.';
+
+  @override
+  String get mockPurchaseTestingNotice =>
+      'Tryb testowy: aktywacja PRO jest symulowana wyłącznie w kompilacji debug.';
+
+  @override
+  String get purchaseNotConfigured => 'Zakupy nie są skonfigurowane';
+
+  @override
   String get mockAiUnavailable =>
       'Wynik demonstracyjny. Endpoint AI nie jest dostępny.';
 

@@ -2832,6 +2832,124 @@ class AppLocalizationsEn extends AppLocalizations {
       'Analysis took too long. Check your connection and try again.';
 
   @override
+  String get scannerLockedTitle => 'Unlock the intelligent AI scanner';
+
+  @override
+  String get scannerLockedDescription =>
+      'PRO analyzes fish health, plant problems and algae from aquarium photos, then suggests practical next steps.';
+
+  @override
+  String get scannerUnlockPro => 'Unlock PRO scanner';
+
+  @override
+  String get scannerIntro =>
+      'Photograph a fish, plant or algae to get a cautious AI assessment and recommended actions.';
+
+  @override
+  String get scannerTakePhoto => 'Take a photo';
+
+  @override
+  String get scannerChoosePhoto => 'Choose from gallery';
+
+  @override
+  String get scannerNoPhotoSelected =>
+      'Choose or take an aquarium photo to begin.';
+
+  @override
+  String get scannerSelectingPhoto => 'Loading selected photo...';
+
+  @override
+  String get scannerAnalyzeAction => 'Analyze photo';
+
+  @override
+  String get scannerNewAnalysis => 'Start a new analysis';
+
+  @override
+  String get scannerLoadingTitle => 'Analyzing image and aquarium symptoms...';
+
+  @override
+  String get scannerLoadingDescription =>
+      'The AI is reviewing visible signs. This may take a few moments.';
+
+  @override
+  String get scannerErrorTitle => 'Analysis could not be completed';
+
+  @override
+  String get scannerTryAgain => 'Try again';
+
+  @override
+  String get scannerCameraPermissionDenied =>
+      'Camera access is denied. Allow camera access in device settings or choose a photo from the gallery.';
+
+  @override
+  String get scannerCameraUnavailable =>
+      'The camera is unavailable on this device. Choose a photo from the gallery.';
+
+  @override
+  String get scannerPhotoPickerFailure =>
+      'The photo could not be selected. Check permissions and try again.';
+
+  @override
+  String get scannerInvalidImage =>
+      'The selected image is empty or could not be read.';
+
+  @override
+  String get scannerApiKeyMissing =>
+      'The AI scanner is not configured. Add a Gemini API key in profile settings.';
+
+  @override
+  String get scannerApiKeyInvalid =>
+      'The AI service rejected its API key. Check the key in profile settings.';
+
+  @override
+  String get scannerNetworkFailure =>
+      'Could not connect to the AI service. Check your internet connection and try again.';
+
+  @override
+  String get scannerServiceBusy =>
+      'The AI service is temporarily busy. Please try again shortly.';
+
+  @override
+  String get scannerInvalidResponse =>
+      'The AI service returned an unreadable result. Try a clearer photo.';
+
+  @override
+  String get scannerRequestFailure =>
+      'The AI request failed. Please try again.';
+
+  @override
+  String get scannerUnexpectedFailure =>
+      'An unexpected error occurred while analyzing the photo.';
+
+  @override
+  String scannerConfidence(int percent) {
+    return 'Confidence: $percent%';
+  }
+
+  @override
+  String get scannerCategoryFishDisease => 'Possible fish health issue';
+
+  @override
+  String get scannerCategoryPlantIssue => 'Plant problem';
+
+  @override
+  String get scannerCategoryAlgae => 'Algae';
+
+  @override
+  String get scannerCategoryOther => 'General observation';
+
+  @override
+  String get scannerCareNotice =>
+      'AI guidance is an initial assessment, not a veterinary diagnosis. Confirm symptoms and water parameters before treatment.';
+
+  @override
+  String get mockPurchaseTestingNotice =>
+      'Test mode: PRO activation is simulated in debug builds only.';
+
+  @override
+  String get purchaseNotConfigured => 'Purchases are not configured';
+
+  @override
   String get mockAiUnavailable =>
       'Demo result. The AI endpoint is unavailable.';
 

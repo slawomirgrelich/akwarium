@@ -5233,6 +5233,204 @@ abstract class AppLocalizations {
   /// **'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.'**
   String get scannerAnalysisTimeout;
 
+  /// No description provided for @scannerLockedTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odblokuj inteligentny skaner AI'**
+  String get scannerLockedTitle;
+
+  /// No description provided for @scannerLockedDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'PRO analizuje zdrowie ryb, problemy roślin i glony na zdjęciach akwarium oraz proponuje konkretne dalsze kroki.'**
+  String get scannerLockedDescription;
+
+  /// No description provided for @scannerUnlockPro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odblokuj skaner PRO'**
+  String get scannerUnlockPro;
+
+  /// No description provided for @scannerIntro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zrób zdjęcie ryby, rośliny lub glonów, aby uzyskać ostrożną ocenę AI i zalecane działania.'**
+  String get scannerIntro;
+
+  /// No description provided for @scannerTakePhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zrób zdjęcie'**
+  String get scannerTakePhoto;
+
+  /// No description provided for @scannerChoosePhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz z galerii'**
+  String get scannerChoosePhoto;
+
+  /// No description provided for @scannerNoPhotoSelected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz lub zrób zdjęcie akwarium, aby rozpocząć.'**
+  String get scannerNoPhotoSelected;
+
+  /// No description provided for @scannerSelectingPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wczytuję wybrane zdjęcie...'**
+  String get scannerSelectingPhoto;
+
+  /// No description provided for @scannerAnalyzeAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Analizuj zdjęcie'**
+  String get scannerAnalyzeAction;
+
+  /// No description provided for @scannerNewAnalysis.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozpocznij nową analizę'**
+  String get scannerNewAnalysis;
+
+  /// No description provided for @scannerLoadingTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Analizuję obraz i objawy w akwarium...'**
+  String get scannerLoadingTitle;
+
+  /// No description provided for @scannerLoadingDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'AI sprawdza widoczne oznaki. To może chwilę potrwać.'**
+  String get scannerLoadingDescription;
+
+  /// No description provided for @scannerErrorTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zakończyć analizy'**
+  String get scannerErrorTitle;
+
+  /// No description provided for @scannerTryAgain.
+  ///
+  /// In pl, this message translates to:
+  /// **'Spróbuj ponownie'**
+  String get scannerTryAgain;
+
+  /// No description provided for @scannerCameraPermissionDenied.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak dostępu do aparatu. Zezwól na dostęp w ustawieniach urządzenia lub wybierz zdjęcie z galerii.'**
+  String get scannerCameraPermissionDenied;
+
+  /// No description provided for @scannerCameraUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aparat jest niedostępny na tym urządzeniu. Wybierz zdjęcie z galerii.'**
+  String get scannerCameraUnavailable;
+
+  /// No description provided for @scannerPhotoPickerFailure.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wybrać zdjęcia. Sprawdź uprawnienia i spróbuj ponownie.'**
+  String get scannerPhotoPickerFailure;
+
+  /// No description provided for @scannerInvalidImage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybrane zdjęcie jest puste lub nie można go odczytać.'**
+  String get scannerInvalidImage;
+
+  /// No description provided for @scannerApiKeyMissing.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skaner AI nie jest skonfigurowany. Dodaj klucz API Gemini w ustawieniach profilu.'**
+  String get scannerApiKeyMissing;
+
+  /// No description provided for @scannerApiKeyInvalid.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usługa AI odrzuciła klucz API. Sprawdź klucz w ustawieniach profilu.'**
+  String get scannerApiKeyInvalid;
+
+  /// No description provided for @scannerNetworkFailure.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się połączyć z usługą AI. Sprawdź internet i spróbuj ponownie.'**
+  String get scannerNetworkFailure;
+
+  /// No description provided for @scannerServiceBusy.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usługa AI jest chwilowo zajęta. Spróbuj ponownie za chwilę.'**
+  String get scannerServiceBusy;
+
+  /// No description provided for @scannerInvalidResponse.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usługa AI zwróciła nieczytelny wynik. Spróbuj zrobić wyraźniejsze zdjęcie.'**
+  String get scannerInvalidResponse;
+
+  /// No description provided for @scannerRequestFailure.
+  ///
+  /// In pl, this message translates to:
+  /// **'Żądanie do AI nie powiodło się. Spróbuj ponownie.'**
+  String get scannerRequestFailure;
+
+  /// No description provided for @scannerUnexpectedFailure.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wystąpił nieoczekiwany błąd podczas analizy zdjęcia.'**
+  String get scannerUnexpectedFailure;
+
+  /// No description provided for @scannerConfidence.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pewność: {percent}%'**
+  String scannerConfidence(int percent);
+
+  /// No description provided for @scannerCategoryFishDisease.
+  ///
+  /// In pl, this message translates to:
+  /// **'Możliwy problem zdrowotny ryby'**
+  String get scannerCategoryFishDisease;
+
+  /// No description provided for @scannerCategoryPlantIssue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Problem rośliny'**
+  String get scannerCategoryPlantIssue;
+
+  /// No description provided for @scannerCategoryAlgae.
+  ///
+  /// In pl, this message translates to:
+  /// **'Glony'**
+  String get scannerCategoryAlgae;
+
+  /// No description provided for @scannerCategoryOther.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ogólna obserwacja'**
+  String get scannerCategoryOther;
+
+  /// No description provided for @scannerCareNotice.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wskazówki AI to wstępna ocena, nie diagnoza weterynaryjna. Przed leczeniem potwierdź objawy i parametry wody.'**
+  String get scannerCareNotice;
+
+  /// No description provided for @mockPurchaseTestingNotice.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tryb testowy: aktywacja PRO jest symulowana wyłącznie w kompilacji debug.'**
+  String get mockPurchaseTestingNotice;
+
+  /// No description provided for @purchaseNotConfigured.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakupy nie są skonfigurowane'**
+  String get purchaseNotConfigured;
+
   /// No description provided for @mockAiUnavailable.
   ///
   /// In pl, this message translates to:

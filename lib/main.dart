@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -792,8 +793,7 @@ class ToolsPage extends StatelessWidget {
               color: Colors.deepPurple,
               title: l10n.aiScannerTitle,
               description: l10n.aiScannerDesc,
-              buttonLabel: l10n.tryPro,
-              premium: true,
+              buttonLabel: l10n.startDiagnosis,
               onTap: () {
                 Navigator.push(
                   context,
@@ -1376,6 +1376,8 @@ class _AlgaeResultCard extends StatelessWidget {
   }
 }
 
+enum _AiScannerState { locked, idle, selectingImage, loading, success, error }
+
 class AiScannerPage extends StatefulWidget {
   const AiScannerPage({super.key});
 
@@ -1388,126 +1390,188 @@ class _AiScannerPageState extends State<AiScannerPage> {
   final _service = AiScannerService();
   Uint8List? _imageBytes;
   String? _mimeType;
-  AiScanResult? _result;
-  String? _error;
-  bool _isLoading = false;
+  AiDiagnosisResult? _result;
+  AiDiagnosisException? _failure;
+  _AiScannerState _state = _AiScannerState.idle;
+
+  bool get _isBusy =>
+      _state == _AiScannerState.selectingImage ||
+      _state == _AiScannerState.loading;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    final isPro = context.watch<ProAccessService>().isProUser;
+    final state = isPro ? _state : _AiScannerState.locked;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.aiScannerTitle)),
       body: _PageContainer(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          child: state == _AiScannerState.locked
+              ? _buildLocked(context, l10n)
+              : _buildScanner(context, l10n, state),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocked(BuildContext context, AppLocalizations l10n) {
+    return Center(
+      key: const ValueKey('locked'),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.lock_outline, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.scannerLockedTitle,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.scannerLockedDescription,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: _openPaywall,
+                  icon: const Icon(Icons.workspace_premium_outlined),
+                  label: Text(l10n.scannerUnlockPro),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScanner(
+    BuildContext context,
+    AppLocalizations l10n,
+    _AiScannerState state,
+  ) {
+    final theme = Theme.of(context);
+    final isLoading = state == _AiScannerState.loading;
+    final isSelecting = state == _AiScannerState.selectingImage;
+    return SingleChildScrollView(
+      key: const ValueKey('scanner'),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const _PremiumBanner(),
-              const SizedBox(height: 20),
-              InkWell(
-                onTap: _chooseSource,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  height: 260,
-                  decoration: BoxDecoration(
-                    color: theme.cardColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: _imageBytes == null
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.photo_camera_outlined,
-                              size: 64,
-                              color: Colors.teal.shade700,
-                            ),
-                            const SizedBox(height: 14),
-                            Text(
-                              l10n.addFishOrPlantPhoto,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 17,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              l10n.tapToSelectCameraOrGallery,
-                              style: TextStyle(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.memory(
-                            _imageBytes!,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
-                        ),
-                ),
-              ),
+              const SizedBox(height: 12),
+              Text(l10n.scannerIntro),
               const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: _isLoading
-                    ? null
-                    : (_imageBytes == null ? _chooseSource : _analyze),
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.auto_awesome),
-                label: Text(
-                  _isLoading ? l10n.scannerAnalyzingPhoto : l10n.runRecognition,
+              Card(
+                clipBehavior: Clip.antiAlias,
+                child: SizedBox(
+                  height: 280,
+                  child: _imageBytes == null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.add_a_photo_outlined,
+                                  size: 52,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  l10n.scannerNoPhotoSelected,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Image.memory(
+                          _imageBytes!,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) =>
+                              Center(child: Text(l10n.scannerInvalidImage)),
+                        ),
                 ),
               ),
-              if (_isLoading) ...[
-                const SizedBox(height: 20),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(width: 16),
-                        Expanded(child: Text(l10n.scannerAnalyzingSpecies)),
-                      ],
-                    ),
+              const SizedBox(height: 12),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _isBusy
+                        ? null
+                        : () => _pickImage(ImageSource.camera),
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: Text(l10n.scannerTakePhoto),
                   ),
-                ),
-              ],
-              if (_error != null) ...[
-                const SizedBox(height: 20),
-                Card(
-                  color: Colors.red.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.error_outline, color: Colors.red),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _error!,
-                            style: TextStyle(color: Colors.red),
+                  OutlinedButton.icon(
+                    onPressed: _isBusy
+                        ? null
+                        : () => _pickImage(ImageSource.gallery),
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: Text(l10n.scannerChoosePhoto),
+                  ),
+                ],
+              ),
+              if (_imageBytes != null) ...[
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: _isBusy ? null : _analyze,
+                  icon: isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        )
+                      : const Icon(Icons.auto_awesome),
+                  label: Text(l10n.scannerAnalyzeAction),
                 ),
               ],
-              if (_result case final result?) ...[
-                const SizedBox(height: 20),
-                _ScanResultCard(result: result, imageBytes: _imageBytes!),
-              ],
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: isSelecting || isLoading
+                    ? _ScannerLoadingCard(
+                        key: ValueKey(state),
+                        title: isSelecting
+                            ? l10n.scannerSelectingPhoto
+                            : l10n.scannerLoadingTitle,
+                        description: l10n.scannerLoadingDescription,
+                      )
+                    : state == _AiScannerState.error && _failure != null
+                    ? _ScannerErrorCard(
+                        key: const ValueKey('error'),
+                        message: _failureMessage(l10n, _failure!),
+                        retryLabel: l10n.scannerTryAgain,
+                        onRetry: _imageBytes == null
+                            ? () => _pickImage(ImageSource.gallery)
+                            : _analyze,
+                      )
+                    : state == _AiScannerState.success && _result != null
+                    ? _DiagnosisResultCard(
+                        key: const ValueKey('result'),
+                        result: _result!,
+                      )
+                    : const SizedBox.shrink(key: ValueKey('idle')),
+              ),
             ],
           ),
         ),
@@ -1515,95 +1579,349 @@ class _AiScannerPageState extends State<AiScannerPage> {
     );
   }
 
-  Future<void> _chooseSource() async {
-    final l10n = AppLocalizations.of(context)!;
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: Text(l10n.cameraAction),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
+  Future<bool> _ensurePro() async {
+    if (context.read<ProAccessService>().isProUser) return true;
+    if (!mounted) return false;
+
+    setState(() => _state = _AiScannerState.locked);
+    try {
+      await ProPaywallDialog.show(
+        context,
+        headline: AppLocalizations.of(context)!.scannerLockedTitle,
+      );
+    } on Object catch (error, stackTrace) {
+      debugPrint('AI scanner paywall failed to open: $error\n$stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.scannerUnexpectedFailure,
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: Text(l10n.galleryAction),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
+          ),
+        );
+      }
+      return false;
+    }
+    if (!mounted) return false;
+    final isPro = context.read<ProAccessService>().isProUser;
+    setState(
+      () => _state = isPro ? _AiScannerState.idle : _AiScannerState.locked,
+    );
+    return isPro;
+  }
+
+  Future<void> _openPaywall() async {
+    await _ensurePro();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    if (!await _ensurePro() || !mounted) return;
+    final previousState = _result == null
+        ? _AiScannerState.idle
+        : _AiScannerState.success;
+    setState(() {
+      _state = _AiScannerState.selectingImage;
+      _failure = null;
+    });
+    try {
+      final file = await _picker.pickImage(
+        source: source,
+        imageQuality: 88,
+        maxWidth: 1800,
+      );
+      if (!mounted) return;
+      if (file == null) {
+        setState(() => _state = previousState);
+        return;
+      }
+      final bytes = await file.readAsBytes();
+      if (!mounted) return;
+      if (bytes.isEmpty) {
+        setState(() {
+          _failure = const AiDiagnosisException(
+            AiDiagnosisFailure.invalidImage,
+          );
+          _state = _AiScannerState.error;
+        });
+        return;
+      }
+      setState(() {
+        _imageBytes = bytes;
+        _mimeType = _mimeFor(file.name);
+        _result = null;
+        _failure = null;
+        _state = _AiScannerState.idle;
+      });
+    } on PlatformException catch (error, stackTrace) {
+      debugPrint('AI scanner image picker failed: $error\n$stackTrace');
+      if (!mounted) return;
+      final failure =
+          source == ImageSource.camera &&
+              (error.code.toLowerCase().contains('denied') ||
+                  error.code.toLowerCase().contains('permission'))
+          ? AiDiagnosisFailure.cameraPermissionDenied
+          : source == ImageSource.camera &&
+                (error.code.toLowerCase().contains('camera') ||
+                    error.code.toLowerCase().contains('available'))
+          ? AiDiagnosisFailure.cameraUnavailable
+          : AiDiagnosisFailure.imagePicker;
+      setState(() {
+        _failure = AiDiagnosisException(failure);
+        _state = _AiScannerState.error;
+      });
+    } on Object catch (error, stackTrace) {
+      debugPrint('AI scanner image read failed: $error\n$stackTrace');
+      if (!mounted) return;
+      setState(() {
+        _failure = const AiDiagnosisException(AiDiagnosisFailure.imagePicker);
+        _state = _AiScannerState.error;
+      });
+    }
+  }
+
+  Future<void> _analyze() async {
+    if (!await _ensurePro() || !mounted) return;
+    final image = _imageBytes;
+    if (image == null || image.isEmpty) {
+      setState(() {
+        _failure = const AiDiagnosisException(AiDiagnosisFailure.invalidImage);
+        _state = _AiScannerState.error;
+      });
+      return;
+    }
+
+    setState(() {
+      _state = _AiScannerState.loading;
+      _failure = null;
+      _result = null;
+    });
+    try {
+      final diagnosis = await _service.diagnose(
+        imageBytes: image,
+        mimeType: _mimeType ?? 'image/jpeg',
+        languageCode: Localizations.localeOf(context).languageCode,
+      );
+      if (!mounted) return;
+      setState(() {
+        _result = diagnosis;
+        _state = _AiScannerState.success;
+      });
+    } on AiDiagnosisException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _failure = error;
+        _state = _AiScannerState.error;
+      });
+    } on Object catch (error, stackTrace) {
+      debugPrint('AI diagnosis failed unexpectedly: $error\n$stackTrace');
+      if (!mounted) return;
+      setState(() {
+        _failure = const AiDiagnosisException(AiDiagnosisFailure.unavailable);
+        _state = _AiScannerState.error;
+      });
+    }
+  }
+
+  String _failureMessage(AppLocalizations l10n, AiDiagnosisException failure) =>
+      _localizedAiScannerFailure(l10n, failure.failure);
+
+  String _mimeFor(String filename) {
+    final extension = filename.split('.').last.toLowerCase();
+    return switch (extension) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'gif' => 'image/gif',
+      _ => 'image/jpeg',
+    };
+  }
+}
+
+String _localizedAiScannerFailure(
+  AppLocalizations l10n,
+  AiDiagnosisFailure failure,
+) => switch (failure) {
+  AiDiagnosisFailure.missingApiKey => l10n.scannerApiKeyMissing,
+  AiDiagnosisFailure.invalidApiKey => l10n.scannerApiKeyInvalid,
+  AiDiagnosisFailure.network => l10n.scannerNetworkFailure,
+  AiDiagnosisFailure.timeout => l10n.scannerAnalysisTimeout,
+  AiDiagnosisFailure.overloaded => l10n.scannerServiceBusy,
+  AiDiagnosisFailure.invalidResponse => l10n.scannerInvalidResponse,
+  AiDiagnosisFailure.requestFailed => l10n.scannerRequestFailure,
+  AiDiagnosisFailure.invalidImage => l10n.scannerInvalidImage,
+  AiDiagnosisFailure.cameraPermissionDenied =>
+    l10n.scannerCameraPermissionDenied,
+  AiDiagnosisFailure.cameraUnavailable => l10n.scannerCameraUnavailable,
+  AiDiagnosisFailure.imagePicker => l10n.scannerPhotoPickerFailure,
+  AiDiagnosisFailure.unavailable => l10n.scannerUnexpectedFailure,
+};
+
+class _ScannerLoadingCard extends StatelessWidget {
+  const _ScannerLoadingCard({
+    required this.title,
+    required this.description,
+    super.key,
+  });
+
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 26,
+            height: 26,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 4),
+                Text(description),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _ScannerErrorCard extends StatelessWidget {
+  const _ScannerErrorCard({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+    super.key,
+  });
+
+  final String message;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      color: colors.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.scannerErrorTitle,
+              style: TextStyle(
+                color: colors.onErrorContainer,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(message, style: TextStyle(color: colors.onErrorContainer)),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: Text(retryLabel),
             ),
           ],
         ),
       ),
     );
-    if (source == null) return;
-    try {
-      final file = await _picker.pickImage(
-        source: source,
-        imageQuality: 85,
-        maxWidth: 1800,
-      );
-      if (file == null) return;
-      final bytes = await file.readAsBytes();
-      if (!mounted) return;
-      setState(() {
-        _imageBytes = bytes;
-        _mimeType = _mimeFor(file.name);
-        _result = null;
-        _error = null;
-      });
-    } on Exception catch (error) {
-      if (mounted) {
-        setState(
-          () =>
-              _error = AppLocalizations.of(context)!
-                  .scannerPhotoOpenError('$error'),
-        );
-      }
-    }
   }
+}
 
-  Future<void> _analyze() async {
+class _DiagnosisResultCard extends StatelessWidget {
+  const _DiagnosisResultCard({required this.result, super.key});
+
+  final AiDiagnosisResult result;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final image = _imageBytes;
-    if (image == null) return;
-    setState(() {
-      _isLoading = true;
-      _error = null;
-      _result = null;
-    });
-    try {
-      final result = await _service.analyze(image, _mimeType ?? 'image/jpeg');
-      if (mounted) {
-        setState(() {
-          _result = result;
-          _isLoading = false;
-        });
-      }
-    } on TimeoutException {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _error = l10n.scannerAnalysisTimeout;
-        });
-      }
-    } on Exception catch (error) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _error = error.toString();
-        });
-      }
-    }
-  }
-
-  String _mimeFor(String name) {
-    final extension = name.split('.').last.toLowerCase();
-    return extension == 'png'
-        ? 'image/png'
-        : extension == 'webp'
-        ? 'image/webp'
-        : 'image/jpeg';
+    final category = switch (result.category) {
+      AiDiagnosisCategory.fishDisease => l10n.scannerCategoryFishDisease,
+      AiDiagnosisCategory.plantIssue => l10n.scannerCategoryPlantIssue,
+      AiDiagnosisCategory.algae => l10n.scannerCategoryAlgae,
+      AiDiagnosisCategory.other => l10n.scannerCategoryOther,
+    };
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                Chip(
+                  avatar: const Icon(Icons.health_and_safety_outlined),
+                  label: Text(category),
+                ),
+                Text(
+                  l10n.scannerConfidence(result.confidence),
+                  style: theme.textTheme.labelLarge,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              result.problemName,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            LinearProgressIndicator(
+              value: result.confidence / 100,
+              minHeight: 7,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            const SizedBox(height: 16),
+            Text(result.summary),
+            const SizedBox(height: 18),
+            Text(
+              l10n.actionPlanTitle,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...result.actions.indexed.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(radius: 12, child: Text('${entry.$1 + 1}')),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(entry.$2)),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(height: 24),
+            Text(
+              l10n.scannerCareNotice,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -1842,11 +2160,25 @@ class ProfilePage extends StatelessWidget {
                           keyTestMessage = AppLocalizations.of(dialogContext)!
                               .geminiConnectionSucceeded;
                         });
-                      } on Object catch (error) {
+                      } on AiDiagnosisException catch (error) {
                         if (!dialogContext.mounted) return;
                         setDialogState(() {
                           keyTestSucceeded = false;
-                          keyTestMessage = error.toString();
+                          keyTestMessage = _localizedAiScannerFailure(
+                            AppLocalizations.of(dialogContext)!,
+                            error.failure,
+                          );
+                        });
+                      } on Object catch (error, stackTrace) {
+                        debugPrint(
+                          'Gemini API key verification failed: '
+                          '$error\n$stackTrace',
+                        );
+                        if (!dialogContext.mounted) return;
+                        setDialogState(() {
+                          keyTestSucceeded = false;
+                          keyTestMessage = AppLocalizations.of(dialogContext)!
+                              .scannerUnexpectedFailure;
                         });
                       } finally {
                         if (dialogContext.mounted) {
@@ -2948,8 +3280,12 @@ class _ProBadge extends StatelessWidget {
   }
 }
 
-class _ScanResultCard extends StatelessWidget {
-  const _ScanResultCard({required this.result, required this.imageBytes});
+class AiSpeciesIdentificationCard extends StatelessWidget {
+  const AiSpeciesIdentificationCard({
+    required this.result,
+    required this.imageBytes,
+    super.key,
+  });
 
   final AiScanResult result;
   final Uint8List imageBytes;

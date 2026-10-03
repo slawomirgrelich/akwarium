@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -56,6 +57,8 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
   bool _yearlyPlanSelected = true;
   bool _activating = false;
 
+  bool get _mockActivationEnabled => kDebugMode;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -76,6 +79,13 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
               l10n.proPaywallSubtitle,
               style: TextStyle(color: Colors.grey.shade700),
             ),
+            if (_mockActivationEnabled) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.mockPurchaseTestingNotice,
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 18),
             _Benefit(icon: Icons.show_chart, text: l10n.featureUnlimitedCharts),
             _Benefit(
@@ -127,7 +137,9 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
           child: Text(l10n.maybeLater),
         ),
         FilledButton.icon(
-          onPressed: _activating ? null : _activatePro,
+          onPressed: _activating || !_mockActivationEnabled
+              ? null
+              : _activatePro,
           icon: _activating
               ? const SizedBox(
                   width: 18,
@@ -135,7 +147,13 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.auto_awesome),
-          label: Text(_activating ? l10n.activatingEllipsis : l10n.tryPro),
+          label: Text(
+            _activating
+                ? l10n.activatingEllipsis
+                : _mockActivationEnabled
+                ? l10n.tryPro
+                : l10n.purchaseNotConfigured,
+          ),
         ),
       ],
     );

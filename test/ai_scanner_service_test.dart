@@ -80,4 +80,149 @@ void main() {
     expect(requestedModels.last, contains('gemini-2.5-flash'));
     client.close();
   });
+
+  test(
+    'diagnosis request parses confidence and next steps from Gemini JSON',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final client = MockClient((request) async {
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        final contents = body['contents'] as List<dynamic>;
+        final parts =
+            (contents.single as Map<String, dynamic>)['parts'] as List<dynamic>;
+        expect(
+          (parts.first as Map<String, dynamic>)['text'],
+          contains('English'),
+        );
+        expect(
+          (parts[1] as Map<String, dynamic>)['inline_data']['mime_type'],
+          'image/png',
+        );
+        return http.Response(
+          jsonEncode({
+            'candidates': [
+              {
+                'content': {
+                  'parts': [
+                    {
+                      'text': jsonEncode({
+                        'problemName': 'Possible ich',
+                        'category': 'fish_disease',
+                        'confidence': 91,
+                        'summary': 'Several small white spots are visible.',
+                        'actions': [
+                          'Check ammonia and nitrite.',
+                          'Observe the other fish.',
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+          200,
+        );
+      });
+      final service = AiScannerService(client: client, apiKey: 'test-key');
+
+      final result = await service.diagnose(
+        imageBytes: Uint8List.fromList([1, 2, 3]),
+        mimeType: 'image/png',
+        languageCode: 'en',
+      );
+
+      expect(result.problemName, 'Possible ich');
+      expect(result.category, AiDiagnosisCategory.fishDisease);
+      expect(result.confidence, 91);
+      expect(result.actions, hasLength(2));
+      service.close();
+    },
+  );
+
+  test('diagnosis mock mode returns a localized safe demo result', () async {
+    final client = MockClient((_) async => http.Response('', 500));
+    final service = AiScannerService(client: client, useMock: true);
+
+    final result = await service.diagnose(
+      imageBytes: Uint8List.fromList([1]),
+      mimeType: 'image/jpeg',
+      languageCode: 'pl',
+    );
+
+    expect(result.confidence, inInclusiveRange(0, 100));
+    expect(result.summary, contains('demonstracyjny'));
+    expect(result.actions, isNotEmpty);
+    service.close();
+  });
+
+  test(
+    'diagnosis parses structured result and forwards image MIME and locale',
+    () async {
+      final client = MockClient((request) async {
+        final body = jsonDecode(request.body) as Map<String, dynamic>;
+        final contents = body['contents'] as List<dynamic>;
+        final parts = (contents.first as Map<String, dynamic>)['parts'] as List;
+        expect((parts.first as Map)['text'], contains('English'));
+        expect((parts[1] as Map)['inline_data']['mime_type'], 'image/png');
+        return http.Response(
+          jsonEncode({
+            'candidates': [
+              {
+                'content': {
+                  'parts': [
+                    {
+                      'text': jsonEncode({
+                        'problemName': 'Possible ich',
+                        'category': 'fish_disease',
+                        'confidence': 91,
+                        'summary': 'Several small white spots are visible.',
+                        'actions': [
+                          'Check ammonia and nitrite.',
+                          'Observe the other fish.',
+                        ],
+                      }),
+                    },
+                  ],
+                },
+              },
+            ],
+          }),
+          200,
+        );
+      });
+      final service = AiScannerService(client: client, apiKey: 'test-key');
+
+      final result = await service.diagnose(
+        imageBytes: Uint8List.fromList([1, 2, 3]),
+        mimeType: 'image/png',
+        languageCode: 'en',
+      );
+
+      expect(result.problemName, 'Possible ich');
+      expect(result.category, AiDiagnosisCategory.fishDisease);
+      expect(result.confidence, 91);
+      expect(result.actions, hasLength(2));
+      service.close();
+    },
+  );
+
+  test(
+    'diagnosis mock mode returns a localized safe result without network',
+    () async {
+      final client = MockClient((_) async => http.Response('', 500));
+      final service = AiScannerService(client: client, useMock: true);
+
+      final result = await service.diagnose(
+        imageBytes: Uint8List.fromList([1]),
+        mimeType: 'image/jpeg',
+        languageCode: 'pl',
+      );
+
+      expect(result.confidence, inInclusiveRange(0, 100));
+      expect(result.summary, contains('demonstracyjny'));
+      expect(result.actions, isNotEmpty);
+      service.close();
+    },
+  );
 }
