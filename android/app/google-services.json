@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:760131458678:android:f8e04c550b9f6ddf113157",
         "android_client_info": {
-          "package_name": "pl.slawek.grelich.akwarystapro"
+          "package_name": "com.slawek.grelich.akwarium"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "760131458678-mcmhq24rvivk2p6jtcfo23e58i1djosc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "pl.slawek.grelich.akwarystapro",
+            "package_name": "com.slawek.grelich.akwarium",
             "certificate_hash": "335a5808081321120ef28fea4f13cf50c3f40ec5"
           }
         },
