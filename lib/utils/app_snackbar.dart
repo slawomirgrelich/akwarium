@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 extension AppScaffoldMessenger on BuildContext {
   void showAppSnackBar(SnackBar snackBar) {
     final messenger = ScaffoldMessenger.of(this);
+    final hasAction = snackBar.action != null;
     messenger
       ..clearSnackBars()
       ..hideCurrentSnackBar()
@@ -16,7 +17,7 @@ extension AppScaffoldMessenger on BuildContext {
           padding: snackBar.padding,
           width: snackBar.width,
           shape: snackBar.shape,
-          behavior: snackBar.behavior,
+          behavior: hasAction ? SnackBarBehavior.floating : snackBar.behavior,
           action: snackBar.action,
           actionOverflowThreshold: snackBar.actionOverflowThreshold,
           showCloseIcon: snackBar.showCloseIcon,
@@ -25,7 +26,9 @@ extension AppScaffoldMessenger on BuildContext {
           clipBehavior: snackBar.clipBehavior,
           onVisible: snackBar.onVisible,
           animation: snackBar.animation,
-          duration: const Duration(seconds: 4),
+          duration: hasAction
+              ? const Duration(seconds: 3)
+              : const Duration(seconds: 4),
         ),
       );
   }

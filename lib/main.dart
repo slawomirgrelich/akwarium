@@ -3495,6 +3495,8 @@ Future<void> _showAddToAquariumSheet(
     if (!context.mounted) return;
     context.showAppSnackBar(
       SnackBar(
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
         content: Text(
           l10n.addedSpeciesToAquarium(result.polishName, aquarium.name),
         ),
