@@ -36,7 +36,7 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Dodaj akwarium, aby sprawdzić zgodność gatunków.'),
+                Text(l10n.knowledgeBaseAddAquariumPrompt),
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   onPressed: () => Navigator.push<void>(
@@ -63,7 +63,7 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
         title: Text(l10n.knowledgeBaseTitle),
         actions: [
           IconButton(
-            tooltip: 'Diagnoza PRO',
+            tooltip: l10n.diagnoseWithProTooltip,
             onPressed: () => _openDiagnostic(context, aquarium, latestTest),
             icon: const Icon(Icons.health_and_safety_outlined),
           ),
@@ -97,7 +97,7 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8),
                                 child: ChoiceChip(
-                                  label: Text(_categoryLabel(category)),
+                                  label: Text(_categoryLabel(l10n, category)),
                                   selected: _category == category,
                                   onSelected: (_) =>
                                       setState(() => _category = category),
@@ -236,31 +236,42 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
   }
 
   void _showFishDetails(BuildContext context, FishSpeciesModel fish) {
-    _showDetails(context, fish.polishName, fish.latinName, [
-      'pH: ${fish.phMin}–${fish.phMax}',
-      'Temperatura: ${fish.temperatureMin}–${fish.temperatureMax}°C',
-      'GH: ${fish.ghMin}–${fish.ghMax}',
-      'Minimum: ${fish.minimumLiters} l',
-      'Trudność: ${fish.difficulty}',
-      'Usposobienie: ${fish.temperament}',
+    final l10n = AppLocalizations.of(context)!;
+    final name = Localizations.localeOf(context).languageCode == 'en'
+        ? fish.latinName
+        : fish.polishName;
+    _showDetails(context, name, fish.latinName, [
+      l10n.phRangeLabel(fish.phMin, fish.phMax),
+      l10n.temperatureRangeLabel(fish.temperatureMin, fish.temperatureMax),
+      l10n.ghRangeLabel(fish.ghMin, fish.ghMax),
+      l10n.speciesMinimumVolumeFrom(fish.minimumLiters),
+      l10n.difficultyLabel(_localizedDifficulty(l10n, fish.difficulty)),
+      l10n.temperamentLabel(_localizedTemperament(l10n, fish.temperament)),
     ]);
   }
 
   void _showPlantDetails(BuildContext context, PlantSpeciesModel plant) {
-    _showDetails(context, plant.name, 'Wymagania rośliny', [
-      'Światło: ${plant.lightRequirements}',
-      'CO2: ${plant.co2Requirements}',
-      'Tempo wzrostu: ${plant.growthRate}',
-      'Pozycja: ${plant.position}',
+    final l10n = AppLocalizations.of(context)!;
+    _showDetails(context, plant.name, l10n.plantRequirementsTitle, [
+      '${l10n.lightLabel}: ${_localizedLight(l10n, plant.lightRequirements)}',
+      '${l10n.co2Label}: ${_localizedCo2(l10n, plant.co2Requirements)}',
+      '${l10n.growthRateLabel}: ${_localizedGrowth(l10n, plant.growthRate)}',
+      '${l10n.positionLabel}: ${_localizedPlantPosition(l10n, plant.position)}',
     ]);
   }
 
   void _showAlgaeDetails(BuildContext context, AlgaeModel algae) {
-    _showDetails(context, algae.name, 'Objawy i zwalczanie', [
-      'Przyczyny: ${algae.causes.join(', ')}',
-      'Objawy: ${algae.symptoms.join(', ')}',
-      'Plan: ${algae.controlSteps.join(' ')}',
-    ]);
+    final l10n = AppLocalizations.of(context)!;
+    _showDetails(
+      context,
+      _localizedKnowledgeText(l10n, algae.name),
+      l10n.algaeSymptomsTitle,
+      [
+        '${l10n.causesLabel}: ${algae.causes.map((value) => _localizedKnowledgeText(l10n, value)).join(', ')}',
+        '${l10n.symptomsLabel}: ${algae.symptoms.map((value) => _localizedKnowledgeText(l10n, value)).join(', ')}',
+        '${l10n.controlPlanLabel}: ${algae.controlSteps.map((value) => _localizedKnowledgeText(l10n, value)).join(' ')}',
+      ],
+    );
   }
 
   void _showDetails(
@@ -295,17 +306,122 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen> {
     );
   }
 
-  String _categoryLabel(KnowledgeCategory category) {
+  String _categoryLabel(AppLocalizations l10n, KnowledgeCategory category) {
     switch (category) {
       case KnowledgeCategory.fish:
-        return 'Ryby';
+        return l10n.filterFish;
       case KnowledgeCategory.plants:
-        return 'Rośliny';
+        return l10n.filterPlants;
       case KnowledgeCategory.algae:
-        return 'Glony';
+        return l10n.knowledgeCategoryAlgae;
     }
   }
+
+  String _localizedDifficulty(AppLocalizations l10n, String value) =>
+      switch (value.toLowerCase()) {
+        'łatwa' || 'łatwy' => l10n.difficultyEasy,
+        'bardzo łatwa' || 'bardzo łatwy' => l10n.difficultyVeryEasy,
+        'średnia' || 'średni' => l10n.difficultyMedium,
+        'trudna' || 'trudny' => l10n.difficultyHard,
+        'zaawansowana' || 'zaawansowany' => l10n.difficultyAdvanced,
+        _ => value,
+      };
+
+  String _localizedTemperament(AppLocalizations l10n, String value) =>
+      switch (value.toLowerCase()) {
+        'łagodny, stadny' => l10n.temperamentShoalingPeaceful,
+        'łagodna, stadna' => l10n.temperamentShoalingPeacefulFeminine,
+        'łagodny, aktywny' => l10n.temperamentActivePeaceful,
+        'spokojna, terytorialna' => l10n.temperamentTerritorialPeaceful,
+        'samiec terytorialny' => l10n.temperamentTerritorialMale,
+        _ => value,
+      };
 }
+
+String _localizedLight(AppLocalizations l10n, String value) =>
+    switch (value.toLowerCase()) {
+      'niskie' => l10n.lightLow,
+      'niskie do średniego' => l10n.lightLowMedium,
+      'średnie' => l10n.lightMedium,
+      'średnie do wysokiego' => l10n.lightMediumHigh,
+      _ => value,
+    };
+
+String _localizedCo2(AppLocalizations l10n, String value) =>
+    switch (value.toLowerCase()) {
+      'niewymagane' => l10n.co2NotRequired,
+      'opcjonalne' => l10n.co2Optional,
+      'zalecane' => l10n.co2Recommended,
+      _ => value,
+    };
+
+String _localizedGrowth(AppLocalizations l10n, String value) =>
+    switch (value.toLowerCase()) {
+      'wolne' => l10n.growthSlow,
+      'średnie' => l10n.growthMedium,
+      'szybkie' => l10n.growthFast,
+      _ => value,
+    };
+
+String _localizedPlantPosition(AppLocalizations l10n, String value) =>
+    switch (value.toLowerCase()) {
+      'środek / korzeń' => l10n.plantPositionMiddleRoot,
+      'środek / tył' => l10n.plantPositionMiddleBackground,
+      'środek' => l10n.plantPositionMiddle,
+      'tył' => l10n.plantPositionBack,
+      'przód' => l10n.plantPositionFront,
+      _ => value,
+    };
+
+String _localizedKnowledgeText(AppLocalizations l10n, String value) =>
+    switch (value) {
+      'Krasnorosty' => l10n.algaeNameBlackBeard,
+      'Zielenice' => l10n.algaeNameGreen,
+      'Sinice' => l10n.algaeNameCyanobacteria,
+      'Okrzemki' => l10n.algaeNameDiatoms,
+      'Wahania CO2' => l10n.algaeCauseCo2Fluctuations,
+      'Słaba cyrkulacja' => l10n.algaeCausePoorCirculation,
+      'Niestabilne nawożenie' => l10n.algaeCauseUnstableFertilization,
+      'Nadmiar światła' => l10n.algaeCauseExcessLight,
+      'Niedobór PO4' => l10n.algaeCausePo4Deficiency,
+      'Niestabilne CO2' => l10n.algaeCauseUnstableCo2,
+      'Brak NO3' => l10n.algaeCauseNo3Deficiency,
+      'Zastoiny wody' => l10n.algaeCauseStagnantWater,
+      'Nadmiar materii organicznej' => l10n.algaeCauseOrganicMatter,
+      'Nowy zbiornik' => l10n.algaeCauseNewTank,
+      'Krzemiany w wodzie' => l10n.algaeCauseSilicates,
+      'Niedojrzały filtr' => l10n.algaeCauseImmatureFilter,
+      'Czarne lub czerwone kępki na liściach i dekoracjach' =>
+        l10n.algaeSymptomBlackTufts,
+      'Zielony nalot na szybach lub punktowe plamy na liściach' =>
+        l10n.algaeSymptomGreenFilm,
+      'Śluzowata niebieskozielona warstwa o charakterystycznym zapachu' =>
+        l10n.algaeSymptomCyanobacteriaMat,
+      'Brązowy pył na szybach, podłożu i dekoracjach' =>
+        l10n.algaeSymptomBrownDust,
+      'Ustabilizuj podawanie CO2 i popraw cyrkulację.' =>
+        l10n.algaeActionStabilizeCo2,
+      'Usuń mechanicznie porażone liście i dekoracje.' =>
+        l10n.algaeActionRemoveAffected,
+      'Ogranicz światło do 6–8 godzin i obserwuj zbiornik przez tydzień.' =>
+        l10n.algaeActionReduceLight,
+      'Skróć świecenie i regularnie czyść szyby.' => l10n.algaeActionCleanGlass,
+      'Sprawdź PO4 i uzupełniaj je stopniowo.' => l10n.algaeActionSupplementPo4,
+      'Zwiększ masę szybko rosnących roślin.' => l10n.algaeActionAddFastPlants,
+      'Usuń matę mechanicznie i wykonaj większą podmianę wody.' =>
+        l10n.algaeActionRemoveMat,
+      'Przywróć mierzalny poziom NO3 i popraw przepływ.' =>
+        l10n.algaeActionRestoreNo3,
+      'Ogranicz światło oraz karmienie do czasu ustabilizowania zbiornika.' =>
+        l10n.algaeActionReduceFeeding,
+      'Usuwaj nalot przy podmianach i utrzymuj regularność prac.' =>
+        l10n.algaeActionCleanDiatoms,
+      'Daj biologii czas na dojrzewanie i nie myj całego wkładu naraz.' =>
+        l10n.algaeActionMatureFilter,
+      'Sprawdź krzemiany w wodzie kranowej, jeśli problem trwa długo.' =>
+        l10n.algaeActionCheckSilicates,
+      _ => value,
+    };
 
 class _FishCard extends StatelessWidget {
   const _FishCard({
@@ -322,6 +438,9 @@ class _FishCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayName = Localizations.localeOf(context).languageCode == 'en'
+        ? fish.latinName
+        : fish.polishName;
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -337,7 +456,7 @@ class _FishCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      fish.polishName,
+                      displayName,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(
@@ -383,13 +502,15 @@ class _PlantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         onTap: onTap,
         leading: const CircleAvatar(child: Icon(Icons.eco_outlined)),
         title: Text(plant.name),
         subtitle: Text(
-          '${plant.position} · Światło: ${plant.lightRequirements}',
+          '${_localizedPlantPosition(l10n, plant.position)} · '
+          '${l10n.lightLabel}: ${_localizedLight(l10n, plant.lightRequirements)}',
         ),
         trailing: const Icon(Icons.chevron_right),
       ),
@@ -405,12 +526,13 @@ class _AlgaeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: ListTile(
         onTap: onTap,
         leading: const CircleAvatar(child: Icon(Icons.grass)),
-        title: Text(algae.name),
-        subtitle: Text(algae.symptoms.first),
+        title: Text(_localizedKnowledgeText(l10n, algae.name)),
+        subtitle: Text(_localizedKnowledgeText(l10n, algae.symptoms.first)),
         trailing: const Icon(Icons.chevron_right),
       ),
     );

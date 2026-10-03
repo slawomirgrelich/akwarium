@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../models/species_models.dart';
 import '../services/firestore_service.dart';
 import '../services/stocking_compatibility_service.dart';
+import '../utils/localized_labels.dart';
 import '../widgets/confirm_livestock_removal_dialog.dart';
 import 'species_atlas_screen.dart';
 
@@ -17,15 +18,15 @@ class TankStockingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final userId = FirebaseAuth.instance.currentUser?.uid;
     final provider = context.watch<AquariumProvider>();
     final tankId = provider.activeAquariumId;
     final aquarium = provider.selectedAquarium;
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Zaloguj się, aby zobaczyć obsadę.')),
-      );
+      return Scaffold(body: Center(child: Text(l10n.signInToViewLivestock)));
     }
+
     if (aquarium == null || tankId.isEmpty) {
       return Scaffold(
         appBar: AppBar(
@@ -35,7 +36,7 @@ class TankStockingScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Najpierw dodaj akwarium.'),
+              Text(l10n.addAquariumToStart),
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: () => Navigator.push<void>(
@@ -64,6 +65,7 @@ class _StockingBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AquariumProvider>();
     final latest = provider.waterTests.isEmpty
         ? null
@@ -73,7 +75,7 @@ class _StockingBody extends StatelessWidget {
         title: Text(AppLocalizations.of(context)!.aquariumLivestockTitle),
         actions: [
           IconButton(
-            tooltip: 'Atlas gatunków',
+            tooltip: l10n.speciesAtlasTitle,
             onPressed: () => Navigator.push<void>(
               context,
               MaterialPageRoute(
@@ -110,7 +112,7 @@ class _StockingBody extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
-                    'Nie udało się zsynchronizować obsady: ${snapshot.error}',
+                    l10n.livestockSyncError('${snapshot.error}'),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
                     ),
@@ -141,7 +143,12 @@ class _StockingBody extends StatelessWidget {
                       : 1;
                   final quantityUnit =
                       item['quantityUnit']?.toString() ?? 'pieces';
-                  final name = '${item['namePl'] ?? 'Nieznany gatunek'}';
+                  final name = '${item['namePl'] ?? l10n.unknownSpecies}';
+                  final categoryLabel = speciesCategoryLabel(
+                    l10n,
+                    item['categoryLabel']?.toString() ??
+                        (isPlant ? 'flora' : 'fauna'),
+                  );
                   return Card(
                     child: ListTile(
                       leading: Icon(
@@ -150,12 +157,12 @@ class _StockingBody extends StatelessWidget {
                       ),
                       title: Text(name),
                       subtitle: Text(
-                        '${item['nameLatin'] ?? ''} · $count ${_quantityUnitLabel(context, isPlant ? quantityUnit : 'pieces')} · ${item['categoryLabel'] ?? (isPlant ? 'Flora' : 'Fauna')}',
+                        '${item['nameLatin'] ?? ''} · $count ${_quantityUnitLabel(context, isPlant ? quantityUnit : 'pieces')} · $categoryLabel',
                       ),
                       trailing: Wrap(
                         children: [
                           IconButton(
-                            tooltip: 'Zmień ilość',
+                            tooltip: l10n.decreaseQuantityTooltip,
                             onPressed: () => _changeCount(
                               context,
                               tankId,
@@ -167,7 +174,7 @@ class _StockingBody extends StatelessWidget {
                             icon: const Icon(Icons.remove_circle_outline),
                           ),
                           IconButton(
-                            tooltip: 'Zwiększ ilość',
+                            tooltip: l10n.increaseQuantityTooltip,
                             onPressed: () => _changeCount(
                               context,
                               tankId,
@@ -289,7 +296,9 @@ class _CompatibilityCard extends StatelessWidget {
               ...report.warnings.map(
                 (warning) => Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text('• ${warning.message}'),
+                  child: Text(
+                    '• ${_compatibilityWarningText(AppLocalizations.of(context)!, warning)}',
+                  ),
                 ),
               ),
           ],
@@ -298,3 +307,30 @@ class _CompatibilityCard extends StatelessWidget {
     );
   }
 }
+
+String _compatibilityWarningText(
+  AppLocalizations l10n,
+  CompatibilityWarning warning,
+) => switch (warning.type) {
+  CompatibilityWarningType.insufficientVolume =>
+    l10n.compatibilityVolumeWarning(
+      warning.actualValue!.round(),
+      warning.minimumValue!.round(),
+    ),
+  CompatibilityWarningType.temperatureOutsideRange =>
+    l10n.compatibilityTemperatureWarning(
+      warning.actualValue!,
+      warning.minimumValue!,
+      warning.maximumValue!,
+    ),
+  CompatibilityWarningType.phOutsideRange => l10n.compatibilityPhWarning(
+    warning.actualValue!,
+    warning.minimumValue!,
+    warning.maximumValue!,
+  ),
+  CompatibilityWarningType.incompatibleTemperatureRanges =>
+    l10n.compatibilityIncompatibleTemperatureRanges(
+      warning.speciesLatinName,
+      warning.otherSpeciesLatinName!,
+    ),
+};

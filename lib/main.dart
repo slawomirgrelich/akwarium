@@ -25,6 +25,7 @@ import 'models/aquarium_model.dart' as models;
 import 'models/aquarium_firestore_model.dart' show AquariumModel;
 import 'models/water_standards.dart';
 import 'utils/water_assessment_localization.dart';
+import 'utils/localized_labels.dart';
 import 'models/tank_firestore_models.dart' show Tank;
 import 'screens/aquarium_details_screen.dart';
 import 'screens/auth_wrapper.dart';
@@ -857,7 +858,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   final _picker = ImagePicker();
   final _editedWaterFields = <String>{};
   String _selectedAlgae = _algaeValues.first;
-  String _substrate = 'Żwirek / piasek';
+  String _substrate = 'gravel';
   bool _hasCo2 = false;
   Uint8List? _imageBytes;
   String? _imageMimeType;
@@ -1025,7 +1026,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
               label: Text(
                 _imageBytes == null
                     ? l10n.addAlgaePhotoOptional
-                    : 'Zmień zdjęcie glonu',
+                    : l10n.changeAlgaePhoto,
               ),
             ),
             if (_imageBytes != null) ...[
@@ -1083,24 +1084,19 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                       filled: true,
                     ),
-                    items:
-                        const [
-                              'Żwirek / piasek',
-                              'Soil aktywny',
-                              'Podłoże mineralne',
-                              'Inne',
-                            ]
-                            .map(
-                              (value) => DropdownMenuItem(
-                                value: value,
-                                child: Text(
-                                  value == 'Żwirek / piasek'
-                                      ? l10n.gravelSand
-                                      : value,
-                                ),
-                              ),
-                            )
-                            .toList(),
+                    items: const ['gravel', 'activeSoil', 'mineral', 'other']
+                        .map(
+                          (value) => DropdownMenuItem(
+                            value: value,
+                            child: Text(switch (value) {
+                              'activeSoil' => l10n.substrateActiveSoil,
+                              'mineral' => l10n.substrateMineral,
+                              'other' => l10n.substrateOther,
+                              _ => l10n.gravelSand,
+                            }),
+                          ),
+                        )
+                        .toList(),
                     onChanged: (value) => setState(() => _substrate = value!),
                   ),
                 ),
@@ -1124,24 +1120,20 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
                     )
                   : const Icon(Icons.auto_awesome),
               label: Text(
-                _loading ? 'Analizuję warunki...' : l10n.diagnoseProblem,
+                _loading ? l10n.analyzingConditions : l10n.diagnoseProblem,
               ),
             ),
             if (_loading)
-              const Padding(
-                padding: EdgeInsets.only(top: 18),
+              Padding(
+                padding: const EdgeInsets.only(top: 18),
                 child: Card(
                   child: Padding(
-                    padding: EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(18),
                     child: Row(
                       children: [
-                        CircularProgressIndicator(),
-                        SizedBox(width: 14),
-                        Expanded(
-                          child: Text(
-                            'Analizuję glony i parametry akwarium...',
-                          ),
-                        ),
+                        const CircularProgressIndicator(),
+                        const SizedBox(width: 14),
+                        Expanded(child: Text(l10n.analyzingAlgaeAndParameters)),
                       ],
                     ),
                   ),
@@ -1201,6 +1193,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   }
 
   Future<void> _pickImage() async {
+    final l10n = AppLocalizations.of(context)!;
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) => SafeArea(
@@ -1208,12 +1201,12 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Aparat'),
+              title: Text(l10n.cameraAction),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Galeria'),
+              title: Text(l10n.galleryAction),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
           ],
@@ -1273,18 +1266,19 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   }
 
   void _saveToJournal(AlgaeDiagnosticResult result) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.read<models.AquariumProvider>();
     provider.addJournalEntry(
       models.JournalEntry(
         id: DateTime.now().microsecondsSinceEpoch.toString(),
         aquariumId: provider.activeAquariumId,
         date: DateTime.now(),
-        title: 'Diagnoza glonów: ${result.algaeName}',
+        title: l10n.algaeDiagnosisTitle(result.algaeName),
         description:
-            '${result.cause}\n\nPlan działania:\n${result.actions.asMap().entries.map((entry) => '${entry.key + 1}. ${entry.value}').join('\n')}',
+            '${result.cause}\n\n${l10n.actionPlanTitle}:\n${result.actions.asMap().entries.map((entry) => '${entry.key + 1}. ${entry.value}').join('\n')}',
         type: 'algaeDiagnosis',
         category: models.JournalCategory.algae,
-        tags: const ['glony', 'diagnoza'],
+        tags: [l10n.knowledgeCategoryAlgae, l10n.smartDiagnosis],
         attachedWaterParameters: {
           'NO3': _number(_no3),
           'PO4': _number(_po4),
@@ -1321,6 +1315,7 @@ class _AlgaeResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -1328,12 +1323,12 @@ class _AlgaeResultCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (result.isMock)
-              const Chip(
-                avatar: Icon(Icons.science_outlined, size: 18),
-                label: Text('Wynik demonstracyjny'),
+              Chip(
+                avatar: const Icon(Icons.science_outlined, size: 18),
+                label: Text(l10n.mockAiUnavailable),
               ),
             Text(
-              'Diagnoza: ${result.algaeName}',
+              l10n.algaeDiagnosisTitle(result.algaeName),
               style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -1341,7 +1336,7 @@ class _AlgaeResultCard extends StatelessWidget {
             Text(result.cause),
             const SizedBox(height: 18),
             Text(
-              'Plan działania',
+              l10n.actionPlanTitle,
               style: Theme.of(context).textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -1399,7 +1394,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Skaner AI')),
+      appBar: AppBar(title: Text(l10n.aiScannerTitle)),
       body: _PageContainer(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -1466,21 +1461,19 @@ class _AiScannerPageState extends State<AiScannerPage> {
                       )
                     : const Icon(Icons.auto_awesome),
                 label: Text(
-                  _isLoading ? 'Analizuję zdjęcie...' : l10n.runRecognition,
+                  _isLoading ? l10n.scannerAnalyzingPhoto : l10n.runRecognition,
                 ),
               ),
               if (_isLoading) ...[
                 const SizedBox(height: 20),
-                const Card(
+                Card(
                   child: Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: Row(
                       children: [
-                        CircularProgressIndicator(),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: Text('Analizuję zdjęcie ryby/rośliny...'),
-                        ),
+                        const CircularProgressIndicator(),
+                        const SizedBox(width: 16),
+                        Expanded(child: Text(l10n.scannerAnalyzingSpecies)),
                       ],
                     ),
                   ),
@@ -1520,6 +1513,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
   }
 
   Future<void> _chooseSource() async {
+    final l10n = AppLocalizations.of(context)!;
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (context) => SafeArea(
@@ -1527,12 +1521,12 @@ class _AiScannerPageState extends State<AiScannerPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Aparat'),
+              title: Text(l10n.cameraAction),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Galeria zdjęć'),
+              title: Text(l10n.galleryAction),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
           ],
@@ -1557,12 +1551,17 @@ class _AiScannerPageState extends State<AiScannerPage> {
       });
     } on Exception catch (error) {
       if (mounted) {
-        setState(() => _error = 'Nie udało się otworzyć zdjęcia: $error');
+        setState(
+          () =>
+              _error = AppLocalizations.of(context)!
+                  .scannerPhotoOpenError('$error'),
+        );
       }
     }
   }
 
   Future<void> _analyze() async {
+    final l10n = AppLocalizations.of(context)!;
     final image = _imageBytes;
     if (image == null) return;
     setState(() {
@@ -1582,7 +1581,7 @@ class _AiScannerPageState extends State<AiScannerPage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _error = 'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.';
+          _error = l10n.scannerAnalysisTimeout;
         });
       }
     } on Exception catch (error) {
@@ -2092,7 +2091,7 @@ class _AquariumCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '${l10n.litersCount(aquarium.volumeNetLiters.round())} · ${_localizedAquariumType(l10n, aquarium.type.label)}',
+                  '${l10n.litersCount(aquarium.volumeNetLiters.round())} · ${tankTypeLabel(l10n, aquarium.type)}',
                   style: TextStyle(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 14,
@@ -2140,18 +2139,6 @@ class _DashboardTankCard extends StatelessWidget {
       },
     );
   }
-}
-
-String _localizedAquariumType(AppLocalizations l10n, String type) {
-  final normalized = type.toLowerCase();
-  if (normalized.contains('słod') || normalized.contains('fresh')) {
-    return l10n.freshwater;
-  }
-  if (normalized.contains('morsk') || normalized.contains('salt')) {
-    return l10n.saltwater;
-  }
-  if (normalized.contains('brack')) return l10n.brackish;
-  return type;
 }
 
 String _dashboardGreeting(User? user, String languageCode) {
@@ -2966,6 +2953,7 @@ class _ScanResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(18),
@@ -2979,19 +2967,15 @@ class _ScanResultCard extends StatelessWidget {
                   color: Colors.amber.shade50,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.science_outlined,
                       size: 18,
                       color: Colors.orange,
                     ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Wynik demonstracyjny. Endpoint AI nie jest dostępny.',
-                      ),
-                    ),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(l10n.mockAiUnavailable)),
                   ],
                 ),
               ),
@@ -3015,7 +2999,7 @@ class _ScanResultCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Rozpoznano: ${result.polishName}',
+                        l10n.recognizedSpecies(result.polishName),
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -3040,14 +3024,18 @@ class _ScanResultCard extends StatelessWidget {
                 Chip(label: Text('pH ${result.ph}')),
                 Chip(label: Text('${result.temperature}°C')),
                 Chip(label: Text(result.difficulty)),
-                Chip(label: Text('od ${result.minimumVolume} l')),
+                Chip(
+                  label: Text(
+                    l10n.speciesMinimumVolumeFrom(result.minimumVolume),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(result.description),
             const SizedBox(height: 10),
             Text(
-              'Zgodność z obsadą',
+              l10n.livestockCompatibilityTitle,
               style: Theme.of(context).textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -3058,7 +3046,7 @@ class _ScanResultCard extends StatelessWidget {
               onPressed: () =>
                   _showAddToAquariumSheet(context, result, imageBytes),
               icon: const Icon(Icons.playlist_add),
-              label: const Text('Dodaj do mojego akwarium / obsady'),
+              label: Text(l10n.addSpeciesToStock),
             ),
           ],
         ),
@@ -3072,10 +3060,10 @@ Future<void> _showAddToAquariumSheet(
   AiScanResult result,
   Uint8List imageBytes,
 ) async {
+  final l10n = AppLocalizations.of(context)!;
   if (FirebaseAuth.instance.currentUser == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Zaloguj się, aby dodać do obsady.')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.loginToAddSpecies)));
     return;
   }
 
@@ -3105,10 +3093,10 @@ Future<void> _showAddToAquariumSheet(
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Dodano ${result.polishName} do obsady ${aquarium.name}!',
+          l10n.addedSpeciesToAquarium(result.polishName, aquarium.name),
         ),
         action: SnackBarAction(
-          label: 'Zobacz',
+          label: l10n.viewLivestock,
           onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(
@@ -3130,12 +3118,13 @@ Future<int?> _showLivestockQuantityDialog(
   BuildContext context,
   AiScanResult result,
 ) {
+  final l10n = AppLocalizations.of(context)!;
   var count = 1;
   return showDialog<int>(
     context: context,
     builder: (dialogContext) => StatefulBuilder(
       builder: (dialogContext, setState) => AlertDialog(
-        title: Text('Dodaj ${result.polishName}'),
+        title: Text(l10n.addSpeciesDialogTitle(result.polishName)),
         content: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -3153,11 +3142,11 @@ Future<int?> _showLivestockQuantityDialog(
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Anuluj'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, count),
-            child: const Text('Dodaj'),
+            child: Text(l10n.add),
           ),
         ],
       ),
@@ -3180,6 +3169,7 @@ class _AquariumPickerSheetState extends State<_AquariumPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -3193,18 +3183,18 @@ class _AquariumPickerSheetState extends State<_AquariumPickerSheet> {
               );
             }
             if (snapshot.hasError) {
-              return Text('Nie udało się wczytać akwariów: ${snapshot.error}');
+              return Text(l10n.aquariumPickerLoadError('${snapshot.error}'));
             }
             final aquariums = snapshot.data ?? const <AquariumModel>[];
             if (aquariums.isEmpty) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Brak akwariów. Dodaj akwarium, aby kontynuować.'),
+                  Text(l10n.noAquariumYet),
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Zamknij'),
+                    child: Text(l10n.closeAction),
                   ),
                 ],
               );
@@ -3224,7 +3214,7 @@ class _AquariumPickerSheetState extends State<_AquariumPickerSheet> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Wybierz akwarium',
+                  l10n.chooseAquarium,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),

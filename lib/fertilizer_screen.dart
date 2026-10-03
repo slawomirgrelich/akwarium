@@ -14,7 +14,7 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
   final _formKey = GlobalKey<FormState>();
   final _pojemnoscController = TextEditingController(text: '100');
 
-  String _wybranyNawoz = 'Nawóz Mikro';
+  String _wybranyNawoz = 'micro';
   double? _rekomendowanaDawka;
 
   @override
@@ -40,12 +40,12 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
 
   String? _sprawdzPojemnosc(String? wartosc) {
     if (wartosc == null || wartosc.trim().isEmpty) {
-      return 'Wpisz pojemność akwarium';
+      return AppLocalizations.of(context)!.enterAquariumVolume;
     }
 
     final pojemnosc = double.tryParse(wartosc.trim().replaceAll(',', '.'));
     if (pojemnosc == null || pojemnosc <= 0) {
-      return 'Wpisz liczbę większą od zera';
+      return AppLocalizations.of(context)!.enterPositiveNumber;
     }
 
     return null;
@@ -66,10 +66,10 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
         // Przycisk powrotu prowadzi do poprzedniego ekranu.
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          tooltip: 'Wróć',
+          tooltip: l10n.back,
           icon: const Icon(Icons.arrow_back),
         ),
-        title: const Text('Kalkulator nawożenia'),
+        title: Text(l10n.fertilizerCalculatorTitle),
       ),
       body: SafeArea(
         child: Center(
@@ -83,7 +83,7 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Oblicz dawkę nawozu',
+                      l10n.calculateDoseAction,
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
                             fontWeight: FontWeight.bold,
@@ -92,7 +92,7 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Podaj pojemność akwarium i wybierz rodzaj nawozu.',
+                      l10n.fertilizerDoseInstructions,
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     const SizedBox(height: 24),
@@ -104,10 +104,10 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
                       ),
                       textInputAction: TextInputAction.done,
                       validator: _sprawdzPojemnosc,
-                      decoration: const InputDecoration(
-                        labelText: 'Pojemność akwarium',
-                        hintText: 'np. 100',
-                        suffixText: 'litrów',
+                      decoration: InputDecoration(
+                        labelText: l10n.aquariumCapacityLabel,
+                        hintText: l10n.fertilizerVolumeExample,
+                        suffixText: l10n.litersUnit,
                         prefixIcon: Icon(Icons.water_drop_outlined),
                         border: OutlineInputBorder(),
                       ),
@@ -115,8 +115,8 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
                     const SizedBox(height: 18),
                     // Menu pozwala wskazać rodzaj używanego nawozu.
                     InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Rodzaj nawozu',
+                      decoration: InputDecoration(
+                        labelText: l10n.fertilizerTypeLabel,
                         prefixIcon: Icon(Icons.eco_outlined),
                         border: OutlineInputBorder(),
                       ),
@@ -124,18 +124,18 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
                         child: DropdownButton<String>(
                           value: _wybranyNawoz,
                           isExpanded: true,
-                          items: const [
+                          items: [
                             DropdownMenuItem(
-                              value: 'Nawóz Mikro',
-                              child: Text('Nawóz Mikro'),
+                              value: 'micro',
+                              child: Text(l10n.fertilizerMicro),
                             ),
                             DropdownMenuItem(
-                              value: 'Nawóz Makro (NPK)',
-                              child: Text('Nawóz Makro (NPK)'),
+                              value: 'npk',
+                              child: Text(l10n.fertilizerMacroNpk),
                             ),
                             DropdownMenuItem(
-                              value: 'Potas (K)',
-                              child: Text('Potas (K)'),
+                              value: 'potassium',
+                              child: Text(l10n.fertilizerPotassium),
                             ),
                           ],
                           onChanged: (wartosc) {
@@ -154,7 +154,7 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
                     FilledButton.icon(
                       onPressed: _obliczDawke,
                       icon: const Icon(Icons.calculate_outlined),
-                      label: const Text('Oblicz dawkę'),
+                      label: Text(l10n.calculateDoseAction),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
@@ -200,7 +200,11 @@ class _FertilizerScreenState extends State<FertilizerScreen> {
                                           ),
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(_wybranyNawoz),
+                                    Text(switch (_wybranyNawoz) {
+                                      'npk' => l10n.fertilizerMacroNpk,
+                                      'potassium' => l10n.fertilizerPotassium,
+                                      _ => l10n.fertilizerMicro,
+                                    }),
                                   ],
                                 ),
                               ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/aquarium_model.dart';
 import '../screens/aquarium_details_screen.dart';
 import '../services/firestore_service.dart';
+import '../utils/localized_labels.dart';
 
 class FirestoreAquariumsSection extends StatefulWidget {
   const FirestoreAquariumsSection({super.key});
@@ -29,6 +31,7 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
     return StreamBuilder<List<AquariumModel>>(
       stream: _aquariumsStream,
       builder: (context, snapshot) {
+        final l10n = AppLocalizations.of(context)!;
         final aquariums = snapshot.data ?? const <AquariumModel>[];
         if (aquariums.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -42,14 +45,14 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: _SectionTitle(
-                    title: 'Moje akwaria',
-                    subtitle: 'Dane synchronizowane w chmurze',
+                    title: l10n.aquariumsSectionTitle,
+                    subtitle: l10n.cloudSyncSubtitle,
                   ),
                 ),
                 IconButton.filledTonal(
-                  tooltip: 'Dodaj akwarium',
+                  tooltip: l10n.addAquariumTooltip,
                   onPressed: () => _openAquariumForm(context),
                   icon: const Icon(Icons.add),
                 ),
@@ -60,7 +63,7 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
                 !snapshot.hasData)
               const _LoadingState()
             else if (snapshot.hasError && aquariums.isEmpty)
-              _ErrorState(message: _errorMessage(snapshot.error))
+              _ErrorState(message: _errorMessage(context, snapshot.error))
             else if (aquariums.isEmpty)
               _EmptyState(onAdd: () => _openAquariumForm(context))
             else
@@ -80,7 +83,7 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
             if (snapshot.hasError && aquariums.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                _errorMessage(snapshot.error),
+                _errorMessage(context, snapshot.error),
                 style: TextStyle(color: Colors.red.shade700, fontSize: 12),
               ),
             ],
@@ -102,6 +105,7 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
     BuildContext context, {
     AquariumModel? initial,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<AquariumModel>(
       context: context,
       builder: (_) => _AquariumFormDialog(initial: initial),
@@ -118,8 +122,8 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
         _showMessage(
           context,
           initial == null
-              ? 'Akwarium zostało dodane.'
-              : 'Akwarium zostało zapisane.',
+              ? l10n.aquariumAddedMessage
+              : l10n.aquariumUpdatedMessage,
         );
       }
     } on FirestoreServiceException catch (error) {
@@ -131,22 +135,21 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
     BuildContext context,
     AquariumModel aquarium,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Usunąć akwarium?'),
-        content: Text(
-          'Akwarium „${aquarium.name}” oraz wszystkie jego pomiary zostaną usunięte.',
-        ),
+        title: Text(l10n.deleteAquariumTitle),
+        content: Text(l10n.deleteAquariumPrompt(aquarium.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Anuluj'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
-            child: const Text('Usuń'),
+            child: Text(l10n.deleteAction),
           ),
         ],
       ),
@@ -155,15 +158,15 @@ class _FirestoreAquariumsSectionState extends State<FirestoreAquariumsSection> {
 
     try {
       await _service.deleteAquarium(aquarium.id);
-      if (context.mounted) _showMessage(context, 'Akwarium zostało usunięte.');
+      if (context.mounted) _showMessage(context, l10n.aquariumDeletedMessage);
     } on FirestoreServiceException catch (error) {
       if (context.mounted) _showMessage(context, error.message, isError: true);
     }
   }
 
-  String _errorMessage(Object? error) {
+  String _errorMessage(BuildContext context, Object? error) {
     if (error is FirestoreServiceException) return error.message;
-    return 'Nie udało się wczytać akwariów. Spróbuj ponownie.';
+    return AppLocalizations.of(context)!.aquariumLoadError;
   }
 
   void _showMessage(
@@ -195,6 +198,7 @@ class _AquariumFirestoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -227,14 +231,16 @@ class _AquariumFirestoreCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${_formatCapacity(aquarium.capacityLiters)} l · ${aquarium.type}',
+                      '${_formatCapacity(aquarium.capacityLiters)} l · ${aquariumTypeLabel(l10n, aquarium.type)}',
                       style: TextStyle(
                         color: Colors.grey.shade700,
                         fontSize: 12,
                       ),
                     ),
                     Text(
-                      'Założone ${_formatDate(aquarium.setupDate)}',
+                      l10n.aquariumEstablishedOn(
+                        _formatDate(aquarium.setupDate),
+                      ),
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 12,
@@ -244,14 +250,17 @@ class _AquariumFirestoreCard extends StatelessWidget {
                 ),
               ),
               PopupMenuButton<String>(
-                tooltip: 'Opcje akwarium',
+                tooltip: l10n.aquariumOptionsTooltip,
                 onSelected: (value) {
                   if (value == 'edit') onEdit();
                   if (value == 'delete') onDelete();
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edytuj')),
-                  PopupMenuItem(value: 'delete', child: Text('Usuń')),
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'edit', child: Text(l10n.editAction)),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text(l10n.deleteAction),
+                  ),
                 ],
               ),
             ],
@@ -287,7 +296,7 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
       text: aquarium == null ? '' : _formatCapacity(aquarium.capacityLiters),
     );
     _setupDate = aquarium?.setupDate ?? DateTime.now();
-    _type = aquarium?.type ?? 'Słodkowodne';
+    _type = aquariumTypeKey(aquarium?.type);
   }
 
   @override
@@ -299,9 +308,10 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isEditing = widget.initial != null;
     return AlertDialog(
-      title: Text(isEditing ? 'Edytuj akwarium' : 'Dodaj akwarium'),
+      title: Text(isEditing ? l10n.editAquariumTitle : l10n.addAquariumTitle),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -312,12 +322,12 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
                 controller: _nameController,
                 autofocus: true,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Nazwa akwarium',
+                decoration: InputDecoration(
+                  labelText: l10n.aquariumNameLabel,
                   prefixIcon: Icon(Icons.label_outline),
                 ),
                 validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Podaj nazwę akwarium.'
+                    ? l10n.aquariumNameRequired
                     : null,
               ),
               const SizedBox(height: 12),
@@ -326,8 +336,8 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
-                decoration: const InputDecoration(
-                  labelText: 'Pojemność',
+                decoration: InputDecoration(
+                  labelText: l10n.aquariumCapacityLabel,
                   suffixText: 'l',
                   prefixIcon: Icon(Icons.straighten_outlined),
                 ),
@@ -336,26 +346,37 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
                     (value ?? '').trim().replaceAll(',', '.'),
                   );
                   return capacity == null || capacity <= 0
-                      ? 'Podaj pojemność większą od zera.'
+                      ? l10n.aquariumCapacityInvalid
                       : null;
                 },
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 initialValue: _type,
-                decoration: const InputDecoration(
-                  labelText: 'Typ akwarium',
+                decoration: InputDecoration(
+                  labelText: l10n.aquariumTypeLabel,
                   prefixIcon: Icon(Icons.category_outlined),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
-                    value: 'Słodkowodne',
-                    child: Text('Słodkowodne'),
+                    value: 'freshwater',
+                    child: Text(l10n.freshwaterType),
                   ),
-                  DropdownMenuItem(value: 'Morskie', child: Text('Morskie')),
                   DropdownMenuItem(
-                    value: 'Krewetkarium',
-                    child: Text('Krewetkarium'),
+                    value: 'marine',
+                    child: Text(l10n.saltwaterType),
+                  ),
+                  DropdownMenuItem(
+                    value: 'planted',
+                    child: Text(l10n.plantedTankType),
+                  ),
+                  DropdownMenuItem(
+                    value: 'biotope',
+                    child: Text(l10n.biotopeTankType),
+                  ),
+                  DropdownMenuItem(
+                    value: 'shrimp',
+                    child: Text(l10n.shrimpTankType),
                   ),
                 ],
                 onChanged: (value) => setState(() => _type = value ?? _type),
@@ -364,7 +385,7 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.event_outlined),
-                title: const Text('Data założenia'),
+                title: Text(l10n.aquariumSetupDateLabel),
                 subtitle: Text(_formatDate(_setupDate)),
                 onTap: _selectDate,
               ),
@@ -375,11 +396,11 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Anuluj'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: _save,
-          child: Text(isEditing ? 'Zapisz' : 'Dodaj'),
+          child: Text(isEditing ? l10n.save : l10n.add),
         ),
       ],
     );
@@ -459,6 +480,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -474,12 +496,12 @@ class _EmptyState extends StatelessWidget {
             size: 32,
           ),
           const SizedBox(height: 8),
-          const Text('Brak dodanych akwariów'),
+          Text(l10n.noAquariumsAdded),
           const SizedBox(height: 10),
           OutlinedButton.icon(
             onPressed: onAdd,
             icon: const Icon(Icons.add),
-            label: const Text('Dodaj pierwsze akwarium'),
+            label: Text(l10n.addFirstAquariumAction),
           ),
         ],
       ),

@@ -16,6 +16,7 @@ import 'services/pro_access_service.dart';
 import 'widgets/confirm_livestock_removal_dialog.dart';
 import 'widgets/pro_paywall_dialog.dart';
 import 'widgets/species_autocomplete_field.dart';
+import 'utils/localized_labels.dart';
 
 Future<void> showCreateAquariumDialog(BuildContext context) async {
   await showDialog<void>(
@@ -27,7 +28,9 @@ Future<void> showCreateAquariumDialog(BuildContext context) async {
 String _tankTypeLabel(AppLocalizations l10n, TankType type) => switch (type) {
   TankType.freshwater => l10n.freshwater,
   TankType.marine => l10n.saltwater,
-  _ => type.label,
+  TankType.planted => l10n.plantedTankType,
+  TankType.biotope => l10n.biotopeTankType,
+  TankType.shrimp => l10n.shrimpTankType,
 };
 
 String _formatSetupDate(DateTime date) =>
@@ -107,7 +110,7 @@ class AquariumManagementScreen extends StatelessWidget {
             icon: const Icon(Icons.pets_outlined),
           ),
           IconButton(
-            tooltip: 'Atlas gatunków',
+            tooltip: l10n.speciesAtlasTitle,
             onPressed: () {
               final tankId = context.read<AquariumProvider>().activeAquariumId;
               Navigator.push<void>(
@@ -244,7 +247,8 @@ class _ManagementContentState extends State<_ManagementContent>
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
-                    'Nie udało się zsynchronizować obsady: ${stockSnapshot.error}',
+                    AppLocalizations.of(context)!
+                        .livestockSyncError('${stockSnapshot.error}'),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
                     ),
@@ -665,55 +669,61 @@ class _InhabitantCard extends StatelessWidget {
   final Inhabitant item;
 
   @override
-  Widget build(BuildContext context) => Card(
-    color: Theme.of(context).cardColor,
-    child: ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).primaryColor.withAlpha(25),
-        child: Icon(
-          item.category == CreatureCategory.plant
-              ? Icons.local_florist
-              : Icons.pets,
-          color: Theme.of(context).primaryColor,
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final status = item.status == 'Zdrowe' ? l10n.healthy : item.status;
+    return Card(
+      color: Theme.of(context).cardColor,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).primaryColor.withAlpha(25),
+          child: Icon(
+            item.category == CreatureCategory.plant
+                ? Icons.local_florist
+                : Icons.pets,
+            color: Theme.of(context).primaryColor,
+          ),
         ),
-      ),
-      title: Text(
-        item.name,
-        style: TextStyle(
-          color: Theme.of(context).textTheme.bodyLarge?.color,
-          fontWeight: FontWeight.bold,
+        title: Text(
+          item.name,
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
-      subtitle: Text(
-        '${item.latinName} · ${item.count} szt.\n${item.status}${item.plantPosition == null ? '' : ' · ${item.plantPosition!.label}'}',
-        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-      ),
-      isThreeLine: true,
-      trailing: IconButton(
-        icon: Icon(
-          Icons.delete_outline,
-          color: Theme.of(context).textTheme.bodyMedium?.color,
+        subtitle: Text(
+          '${item.latinName} · ${l10n.livestockCount(item.count)}\n$status${item.plantPosition == null ? '' : ' · ${plantPositionLabel(l10n, item.plantPosition!)}'}',
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
         ),
-        onPressed: () async {
-          if (!await confirmLivestockRemoval(context, item.name) ||
-              !context.mounted) {
-            return;
-          }
-          try {
-            await FirestoreService().deleteLivestockItem(
-              item.aquariumId,
-              item.id,
-            );
-          } on Object catch (error) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(error.toString())));
+        isThreeLine: true,
+        trailing: IconButton(
+          icon: Icon(
+            Icons.delete_outline,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+          onPressed: () async {
+            if (!await confirmLivestockRemoval(context, item.name) ||
+                !context.mounted) {
+              return;
             }
-          }
-        },
+            try {
+              await FirestoreService().deleteLivestockItem(
+                item.aquariumId,
+                item.id,
+              );
+            } on Object catch (error) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(error.toString())));
+              }
+            }
+          },
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class AddAquariumModal extends StatefulWidget {
@@ -898,109 +908,116 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(AppLocalizations.of(context)!.addSpecies),
-    content: SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SpeciesAutocompleteField(
-            onChanged: (value) => setState(() {
-              _name = value;
-              final selected = _selectedSpecies;
-              if (selected != null &&
-                  value.trim() !=
-                      localizedSpeciesDisplayName(context, selected)) {
-                if (_latin.text == selected.nameLatin) _latin.clear();
-                _selectedSpecies = null;
-              }
-            }),
-            onSelected: (species) => setState(() {
-              _selectedSpecies = species;
-              _name = localizedSpeciesDisplayName(context, species);
-              _latin.text = species.nameLatin;
-              _category = creatureCategoryForSpecies(species);
-              _position = null;
-            }),
-            decoration: const InputDecoration(labelText: 'Nazwa gatunkowa'),
-          ),
-          TextField(
-            controller: _latin,
-            decoration: const InputDecoration(labelText: 'Nazwa łacińska'),
-          ),
-          TextField(
-            controller: _count,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Liczba sztuk'),
-          ),
-          DropdownButtonFormField<CreatureCategory>(
-            key: ValueKey(_category),
-            initialValue: _category,
-            decoration: const InputDecoration(labelText: 'Kategoria'),
-            items: CreatureCategory.values
-                .map(
-                  (category) => DropdownMenuItem(
-                    value: category,
-                    child: Text(category.label),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) => setState(() {
-              _category = value!;
-              if (_category != CreatureCategory.plant) _position = null;
-            }),
-          ),
-          if (_category == CreatureCategory.plant)
-            DropdownButtonFormField<PlantPosition>(
-              initialValue: _position,
-              decoration: const InputDecoration(labelText: 'Pozycja rośliny'),
-              items: PlantPosition.values
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.addSpecies),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SpeciesAutocompleteField(
+              onChanged: (value) => setState(() {
+                _name = value;
+                final selected = _selectedSpecies;
+                if (selected != null &&
+                    value.trim() !=
+                        localizedSpeciesDisplayName(context, selected)) {
+                  if (_latin.text == selected.nameLatin) _latin.clear();
+                  _selectedSpecies = null;
+                }
+              }),
+              onSelected: (species) => setState(() {
+                _selectedSpecies = species;
+                _name = localizedSpeciesDisplayName(context, species);
+                _latin.text = species.nameLatin;
+                _category = creatureCategoryForSpecies(species);
+                _position = null;
+              }),
+              decoration: InputDecoration(labelText: l10n.speciesNameLabel),
+            ),
+            TextField(
+              controller: _latin,
+              decoration: InputDecoration(
+                labelText: l10n.latinNameOptionalLabel,
+              ),
+            ),
+            TextField(
+              controller: _count,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: l10n.speciesCountLabel),
+            ),
+            DropdownButtonFormField<CreatureCategory>(
+              key: ValueKey(_category),
+              initialValue: _category,
+              decoration: InputDecoration(labelText: l10n.category),
+              items: CreatureCategory.values
                   .map(
-                    (position) => DropdownMenuItem(
-                      value: position,
-                      child: Text(position.label),
+                    (category) => DropdownMenuItem(
+                      value: category,
+                      child: Text(creatureCategoryLabel(l10n, category)),
                     ),
                   )
                   .toList(),
-              onChanged: (value) => setState(() => _position = value),
+              onChanged: (value) => setState(() {
+                _category = value!;
+                if (_category != CreatureCategory.plant) _position = null;
+              }),
             ),
-          TextField(
-            controller: _notes,
-            maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Notatki'),
-          ),
-          Row(
-            children: [
-              OutlinedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                icon: const Icon(Icons.photo_library_outlined),
-                label: const Text('Galeria'),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => _pickImage(ImageSource.camera),
-                icon: const Icon(Icons.camera_alt_outlined),
-                label: const Text('Aparat'),
-              ),
-              if (_image != null)
-                const Expanded(
-                  child: Text(
-                    ' Zdjęcie dodane',
-                    style: TextStyle(color: Colors.green),
-                  ),
+            if (_category == CreatureCategory.plant)
+              DropdownButtonFormField<PlantPosition>(
+                initialValue: _position,
+                decoration: InputDecoration(
+                  labelText: l10n.plantPositionFieldLabel,
                 ),
-            ],
-          ),
-        ],
+                items: PlantPosition.values
+                    .map(
+                      (position) => DropdownMenuItem(
+                        value: position,
+                        child: Text(plantPositionLabel(l10n, position)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => _position = value),
+              ),
+            TextField(
+              controller: _notes,
+              maxLines: 3,
+              decoration: InputDecoration(labelText: l10n.notesOptionalLabel),
+            ),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _pickImage(ImageSource.gallery),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: Text(l10n.galleryAction),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _pickImage(ImageSource.camera),
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: Text(l10n.cameraAction),
+                ),
+                if (_image != null)
+                  Expanded(
+                    child: Text(
+                      l10n.photoAdded,
+                      style: TextStyle(color: Colors.green),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('Anuluj'),
-      ),
-      FilledButton(onPressed: _save, child: const Text('Dodaj')),
-    ],
-  );
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(onPressed: _save, child: Text(l10n.add)),
+      ],
+    );
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final file = await _picker.pickImage(source: source, imageQuality: 80);
@@ -1020,7 +1037,9 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
     final aquariumId = provider.activeAquariumId;
     if (aquariumId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Najpierw wybierz akwarium.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.selectAquariumFirst),
+        ),
       );
       return;
     }
@@ -1029,7 +1048,7 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
         aquariumId,
         namePl: _selectedSpecies?.namePl ?? _name.trim(),
         nameLatin: _selectedSpecies?.nameLatin ?? _latin.text.trim(),
-        category: _category.label,
+        category: _category.name,
         count: int.tryParse(_count.text) ?? 1,
         phRange: _selectedSpecies == null
             ? ''

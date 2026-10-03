@@ -1,8 +1,29 @@
 import '../models/species_models.dart';
 
+enum CompatibilityWarningType {
+  insufficientVolume,
+  temperatureOutsideRange,
+  phOutsideRange,
+  incompatibleTemperatureRanges,
+}
+
 class CompatibilityWarning {
-  const CompatibilityWarning(this.message, {this.isCritical = false});
-  final String message;
+  const CompatibilityWarning({
+    required this.type,
+    required this.speciesLatinName,
+    this.otherSpeciesLatinName,
+    this.actualValue,
+    this.minimumValue,
+    this.maximumValue,
+    this.isCritical = false,
+  });
+
+  final CompatibilityWarningType type;
+  final String speciesLatinName;
+  final String? otherSpeciesLatinName;
+  final double? actualValue;
+  final double? minimumValue;
+  final double? maximumValue;
   final bool isCritical;
 }
 
@@ -23,25 +44,50 @@ class StockingCompatibilityService {
     final warnings = <CompatibilityWarning>[];
     for (final item in species) {
       if (volumeLiters < item.minTankVolumeLiters) {
-        warnings.add(CompatibilityWarning(
-          '${item.namePl}: wymagane minimum ${item.minTankVolumeLiters} l.',
-          isCritical: true,
-        ));
+        warnings.add(
+          CompatibilityWarning(
+            type: CompatibilityWarningType.insufficientVolume,
+            speciesLatinName: item.nameLatin,
+            actualValue: volumeLiters,
+            minimumValue: item.minTankVolumeLiters.toDouble(),
+            isCritical: true,
+          ),
+        );
       }
       if (temperature != null && !item.tempRange.contains(temperature)) {
-        warnings.add(CompatibilityWarning('${item.namePl}: temperatura poza zakresem.'));
+        warnings.add(
+          CompatibilityWarning(
+            type: CompatibilityWarningType.temperatureOutsideRange,
+            speciesLatinName: item.nameLatin,
+            actualValue: temperature,
+            minimumValue: item.tempRange.min,
+            maximumValue: item.tempRange.max,
+          ),
+        );
       }
       if (pH != null && !item.phRange.contains(pH)) {
-        warnings.add(CompatibilityWarning('${item.namePl}: pH poza zakresem.'));
+        warnings.add(
+          CompatibilityWarning(
+            type: CompatibilityWarningType.phOutsideRange,
+            speciesLatinName: item.nameLatin,
+            actualValue: pH,
+            minimumValue: item.phRange.min,
+            maximumValue: item.phRange.max,
+          ),
+        );
       }
     }
     for (var index = 0; index < species.length; index++) {
       for (var other = index + 1; other < species.length; other++) {
         if (!species[index].tempRange.overlaps(species[other].tempRange)) {
-          warnings.add(CompatibilityWarning(
-            '${species[index].namePl} i ${species[other].namePl} nie mają wspólnego zakresu temperatur.',
-            isCritical: true,
-          ));
+          warnings.add(
+            CompatibilityWarning(
+              type: CompatibilityWarningType.incompatibleTemperatureRanges,
+              speciesLatinName: species[index].nameLatin,
+              otherSpeciesLatinName: species[other].nameLatin,
+              isCritical: true,
+            ),
+          );
         }
       }
     }

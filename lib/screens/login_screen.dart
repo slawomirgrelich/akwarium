@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'dart:async';
 
 import '../l10n/app_localizations.dart';
@@ -117,8 +118,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
                                 tooltip: _obscurePassword
-                                    ? 'Pokaż hasło'
-                                    : 'Ukryj hasło',
+                                    ? l10n.showPassword
+                                    : l10n.hidePassword,
                                 onPressed: () => setState(
                                   () => _obscurePassword = !_obscurePassword,
                                 ),
@@ -145,8 +146,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 prefixIcon: const Icon(Icons.lock_reset),
                                 suffixIcon: IconButton(
                                   tooltip: _obscureConfirmPassword
-                                      ? 'Pokaż hasło'
-                                      : 'Ukryj hasło',
+                                      ? l10n.showPassword
+                                      : l10n.hidePassword,
                                   onPressed: () => setState(
                                     () => _obscureConfirmPassword =
                                         !_obscureConfirmPassword,
@@ -171,8 +172,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _referralCodeController,
                               textCapitalization: TextCapitalization.characters,
                               decoration: InputDecoration(
-                                labelText: 'Masz kod polecający? (opcjonalnie)',
-                                prefixIcon: const Icon(Icons.card_giftcard_outlined),
+                                labelText: l10n.referralCodeOptional,
+                                prefixIcon: const Icon(
+                                  Icons.card_giftcard_outlined,
+                                ),
                                 suffixIcon: _referralValidation == null
                                     ? null
                                     : Icon(
@@ -181,7 +184,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                             : Icons.error_outline,
                                         color: _referralValidation!.isValid
                                             ? Colors.green
-                                            : Theme.of(context).colorScheme.error,
+                                            : Theme.of(context)
+                                                  .colorScheme
+                                                  .error,
                                       ),
                                 helperText: _referralValidation == null
                                     ? null
@@ -311,10 +316,12 @@ class _LoginScreenState extends State<LoginScreen> {
             await ReferralService().applyCode(_referralCodeController.text);
           } on ReferralException catch (error) {
             if (mounted) {
-              setState(() => _errorMessage = _referralErrorMessage(
-                    AppLocalizations.of(context)!,
-                    error.code,
-                  ));
+              setState(
+                () => _errorMessage = _referralErrorMessage(
+                  AppLocalizations.of(context)!,
+                  error.code,
+                ),
+              );
             }
             return;
           }
@@ -339,7 +346,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (_) {
       if (mounted) {
-        const message = 'Nie udało się połączyć z Firebase.';
+        final message = AppLocalizations.of(context)!.firebaseGenericError;
         setState(() => _errorMessage = message);
         _showMessage(message, error: true);
       }
@@ -355,36 +362,40 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _referralValidation = null);
       return;
     }
-    _referralValidationTimer = Timer(const Duration(milliseconds: 450), () async {
-      final result = await ReferralService().validateCode(code);
-      if (!mounted || _referralCodeController.text.trim() != code) return;
-      setState(() => _referralValidation = result);
-    });
+    _referralValidationTimer = Timer(
+      const Duration(milliseconds: 450),
+      () async {
+        final result = await ReferralService().validateCode(code);
+        if (!mounted || _referralCodeController.text.trim() != code) return;
+        setState(() => _referralValidation = result);
+      },
+    );
   }
 
   Future<void> _resetPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     final emailController = TextEditingController(text: _emailController.text);
     final email = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Resetowanie hasła'),
+        title: Text(l10n.resetPasswordTitle),
         content: TextField(
           controller: emailController,
           autofocus: true,
           keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(
-            labelText: 'Adres e-mail',
+          decoration: InputDecoration(
+            labelText: l10n.emailAddressLabel,
             prefixIcon: Icon(Icons.email_outlined),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Anuluj'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, emailController.text),
-            child: const Text('Wyślij link'),
+            child: Text(l10n.sendResetLinkAction),
           ),
         ],
       ),
@@ -393,7 +404,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (email == null || _validateEmail(email) != null) {
       if (email != null && mounted) {
-        setState(() => _errorMessage = 'Wpisz poprawny adres e-mail.');
+        setState(() => _errorMessage = l10n.invalidEmail);
       }
       return;
     }
@@ -401,9 +412,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _auth.sendPasswordResetEmail(email);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Link do resetu hasła został wysłany.')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.passwordResetSuccess)));
       }
     } on AuthException catch (error) {
       if (mounted) {
@@ -438,10 +448,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-String _referralErrorMessage(
-  AppLocalizations l10n,
-  ReferralErrorCode code,
-) {
+String _referralErrorMessage(AppLocalizations l10n, ReferralErrorCode code) {
   switch (code) {
     case ReferralErrorCode.codeTooShort:
       return l10n.referralCodeTooShort;

@@ -59,6 +59,7 @@ class _MaintenanceScheduleSectionState
   }
 
   Future<void> _scheduleTaskNotification(MaintenanceTaskModel task) async {
+    final l10n = AppLocalizations.of(context)!;
     if (task.id.isEmpty || _scheduledDates[task.id] == task.nextDueDate) return;
     _scheduledDates[task.id] = task.nextDueDate;
 
@@ -79,7 +80,7 @@ class _MaintenanceScheduleSectionState
       ScheduledReminder(
         id: reminderId,
         title: task.title,
-        body: 'Czas na zaplanowane zadanie w akwarium.',
+        body: l10n.scheduledAquariumTaskNotification,
         date: scheduledDate,
       ),
     );
@@ -87,6 +88,7 @@ class _MaintenanceScheduleSectionState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -95,14 +97,14 @@ class _MaintenanceScheduleSectionState
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Harmonogram pielęgnacji',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    l10n.maintenanceScheduleTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Dodaj zadanie',
+                  tooltip: l10n.addTask,
                   onPressed: () => _openTaskForm(),
                   icon: const Icon(Icons.add_circle_outline),
                 ),
@@ -119,13 +121,13 @@ class _MaintenanceScheduleSectionState
                   );
                 }
                 if (snapshot.hasError) {
-                  return const Text('Nie udało się wczytać harmonogramu.');
+                  return Text(l10n.maintenanceLoadError);
                 }
                 final tasks = snapshot.data ?? const <MaintenanceTaskModel>[];
                 if (tasks.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text('Nie dodano jeszcze zadań pielęgnacyjnych.'),
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(l10n.maintenanceEmpty),
                   );
                 }
                 return Column(
@@ -162,7 +164,11 @@ class _MaintenanceScheduleSectionState
     } on Object catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Nie udało się dodać zadania: $error')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.maintenanceTaskAddedError('$error'),
+            ),
+          ),
         );
       }
     }
@@ -191,14 +197,23 @@ class _MaintenanceScheduleSectionState
         ),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Wykonano: ${task.title}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!
+                  .maintenanceTaskCompleted(task.title),
+            ),
+          ),
+        );
       }
     } on Object catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Nie udało się zaktualizować zadania: $error'),
+            content: Text(
+              AppLocalizations.of(context)!
+                  .maintenanceTaskUpdateError('$error'),
+            ),
           ),
         );
       }
@@ -236,10 +251,10 @@ class _MaintenanceTaskTile extends StatelessWidget {
         ? Colors.orange.shade800
         : Theme.of(context).colorScheme.primary;
     final status = overdue
-        ? 'Po terminie!'
+        ? l10n.taskOverdue
         : dueToday
-        ? 'Dzisiaj'
-        : 'Za $daysRemaining dni';
+        ? l10n.forToday
+        : l10n.taskDueInDays(daysRemaining);
     final frequency = task.repeatFrequencyDays == 1
         ? l10n.dailyRecurrence
         : l10n.everyDays(task.repeatFrequencyDays);
@@ -247,7 +262,11 @@ class _MaintenanceTaskTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(_taskIcon(task.taskType), color: color),
-      title: Text(task.title),
+      title: Text(
+        task.taskType == 'custom'
+            ? task.title
+            : _maintenanceTaskLabel(l10n, task.taskType),
+      ),
       subtitle: Text(
         '$frequency · ${l10n.lastPerformedOn(_dateLabel(task.lastPerformedDate))}',
       ),
@@ -264,12 +283,12 @@ class _MaintenanceTaskTile extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                tooltip: 'Edytuj zadanie',
+                tooltip: l10n.editTaskTooltip,
                 visualDensity: VisualDensity.compact,
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit_outlined, size: 18),
               ),
-              TextButton(onPressed: onComplete, child: const Text('Wykonaj')),
+              TextButton(onPressed: onComplete, child: Text(l10n.performTask)),
             ],
           ),
         ],
@@ -289,15 +308,15 @@ class _MaintenanceTaskDialog extends StatefulWidget {
 }
 
 class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
-  static const _taskOptions = <String, String>{
-    'feeding': 'Karmienie',
-    'waterChange': 'Podmiana wody',
-    'filterCleaning': 'Czyszczenie filtra',
-    'plantTrimming': 'Przycinanie roślin',
-    'fertilizing': 'Nawożenie',
-    'quickCheck': 'Szybka kontrola',
-    'custom': 'Inne zadanie',
-  };
+  static const _taskTypes = [
+    'feeding',
+    'waterChange',
+    'filterCleaning',
+    'plantTrimming',
+    'fertilizing',
+    'quickCheck',
+    'custom',
+  ];
 
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _frequencyController;
@@ -330,7 +349,9 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
     final l10n = AppLocalizations.of(context)!;
     final isEditing = widget.existingTask != null;
     return AlertDialog(
-      title: Text(isEditing ? 'Edytuj zadanie' : 'Dodaj zadanie pielęgnacyjne'),
+      title: Text(
+        isEditing ? l10n.editMaintenanceTask : l10n.addMaintenanceTask,
+      ),
       content: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.sizeOf(context).height * 0.65,
@@ -342,17 +363,17 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
-                  initialValue: _taskOptions.containsKey(_taskType)
+                  initialValue: _taskTypes.contains(_taskType)
                       ? _taskType
                       : 'custom',
-                  decoration: const InputDecoration(
-                    labelText: 'Rodzaj zadania',
+                  decoration: InputDecoration(
+                    labelText: l10n.maintenanceTaskTypeLabel,
                   ),
-                  items: _taskOptions.entries
+                  items: _taskTypes
                       .map(
-                        (entry) => DropdownMenuItem(
-                          value: entry.key,
-                          child: Text(entry.value),
+                        (type) => DropdownMenuItem(
+                          value: type,
+                          child: Text(_maintenanceTaskLabel(l10n, type)),
                         ),
                       )
                       .toList(growable: false),
@@ -393,14 +414,14 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
                 ],
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Ostatnio wykonano'),
+                  title: Text(l10n.maintenanceLastPerformed),
                   subtitle: Text(_dateLabel(_lastPerformedDate)),
                   trailing: const Icon(Icons.calendar_today_outlined),
                   onTap: _pickLastPerformedDate,
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Godzina przypomnienia'),
+                  title: Text(l10n.reminderTimeLabel),
                   subtitle: Text(_reminderTime.format(context)),
                   trailing: const Icon(Icons.access_time_outlined),
                   onTap: _pickReminderTime,
@@ -413,7 +434,7 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Anuluj'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: () {
@@ -428,7 +449,7 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
               _reminderTime.hour,
               _reminderTime.minute,
             );
-            final title = _taskOptions[_taskType]!;
+            final title = _maintenanceTaskLabel(l10n, _taskType);
             Navigator.pop(
               context,
               MaintenanceTaskModel(
@@ -442,7 +463,7 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
               ),
             );
           },
-          child: Text(isEditing ? 'Zapisz' : 'Dodaj'),
+          child: Text(isEditing ? l10n.save : l10n.add),
         ),
       ],
     );
@@ -466,6 +487,17 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
     if (selected != null) setState(() => _reminderTime = selected);
   }
 }
+
+String _maintenanceTaskLabel(AppLocalizations l10n, String taskType) =>
+    switch (taskType) {
+      'feeding' => l10n.maintenanceTaskFeeding,
+      'waterChange' => l10n.maintenanceTaskWaterChange,
+      'filterCleaning' => l10n.maintenanceTaskFilterCleaning,
+      'plantTrimming' => l10n.maintenanceTaskPlantTrimming,
+      'fertilizing' => l10n.maintenanceTaskFertilizing,
+      'quickCheck' => l10n.maintenanceTaskQuickCheck,
+      _ => l10n.maintenanceTaskCustom,
+    };
 
 int _notificationId(MaintenanceTaskModel task) {
   final value = '${task.aquariumId}:${task.id}';

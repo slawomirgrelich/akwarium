@@ -43,12 +43,22 @@ extension TankTypeLabel on TankType {
 
 TankType _tankTypeFromLabel(String label) {
   final normalized = label.toLowerCase();
-  if (normalized.contains('morsk')) return TankType.marine;
-  if (normalized.contains('krewet')) return TankType.shrimp;
-  if (normalized.contains('roślin') || normalized.contains('plant')) {
+  if (normalized.contains('morsk') ||
+      normalized.contains('marine') ||
+      normalized.contains('salt')) {
+    return TankType.marine;
+  }
+  if (normalized.contains('krewet') || normalized.contains('shrimp')) {
+    return TankType.shrimp;
+  }
+  if (normalized.contains('roślin') ||
+      normalized.contains('roslin') ||
+      normalized.contains('plant')) {
     return TankType.planted;
   }
-  if (normalized.contains('biotop')) return TankType.biotope;
+  if (normalized.contains('biotop') || normalized.contains('biotope')) {
+    return TankType.biotope;
+  }
   return TankType.freshwater;
 }
 
@@ -1018,7 +1028,7 @@ class AquariumProvider extends ChangeNotifier {
       name: profile.name,
       capacityLiters: profile.volumeNetLiters,
       setupDate: profile.setupDate,
-      type: profile.type.label,
+      type: profile.type.name,
       createdAt: createdAt,
     );
     await reference.set(aquarium.toMap(), SetOptions(merge: merge));

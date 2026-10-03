@@ -874,21 +874,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderTaskPreset => 'Task type';
 
   @override
-  String get reminderTaskWaterChange => 'Water change';
-
-  @override
-  String get reminderTaskFilter => 'Clean filter';
-
-  @override
-  String get reminderTaskWaterTest => 'Water test';
-
-  @override
-  String get reminderTaskFertilizer => 'Fertilizing';
-
-  @override
-  String get reminderTaskCustom => 'Custom task';
-
-  @override
   String get reminderCustomNameRequired => 'Enter a name for the custom task.';
 
   @override
@@ -1235,7 +1220,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get reminderTaskWaterChange => 'Water change';
+
+  @override
   String get reminderTaskFilterClean => 'Clean filter';
+
+  @override
+  String get reminderTaskWaterTest => 'Water test';
+
+  @override
+  String get reminderTaskFertilizer => 'Fertilizing';
+
+  @override
+  String get reminderTaskCustom => 'Custom task';
 
   @override
   String get scheduledAquariumTaskNotification => 'Scheduled aquarium task';
@@ -2110,4 +2107,783 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ticketStatusClosed => 'Closed';
+
+  @override
+  String get categoryShrimp => 'Shrimp';
+
+  @override
+  String get categorySnails => 'Snails';
+
+  @override
+  String get categoryCrabs => 'Crabs';
+
+  @override
+  String get categoryOther => 'Other';
+
+  @override
+  String get categoryFauna => 'Fauna';
+
+  @override
+  String get categoryFlora => 'Flora';
+
+  @override
+  String get speciesCategoryLabel => 'Species';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String livestockCount(int count) {
+    return 'Count: $count';
+  }
+
+  @override
+  String get plantPositionForeground => 'Foreground';
+
+  @override
+  String get plantPositionMidground => 'Midground';
+
+  @override
+  String get plantPositionBackground => 'Background';
+
+  @override
+  String get plantPositionEpiphyte => 'Epiphyte';
+
+  @override
+  String get plantPositionFloating => 'Floating';
+
+  @override
+  String get plantPositionFieldLabel => 'Plant position';
+
+  @override
+  String get journalCategoryObservation => 'Observation';
+
+  @override
+  String get journalCategoryFishHealth => 'Fish health';
+
+  @override
+  String get journalCategoryPlantGrowth => 'Plant growth';
+
+  @override
+  String get journalCategoryAlgae => 'Algae';
+
+  @override
+  String get journalCategoryEquipment => 'Equipment / upgrades';
+
+  @override
+  String get aquariumsSectionTitle => 'My aquariums';
+
+  @override
+  String get cloudSyncSubtitle => 'Data synced to the cloud';
+
+  @override
+  String get addAquariumTooltip => 'Add aquarium';
+
+  @override
+  String get aquariumAddedMessage => 'Aquarium added.';
+
+  @override
+  String get aquariumUpdatedMessage => 'Aquarium saved.';
+
+  @override
+  String get deleteAquariumTitle => 'Delete aquarium?';
+
+  @override
+  String deleteAquariumPrompt(String name) {
+    return 'Aquarium “$name” and all of its measurements will be deleted.';
+  }
+
+  @override
+  String get aquariumDeletedMessage => 'Aquarium deleted.';
+
+  @override
+  String get aquariumLoadError => 'Could not load aquariums. Try again.';
+
+  @override
+  String aquariumPickerLoadError(String error) {
+    return 'Could not load aquariums: $error';
+  }
+
+  @override
+  String aquariumEstablishedOn(String date) {
+    return 'Established $date';
+  }
+
+  @override
+  String get editAquariumTitle => 'Edit aquarium';
+
+  @override
+  String get addAquariumTitle => 'Add aquarium';
+
+  @override
+  String get aquariumNameLabel => 'Aquarium name';
+
+  @override
+  String get aquariumNameRequired => 'Enter an aquarium name.';
+
+  @override
+  String get aquariumCapacityLabel => 'Capacity';
+
+  @override
+  String get aquariumCapacityInvalid => 'Enter a capacity greater than zero.';
+
+  @override
+  String get aquariumTypeLabel => 'Aquarium type';
+
+  @override
+  String get aquariumSetupDateLabel => 'Setup date';
+
+  @override
+  String get aquariumOptionsTooltip => 'Aquarium options';
+
+  @override
+  String get noAquariumsAdded => 'No aquariums added';
+
+  @override
+  String get addFirstAquariumAction => 'Add your first aquarium';
+
+  @override
+  String get aquariumDetailsTitle => 'Aquarium details';
+
+  @override
+  String get aquariumDetailsLoadError => 'Could not load aquarium details.';
+
+  @override
+  String get noWaterMeasurements => 'No water measurements.';
+
+  @override
+  String get reportPdfAction => 'Generate PDF report';
+
+  @override
+  String get reportProHeadline =>
+      'Generate professional PDF reports for your Aquarist PRO aquariums.';
+
+  @override
+  String reportGenerationError(String error) {
+    return 'Could not generate the report: $error';
+  }
+
+  @override
+  String get estimatedWeightLabel => 'Estimated weight';
+
+  @override
+  String get browseSpeciesAtlas => 'Browse species atlas';
+
+  @override
+  String get addCustomSpecies => 'Add a custom species';
+
+  @override
+  String get speciesNameLabel => 'Species name';
+
+  @override
+  String get speciesNameRequired => 'Enter a species name.';
+
+  @override
+  String get latinNameOptionalLabel => 'Latin name (optional)';
+
+  @override
+  String get speciesCountLabel => 'Quantity';
+
+  @override
+  String get positiveCountRequired => 'Enter a number greater than zero.';
+
+  @override
+  String get addFirstSpecies => 'Add the first species';
+
+  @override
+  String get livestockLoadError => 'Could not load aquarium livestock.';
+
+  @override
+  String livestockSyncError(String error) {
+    return 'Could not sync livestock: $error';
+  }
+
+  @override
+  String get signInToViewLivestock => 'Sign in to view livestock.';
+
+  @override
+  String get unknownSpecies => 'Unknown species';
+
+  @override
+  String addedOnDate(String date) {
+    return 'Added: $date';
+  }
+
+  @override
+  String get decreaseQuantityTooltip => 'Decrease quantity';
+
+  @override
+  String get increaseQuantityTooltip => 'Increase quantity';
+
+  @override
+  String get stockHealthTitle => 'Livestock health and compatibility';
+
+  @override
+  String get livestockWarnings => 'Warnings';
+
+  @override
+  String get livestockCompatible => 'Compatible';
+
+  @override
+  String minimumVolumeForStock(int required, String capacity) {
+    return 'Minimum volume for livestock: $required L / $capacity L';
+  }
+
+  @override
+  String stockCapacityExceeded(int liters) {
+    return 'Livestock requirements exceed the aquarium capacity by $liters L.';
+  }
+
+  @override
+  String noSharedRangeFor(String conflicts) {
+    return 'No shared range for: $conflicts';
+  }
+
+  @override
+  String get calendarTasksTitle => 'Task calendar';
+
+  @override
+  String get addTask => 'Add task';
+
+  @override
+  String get newTask => 'New task';
+
+  @override
+  String get taskTitleLabel => 'Title';
+
+  @override
+  String get descriptionLabel => 'Description';
+
+  @override
+  String get reminderTimeLabel => 'Reminder time';
+
+  @override
+  String get noteLabel => 'Note';
+
+  @override
+  String get tagsCommaSeparated => 'Tags, separated by commas';
+
+  @override
+  String get attachLatestWaterMeasurement =>
+      'Attach the latest water measurement';
+
+  @override
+  String photosReadyToSave(int count) {
+    return '$count photos ready to save';
+  }
+
+  @override
+  String get entryAddedMessage => 'Entry added.';
+
+  @override
+  String get reminderAddedMessage => 'Reminder added.';
+
+  @override
+  String get addEntryTooltip => 'Add entry';
+
+  @override
+  String get addReminderTooltip => 'Add reminder';
+
+  @override
+  String get calendarLoadError =>
+      'Could not load the calendar. Try again later.';
+
+  @override
+  String get journalLoadError => 'Could not load the journal.';
+
+  @override
+  String get noJournalEntries => 'No entries yet. Add your first observation.';
+
+  @override
+  String get compareBeforeAfterTitle => 'Before / after comparison';
+
+  @override
+  String get photoCompareMinimumCount =>
+      'Add at least two photos to the journal.';
+
+  @override
+  String get photoThen => 'Before';
+
+  @override
+  String get photoNow => 'After';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get referralCodeOptional => 'Have a referral code? (optional)';
+
+  @override
+  String get firebaseGenericError => 'Could not connect to Firebase.';
+
+  @override
+  String get resetPasswordTitle => 'Reset password';
+
+  @override
+  String get emailAddressLabel => 'Email address';
+
+  @override
+  String get sendResetLinkAction => 'Send link';
+
+  @override
+  String get passwordResetSuccess => 'Password reset link sent.';
+
+  @override
+  String get signInToViewPhotos => 'Sign in to view photos.';
+
+  @override
+  String get photoLoadError => 'Could not load photos.';
+
+  @override
+  String get compareFirstLatestPhotos => 'Compare the first and latest photos';
+
+  @override
+  String get unlimitedPhotoJournal => 'Unlimited photo journal';
+
+  @override
+  String get photoSavedMessage => 'Photo saved.';
+
+  @override
+  String get photoCaptionTitle => 'Photo description';
+
+  @override
+  String get optionalPhotoDescription => 'Optional description';
+
+  @override
+  String get mainPhoto => 'Main photo';
+
+  @override
+  String get setAsAquariumCover => 'Set as aquarium cover';
+
+  @override
+  String get twoPhotosRequired => 'You need at least two photos.';
+
+  @override
+  String get compareProgressTitle => 'Compare progress';
+
+  @override
+  String get maintenanceScheduleTitle => 'Care schedule';
+
+  @override
+  String get maintenanceLoadError => 'Could not load the care schedule.';
+
+  @override
+  String get maintenanceEmpty => 'No care tasks have been added yet.';
+
+  @override
+  String maintenanceTaskAddedError(String error) {
+    return 'Could not add task: $error';
+  }
+
+  @override
+  String maintenanceTaskUpdateError(String error) {
+    return 'Could not update task: $error';
+  }
+
+  @override
+  String maintenanceTaskCompleted(String title) {
+    return 'Completed: $title';
+  }
+
+  @override
+  String get editTaskTooltip => 'Edit task';
+
+  @override
+  String get performTask => 'Complete';
+
+  @override
+  String get taskOverdue => 'Overdue';
+
+  @override
+  String taskDueInDays(int days) {
+    return 'In $days days';
+  }
+
+  @override
+  String get maintenanceTaskTypeLabel => 'Task type';
+
+  @override
+  String get maintenanceLastPerformed => 'Last performed';
+
+  @override
+  String get maintenanceTaskFeeding => 'Feeding';
+
+  @override
+  String get maintenanceTaskWaterChange => 'Water change';
+
+  @override
+  String get maintenanceTaskFilterCleaning => 'Clean filter';
+
+  @override
+  String get maintenanceTaskPlantTrimming => 'Trim plants';
+
+  @override
+  String get maintenanceTaskFertilizing => 'Fertilize';
+
+  @override
+  String get maintenanceTaskQuickCheck => 'Quick check';
+
+  @override
+  String get maintenanceTaskCustom => 'Other task';
+
+  @override
+  String get editMaintenanceTask => 'Edit task';
+
+  @override
+  String get addMaintenanceTask => 'Add care task';
+
+  @override
+  String get fertilizerDoseInstructions =>
+      'Enter the aquarium volume and choose a fertilizer type.';
+
+  @override
+  String get fertilizerVolumeExample => 'e.g. 100';
+
+  @override
+  String get litersUnit => 'liters';
+
+  @override
+  String get fertilizerTypeLabel => 'Fertilizer type';
+
+  @override
+  String get fertilizerMicro => 'Micro fertilizer';
+
+  @override
+  String get fertilizerMacroNpk => 'Macro fertilizer (NPK)';
+
+  @override
+  String get fertilizerPotassium => 'Potassium (K)';
+
+  @override
+  String get calculateDoseAction => 'Calculate dose';
+
+  @override
+  String get enterAquariumVolume => 'Enter the aquarium volume.';
+
+  @override
+  String get enterPositiveNumber => 'Enter a number greater than zero.';
+
+  @override
+  String netCapacitySaved(String liters) {
+    return 'Saved net capacity: $liters L';
+  }
+
+  @override
+  String get knowledgeBaseAddAquariumPrompt =>
+      'Add an aquarium to check species compatibility.';
+
+  @override
+  String get diagnoseWithProTooltip => 'PRO diagnostics';
+
+  @override
+  String get knowledgeCategoryAlgae => 'Algae';
+
+  @override
+  String temperamentLabel(String value) {
+    return 'Temperament: $value';
+  }
+
+  @override
+  String get plantRequirementsTitle => 'Plant requirements';
+
+  @override
+  String get lightLabel => 'Light';
+
+  @override
+  String get co2Label => 'CO2';
+
+  @override
+  String get growthRateLabel => 'Growth rate';
+
+  @override
+  String get positionLabel => 'Position';
+
+  @override
+  String get algaeSymptomsTitle => 'Symptoms and control';
+
+  @override
+  String get causesLabel => 'Causes';
+
+  @override
+  String get symptomsLabel => 'Symptoms';
+
+  @override
+  String get controlPlanLabel => 'Plan';
+
+  @override
+  String get difficultyAdvanced => 'advanced';
+
+  @override
+  String get temperamentShoalingPeaceful => 'peaceful, shoaling';
+
+  @override
+  String get temperamentShoalingPeacefulFeminine => 'peaceful, shoaling';
+
+  @override
+  String get temperamentActivePeaceful => 'peaceful, active';
+
+  @override
+  String get temperamentTerritorialPeaceful => 'peaceful, territorial';
+
+  @override
+  String get temperamentTerritorialMale => 'territorial male';
+
+  @override
+  String get lightLow => 'Low';
+
+  @override
+  String get lightLowMedium => 'Low to medium';
+
+  @override
+  String get lightMedium => 'Medium';
+
+  @override
+  String get lightMediumHigh => 'Medium to high';
+
+  @override
+  String get co2NotRequired => 'Not required';
+
+  @override
+  String get co2Optional => 'Optional';
+
+  @override
+  String get co2Recommended => 'Recommended';
+
+  @override
+  String get growthSlow => 'Slow';
+
+  @override
+  String get growthMedium => 'Medium';
+
+  @override
+  String get growthFast => 'Fast';
+
+  @override
+  String get plantPositionMiddleRoot => 'Midground / root';
+
+  @override
+  String get plantPositionMiddleBackground => 'Midground / background';
+
+  @override
+  String get plantPositionMiddle => 'Midground';
+
+  @override
+  String get plantPositionBack => 'Background';
+
+  @override
+  String get plantPositionFront => 'Foreground';
+
+  @override
+  String get algaeNameBlackBeard => 'Black beard algae';
+
+  @override
+  String get algaeNameGreen => 'Green algae';
+
+  @override
+  String get algaeNameCyanobacteria => 'Cyanobacteria';
+
+  @override
+  String get algaeNameDiatoms => 'Diatoms';
+
+  @override
+  String get algaeCauseCo2Fluctuations => 'CO2 fluctuations';
+
+  @override
+  String get algaeCausePoorCirculation => 'Poor circulation';
+
+  @override
+  String get algaeCauseUnstableFertilization => 'Unstable fertilization';
+
+  @override
+  String get algaeCauseExcessLight => 'Excess light';
+
+  @override
+  String get algaeCausePo4Deficiency => 'PO4 deficiency';
+
+  @override
+  String get algaeCauseUnstableCo2 => 'Unstable CO2';
+
+  @override
+  String get algaeCauseNo3Deficiency => 'No NO3';
+
+  @override
+  String get algaeCauseStagnantWater => 'Stagnant water';
+
+  @override
+  String get algaeCauseOrganicMatter => 'Excess organic matter';
+
+  @override
+  String get algaeCauseNewTank => 'New aquarium';
+
+  @override
+  String get algaeCauseSilicates => 'Silicates in the water';
+
+  @override
+  String get algaeCauseImmatureFilter => 'Immature filter';
+
+  @override
+  String get algaeSymptomBlackTufts =>
+      'Black or red tufts on leaves and decorations';
+
+  @override
+  String get algaeSymptomGreenFilm => 'Green film on glass or spots on leaves';
+
+  @override
+  String get algaeSymptomCyanobacteriaMat =>
+      'Slimy blue-green layer with a characteristic smell';
+
+  @override
+  String get algaeSymptomBrownDust =>
+      'Brown dust on glass, substrate and decorations';
+
+  @override
+  String get algaeActionStabilizeCo2 =>
+      'Stabilize CO2 dosing and improve circulation.';
+
+  @override
+  String get algaeActionRemoveAffected =>
+      'Remove affected leaves and decorations.';
+
+  @override
+  String get algaeActionReduceLight =>
+      'Limit lighting to 6–8 hours and observe the tank for a week.';
+
+  @override
+  String get algaeActionCleanGlass =>
+      'Reduce lighting and clean the glass regularly.';
+
+  @override
+  String get algaeActionSupplementPo4 => 'Check PO4 and increase it gradually.';
+
+  @override
+  String get algaeActionAddFastPlants =>
+      'Increase the mass of fast-growing plants.';
+
+  @override
+  String get algaeActionRemoveMat =>
+      'Remove the mat mechanically and perform a larger water change.';
+
+  @override
+  String get algaeActionRestoreNo3 =>
+      'Restore a measurable NO3 level and improve water flow.';
+
+  @override
+  String get algaeActionReduceFeeding =>
+      'Reduce lighting and feeding until the tank stabilizes.';
+
+  @override
+  String get algaeActionCleanDiatoms =>
+      'Remove the film during water changes and keep maintenance regular.';
+
+  @override
+  String get algaeActionMatureFilter =>
+      'Allow the biofilter to mature; do not clean all media at once.';
+
+  @override
+  String get algaeActionCheckSilicates =>
+      'Check tap-water silicates if the problem persists.';
+
+  @override
+  String get substrateActiveSoil => 'Active soil';
+
+  @override
+  String get substrateMineral => 'Mineral substrate';
+
+  @override
+  String get substrateOther => 'Other';
+
+  @override
+  String get changeAlgaePhoto => 'Change algae photo';
+
+  @override
+  String get analyzingConditions => 'Analyzing conditions...';
+
+  @override
+  String get analyzingAlgaeAndParameters =>
+      'Analyzing algae and aquarium parameters...';
+
+  @override
+  String algaeDiagnosisTitle(String name) {
+    return 'Algae diagnosis: $name';
+  }
+
+  @override
+  String get actionPlanTitle => 'Action plan';
+
+  @override
+  String get scannerAnalyzingPhoto => 'Analyzing photo...';
+
+  @override
+  String get scannerAnalyzingSpecies => 'Analyzing fish or plant photo...';
+
+  @override
+  String scannerPhotoOpenError(String error) {
+    return 'Could not open photo: $error';
+  }
+
+  @override
+  String get scannerAnalysisTimeout =>
+      'Analysis took too long. Check your connection and try again.';
+
+  @override
+  String get mockAiUnavailable =>
+      'Demo result. The AI endpoint is unavailable.';
+
+  @override
+  String recognizedSpecies(String name) {
+    return 'Recognized: $name';
+  }
+
+  @override
+  String get livestockCompatibilityTitle => 'Livestock compatibility';
+
+  @override
+  String get closeAction => 'Close';
+
+  @override
+  String compatibilityIncompatibleTemperatureRanges(
+    String first,
+    String second,
+  ) {
+    return '$first and $second have no overlapping temperature range.';
+  }
+
+  @override
+  String get monthlyPrice => '9.99 PLN / month';
+
+  @override
+  String get yearlyPrice => '69.99 PLN / year';
+
+  @override
+  String get journalSearchHint => 'Search entries, tags and observations';
+
+  @override
+  String get newJournalEntry => 'New journal entry';
+
+  @override
+  String get galleryAction => 'Gallery';
+
+  @override
+  String get cameraAction => 'Camera';
+
+  @override
+  String get photoAdded => 'Photo added';
+
+  @override
+  String get selectAquariumFirst => 'Select an aquarium first.';
+
+  @override
+  String get healthy => 'Healthy';
+
+  @override
+  String get reminderOptionsTooltip => 'Reminder options';
+
+  @override
+  String get reminderTaskFilter => 'Clean filter';
 }

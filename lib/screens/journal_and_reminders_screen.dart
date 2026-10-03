@@ -60,7 +60,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
             final error = journalSnapshot.error ?? reminderSnapshot.error;
             if (error != null && journal.isEmpty && reminders.isEmpty) {
               return _JournalScaffold(
-                body: _JournalError(message: _messageFor(error)),
+                body: _JournalError(message: _messageFor(context, error)),
               );
             }
 
@@ -167,7 +167,9 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
           percentageWaterChanged: entry.percentageWaterChanged,
         ),
       );
-      if (context.mounted) _showMessage(context, 'Wpis został dodany.');
+      if (context.mounted) {
+        _showMessage(context, AppLocalizations.of(context)!.entryAddedMessage);
+      }
     } on AquariumJournalServiceException catch (error) {
       if (context.mounted) _showMessage(context, error.message, error: true);
     }
@@ -201,7 +203,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
       await _service.addReminder(saved);
       if (isPro) await _scheduleReminder(l10n, saved);
       if (context.mounted) {
-        _showMessage(context, 'Przypomnienie zostało dodane.');
+        _showMessage(context, l10n.reminderAddedMessage);
       }
     } on AquariumJournalServiceException catch (error) {
       if (context.mounted) _showMessage(context, error.message, error: true);
@@ -266,9 +268,9 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
 
   int _notificationId(String id) => id.hashCode & 0x7fffffff;
 
-  String _messageFor(Object error) {
+  String _messageFor(BuildContext context, Object error) {
     if (error is AquariumJournalServiceException) return error.message;
-    return 'Nie udało się wczytać dziennika.';
+    return AppLocalizations.of(context)!.journalLoadError;
   }
 
   void _showMessage(
@@ -302,7 +304,7 @@ class _JournalScaffold extends StatelessWidget {
         actions: [
           if (onAdd != null)
             IconButton(
-              tooltip: 'Dodaj wpis',
+              tooltip: l10n.addEntryTooltip,
               onPressed: onAdd,
               icon: const Icon(Icons.add),
             ),
@@ -444,7 +446,7 @@ class _CalendarTab extends StatelessWidget {
             if (!isProUser) const ProBadge(compact: true),
             const SizedBox(width: 8),
             IconButton.filledTonal(
-              tooltip: 'Dodaj przypomnienie',
+              tooltip: l10n.addReminderTooltip,
               onPressed: onAdd,
               icon: const Icon(Icons.add_task),
             ),
@@ -504,9 +506,9 @@ class _CalendarTab extends StatelessWidget {
           ),
         if (upcoming.isNotEmpty) ...[
           const SizedBox(height: 20),
-          const Text(
-            'Najbliższe zadania',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            l10n.upcomingTasks,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           ...upcoming
@@ -535,7 +537,7 @@ class _CalendarFallback extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Text(
-          'Nie udało się wczytać kalendarza. Spróbuj ponownie później.',
+          AppLocalizations.of(context)!.calendarLoadError,
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey.shade700),
         ),
@@ -557,6 +559,7 @@ class _ReminderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final overdue =
         reminder.nextDueDate.isBefore(DateTime.now()) && !reminder.isCompleted;
     return Card(
@@ -574,15 +577,15 @@ class _ReminderTile extends StatelessWidget {
         ),
         title: Text(reminder.title),
         subtitle: Text(
-          '${_formatDate(reminder.nextDueDate)}${reminder.isRecurring ? ' · co ${reminder.intervalDays} dni' : ''}',
+          '${_formatDate(reminder.nextDueDate)}${reminder.isRecurring ? ' · ${l10n.everyDays(reminder.intervalDays)}' : ''}',
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               tooltip: reminder.isCompleted
-                  ? 'Oznacz jako niewykonane'
-                  : 'Oznacz jako wykonane',
+                  ? l10n.markReminderIncomplete
+                  : l10n.markReminderComplete,
               onPressed: onComplete,
               icon: Icon(
                 reminder.isCompleted
@@ -592,12 +595,12 @@ class _ReminderTile extends StatelessWidget {
               ),
             ),
             PopupMenuButton<String>(
-              tooltip: 'Opcje przypomnienia',
+              tooltip: l10n.reminderOptionsTooltip,
               onSelected: (value) {
                 if (value == 'delete') onDelete();
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'delete', child: Text('Usuń')),
+              itemBuilder: (_) => [
+                PopupMenuItem(value: 'delete', child: Text(l10n.deleteAction)),
               ],
             ),
           ],

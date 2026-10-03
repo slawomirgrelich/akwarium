@@ -881,21 +881,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get reminderTaskPreset => 'Rodzaj zadania';
 
   @override
-  String get reminderTaskWaterChange => 'Podmiana wody';
-
-  @override
-  String get reminderTaskFilter => 'Czyszczenie filtra';
-
-  @override
-  String get reminderTaskWaterTest => 'Test parametrów';
-
-  @override
-  String get reminderTaskFertilizer => 'Nawożenie';
-
-  @override
-  String get reminderTaskCustom => 'Własne zadanie';
-
-  @override
   String get reminderCustomNameRequired => 'Wpisz nazwę własnego zadania.';
 
   @override
@@ -1244,7 +1229,19 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String get reminderTaskWaterChange => 'Podmiana wody';
+
+  @override
   String get reminderTaskFilterClean => 'Czyszczenie filtra';
+
+  @override
+  String get reminderTaskWaterTest => 'Test parametrów';
+
+  @override
+  String get reminderTaskFertilizer => 'Nawożenie';
+
+  @override
+  String get reminderTaskCustom => 'Własne zadanie';
 
   @override
   String get scheduledAquariumTaskNotification =>
@@ -2125,4 +2122,787 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get ticketStatusClosed => 'Zamknięte';
+
+  @override
+  String get categoryShrimp => 'Krewetki';
+
+  @override
+  String get categorySnails => 'Ślimaki';
+
+  @override
+  String get categoryCrabs => 'Kraby';
+
+  @override
+  String get categoryOther => 'Inne';
+
+  @override
+  String get categoryFauna => 'Fauna';
+
+  @override
+  String get categoryFlora => 'Flora';
+
+  @override
+  String get speciesCategoryLabel => 'Gatunki';
+
+  @override
+  String get category => 'Kategoria';
+
+  @override
+  String livestockCount(int count) {
+    return 'Liczba: $count';
+  }
+
+  @override
+  String get plantPositionForeground => 'I plan';
+
+  @override
+  String get plantPositionMidground => 'II plan';
+
+  @override
+  String get plantPositionBackground => 'III plan';
+
+  @override
+  String get plantPositionEpiphyte => 'Epifit';
+
+  @override
+  String get plantPositionFloating => 'Pływająca';
+
+  @override
+  String get plantPositionFieldLabel => 'Pozycja rośliny';
+
+  @override
+  String get journalCategoryObservation => 'Obserwacja';
+
+  @override
+  String get journalCategoryFishHealth => 'Zdrowie ryb';
+
+  @override
+  String get journalCategoryPlantGrowth => 'Wzrost roślin';
+
+  @override
+  String get journalCategoryAlgae => 'Glony';
+
+  @override
+  String get journalCategoryEquipment => 'Sprzęt / inwestycje';
+
+  @override
+  String get aquariumsSectionTitle => 'Moje akwaria';
+
+  @override
+  String get cloudSyncSubtitle => 'Dane synchronizowane w chmurze';
+
+  @override
+  String get addAquariumTooltip => 'Dodaj akwarium';
+
+  @override
+  String get aquariumAddedMessage => 'Akwarium zostało dodane.';
+
+  @override
+  String get aquariumUpdatedMessage => 'Akwarium zostało zapisane.';
+
+  @override
+  String get deleteAquariumTitle => 'Usunąć akwarium?';
+
+  @override
+  String deleteAquariumPrompt(String name) {
+    return 'Akwarium „$name” i wszystkie jego pomiary zostaną usunięte.';
+  }
+
+  @override
+  String get aquariumDeletedMessage => 'Akwarium zostało usunięte.';
+
+  @override
+  String get aquariumLoadError =>
+      'Nie udało się wczytać akwariów. Spróbuj ponownie.';
+
+  @override
+  String aquariumPickerLoadError(String error) {
+    return 'Nie udało się wczytać akwariów: $error';
+  }
+
+  @override
+  String aquariumEstablishedOn(String date) {
+    return 'Założone $date';
+  }
+
+  @override
+  String get editAquariumTitle => 'Edytuj akwarium';
+
+  @override
+  String get addAquariumTitle => 'Dodaj akwarium';
+
+  @override
+  String get aquariumNameLabel => 'Nazwa akwarium';
+
+  @override
+  String get aquariumNameRequired => 'Podaj nazwę akwarium.';
+
+  @override
+  String get aquariumCapacityLabel => 'Pojemność';
+
+  @override
+  String get aquariumCapacityInvalid => 'Podaj pojemność większą od zera.';
+
+  @override
+  String get aquariumTypeLabel => 'Typ akwarium';
+
+  @override
+  String get aquariumSetupDateLabel => 'Data założenia';
+
+  @override
+  String get aquariumOptionsTooltip => 'Opcje akwarium';
+
+  @override
+  String get noAquariumsAdded => 'Brak dodanych akwariów';
+
+  @override
+  String get addFirstAquariumAction => 'Dodaj pierwsze akwarium';
+
+  @override
+  String get aquariumDetailsTitle => 'Szczegóły akwarium';
+
+  @override
+  String get aquariumDetailsLoadError =>
+      'Nie udało się wczytać szczegółów akwarium.';
+
+  @override
+  String get noWaterMeasurements => 'Brak pomiarów parametrów wody.';
+
+  @override
+  String get reportPdfAction => 'Generuj raport PDF';
+
+  @override
+  String get reportProHeadline =>
+      'Generuj profesjonalne raporty PDF swoich akwariów z Akwarysta PRO.';
+
+  @override
+  String reportGenerationError(String error) {
+    return 'Nie udało się wygenerować raportu: $error';
+  }
+
+  @override
+  String get estimatedWeightLabel => 'Szacowana waga';
+
+  @override
+  String get browseSpeciesAtlas => 'Przeglądaj atlas gatunków';
+
+  @override
+  String get addCustomSpecies => 'Dodaj własny gatunek';
+
+  @override
+  String get speciesNameLabel => 'Nazwa gatunkowa';
+
+  @override
+  String get speciesNameRequired => 'Wpisz nazwę gatunku.';
+
+  @override
+  String get latinNameOptionalLabel => 'Nazwa łacińska (opcjonalnie)';
+
+  @override
+  String get speciesCountLabel => 'Liczba sztuk';
+
+  @override
+  String get positiveCountRequired => 'Wpisz liczbę większą od zera.';
+
+  @override
+  String get addFirstSpecies => 'Dodaj pierwszy gatunek';
+
+  @override
+  String get livestockLoadError => 'Nie udało się wczytać obsady akwarium.';
+
+  @override
+  String livestockSyncError(String error) {
+    return 'Nie udało się zsynchronizować obsady: $error';
+  }
+
+  @override
+  String get signInToViewLivestock => 'Zaloguj się, aby zobaczyć obsadę.';
+
+  @override
+  String get unknownSpecies => 'Nieznany gatunek';
+
+  @override
+  String addedOnDate(String date) {
+    return 'Dodano: $date';
+  }
+
+  @override
+  String get decreaseQuantityTooltip => 'Zmniejsz ilość';
+
+  @override
+  String get increaseQuantityTooltip => 'Zwiększ ilość';
+
+  @override
+  String get stockHealthTitle => 'Zdrowie i zgodność obsady';
+
+  @override
+  String get livestockWarnings => 'Ostrzeżenia';
+
+  @override
+  String get livestockCompatible => 'Zgodna';
+
+  @override
+  String minimumVolumeForStock(int required, String capacity) {
+    return 'Minimalna objętość dla obsady: $required l / $capacity l';
+  }
+
+  @override
+  String stockCapacityExceeded(int liters) {
+    return 'Wymagania obsady przekraczają pojemność akwarium o $liters l.';
+  }
+
+  @override
+  String noSharedRangeFor(String conflicts) {
+    return 'Brak wspólnego zakresu dla: $conflicts';
+  }
+
+  @override
+  String get calendarTasksTitle => 'Kalendarz zadań';
+
+  @override
+  String get addTask => 'Dodaj zadanie';
+
+  @override
+  String get newTask => 'Nowe zadanie';
+
+  @override
+  String get taskTitleLabel => 'Tytuł';
+
+  @override
+  String get descriptionLabel => 'Opis';
+
+  @override
+  String get reminderTimeLabel => 'Godzina przypomnienia';
+
+  @override
+  String get noteLabel => 'Notatka';
+
+  @override
+  String get tagsCommaSeparated => 'Tagi, oddziel przecinkami';
+
+  @override
+  String get attachLatestWaterMeasurement => 'Podepnij ostatni pomiar wody';
+
+  @override
+  String photosReadyToSave(int count) {
+    return '$count zdjęć gotowych do zapisu';
+  }
+
+  @override
+  String get entryAddedMessage => 'Wpis został dodany.';
+
+  @override
+  String get reminderAddedMessage => 'Przypomnienie zostało dodane.';
+
+  @override
+  String get addEntryTooltip => 'Dodaj wpis';
+
+  @override
+  String get addReminderTooltip => 'Dodaj przypomnienie';
+
+  @override
+  String get calendarLoadError =>
+      'Nie udało się wczytać kalendarza. Spróbuj ponownie później.';
+
+  @override
+  String get journalLoadError => 'Nie udało się wczytać dziennika.';
+
+  @override
+  String get noJournalEntries => 'Brak wpisów. Dodaj pierwszą obserwację.';
+
+  @override
+  String get compareBeforeAfterTitle => 'Porównywarka przed / po';
+
+  @override
+  String get photoCompareMinimumCount =>
+      'Dodaj co najmniej dwa zdjęcia do dziennika.';
+
+  @override
+  String get photoThen => 'Wtedy';
+
+  @override
+  String get photoNow => 'Teraz';
+
+  @override
+  String get showPassword => 'Pokaż hasło';
+
+  @override
+  String get hidePassword => 'Ukryj hasło';
+
+  @override
+  String get back => 'Wróć';
+
+  @override
+  String get referralCodeOptional => 'Masz kod polecający? (opcjonalnie)';
+
+  @override
+  String get firebaseGenericError => 'Nie udało się połączyć z Firebase.';
+
+  @override
+  String get resetPasswordTitle => 'Resetowanie hasła';
+
+  @override
+  String get emailAddressLabel => 'Adres e-mail';
+
+  @override
+  String get sendResetLinkAction => 'Wyślij link';
+
+  @override
+  String get passwordResetSuccess => 'Link do resetu hasła został wysłany.';
+
+  @override
+  String get signInToViewPhotos => 'Zaloguj się, aby zobaczyć zdjęcia.';
+
+  @override
+  String get photoLoadError => 'Nie udało się wczytać zdjęć.';
+
+  @override
+  String get compareFirstLatestPhotos =>
+      'Porównaj pierwsze i najnowsze zdjęcie';
+
+  @override
+  String get unlimitedPhotoJournal => 'Nielimitowany dziennik zdjęć';
+
+  @override
+  String get photoSavedMessage => 'Zdjęcie zostało zapisane.';
+
+  @override
+  String get photoCaptionTitle => 'Opis zdjęcia';
+
+  @override
+  String get optionalPhotoDescription => 'Opcjonalny opis';
+
+  @override
+  String get mainPhoto => 'Zdjęcie główne';
+
+  @override
+  String get setAsAquariumCover => 'Ustaw jako okładkę akwarium';
+
+  @override
+  String get twoPhotosRequired => 'Potrzebujesz co najmniej dwóch zdjęć.';
+
+  @override
+  String get compareProgressTitle => 'Porównaj postęp';
+
+  @override
+  String get maintenanceScheduleTitle => 'Harmonogram pielęgnacji';
+
+  @override
+  String get maintenanceLoadError => 'Nie udało się wczytać harmonogramu.';
+
+  @override
+  String get maintenanceEmpty => 'Nie dodano jeszcze zadań pielęgnacyjnych.';
+
+  @override
+  String maintenanceTaskAddedError(String error) {
+    return 'Nie udało się dodać zadania: $error';
+  }
+
+  @override
+  String maintenanceTaskUpdateError(String error) {
+    return 'Nie udało się zaktualizować zadania: $error';
+  }
+
+  @override
+  String maintenanceTaskCompleted(String title) {
+    return 'Wykonano: $title';
+  }
+
+  @override
+  String get editTaskTooltip => 'Edytuj zadanie';
+
+  @override
+  String get performTask => 'Wykonaj';
+
+  @override
+  String get taskOverdue => 'Po terminie!';
+
+  @override
+  String taskDueInDays(int days) {
+    return 'Za $days dni';
+  }
+
+  @override
+  String get maintenanceTaskTypeLabel => 'Rodzaj zadania';
+
+  @override
+  String get maintenanceLastPerformed => 'Ostatnio wykonano';
+
+  @override
+  String get maintenanceTaskFeeding => 'Karmienie';
+
+  @override
+  String get maintenanceTaskWaterChange => 'Podmiana wody';
+
+  @override
+  String get maintenanceTaskFilterCleaning => 'Czyszczenie filtra';
+
+  @override
+  String get maintenanceTaskPlantTrimming => 'Przycinanie roślin';
+
+  @override
+  String get maintenanceTaskFertilizing => 'Nawożenie';
+
+  @override
+  String get maintenanceTaskQuickCheck => 'Szybka kontrola';
+
+  @override
+  String get maintenanceTaskCustom => 'Inne zadanie';
+
+  @override
+  String get editMaintenanceTask => 'Edytuj zadanie';
+
+  @override
+  String get addMaintenanceTask => 'Dodaj zadanie pielęgnacyjne';
+
+  @override
+  String get fertilizerDoseInstructions =>
+      'Podaj pojemność akwarium i wybierz rodzaj nawozu.';
+
+  @override
+  String get fertilizerVolumeExample => 'np. 100';
+
+  @override
+  String get litersUnit => 'litrów';
+
+  @override
+  String get fertilizerTypeLabel => 'Rodzaj nawozu';
+
+  @override
+  String get fertilizerMicro => 'Nawóz Mikro';
+
+  @override
+  String get fertilizerMacroNpk => 'Nawóz Makro (NPK)';
+
+  @override
+  String get fertilizerPotassium => 'Potas (K)';
+
+  @override
+  String get calculateDoseAction => 'Oblicz dawkę';
+
+  @override
+  String get enterAquariumVolume => 'Wpisz pojemność akwarium.';
+
+  @override
+  String get enterPositiveNumber => 'Wpisz liczbę większą od zera.';
+
+  @override
+  String netCapacitySaved(String liters) {
+    return 'Zapisano pojemność netto: $liters l';
+  }
+
+  @override
+  String get knowledgeBaseAddAquariumPrompt =>
+      'Dodaj akwarium, aby sprawdzić zgodność gatunków.';
+
+  @override
+  String get diagnoseWithProTooltip => 'Diagnostyka PRO';
+
+  @override
+  String get knowledgeCategoryAlgae => 'Glony';
+
+  @override
+  String temperamentLabel(String value) {
+    return 'Usposobienie: $value';
+  }
+
+  @override
+  String get plantRequirementsTitle => 'Wymagania rośliny';
+
+  @override
+  String get lightLabel => 'Światło';
+
+  @override
+  String get co2Label => 'CO2';
+
+  @override
+  String get growthRateLabel => 'Tempo wzrostu';
+
+  @override
+  String get positionLabel => 'Pozycja';
+
+  @override
+  String get algaeSymptomsTitle => 'Objawy i zwalczanie';
+
+  @override
+  String get causesLabel => 'Przyczyny';
+
+  @override
+  String get symptomsLabel => 'Objawy';
+
+  @override
+  String get controlPlanLabel => 'Plan';
+
+  @override
+  String get difficultyAdvanced => 'zaawansowana';
+
+  @override
+  String get temperamentShoalingPeaceful => 'łagodny, stadny';
+
+  @override
+  String get temperamentShoalingPeacefulFeminine => 'łagodna, stadna';
+
+  @override
+  String get temperamentActivePeaceful => 'łagodny, aktywny';
+
+  @override
+  String get temperamentTerritorialPeaceful => 'spokojna, terytorialna';
+
+  @override
+  String get temperamentTerritorialMale => 'samiec terytorialny';
+
+  @override
+  String get lightLow => 'Niskie';
+
+  @override
+  String get lightLowMedium => 'Niskie do średniego';
+
+  @override
+  String get lightMedium => 'Średnie';
+
+  @override
+  String get lightMediumHigh => 'Średnie do wysokiego';
+
+  @override
+  String get co2NotRequired => 'Niewymagane';
+
+  @override
+  String get co2Optional => 'Opcjonalne';
+
+  @override
+  String get co2Recommended => 'Zalecane';
+
+  @override
+  String get growthSlow => 'Wolne';
+
+  @override
+  String get growthMedium => 'Średnie';
+
+  @override
+  String get growthFast => 'Szybkie';
+
+  @override
+  String get plantPositionMiddleRoot => 'Środek / korzeń';
+
+  @override
+  String get plantPositionMiddleBackground => 'Środek / tył';
+
+  @override
+  String get plantPositionMiddle => 'Środek';
+
+  @override
+  String get plantPositionBack => 'Tył';
+
+  @override
+  String get plantPositionFront => 'Przód';
+
+  @override
+  String get algaeNameBlackBeard => 'Krasnorosty';
+
+  @override
+  String get algaeNameGreen => 'Zielenice';
+
+  @override
+  String get algaeNameCyanobacteria => 'Sinice';
+
+  @override
+  String get algaeNameDiatoms => 'Okrzemki';
+
+  @override
+  String get algaeCauseCo2Fluctuations => 'Wahania CO2';
+
+  @override
+  String get algaeCausePoorCirculation => 'Słaba cyrkulacja';
+
+  @override
+  String get algaeCauseUnstableFertilization => 'Niestabilne nawożenie';
+
+  @override
+  String get algaeCauseExcessLight => 'Nadmiar światła';
+
+  @override
+  String get algaeCausePo4Deficiency => 'Niedobór PO4';
+
+  @override
+  String get algaeCauseUnstableCo2 => 'Niestabilne CO2';
+
+  @override
+  String get algaeCauseNo3Deficiency => 'Brak NO3';
+
+  @override
+  String get algaeCauseStagnantWater => 'Zastoiny wody';
+
+  @override
+  String get algaeCauseOrganicMatter => 'Nadmiar materii organicznej';
+
+  @override
+  String get algaeCauseNewTank => 'Nowy zbiornik';
+
+  @override
+  String get algaeCauseSilicates => 'Krzemiany w wodzie';
+
+  @override
+  String get algaeCauseImmatureFilter => 'Niedojrzały filtr';
+
+  @override
+  String get algaeSymptomBlackTufts =>
+      'Czarne lub czerwone kępki na liściach i dekoracjach';
+
+  @override
+  String get algaeSymptomGreenFilm =>
+      'Zielony nalot na szybach lub punktowe plamy na liściach';
+
+  @override
+  String get algaeSymptomCyanobacteriaMat =>
+      'Śluzowata niebieskozielona warstwa o charakterystycznym zapachu';
+
+  @override
+  String get algaeSymptomBrownDust =>
+      'Brązowy pył na szybach, podłożu i dekoracjach';
+
+  @override
+  String get algaeActionStabilizeCo2 =>
+      'Ustabilizuj podawanie CO2 i popraw cyrkulację.';
+
+  @override
+  String get algaeActionRemoveAffected =>
+      'Usuń mechanicznie porażone liście i dekoracje.';
+
+  @override
+  String get algaeActionReduceLight =>
+      'Ogranicz światło do 6–8 godzin i obserwuj zbiornik przez tydzień.';
+
+  @override
+  String get algaeActionCleanGlass =>
+      'Skróć świecenie i regularnie czyść szyby.';
+
+  @override
+  String get algaeActionSupplementPo4 =>
+      'Sprawdź PO4 i uzupełniaj je stopniowo.';
+
+  @override
+  String get algaeActionAddFastPlants =>
+      'Zwiększ masę szybko rosnących roślin.';
+
+  @override
+  String get algaeActionRemoveMat =>
+      'Usuń matę mechanicznie i wykonaj większą podmianę wody.';
+
+  @override
+  String get algaeActionRestoreNo3 =>
+      'Przywróć mierzalny poziom NO3 i popraw przepływ.';
+
+  @override
+  String get algaeActionReduceFeeding =>
+      'Ogranicz światło oraz karmienie do czasu ustabilizowania zbiornika.';
+
+  @override
+  String get algaeActionCleanDiatoms =>
+      'Usuwaj nalot przy podmianach i utrzymuj regularność prac.';
+
+  @override
+  String get algaeActionMatureFilter =>
+      'Daj biologii czas na dojrzewanie i nie myj całego wkładu naraz.';
+
+  @override
+  String get algaeActionCheckSilicates =>
+      'Sprawdź krzemiany w wodzie kranowej, jeśli problem trwa długo.';
+
+  @override
+  String get substrateActiveSoil => 'Soil aktywny';
+
+  @override
+  String get substrateMineral => 'Podłoże mineralne';
+
+  @override
+  String get substrateOther => 'Inne';
+
+  @override
+  String get changeAlgaePhoto => 'Zmień zdjęcie glonu';
+
+  @override
+  String get analyzingConditions => 'Analizuję warunki...';
+
+  @override
+  String get analyzingAlgaeAndParameters =>
+      'Analizuję glony i parametry akwarium...';
+
+  @override
+  String algaeDiagnosisTitle(String name) {
+    return 'Diagnoza glonów: $name';
+  }
+
+  @override
+  String get actionPlanTitle => 'Plan działania';
+
+  @override
+  String get scannerAnalyzingPhoto => 'Analizuję zdjęcie...';
+
+  @override
+  String get scannerAnalyzingSpecies => 'Analizuję zdjęcie ryby/rośliny...';
+
+  @override
+  String scannerPhotoOpenError(String error) {
+    return 'Nie udało się otworzyć zdjęcia: $error';
+  }
+
+  @override
+  String get scannerAnalysisTimeout =>
+      'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.';
+
+  @override
+  String get mockAiUnavailable =>
+      'Wynik demonstracyjny. Endpoint AI nie jest dostępny.';
+
+  @override
+  String recognizedSpecies(String name) {
+    return 'Rozpoznano: $name';
+  }
+
+  @override
+  String get livestockCompatibilityTitle => 'Zgodność z obsadą';
+
+  @override
+  String get closeAction => 'Zamknij';
+
+  @override
+  String compatibilityIncompatibleTemperatureRanges(
+    String first,
+    String second,
+  ) {
+    return '$first i $second nie mają wspólnego zakresu temperatur.';
+  }
+
+  @override
+  String get monthlyPrice => '9,99 zł / miesiąc';
+
+  @override
+  String get yearlyPrice => '69,99 zł / rok';
+
+  @override
+  String get journalSearchHint => 'Szukaj wpisów, tagów i obserwacji';
+
+  @override
+  String get newJournalEntry => 'Nowy wpis dziennika';
+
+  @override
+  String get galleryAction => 'Galeria';
+
+  @override
+  String get cameraAction => 'Aparat';
+
+  @override
+  String get photoAdded => 'Zdjęcie dodane';
+
+  @override
+  String get selectAquariumFirst => 'Najpierw wybierz akwarium.';
+
+  @override
+  String get healthy => 'Zdrowe';
+
+  @override
+  String get reminderOptionsTooltip => 'Opcje przypomnienia';
+
+  @override
+  String get reminderTaskFilter => 'Czyszczenie filtra';
 }

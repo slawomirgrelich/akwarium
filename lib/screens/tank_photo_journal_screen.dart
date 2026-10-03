@@ -29,16 +29,14 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
     final l10n = AppLocalizations.of(context)!;
     final userId = _auth.currentUser?.uid;
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Zaloguj się, aby zobaczyć zdjęcia.')),
-      );
+      return Scaffold(body: Center(child: Text(l10n.signInToViewPhotos)));
     }
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.photoJournalTitle),
         actions: [
           IconButton(
-            tooltip: 'Porównaj zdjęcia',
+            tooltip: l10n.compareBeforeAfterTitle,
             onPressed: () => _openCompare(userId),
             icon: const Icon(Icons.compare_outlined),
           ),
@@ -53,7 +51,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Nie udało się wczytać zdjęć.'));
+            return Center(child: Text(l10n.photoLoadError));
           }
           if (photos.isEmpty) {
             return Center(child: Text(l10n.addFirstPhotoOfAquarium));
@@ -65,7 +63,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
                 child: FilledButton.icon(
                   onPressed: () => _openCompare(userId, photos),
                   icon: const Icon(Icons.compare_arrows_outlined),
-                  label: const Text('Porównaj pierwsze i najnowsze zdjęcie'),
+                  label: Text(l10n.compareFirstLatestPhotos),
                 ),
               ),
               Expanded(
@@ -108,7 +106,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
           if (mounted) {
             await ProPaywallDialog.show(
               context,
-              headline: 'Nielimitowany dziennik zdjęć',
+              headline: AppLocalizations.of(context)!.unlimitedPhotoJournal,
             );
           }
           return;
@@ -130,7 +128,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
         localFilePath: kIsWeb ? null : file.path,
       );
       if (!mounted) return;
-      _showPhotoMessage('Zdjęcie zostało zapisane.');
+      _showPhotoMessage(AppLocalizations.of(context)!.photoSavedMessage);
     } on Object catch (error) {
       if (mounted) {
         _showPhotoMessage(_photoErrorMessage(error), isError: true);
@@ -159,25 +157,26 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
   }
 
   Future<String?> _captionDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Opis zdjęcia'),
+        title: Text(l10n.photoCaptionTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLines: 3,
-          decoration: const InputDecoration(labelText: 'Opcjonalny opis'),
+          decoration: InputDecoration(labelText: l10n.optionalPhotoDescription),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Anuluj'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Zapisz'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -228,8 +227,9 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
                           ),
                           label: Text(
                             photo.isCoverPhoto
-                                ? 'Zdjęcie główne'
-                                : 'Ustaw jako okładkę akwarium',
+                                ? AppLocalizations.of(dialogContext)!.mainPhoto
+                                : AppLocalizations.of(dialogContext)!
+                                      .setAsAquariumCover,
                           ),
                         ),
                         FilledButton.icon(
@@ -244,7 +244,9 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
                             }
                           },
                           icon: const Icon(Icons.delete_outline),
-                          label: const Text('Usuń'),
+                          label: Text(
+                            AppLocalizations.of(dialogContext)!.deleteAction,
+                          ),
                         ),
                       ],
                     ),
@@ -268,8 +270,8 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
     if (!mounted || photos.length < 2) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Potrzebujesz co najmniej dwóch zdjęć.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.twoPhotosRequired),
           ),
         );
       }
@@ -335,8 +337,11 @@ class _CompareScreenState extends State<_CompareScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Porównaj postęp')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.compareProgressTitle),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -344,7 +349,7 @@ class _CompareScreenState extends State<_CompareScreen> {
             children: [
               Expanded(
                 child: _photoChoice(
-                  'Wtedy',
+                  l10n.photoThen,
                   _before,
                   (photo) => setState(() => _before = photo),
                 ),
@@ -352,7 +357,7 @@ class _CompareScreenState extends State<_CompareScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _photoChoice(
-                  'Teraz',
+                  l10n.photoNow,
                   _after,
                   (photo) => setState(() => _after = photo),
                 ),
@@ -378,12 +383,18 @@ class _CompareScreenState extends State<_CompareScreen> {
                   Positioned(
                     top: 12,
                     left: 12,
-                    child: _DateBadge(label: 'Teraz', date: _after.createdAt),
+                    child: _DateBadge(
+                      label: l10n.photoNow,
+                      date: _after.createdAt,
+                    ),
                   ),
                   Positioned(
                     top: 12,
                     right: 12,
-                    child: _DateBadge(label: 'Wtedy', date: _before.createdAt),
+                    child: _DateBadge(
+                      label: l10n.photoThen,
+                      date: _before.createdAt,
+                    ),
                   ),
                 ],
               ),

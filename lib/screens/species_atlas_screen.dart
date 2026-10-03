@@ -253,7 +253,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         aquarium.id,
         namePl: species.namePl,
         nameLatin: species.nameLatin,
-        category: _categoryLabel(species.category),
+        category: species.category.name,
         count: addition.count,
         phRange: '${species.phRange.min} - ${species.phRange.max}',
         tempRange: '${species.tempRange.min} - ${species.tempRange.max} °C',
@@ -337,7 +337,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
             name: aquarium.name,
             capacityLiters: aquarium.volumeNetLiters,
             setupDate: aquarium.setupDate,
-            type: aquarium.type.label,
+            type: aquarium.type.name,
           ),
           isStoredInFirestore: false,
         ),
@@ -725,12 +725,6 @@ String _localizedSpeciesName(BuildContext context, Species species) {
   }
   return speciesNamesEn[species.id] ?? species.nameLatin;
 }
-
-String _categoryLabel(SpeciesCategory category) => switch (category) {
-  SpeciesCategory.fish => 'Ryba',
-  SpeciesCategory.plant => 'Roślina',
-  SpeciesCategory.invertebrate => 'Bezkręgowiec',
-};
 
 String _formatAdditionDate(DateTime date) =>
     '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';

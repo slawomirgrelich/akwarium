@@ -9,6 +9,7 @@ import '../services/aquarium_journal_service.dart';
 import '../services/firestore_service.dart';
 import '../services/pdf_report_service.dart';
 import '../services/pro_access_service.dart';
+import '../utils/localized_labels.dart';
 import '../widgets/maintenance_schedule_section.dart';
 import '../widgets/pro_paywall_dialog.dart';
 import 'water_parameters_chart_screen.dart';
@@ -39,9 +40,10 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Szczegóły akwarium'),
+        title: Text(l10n.aquariumDetailsTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -126,8 +128,7 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
     if (!context.read<ProAccessService>().isProUser) {
       await ProPaywallDialog.show(
         context,
-        headline:
-            'Generuj profesjonalne raporty PDF swoich akwariów z Akwarysta PRO',
+        headline: AppLocalizations.of(context)!.reportProHeadline,
       );
       return;
     }
@@ -150,7 +151,11 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
     } on Object catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Nie udało się wygenerować raportu: $error')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.reportGenerationError('$error'),
+            ),
+          ),
         );
       }
     }
@@ -159,7 +164,7 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
   String _errorMessage(Object error) {
     if (error is FirestoreServiceException) return error.message;
     if (error is AquariumJournalServiceException) return error.message;
-    return 'Nie udało się wczytać szczegółów akwarium.';
+    return AppLocalizations.of(context)!.aquariumDetailsLoadError;
   }
 }
 
@@ -195,7 +200,7 @@ class _DetailsContent extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${aquarium.capacityLiters.toStringAsFixed(1)} l · ${aquarium.type}',
+            '${aquarium.capacityLiters.toStringAsFixed(1)} l · ${aquariumTypeLabel(l10n, aquarium.type)}',
             style: TextStyle(color: Colors.grey.shade700),
           ),
           const SizedBox(height: 18),
@@ -207,10 +212,10 @@ class _DetailsContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           if (latest == null)
-            const Card(
+            Card(
               child: Padding(
-                padding: EdgeInsets.all(18),
-                child: Text('Brak pomiarów parametrów wody.'),
+                padding: const EdgeInsets.all(18),
+                child: Text(l10n.noWaterMeasurements),
               ),
             )
           else
@@ -249,7 +254,7 @@ class _DetailsContent extends StatelessWidget {
                   FilledButton.icon(
                     onPressed: onGenerateReport,
                     icon: const Icon(Icons.picture_as_pdf_outlined),
-                    label: const Text('Generuj Raport PDF'),
+                    label: Text(l10n.reportPdfAction),
                   ),
                 ],
               ),
@@ -461,8 +466,9 @@ class _ReportIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return IconButton(
-      tooltip: 'Generuj Raport PDF · PRO',
+      tooltip: l10n.reportPdfAction,
       onPressed: onPressed,
       icon: const Icon(Icons.picture_as_pdf_outlined),
     );
@@ -476,6 +482,7 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final estimatedWeight = aquarium.capacityLiters * 1.25;
     return Card(
       child: Padding(
@@ -486,9 +493,9 @@ class _SummaryCard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Pojemność ${aquarium.capacityLiters.toStringAsFixed(1)} l\n'
-                'Szacowana waga ${estimatedWeight.toStringAsFixed(1)} kg\n'
-                'Typ: ${aquarium.type}',
+                '${l10n.aquariumCapacityLabel}: ${aquarium.capacityLiters.toStringAsFixed(1)} l\n'
+                '${l10n.estimatedWeightLabel}: ${estimatedWeight.toStringAsFixed(1)} kg\n'
+                '${l10n.aquariumTypeLabel}: ${aquariumTypeLabel(l10n, aquarium.type)}',
               ),
             ),
           ],

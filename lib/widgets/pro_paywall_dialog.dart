@@ -106,14 +106,14 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
             const SizedBox(height: 8),
             _PlanTile(
               title: l10n.monthlyPlan,
-              price: '9,99 zł / miesiąc',
+              price: l10n.monthlyPrice,
               selected: !_yearlyPlanSelected,
               onTap: () => setState(() => _yearlyPlanSelected = false),
             ),
             const SizedBox(height: 8),
             _PlanTile(
               title: l10n.yearlyPlan,
-              price: '69,99 zł / rok',
+              price: l10n.yearlyPrice,
               badge: l10n.mostPopularBadge,
               selected: _yearlyPlanSelected,
               onTap: () => setState(() => _yearlyPlanSelected = true),
@@ -151,9 +151,8 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
       );
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.proActivatedMessage)),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.proActivatedMessage)));
     } on Object catch (error) {
       if (mounted) {
         setState(() => _activating = false);

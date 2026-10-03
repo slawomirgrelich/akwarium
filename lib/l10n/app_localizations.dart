@@ -1724,36 +1724,6 @@ abstract class AppLocalizations {
   /// **'Rodzaj zadania'**
   String get reminderTaskPreset;
 
-  /// No description provided for @reminderTaskWaterChange.
-  ///
-  /// In pl, this message translates to:
-  /// **'Podmiana wody'**
-  String get reminderTaskWaterChange;
-
-  /// No description provided for @reminderTaskFilter.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czyszczenie filtra'**
-  String get reminderTaskFilter;
-
-  /// No description provided for @reminderTaskWaterTest.
-  ///
-  /// In pl, this message translates to:
-  /// **'Test parametrów'**
-  String get reminderTaskWaterTest;
-
-  /// No description provided for @reminderTaskFertilizer.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nawożenie'**
-  String get reminderTaskFertilizer;
-
-  /// No description provided for @reminderTaskCustom.
-  ///
-  /// In pl, this message translates to:
-  /// **'Własne zadanie'**
-  String get reminderTaskCustom;
-
   /// No description provided for @reminderCustomNameRequired.
   ///
   /// In pl, this message translates to:
@@ -2372,11 +2342,35 @@ abstract class AppLocalizations {
   /// **'Co {days} dni'**
   String everyDays(int days);
 
+  /// No description provided for @reminderTaskWaterChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podmiana wody'**
+  String get reminderTaskWaterChange;
+
   /// No description provided for @reminderTaskFilterClean.
   ///
   /// In pl, this message translates to:
   /// **'Czyszczenie filtra'**
   String get reminderTaskFilterClean;
+
+  /// No description provided for @reminderTaskWaterTest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Test parametrów'**
+  String get reminderTaskWaterTest;
+
+  /// No description provided for @reminderTaskFertilizer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nawożenie'**
+  String get reminderTaskFertilizer;
+
+  /// No description provided for @reminderTaskCustom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Własne zadanie'**
+  String get reminderTaskCustom;
 
   /// No description provided for @scheduledAquariumTaskNotification.
   ///
@@ -3912,6 +3906,1431 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Zamknięte'**
   String get ticketStatusClosed;
+
+  /// No description provided for @categoryShrimp.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krewetki'**
+  String get categoryShrimp;
+
+  /// No description provided for @categorySnails.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ślimaki'**
+  String get categorySnails;
+
+  /// No description provided for @categoryCrabs.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kraby'**
+  String get categoryCrabs;
+
+  /// No description provided for @categoryOther.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inne'**
+  String get categoryOther;
+
+  /// No description provided for @categoryFauna.
+  ///
+  /// In pl, this message translates to:
+  /// **'Fauna'**
+  String get categoryFauna;
+
+  /// No description provided for @categoryFlora.
+  ///
+  /// In pl, this message translates to:
+  /// **'Flora'**
+  String get categoryFlora;
+
+  /// No description provided for @speciesCategoryLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gatunki'**
+  String get speciesCategoryLabel;
+
+  /// No description provided for @category.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kategoria'**
+  String get category;
+
+  /// No description provided for @livestockCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Liczba: {count}'**
+  String livestockCount(int count);
+
+  /// No description provided for @plantPositionForeground.
+  ///
+  /// In pl, this message translates to:
+  /// **'I plan'**
+  String get plantPositionForeground;
+
+  /// No description provided for @plantPositionMidground.
+  ///
+  /// In pl, this message translates to:
+  /// **'II plan'**
+  String get plantPositionMidground;
+
+  /// No description provided for @plantPositionBackground.
+  ///
+  /// In pl, this message translates to:
+  /// **'III plan'**
+  String get plantPositionBackground;
+
+  /// No description provided for @plantPositionEpiphyte.
+  ///
+  /// In pl, this message translates to:
+  /// **'Epifit'**
+  String get plantPositionEpiphyte;
+
+  /// No description provided for @plantPositionFloating.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pływająca'**
+  String get plantPositionFloating;
+
+  /// No description provided for @plantPositionFieldLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pozycja rośliny'**
+  String get plantPositionFieldLabel;
+
+  /// No description provided for @journalCategoryObservation.
+  ///
+  /// In pl, this message translates to:
+  /// **'Obserwacja'**
+  String get journalCategoryObservation;
+
+  /// No description provided for @journalCategoryFishHealth.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdrowie ryb'**
+  String get journalCategoryFishHealth;
+
+  /// No description provided for @journalCategoryPlantGrowth.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wzrost roślin'**
+  String get journalCategoryPlantGrowth;
+
+  /// No description provided for @journalCategoryAlgae.
+  ///
+  /// In pl, this message translates to:
+  /// **'Glony'**
+  String get journalCategoryAlgae;
+
+  /// No description provided for @journalCategoryEquipment.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprzęt / inwestycje'**
+  String get journalCategoryEquipment;
+
+  /// No description provided for @aquariumsSectionTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Moje akwaria'**
+  String get aquariumsSectionTitle;
+
+  /// No description provided for @cloudSyncSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dane synchronizowane w chmurze'**
+  String get cloudSyncSubtitle;
+
+  /// No description provided for @addAquariumTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj akwarium'**
+  String get addAquariumTooltip;
+
+  /// No description provided for @aquariumAddedMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwarium zostało dodane.'**
+  String get aquariumAddedMessage;
+
+  /// No description provided for @aquariumUpdatedMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwarium zostało zapisane.'**
+  String get aquariumUpdatedMessage;
+
+  /// No description provided for @deleteAquariumTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunąć akwarium?'**
+  String get deleteAquariumTitle;
+
+  /// No description provided for @deleteAquariumPrompt.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwarium „{name}” i wszystkie jego pomiary zostaną usunięte.'**
+  String deleteAquariumPrompt(String name);
+
+  /// No description provided for @aquariumDeletedMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwarium zostało usunięte.'**
+  String get aquariumDeletedMessage;
+
+  /// No description provided for @aquariumLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać akwariów. Spróbuj ponownie.'**
+  String get aquariumLoadError;
+
+  /// No description provided for @aquariumPickerLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać akwariów: {error}'**
+  String aquariumPickerLoadError(String error);
+
+  /// No description provided for @aquariumEstablishedOn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Założone {date}'**
+  String aquariumEstablishedOn(String date);
+
+  /// No description provided for @editAquariumTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj akwarium'**
+  String get editAquariumTitle;
+
+  /// No description provided for @addAquariumTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj akwarium'**
+  String get addAquariumTitle;
+
+  /// No description provided for @aquariumNameLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa akwarium'**
+  String get aquariumNameLabel;
+
+  /// No description provided for @aquariumNameRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj nazwę akwarium.'**
+  String get aquariumNameRequired;
+
+  /// No description provided for @aquariumCapacityLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pojemność'**
+  String get aquariumCapacityLabel;
+
+  /// No description provided for @aquariumCapacityInvalid.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj pojemność większą od zera.'**
+  String get aquariumCapacityInvalid;
+
+  /// No description provided for @aquariumTypeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Typ akwarium'**
+  String get aquariumTypeLabel;
+
+  /// No description provided for @aquariumSetupDateLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Data założenia'**
+  String get aquariumSetupDateLabel;
+
+  /// No description provided for @aquariumOptionsTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opcje akwarium'**
+  String get aquariumOptionsTooltip;
+
+  /// No description provided for @noAquariumsAdded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak dodanych akwariów'**
+  String get noAquariumsAdded;
+
+  /// No description provided for @addFirstAquariumAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwsze akwarium'**
+  String get addFirstAquariumAction;
+
+  /// No description provided for @aquariumDetailsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szczegóły akwarium'**
+  String get aquariumDetailsTitle;
+
+  /// No description provided for @aquariumDetailsLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać szczegółów akwarium.'**
+  String get aquariumDetailsLoadError;
+
+  /// No description provided for @noWaterMeasurements.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak pomiarów parametrów wody.'**
+  String get noWaterMeasurements;
+
+  /// No description provided for @reportPdfAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Generuj raport PDF'**
+  String get reportPdfAction;
+
+  /// No description provided for @reportProHeadline.
+  ///
+  /// In pl, this message translates to:
+  /// **'Generuj profesjonalne raporty PDF swoich akwariów z Akwarysta PRO.'**
+  String get reportProHeadline;
+
+  /// No description provided for @reportGenerationError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wygenerować raportu: {error}'**
+  String reportGenerationError(String error);
+
+  /// No description provided for @estimatedWeightLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szacowana waga'**
+  String get estimatedWeightLabel;
+
+  /// No description provided for @browseSpeciesAtlas.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przeglądaj atlas gatunków'**
+  String get browseSpeciesAtlas;
+
+  /// No description provided for @addCustomSpecies.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj własny gatunek'**
+  String get addCustomSpecies;
+
+  /// No description provided for @speciesNameLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa gatunkowa'**
+  String get speciesNameLabel;
+
+  /// No description provided for @speciesNameRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz nazwę gatunku.'**
+  String get speciesNameRequired;
+
+  /// No description provided for @latinNameOptionalLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa łacińska (opcjonalnie)'**
+  String get latinNameOptionalLabel;
+
+  /// No description provided for @speciesCountLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Liczba sztuk'**
+  String get speciesCountLabel;
+
+  /// No description provided for @positiveCountRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz liczbę większą od zera.'**
+  String get positiveCountRequired;
+
+  /// No description provided for @addFirstSpecies.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwszy gatunek'**
+  String get addFirstSpecies;
+
+  /// No description provided for @livestockLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać obsady akwarium.'**
+  String get livestockLoadError;
+
+  /// No description provided for @livestockSyncError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zsynchronizować obsady: {error}'**
+  String livestockSyncError(String error);
+
+  /// No description provided for @signInToViewLivestock.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się, aby zobaczyć obsadę.'**
+  String get signInToViewLivestock;
+
+  /// No description provided for @unknownSpecies.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nieznany gatunek'**
+  String get unknownSpecies;
+
+  /// No description provided for @addedOnDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano: {date}'**
+  String addedOnDate(String date);
+
+  /// No description provided for @decreaseQuantityTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmniejsz ilość'**
+  String get decreaseQuantityTooltip;
+
+  /// No description provided for @increaseQuantityTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zwiększ ilość'**
+  String get increaseQuantityTooltip;
+
+  /// No description provided for @stockHealthTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdrowie i zgodność obsady'**
+  String get stockHealthTitle;
+
+  /// No description provided for @livestockWarnings.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostrzeżenia'**
+  String get livestockWarnings;
+
+  /// No description provided for @livestockCompatible.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgodna'**
+  String get livestockCompatible;
+
+  /// No description provided for @minimumVolumeForStock.
+  ///
+  /// In pl, this message translates to:
+  /// **'Minimalna objętość dla obsady: {required} l / {capacity} l'**
+  String minimumVolumeForStock(int required, String capacity);
+
+  /// No description provided for @stockCapacityExceeded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymagania obsady przekraczają pojemność akwarium o {liters} l.'**
+  String stockCapacityExceeded(int liters);
+
+  /// No description provided for @noSharedRangeFor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wspólnego zakresu dla: {conflicts}'**
+  String noSharedRangeFor(String conflicts);
+
+  /// No description provided for @calendarTasksTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalendarz zadań'**
+  String get calendarTasksTitle;
+
+  /// No description provided for @addTask.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zadanie'**
+  String get addTask;
+
+  /// No description provided for @newTask.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowe zadanie'**
+  String get newTask;
+
+  /// No description provided for @taskTitleLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tytuł'**
+  String get taskTitleLabel;
+
+  /// No description provided for @descriptionLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opis'**
+  String get descriptionLabel;
+
+  /// No description provided for @reminderTimeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Godzina przypomnienia'**
+  String get reminderTimeLabel;
+
+  /// No description provided for @noteLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Notatka'**
+  String get noteLabel;
+
+  /// No description provided for @tagsCommaSeparated.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tagi, oddziel przecinkami'**
+  String get tagsCommaSeparated;
+
+  /// No description provided for @attachLatestWaterMeasurement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podepnij ostatni pomiar wody'**
+  String get attachLatestWaterMeasurement;
+
+  /// No description provided for @photosReadyToSave.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} zdjęć gotowych do zapisu'**
+  String photosReadyToSave(int count);
+
+  /// No description provided for @entryAddedMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpis został dodany.'**
+  String get entryAddedMessage;
+
+  /// No description provided for @reminderAddedMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienie zostało dodane.'**
+  String get reminderAddedMessage;
+
+  /// No description provided for @addEntryTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj wpis'**
+  String get addEntryTooltip;
+
+  /// No description provided for @addReminderTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj przypomnienie'**
+  String get addReminderTooltip;
+
+  /// No description provided for @calendarLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać kalendarza. Spróbuj ponownie później.'**
+  String get calendarLoadError;
+
+  /// No description provided for @journalLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać dziennika.'**
+  String get journalLoadError;
+
+  /// No description provided for @noJournalEntries.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wpisów. Dodaj pierwszą obserwację.'**
+  String get noJournalEntries;
+
+  /// No description provided for @compareBeforeAfterTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Porównywarka przed / po'**
+  String get compareBeforeAfterTitle;
+
+  /// No description provided for @photoCompareMinimumCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj co najmniej dwa zdjęcia do dziennika.'**
+  String get photoCompareMinimumCount;
+
+  /// No description provided for @photoThen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wtedy'**
+  String get photoThen;
+
+  /// No description provided for @photoNow.
+  ///
+  /// In pl, this message translates to:
+  /// **'Teraz'**
+  String get photoNow;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokaż hasło'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ukryj hasło'**
+  String get hidePassword;
+
+  /// No description provided for @back.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wróć'**
+  String get back;
+
+  /// No description provided for @referralCodeOptional.
+  ///
+  /// In pl, this message translates to:
+  /// **'Masz kod polecający? (opcjonalnie)'**
+  String get referralCodeOptional;
+
+  /// No description provided for @firebaseGenericError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się połączyć z Firebase.'**
+  String get firebaseGenericError;
+
+  /// No description provided for @resetPasswordTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Resetowanie hasła'**
+  String get resetPasswordTitle;
+
+  /// No description provided for @emailAddressLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Adres e-mail'**
+  String get emailAddressLabel;
+
+  /// No description provided for @sendResetLinkAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyślij link'**
+  String get sendResetLinkAction;
+
+  /// No description provided for @passwordResetSuccess.
+  ///
+  /// In pl, this message translates to:
+  /// **'Link do resetu hasła został wysłany.'**
+  String get passwordResetSuccess;
+
+  /// No description provided for @signInToViewPhotos.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się, aby zobaczyć zdjęcia.'**
+  String get signInToViewPhotos;
+
+  /// No description provided for @photoLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać zdjęć.'**
+  String get photoLoadError;
+
+  /// No description provided for @compareFirstLatestPhotos.
+  ///
+  /// In pl, this message translates to:
+  /// **'Porównaj pierwsze i najnowsze zdjęcie'**
+  String get compareFirstLatestPhotos;
+
+  /// No description provided for @unlimitedPhotoJournal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nielimitowany dziennik zdjęć'**
+  String get unlimitedPhotoJournal;
+
+  /// No description provided for @photoSavedMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie zostało zapisane.'**
+  String get photoSavedMessage;
+
+  /// No description provided for @photoCaptionTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opis zdjęcia'**
+  String get photoCaptionTitle;
+
+  /// No description provided for @optionalPhotoDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opcjonalny opis'**
+  String get optionalPhotoDescription;
+
+  /// No description provided for @mainPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie główne'**
+  String get mainPhoto;
+
+  /// No description provided for @setAsAquariumCover.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustaw jako okładkę akwarium'**
+  String get setAsAquariumCover;
+
+  /// No description provided for @twoPhotosRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potrzebujesz co najmniej dwóch zdjęć.'**
+  String get twoPhotosRequired;
+
+  /// No description provided for @compareProgressTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Porównaj postęp'**
+  String get compareProgressTitle;
+
+  /// No description provided for @maintenanceScheduleTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Harmonogram pielęgnacji'**
+  String get maintenanceScheduleTitle;
+
+  /// No description provided for @maintenanceLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać harmonogramu.'**
+  String get maintenanceLoadError;
+
+  /// No description provided for @maintenanceEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie dodano jeszcze zadań pielęgnacyjnych.'**
+  String get maintenanceEmpty;
+
+  /// No description provided for @maintenanceTaskAddedError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się dodać zadania: {error}'**
+  String maintenanceTaskAddedError(String error);
+
+  /// No description provided for @maintenanceTaskUpdateError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zaktualizować zadania: {error}'**
+  String maintenanceTaskUpdateError(String error);
+
+  /// No description provided for @maintenanceTaskCompleted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykonano: {title}'**
+  String maintenanceTaskCompleted(String title);
+
+  /// No description provided for @editTaskTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj zadanie'**
+  String get editTaskTooltip;
+
+  /// No description provided for @performTask.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykonaj'**
+  String get performTask;
+
+  /// No description provided for @taskOverdue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Po terminie!'**
+  String get taskOverdue;
+
+  /// No description provided for @taskDueInDays.
+  ///
+  /// In pl, this message translates to:
+  /// **'Za {days} dni'**
+  String taskDueInDays(int days);
+
+  /// No description provided for @maintenanceTaskTypeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rodzaj zadania'**
+  String get maintenanceTaskTypeLabel;
+
+  /// No description provided for @maintenanceLastPerformed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnio wykonano'**
+  String get maintenanceLastPerformed;
+
+  /// No description provided for @maintenanceTaskFeeding.
+  ///
+  /// In pl, this message translates to:
+  /// **'Karmienie'**
+  String get maintenanceTaskFeeding;
+
+  /// No description provided for @maintenanceTaskWaterChange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podmiana wody'**
+  String get maintenanceTaskWaterChange;
+
+  /// No description provided for @maintenanceTaskFilterCleaning.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czyszczenie filtra'**
+  String get maintenanceTaskFilterCleaning;
+
+  /// No description provided for @maintenanceTaskPlantTrimming.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przycinanie roślin'**
+  String get maintenanceTaskPlantTrimming;
+
+  /// No description provided for @maintenanceTaskFertilizing.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nawożenie'**
+  String get maintenanceTaskFertilizing;
+
+  /// No description provided for @maintenanceTaskQuickCheck.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szybka kontrola'**
+  String get maintenanceTaskQuickCheck;
+
+  /// No description provided for @maintenanceTaskCustom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inne zadanie'**
+  String get maintenanceTaskCustom;
+
+  /// No description provided for @editMaintenanceTask.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj zadanie'**
+  String get editMaintenanceTask;
+
+  /// No description provided for @addMaintenanceTask.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zadanie pielęgnacyjne'**
+  String get addMaintenanceTask;
+
+  /// No description provided for @fertilizerDoseInstructions.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj pojemność akwarium i wybierz rodzaj nawozu.'**
+  String get fertilizerDoseInstructions;
+
+  /// No description provided for @fertilizerVolumeExample.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. 100'**
+  String get fertilizerVolumeExample;
+
+  /// No description provided for @litersUnit.
+  ///
+  /// In pl, this message translates to:
+  /// **'litrów'**
+  String get litersUnit;
+
+  /// No description provided for @fertilizerTypeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rodzaj nawozu'**
+  String get fertilizerTypeLabel;
+
+  /// No description provided for @fertilizerMicro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nawóz Mikro'**
+  String get fertilizerMicro;
+
+  /// No description provided for @fertilizerMacroNpk.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nawóz Makro (NPK)'**
+  String get fertilizerMacroNpk;
+
+  /// No description provided for @fertilizerPotassium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potas (K)'**
+  String get fertilizerPotassium;
+
+  /// No description provided for @calculateDoseAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oblicz dawkę'**
+  String get calculateDoseAction;
+
+  /// No description provided for @enterAquariumVolume.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz pojemność akwarium.'**
+  String get enterAquariumVolume;
+
+  /// No description provided for @enterPositiveNumber.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz liczbę większą od zera.'**
+  String get enterPositiveNumber;
+
+  /// No description provided for @netCapacitySaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisano pojemność netto: {liters} l'**
+  String netCapacitySaved(String liters);
+
+  /// No description provided for @knowledgeBaseAddAquariumPrompt.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj akwarium, aby sprawdzić zgodność gatunków.'**
+  String get knowledgeBaseAddAquariumPrompt;
+
+  /// No description provided for @diagnoseWithProTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Diagnostyka PRO'**
+  String get diagnoseWithProTooltip;
+
+  /// No description provided for @knowledgeCategoryAlgae.
+  ///
+  /// In pl, this message translates to:
+  /// **'Glony'**
+  String get knowledgeCategoryAlgae;
+
+  /// No description provided for @temperamentLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usposobienie: {value}'**
+  String temperamentLabel(String value);
+
+  /// No description provided for @plantRequirementsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymagania rośliny'**
+  String get plantRequirementsTitle;
+
+  /// No description provided for @lightLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Światło'**
+  String get lightLabel;
+
+  /// No description provided for @co2Label.
+  ///
+  /// In pl, this message translates to:
+  /// **'CO2'**
+  String get co2Label;
+
+  /// No description provided for @growthRateLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tempo wzrostu'**
+  String get growthRateLabel;
+
+  /// No description provided for @positionLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pozycja'**
+  String get positionLabel;
+
+  /// No description provided for @algaeSymptomsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Objawy i zwalczanie'**
+  String get algaeSymptomsTitle;
+
+  /// No description provided for @causesLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przyczyny'**
+  String get causesLabel;
+
+  /// No description provided for @symptomsLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Objawy'**
+  String get symptomsLabel;
+
+  /// No description provided for @controlPlanLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plan'**
+  String get controlPlanLabel;
+
+  /// No description provided for @difficultyAdvanced.
+  ///
+  /// In pl, this message translates to:
+  /// **'zaawansowana'**
+  String get difficultyAdvanced;
+
+  /// No description provided for @temperamentShoalingPeaceful.
+  ///
+  /// In pl, this message translates to:
+  /// **'łagodny, stadny'**
+  String get temperamentShoalingPeaceful;
+
+  /// No description provided for @temperamentShoalingPeacefulFeminine.
+  ///
+  /// In pl, this message translates to:
+  /// **'łagodna, stadna'**
+  String get temperamentShoalingPeacefulFeminine;
+
+  /// No description provided for @temperamentActivePeaceful.
+  ///
+  /// In pl, this message translates to:
+  /// **'łagodny, aktywny'**
+  String get temperamentActivePeaceful;
+
+  /// No description provided for @temperamentTerritorialPeaceful.
+  ///
+  /// In pl, this message translates to:
+  /// **'spokojna, terytorialna'**
+  String get temperamentTerritorialPeaceful;
+
+  /// No description provided for @temperamentTerritorialMale.
+  ///
+  /// In pl, this message translates to:
+  /// **'samiec terytorialny'**
+  String get temperamentTerritorialMale;
+
+  /// No description provided for @lightLow.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niskie'**
+  String get lightLow;
+
+  /// No description provided for @lightLowMedium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niskie do średniego'**
+  String get lightLowMedium;
+
+  /// No description provided for @lightMedium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Średnie'**
+  String get lightMedium;
+
+  /// No description provided for @lightMediumHigh.
+  ///
+  /// In pl, this message translates to:
+  /// **'Średnie do wysokiego'**
+  String get lightMediumHigh;
+
+  /// No description provided for @co2NotRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niewymagane'**
+  String get co2NotRequired;
+
+  /// No description provided for @co2Optional.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opcjonalne'**
+  String get co2Optional;
+
+  /// No description provided for @co2Recommended.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zalecane'**
+  String get co2Recommended;
+
+  /// No description provided for @growthSlow.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wolne'**
+  String get growthSlow;
+
+  /// No description provided for @growthMedium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Średnie'**
+  String get growthMedium;
+
+  /// No description provided for @growthFast.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szybkie'**
+  String get growthFast;
+
+  /// No description provided for @plantPositionMiddleRoot.
+  ///
+  /// In pl, this message translates to:
+  /// **'Środek / korzeń'**
+  String get plantPositionMiddleRoot;
+
+  /// No description provided for @plantPositionMiddleBackground.
+  ///
+  /// In pl, this message translates to:
+  /// **'Środek / tył'**
+  String get plantPositionMiddleBackground;
+
+  /// No description provided for @plantPositionMiddle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Środek'**
+  String get plantPositionMiddle;
+
+  /// No description provided for @plantPositionBack.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tył'**
+  String get plantPositionBack;
+
+  /// No description provided for @plantPositionFront.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przód'**
+  String get plantPositionFront;
+
+  /// No description provided for @algaeNameBlackBeard.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krasnorosty'**
+  String get algaeNameBlackBeard;
+
+  /// No description provided for @algaeNameGreen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zielenice'**
+  String get algaeNameGreen;
+
+  /// No description provided for @algaeNameCyanobacteria.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sinice'**
+  String get algaeNameCyanobacteria;
+
+  /// No description provided for @algaeNameDiatoms.
+  ///
+  /// In pl, this message translates to:
+  /// **'Okrzemki'**
+  String get algaeNameDiatoms;
+
+  /// No description provided for @algaeCauseCo2Fluctuations.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wahania CO2'**
+  String get algaeCauseCo2Fluctuations;
+
+  /// No description provided for @algaeCausePoorCirculation.
+  ///
+  /// In pl, this message translates to:
+  /// **'Słaba cyrkulacja'**
+  String get algaeCausePoorCirculation;
+
+  /// No description provided for @algaeCauseUnstableFertilization.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niestabilne nawożenie'**
+  String get algaeCauseUnstableFertilization;
+
+  /// No description provided for @algaeCauseExcessLight.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nadmiar światła'**
+  String get algaeCauseExcessLight;
+
+  /// No description provided for @algaeCausePo4Deficiency.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niedobór PO4'**
+  String get algaeCausePo4Deficiency;
+
+  /// No description provided for @algaeCauseUnstableCo2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niestabilne CO2'**
+  String get algaeCauseUnstableCo2;
+
+  /// No description provided for @algaeCauseNo3Deficiency.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak NO3'**
+  String get algaeCauseNo3Deficiency;
+
+  /// No description provided for @algaeCauseStagnantWater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zastoiny wody'**
+  String get algaeCauseStagnantWater;
+
+  /// No description provided for @algaeCauseOrganicMatter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nadmiar materii organicznej'**
+  String get algaeCauseOrganicMatter;
+
+  /// No description provided for @algaeCauseNewTank.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowy zbiornik'**
+  String get algaeCauseNewTank;
+
+  /// No description provided for @algaeCauseSilicates.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krzemiany w wodzie'**
+  String get algaeCauseSilicates;
+
+  /// No description provided for @algaeCauseImmatureFilter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niedojrzały filtr'**
+  String get algaeCauseImmatureFilter;
+
+  /// No description provided for @algaeSymptomBlackTufts.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czarne lub czerwone kępki na liściach i dekoracjach'**
+  String get algaeSymptomBlackTufts;
+
+  /// No description provided for @algaeSymptomGreenFilm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zielony nalot na szybach lub punktowe plamy na liściach'**
+  String get algaeSymptomGreenFilm;
+
+  /// No description provided for @algaeSymptomCyanobacteriaMat.
+  ///
+  /// In pl, this message translates to:
+  /// **'Śluzowata niebieskozielona warstwa o charakterystycznym zapachu'**
+  String get algaeSymptomCyanobacteriaMat;
+
+  /// No description provided for @algaeSymptomBrownDust.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brązowy pył na szybach, podłożu i dekoracjach'**
+  String get algaeSymptomBrownDust;
+
+  /// No description provided for @algaeActionStabilizeCo2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustabilizuj podawanie CO2 i popraw cyrkulację.'**
+  String get algaeActionStabilizeCo2;
+
+  /// No description provided for @algaeActionRemoveAffected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń mechanicznie porażone liście i dekoracje.'**
+  String get algaeActionRemoveAffected;
+
+  /// No description provided for @algaeActionReduceLight.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ogranicz światło do 6–8 godzin i obserwuj zbiornik przez tydzień.'**
+  String get algaeActionReduceLight;
+
+  /// No description provided for @algaeActionCleanGlass.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skróć świecenie i regularnie czyść szyby.'**
+  String get algaeActionCleanGlass;
+
+  /// No description provided for @algaeActionSupplementPo4.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź PO4 i uzupełniaj je stopniowo.'**
+  String get algaeActionSupplementPo4;
+
+  /// No description provided for @algaeActionAddFastPlants.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zwiększ masę szybko rosnących roślin.'**
+  String get algaeActionAddFastPlants;
+
+  /// No description provided for @algaeActionRemoveMat.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń matę mechanicznie i wykonaj większą podmianę wody.'**
+  String get algaeActionRemoveMat;
+
+  /// No description provided for @algaeActionRestoreNo3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przywróć mierzalny poziom NO3 i popraw przepływ.'**
+  String get algaeActionRestoreNo3;
+
+  /// No description provided for @algaeActionReduceFeeding.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ogranicz światło oraz karmienie do czasu ustabilizowania zbiornika.'**
+  String get algaeActionReduceFeeding;
+
+  /// No description provided for @algaeActionCleanDiatoms.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuwaj nalot przy podmianach i utrzymuj regularność prac.'**
+  String get algaeActionCleanDiatoms;
+
+  /// No description provided for @algaeActionMatureFilter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Daj biologii czas na dojrzewanie i nie myj całego wkładu naraz.'**
+  String get algaeActionMatureFilter;
+
+  /// No description provided for @algaeActionCheckSilicates.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź krzemiany w wodzie kranowej, jeśli problem trwa długo.'**
+  String get algaeActionCheckSilicates;
+
+  /// No description provided for @substrateActiveSoil.
+  ///
+  /// In pl, this message translates to:
+  /// **'Soil aktywny'**
+  String get substrateActiveSoil;
+
+  /// No description provided for @substrateMineral.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podłoże mineralne'**
+  String get substrateMineral;
+
+  /// No description provided for @substrateOther.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inne'**
+  String get substrateOther;
+
+  /// No description provided for @changeAlgaePhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmień zdjęcie glonu'**
+  String get changeAlgaePhoto;
+
+  /// No description provided for @analyzingConditions.
+  ///
+  /// In pl, this message translates to:
+  /// **'Analizuję warunki...'**
+  String get analyzingConditions;
+
+  /// No description provided for @analyzingAlgaeAndParameters.
+  ///
+  /// In pl, this message translates to:
+  /// **'Analizuję glony i parametry akwarium...'**
+  String get analyzingAlgaeAndParameters;
+
+  /// No description provided for @algaeDiagnosisTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Diagnoza glonów: {name}'**
+  String algaeDiagnosisTitle(String name);
+
+  /// No description provided for @actionPlanTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plan działania'**
+  String get actionPlanTitle;
+
+  /// No description provided for @scannerAnalyzingPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Analizuję zdjęcie...'**
+  String get scannerAnalyzingPhoto;
+
+  /// No description provided for @scannerAnalyzingSpecies.
+  ///
+  /// In pl, this message translates to:
+  /// **'Analizuję zdjęcie ryby/rośliny...'**
+  String get scannerAnalyzingSpecies;
+
+  /// No description provided for @scannerPhotoOpenError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się otworzyć zdjęcia: {error}'**
+  String scannerPhotoOpenError(String error);
+
+  /// No description provided for @scannerAnalysisTimeout.
+  ///
+  /// In pl, this message translates to:
+  /// **'Analiza trwała zbyt długo. Sprawdź połączenie i spróbuj ponownie.'**
+  String get scannerAnalysisTimeout;
+
+  /// No description provided for @mockAiUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wynik demonstracyjny. Endpoint AI nie jest dostępny.'**
+  String get mockAiUnavailable;
+
+  /// No description provided for @recognizedSpecies.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozpoznano: {name}'**
+  String recognizedSpecies(String name);
+
+  /// No description provided for @livestockCompatibilityTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgodność z obsadą'**
+  String get livestockCompatibilityTitle;
+
+  /// No description provided for @closeAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zamknij'**
+  String get closeAction;
+
+  /// No description provided for @compatibilityIncompatibleTemperatureRanges.
+  ///
+  /// In pl, this message translates to:
+  /// **'{first} i {second} nie mają wspólnego zakresu temperatur.'**
+  String compatibilityIncompatibleTemperatureRanges(
+    String first,
+    String second,
+  );
+
+  /// No description provided for @monthlyPrice.
+  ///
+  /// In pl, this message translates to:
+  /// **'9,99 zł / miesiąc'**
+  String get monthlyPrice;
+
+  /// No description provided for @yearlyPrice.
+  ///
+  /// In pl, this message translates to:
+  /// **'69,99 zł / rok'**
+  String get yearlyPrice;
+
+  /// No description provided for @journalSearchHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szukaj wpisów, tagów i obserwacji'**
+  String get journalSearchHint;
+
+  /// No description provided for @newJournalEntry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowy wpis dziennika'**
+  String get newJournalEntry;
+
+  /// No description provided for @galleryAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Galeria'**
+  String get galleryAction;
+
+  /// No description provided for @cameraAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aparat'**
+  String get cameraAction;
+
+  /// No description provided for @photoAdded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie dodane'**
+  String get photoAdded;
+
+  /// No description provided for @selectAquariumFirst.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najpierw wybierz akwarium.'**
+  String get selectAquariumFirst;
+
+  /// No description provided for @healthy.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdrowe'**
+  String get healthy;
+
+  /// No description provided for @reminderOptionsTooltip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opcje przypomnienia'**
+  String get reminderOptionsTooltip;
+
+  /// No description provided for @reminderTaskFilter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czyszczenie filtra'**
+  String get reminderTaskFilter;
 }
 
 class _AppLocalizationsDelegate

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../services/firestore_service.dart';
+import '../utils/localized_labels.dart';
 import '../utils/water_measurement_range.dart';
 
 enum _ChartParameter { ph, no3, no2, po4, temp, gh, kh, fe, k, mg }
@@ -511,6 +512,7 @@ class _AquariumHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -523,7 +525,7 @@ class _AquariumHeading extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '${_formatNumber(aquarium.capacityLiters)} l · ${aquarium.type}',
+          '${_formatNumber(aquarium.capacityLiters)} l · ${aquariumTypeLabel(l10n, aquarium.type)}',
           style: TextStyle(color: Colors.grey.shade700),
         ),
       ],
@@ -795,8 +797,11 @@ class _ChartStandard {
 
 _ChartStandard _standardFor(_ChartParameter parameter, String aquariumType) {
   final type = aquariumType.toLowerCase();
-  final marine = type.contains('morsk');
-  final shrimp = type.contains('krewet');
+  final marine =
+      type.contains('morsk') ||
+      type.contains('marine') ||
+      type.contains('salt');
+  final shrimp = type.contains('krewet') || type.contains('shrimp');
 
   switch (parameter) {
     case _ChartParameter.ph:

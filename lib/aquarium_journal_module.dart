@@ -7,6 +7,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'models/aquarium_model.dart';
 import 'l10n/app_localizations.dart';
+import 'utils/localized_labels.dart';
 
 const _ink = Color(0xFFF2F8F6);
 const _surface = Color(0xFFFFFFFF);
@@ -55,12 +56,12 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
         title: Text(l10n.journalTitle),
         actions: [
           IconButton(
-            tooltip: 'Porównaj zdjęcia',
+            tooltip: l10n.compareBeforeAfterTitle,
             onPressed: () => _openComparer(context, entries),
             icon: const Icon(Icons.compare_outlined),
           ),
           IconButton(
-            tooltip: 'Kalendarz zadań',
+            tooltip: l10n.calendarTasksTitle,
             onPressed: () => Navigator.push<void>(
               context,
               MaterialPageRoute(builder: (_) => const AquariumCalendarView()),
@@ -68,7 +69,7 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
             icon: const Icon(Icons.calendar_month_outlined),
           ),
           IconButton(
-            tooltip: 'Dodaj wpis',
+            tooltip: l10n.addEntryTooltip,
             onPressed: () => showDialog<void>(
               context: context,
               builder: (_) => const AddJournalEntryModal(),
@@ -111,8 +112,8 @@ class _JournalTimelineViewState extends State<JournalTimelineView> {
     final images = entries.expand((entry) => entry.imagePaths).toList();
     if (images.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dodaj co najmniej dwa zdjęcia do dziennika.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.photoCompareMinimumCount),
         ),
       );
       return;
@@ -144,6 +145,7 @@ class _JournalContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       child: Column(
@@ -154,7 +156,7 @@ class _JournalContent extends StatelessWidget {
             onChanged: (_) => onSearch(),
             style: const TextStyle(color: _textPrimary),
             decoration: InputDecoration(
-              hintText: 'Szukaj wpisów, tagów i obserwacji',
+              hintText: l10n.journalSearchHint,
               hintStyle: const TextStyle(color: _textSecondary),
               prefixIcon: const Icon(Icons.search, color: _cyan),
               filled: true,
@@ -171,7 +173,7 @@ class _JournalContent extends StatelessWidget {
             child: Row(
               children: [
                 ChoiceChip(
-                  label: const Text('Wszystkie'),
+                  label: Text(l10n.filterAll),
                   selected: category == null,
                   onSelected: (_) => onCategory(null),
                 ),
@@ -179,7 +181,7 @@ class _JournalContent extends StatelessWidget {
                   (item) => Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: ChoiceChip(
-                      label: Text(item.label),
+                      label: Text(journalCategoryLabel(l10n, item)),
                       selected: category == item,
                       onSelected: (_) => onCategory(item),
                     ),
@@ -278,7 +280,12 @@ class _TimelineEntry extends StatelessWidget {
                     Wrap(
                       spacing: 6,
                       children: [
-                        _DarkTag(label: entry.category.label),
+                        _DarkTag(
+                          label: journalCategoryLabel(
+                            AppLocalizations.of(context)!,
+                            entry.category,
+                          ),
+                        ),
                         ...entry.tags.map((tag) => _DarkTag(label: '#$tag')),
                         if (entry.attachedWaterParameters != null)
                           const _DarkTag(label: 'Pomiary wody'),
@@ -326,10 +333,10 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
           : AppBar(
               backgroundColor: _surface,
               foregroundColor: _textPrimary,
-              title: const Text('Kalendarz zadań'),
+              title: Text(l10n.calendarTasksTitle),
               actions: [
                 IconButton(
-                  tooltip: 'Dodaj zadanie',
+                  tooltip: l10n.addTask,
                   onPressed: () => showDialog<void>(
                     context: context,
                     builder: (_) => const AddTaskModal(),
@@ -350,7 +357,7 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
                   builder: (_) => const AddTaskModal(),
                 ),
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj zadanie'),
+                label: Text(l10n.addTask),
               ),
             if (!widget.compact) const SizedBox(height: 12),
             Card(
@@ -399,8 +406,8 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
             const SizedBox(height: 18),
             Text(
               isSameDay(_selectedDay, DateTime.now())
-                  ? 'Na dziś'
-                  : 'Wybrany dzień',
+                  ? l10n.forToday
+                  : l10n.selectedDay,
               style: const TextStyle(
                 color: _textPrimary,
                 fontSize: 18,
@@ -414,9 +421,9 @@ class _AquariumCalendarViewState extends State<AquariumCalendarView> {
               ...dayTasks.map((task) => _TaskTile(task: task)),
             if (upcoming.isNotEmpty) ...[
               const SizedBox(height: 18),
-              const Text(
-                'Nadchodzące',
-                style: TextStyle(
+              Text(
+                l10n.upcomingTasks,
+                style: const TextStyle(
                   color: _textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -526,7 +533,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Nowe zadanie'),
+      title: Text(l10n.newTask),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -535,11 +542,11 @@ class _AddTaskModalState extends State<AddTaskModal> {
             children: [
               TextField(
                 controller: _title,
-                decoration: const InputDecoration(labelText: 'Tytuł'),
+                decoration: InputDecoration(labelText: l10n.taskTitleLabel),
               ),
               TextField(
                 controller: _description,
-                decoration: const InputDecoration(labelText: 'Opis'),
+                decoration: InputDecoration(labelText: l10n.descriptionLabel),
               ),
               DropdownButtonFormField<TaskRecurrence>(
                 initialValue: _recurrence,
@@ -583,7 +590,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
                 ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Przypomnienie'),
+                title: Text(l10n.reminderTimeLabel),
                 subtitle: Text(_reminder.format(context)),
                 trailing: const Icon(Icons.notifications_outlined),
                 onTap: () async {
@@ -601,9 +608,9 @@ class _AddTaskModalState extends State<AddTaskModal> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Anuluj'),
+          child: Text(l10n.cancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Zapisz')),
+        FilledButton(onPressed: _save, child: Text(l10n.save)),
       ],
     );
   }
@@ -676,44 +683,45 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Nowy wpis dziennika'),
+      title: Text(l10n.newJournalEntry),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _title,
-              decoration: const InputDecoration(labelText: 'Tytuł'),
+              decoration: InputDecoration(labelText: l10n.taskTitleLabel),
             ),
             TextField(
               controller: _notes,
               maxLines: 4,
-              decoration: const InputDecoration(labelText: 'Notatka'),
+              decoration: InputDecoration(labelText: l10n.noteLabel),
             ),
             DropdownButtonFormField<JournalCategory>(
               initialValue: _category,
-              decoration: const InputDecoration(labelText: 'Kategoria'),
+              decoration: InputDecoration(labelText: l10n.category),
               items: JournalCategory.values
                   .map(
-                    (item) =>
-                        DropdownMenuItem(value: item, child: Text(item.label)),
+                    (item) => DropdownMenuItem(
+                      value: item,
+                      child: Text(journalCategoryLabel(l10n, item)),
+                    ),
                   )
                   .toList(),
               onChanged: (value) => setState(() => _category = value!),
             ),
             TextField(
               controller: _tags,
-              decoration: const InputDecoration(
-                labelText: 'Tagi, oddziel przecinkami',
-              ),
+              decoration: InputDecoration(labelText: l10n.tagsCommaSeparated),
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               value: _attachWater,
               onChanged: (value) =>
                   setState(() => _attachWater = value ?? false),
-              title: const Text('Podepnij ostatni pomiar wody'),
+              title: Text(l10n.attachLatestWaterMeasurement),
             ),
             Align(
               alignment: Alignment.centerLeft,
@@ -723,27 +731,27 @@ class _AddJournalEntryModalState extends State<AddJournalEntryModal> {
                   OutlinedButton.icon(
                     onPressed: () => _pickImages(ImageSource.gallery),
                     icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('Galeria'),
+                    label: Text(l10n.galleryAction),
                   ),
                   OutlinedButton.icon(
                     onPressed: () => _pickImages(ImageSource.camera),
                     icon: const Icon(Icons.camera_alt_outlined),
-                    label: const Text('Aparat'),
+                    label: Text(l10n.cameraAction),
                   ),
                 ],
               ),
             ),
             if (_images.isNotEmpty)
-              Text('${_images.length} zdjęć gotowych do zapisu'),
+              Text(l10n.photosReadyToSave(_images.length)),
           ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Anuluj'),
+          child: Text(l10n.cancel),
         ),
-        FilledButton(onPressed: _save, child: const Text('Zapisz wpis')),
+        FilledButton(onPressed: _save, child: Text(l10n.save)),
       ],
     );
   }
@@ -822,7 +830,7 @@ class _ImageGrowthComparerState extends State<ImageGrowthComparer> {
       appBar: AppBar(
         backgroundColor: _surface,
         foregroundColor: _textPrimary,
-        title: const Text('Porównywarka Przed / Po'),
+        title: Text(AppLocalizations.of(context)!.compareBeforeAfterTitle),
       ),
       body: Center(
         child: Padding(
@@ -935,12 +943,12 @@ class _DarkEmptyState extends StatelessWidget {
   const _DarkEmptyState();
 
   @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.all(32),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(32),
     child: Center(
       child: Text(
-        'Brak wpisów. Dodaj pierwszą obserwację.',
-        style: TextStyle(color: _textSecondary),
+        AppLocalizations.of(context)!.noJournalEntries,
+        style: const TextStyle(color: _textSecondary),
       ),
     ),
   );
