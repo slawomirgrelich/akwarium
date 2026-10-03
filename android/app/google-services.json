@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "760131458678-mcmhq24rvivk2p6jtcfo23e58i1djosc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.akwarium",
+            "certificate_hash": "335a5808081321120ef28fea4f13cf50c3f40ec5"
+          }
+        },
+        {
           "client_id": "760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com",
           "client_type": 3
         }
