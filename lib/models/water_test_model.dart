@@ -11,6 +11,7 @@ class WaterTestModel {
     this.gh,
     this.kh,
     this.temperatureCelsius,
+    this.co2,
   });
 
   final String id;
@@ -23,6 +24,7 @@ class WaterTestModel {
   final double? gh;
   final double? kh;
   final double? temperatureCelsius;
+  final double? co2;
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -35,6 +37,7 @@ class WaterTestModel {
     'gh': gh,
     'kh': kh,
     'temperatureCelsius': temperatureCelsius,
+    'co2': co2,
   };
 
   factory WaterTestModel.fromMap(Map<String, dynamic> map) {
@@ -51,6 +54,7 @@ class WaterTestModel {
       gh: number('gh'),
       kh: number('kh'),
       temperatureCelsius: number('temperatureCelsius'),
+      co2: number('co2'),
     );
   }
 }

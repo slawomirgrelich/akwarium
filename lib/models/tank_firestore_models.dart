@@ -64,6 +64,7 @@ class WaterParameter {
     required this.mg,
     required this.temp,
     required this.note,
+    this.co2,
   });
 
   final String id;
@@ -78,6 +79,7 @@ class WaterParameter {
   final double mg;
   final double temp;
   final String note;
+  final double? co2;
 
   Map<String, dynamic> toFirestore() => {
         'id': id,
@@ -92,6 +94,7 @@ class WaterParameter {
         'mg': mg,
         'temp': temp,
         'note': note,
+        if (co2 != null) 'co2': co2,
       };
 
   factory WaterParameter.fromFirestore(
@@ -111,6 +114,7 @@ class WaterParameter {
       mg: _double(data['mg']),
       temp: _double(data['temp']),
       note: _string(data['note']),
+      co2: _nullableDouble(data['co2']),
     );
   }
 }

@@ -658,71 +658,73 @@ class _SpeciesAdditionDialogState extends State<_SpeciesAdditionDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      scrollable: true,
+      actionsOverflowDirection: VerticalDirection.down,
+      actionsOverflowButtonSpacing: 8,
       title: Text(
         l10n.addSpeciesDialogTitle(
           _localizedSpeciesName(context, widget.species),
         ),
       ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: _count > 1 ? () => setState(() => _count--) : null,
-                  icon: const Icon(Icons.remove_circle_outline),
-                ),
-                Text('$_count', style: Theme.of(context).textTheme.titleLarge),
-                IconButton(
-                  onPressed: () => setState(() => _count++),
-                  icon: const Icon(Icons.add_circle_outline),
-                ),
-              ],
-            ),
-            if (widget.species.category == SpeciesCategory.plant) ...[
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: _quantityUnit,
-                decoration: InputDecoration(labelText: l10n.plantQuantityUnit),
-                items: [
-                  DropdownMenuItem(
-                    value: 'pieces',
-                    child: Text(l10n.quantityPieces),
-                  ),
-                  DropdownMenuItem(
-                    value: 'portions',
-                    child: Text(l10n.quantityPortions),
-                  ),
-                  DropdownMenuItem(
-                    value: 'baskets',
-                    child: Text(l10n.quantityBaskets),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) setState(() => _quantityUnit = value);
-                },
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: _count > 1 ? () => setState(() => _count--) : null,
+                icon: const Icon(Icons.remove_circle_outline),
+              ),
+              Text('$_count', style: Theme.of(context).textTheme.titleLarge),
+              IconButton(
+                onPressed: () => setState(() => _count++),
+                icon: const Icon(Icons.add_circle_outline),
               ),
             ],
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.calendar_today_outlined),
-              title: Text(l10n.additionDateLabel),
-              subtitle: Text(_formatAdditionDate(_addedAt)),
-              onTap: _pickDate,
-            ),
-            TextField(
-              controller: _notesController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                labelText: l10n.notesOptionalLabel,
-                alignLabelWithHint: true,
-              ),
+          ),
+          if (widget.species.category == SpeciesCategory.plant) ...[
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              initialValue: _quantityUnit,
+              decoration: InputDecoration(labelText: l10n.plantQuantityUnit),
+              items: [
+                DropdownMenuItem(
+                  value: 'pieces',
+                  child: Text(l10n.quantityPieces),
+                ),
+                DropdownMenuItem(
+                  value: 'portions',
+                  child: Text(l10n.quantityPortions),
+                ),
+                DropdownMenuItem(
+                  value: 'baskets',
+                  child: Text(l10n.quantityBaskets),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _quantityUnit = value);
+              },
             ),
           ],
-        ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.calendar_today_outlined),
+            title: Text(l10n.additionDateLabel),
+            subtitle: Text(_formatAdditionDate(_addedAt)),
+            onTap: _pickDate,
+          ),
+          TextField(
+            controller: _notesController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              labelText: l10n.notesOptionalLabel,
+              alignLabelWithHint: true,
+            ),
+          ),
+        ],
       ),
       actions: [
         TextButton(

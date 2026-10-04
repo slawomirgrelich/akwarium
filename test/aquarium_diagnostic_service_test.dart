@@ -14,7 +14,7 @@ void main() {
         ph: 7,
         no3: 2,
         po4: 1,
-        co2Ppm: 20,
+        co2MgPerLiter: 20,
         previousPh: 7,
         lightHours: 8,
       ),
@@ -35,7 +35,7 @@ void main() {
         ph: 7,
         no3: 20,
         po4: 0.05,
-        co2Ppm: 20,
+        co2MgPerLiter: 20,
         previousPh: 7,
         lightHours: 8,
       ),
@@ -55,7 +55,7 @@ void main() {
         ph: 6.5,
         no3: 15,
         po4: 1,
-        co2Ppm: 35,
+        co2MgPerLiter: 35,
         previousPh: 7,
         lightHours: 10,
       ),
@@ -77,7 +77,7 @@ void main() {
         ph: 7,
         no3: 2,
         po4: 1,
-        co2Ppm: 20,
+        co2MgPerLiter: 20,
         previousPh: 7,
         lightHours: 8,
       ),
@@ -96,6 +96,27 @@ void main() {
     expect(
       diagnosticAction(english, result.actionPlan.first),
       'Restore a measurable, stable NO3 level without sudden fertilization.',
+    );
+  });
+
+  test('pomija diagnozę CO2, gdy pomiaru brakuje', () {
+    final result = service.diagnose(
+      const AquariumDiagnosticInput(
+        ph: 7,
+        no3: 15,
+        po4: 1,
+        previousPh: 7,
+        lightHours: 8,
+      ),
+    );
+
+    expect(
+      result.findings.map((item) => item.key),
+      isNot(contains(AquariumDiagnosticFindingKey.lowCo2)),
+    );
+    expect(
+      result.findings.map((item) => item.key),
+      isNot(contains(AquariumDiagnosticFindingKey.dangerousCo2)),
     );
   });
 }

@@ -443,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @parametersCount.
   ///
   /// In pl, this message translates to:
-  /// **'7 parametrów'**
+  /// **'8 parametrów'**
   String get parametersCount;
 
   /// No description provided for @waterChange.
@@ -1849,6 +1849,216 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Odblokuj Akwarysta PRO'**
   String get unlockProHeadline;
+
+  /// No description provided for @experienceMode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tryb korzystania z aplikacji'**
+  String get experienceMode;
+
+  /// No description provided for @experienceModeSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dopasuj pulpit i wskazówki do swojego doświadczenia.'**
+  String get experienceModeSubtitle;
+
+  /// No description provided for @beginnerMode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Początkujący'**
+  String get beginnerMode;
+
+  /// No description provided for @advancedMode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaawansowany'**
+  String get advancedMode;
+
+  /// No description provided for @beginnerModeDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Prostszy pulpit i prowadzenie krok po kroku.'**
+  String get beginnerModeDescription;
+
+  /// No description provided for @advancedModeDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pełne parametry, wykresy i narzędzia.'**
+  String get advancedModeDescription;
+
+  /// No description provided for @beginnerGuideTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zacznij krok po kroku'**
+  String get beginnerGuideTitle;
+
+  /// No description provided for @beginnerGuideIntro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie musisz znać wszystkich parametrów. Zacznij od tych czterech podstaw.'**
+  String get beginnerGuideIntro;
+
+  /// No description provided for @beginnerStepDimensions.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymiary i pojemność'**
+  String get beginnerStepDimensions;
+
+  /// No description provided for @beginnerStepDimensionsDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmierz długość, szerokość i wysokość akwarium. Zanotuj, ile wody rzeczywiście wlewasz.'**
+  String get beginnerStepDimensionsDescription;
+
+  /// No description provided for @beginnerStepWater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Woda kranowa'**
+  String get beginnerStepWater;
+
+  /// No description provided for @beginnerStepWaterDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przed wpuszczeniem zwierząt zbadaj wodę i uzdatnij ją zgodnie z instrukcją preparatu.'**
+  String get beginnerStepWaterDescription;
+
+  /// No description provided for @beginnerStepLighting.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oświetlenie'**
+  String get beginnerStepLighting;
+
+  /// No description provided for @beginnerStepLightingDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zacznij od umiarkowanego czasu świecenia i zmieniaj go stopniowo, obserwując rośliny i glony.'**
+  String get beginnerStepLightingDescription;
+
+  /// No description provided for @beginnerStepPlants.
+  ///
+  /// In pl, this message translates to:
+  /// **'Łatwe rośliny'**
+  String get beginnerStepPlants;
+
+  /// No description provided for @beginnerStepPlantsDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz niewymagające rośliny, na przykład anubiasy, kryptokoryny lub rogatek.'**
+  String get beginnerStepPlantsDescription;
+
+  /// No description provided for @beginnerNextStep.
+  ///
+  /// In pl, this message translates to:
+  /// **'Następny krok'**
+  String get beginnerNextStep;
+
+  /// No description provided for @beginnerPreviousStep.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poprzedni krok'**
+  String get beginnerPreviousStep;
+
+  /// No description provided for @beginnerDimensionsAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwórz akwarium'**
+  String get beginnerDimensionsAction;
+
+  /// No description provided for @beginnerLightingAction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zobacz wskazówki'**
+  String get beginnerLightingAction;
+
+  /// No description provided for @editAquariumTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj akwarium'**
+  String get editAquariumTitle;
+
+  /// No description provided for @hoursPerDayShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'godz./dzień'**
+  String get hoursPerDayShort;
+
+  /// No description provided for @beginnerWaterStatusNoData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pierwszy pomiar, aby sprawdzić kondycję wody.'**
+  String get beginnerWaterStatusNoData;
+
+  /// No description provided for @beginnerWaterStatusGood.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatni pomiar nie wskazuje pilnego problemu.'**
+  String get beginnerWaterStatusGood;
+
+  /// No description provided for @beginnerWaterStatusNeedsAttention.
+  ///
+  /// In pl, this message translates to:
+  /// **'Warto sprawdzić ostatni pomiar i wprowadzić zalecane zmiany stopniowo.'**
+  String get beginnerWaterStatusNeedsAttention;
+
+  /// No description provided for @beginnerTestSaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pomiar zapisany.'**
+  String get beginnerTestSaved;
+
+  /// No description provided for @beginnerWaterMeasurementsHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisuj tylko wyniki, które udało Ci się zmierzyć. Pozostałe pola możesz pominąć.'**
+  String get beginnerWaterMeasurementsHint;
+
+  /// No description provided for @beginnerDimensionHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj wewnętrzne wymiary akwarium w centymetrach. Przybliżoną pojemność obliczymy za Ciebie.'**
+  String get beginnerDimensionHint;
+
+  /// No description provided for @tankLength.
+  ///
+  /// In pl, this message translates to:
+  /// **'Długość'**
+  String get tankLength;
+
+  /// No description provided for @tankWidth.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szerokość'**
+  String get tankWidth;
+
+  /// No description provided for @tankHeight.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wysokość'**
+  String get tankHeight;
+
+  /// No description provided for @beginnerCalculatedCapacity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przybliżona pojemność brutto: {liters} l'**
+  String beginnerCalculatedCapacity(String liters);
+
+  /// No description provided for @invalidTankDimensions.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymiary muszą być dodatnimi liczbami.'**
+  String get invalidTankDimensions;
+
+  /// No description provided for @invalidNetVolume.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj prawidłową, dodatnią ilość wody w zbiorniku.'**
+  String get invalidNetVolume;
+
+  /// No description provided for @beginnerNetVolumeHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz przybliżoną ilość wody w zbiorniku. Nie musisz obliczać pojemności brutto.'**
+  String get beginnerNetVolumeHint;
 
   /// No description provided for @monthlyPlan.
   ///
@@ -4224,12 +4434,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Założone {date}'**
   String aquariumEstablishedOn(String date);
-
-  /// No description provided for @editAquariumTitle.
-  ///
-  /// In pl, this message translates to:
-  /// **'Edytuj akwarium'**
-  String get editAquariumTitle;
 
   /// No description provided for @addAquariumTitle.
   ///

@@ -114,6 +114,9 @@ class AquariumProfile {
     required this.volumeNetLiters,
     required this.setupDate,
     required this.type,
+    this.lengthCm,
+    this.widthCm,
+    this.heightCm,
     this.volumeGrossLiters,
     this.substrate,
     this.lighting,
@@ -127,6 +130,9 @@ class AquariumProfile {
   final double volumeNetLiters;
   final DateTime setupDate;
   final TankType type;
+  final double? lengthCm;
+  final double? widthCm;
+  final double? heightCm;
   final double? volumeGrossLiters;
   final String? substrate;
   final String? lighting;
@@ -151,6 +157,9 @@ class AquariumProfile {
     'name': name,
     'volumeNetLiters': volumeNetLiters,
     'volumeGrossLiters': volumeGrossLiters,
+    'lengthCm': lengthCm,
+    'widthCm': widthCm,
+    'heightCm': heightCm,
     'setupDate': setupDate.toIso8601String(),
     'type': type.name,
     'substrate': substrate,
@@ -166,6 +175,9 @@ class AquariumProfile {
         name: json['name'] as String,
         volumeNetLiters: (json['volumeNetLiters'] as num).toDouble(),
         volumeGrossLiters: (json['volumeGrossLiters'] as num?)?.toDouble(),
+        lengthCm: (json['lengthCm'] as num?)?.toDouble(),
+        widthCm: (json['widthCm'] as num?)?.toDouble(),
+        heightCm: (json['heightCm'] as num?)?.toDouble(),
         setupDate:
             DateTime.tryParse(json['setupDate'] as String? ?? '') ??
             DateTime.now(),
@@ -254,6 +266,7 @@ class WaterTest {
     this.kh,
     this.gh,
     this.temp,
+    this.co2,
     this.aquariumId = '',
   });
 
@@ -266,6 +279,7 @@ class WaterTest {
   final double? kh;
   final double? gh;
   final double? temp;
+  final double? co2;
   final String aquariumId;
 
   Map<String, dynamic> toMap() => {
@@ -278,6 +292,7 @@ class WaterTest {
     if (kh != null) 'kh': kh,
     if (gh != null) 'gh': gh,
     if (temp != null) 'temp': temp,
+    if (co2 != null) 'co2': co2,
     'aquariumId': aquariumId,
   };
 
@@ -292,6 +307,7 @@ class WaterTest {
       kh: (map['kh'] as num?)?.toDouble(),
       gh: (map['gh'] as num?)?.toDouble(),
       temp: (map['temp'] as num?)?.toDouble(),
+      co2: (map['co2'] as num?)?.toDouble(),
       aquariumId: map['aquariumId'] as String? ?? '',
     );
   }
@@ -305,6 +321,7 @@ String waterTestSummary(WaterTest test) => [
   if (test.kh != null) 'KH ${test.kh} dKH',
   if (test.gh != null) 'GH ${test.gh} dGH',
   if (test.temp != null) 'Temp ${test.temp}°C',
+  if (test.co2 != null) 'CO2 ${test.co2} mg/L',
 ].join(' · ');
 
 DateTime _readDate(dynamic value) {
@@ -898,6 +915,12 @@ class AquariumProvider extends ChangeNotifier {
             volumeNetLiters: aquarium.capacityLiters,
             setupDate: aquarium.setupDate,
             type: _tankTypeFromLabel(aquarium.type),
+            lengthCm: aquarium.lengthCm,
+            widthCm: aquarium.widthCm,
+            heightCm: aquarium.heightCm,
+            lighting:
+                aquarium.equipment?.lightingHoursPerDay?.toString() ??
+                aquarium.equipment?.lightingModel,
             isActive: aquarium.id == _activeAquariumId,
           ),
         )
@@ -917,7 +940,11 @@ class AquariumProvider extends ChangeNotifier {
               current.name != previous.name ||
               current.volumeNetLiters != previous.volumeNetLiters ||
               current.setupDate != previous.setupDate ||
-              current.type != previous.type;
+              current.type != previous.type ||
+              current.lengthCm != previous.lengthCm ||
+              current.widthCm != previous.widthCm ||
+              current.heightCm != previous.heightCm ||
+              current.lighting != previous.lighting;
         });
     if (!hasChanged) return;
 
@@ -1041,6 +1068,8 @@ class AquariumProvider extends ChangeNotifier {
     final createdAt = existingCreatedAt is Timestamp
         ? existingCreatedAt.toDate()
         : DateTime.now();
+    final lighting = profile.lighting?.trim();
+    final lightingHours = double.tryParse(lighting?.replaceAll(',', '.') ?? '');
     final aquarium = firestore_models.AquariumModel(
       id: profile.id,
       userId: userId,
@@ -1048,7 +1077,16 @@ class AquariumProvider extends ChangeNotifier {
       capacityLiters: profile.volumeNetLiters,
       setupDate: profile.setupDate,
       type: profile.type.name,
+      lengthCm: profile.lengthCm,
+      widthCm: profile.widthCm,
+      heightCm: profile.heightCm,
       createdAt: createdAt,
+      equipment: lighting == null || lighting.isEmpty
+          ? null
+          : firestore_models.AquariumEquipment(
+              lightingModel: lightingHours == null ? lighting : null,
+              lightingHoursPerDay: lightingHours,
+            ),
     );
     await reference.set(aquarium.toMap(), SetOptions(merge: merge));
     await FirestoreSyncStatus.recordSuccessfulSync();
@@ -1431,6 +1469,7 @@ class AquariumProvider extends ChangeNotifier {
             if (test.po4 != null) 'po4': test.po4,
             if (test.fe != null) 'fe': test.fe,
             if (test.temp != null) 'temp': test.temp,
+            if (test.co2 != null) 'co2': test.co2,
             'notes': '',
           },
           SetOptions(merge: true),

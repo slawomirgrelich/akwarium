@@ -571,7 +571,9 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
     _ph = TextEditingController(text: (test?.ph ?? 7).toString());
     _no3 = TextEditingController(text: (test?.no3 ?? 15).toString());
     _po4 = TextEditingController(text: (test?.po4 ?? 1).toString());
-    _co2 = TextEditingController(text: '20');
+    _co2 = TextEditingController(
+      text: widget.latestTest?.co2?.toString() ?? '',
+    );
     _previousPh = TextEditingController(text: (test?.ph ?? 7).toString());
   }
 
@@ -594,7 +596,13 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: EdgeInsets.fromLTRB(
+          16,
+          12,
+          16,
+          32 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
         children: [
           Text(
             widget.aquarium.name,
@@ -607,7 +615,7 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
           _numberField(_previousPh, l10n.previousPh),
           _numberField(_no3, 'NO3 (mg/l)'),
           _numberField(_po4, 'PO4 (mg/l)'),
-          _numberField(_co2, 'CO2 (ppm)'),
+          _numberField(_co2, '${l10n.co2Label} (mg/L)'),
           Card(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -665,7 +673,7 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
           ph: _number(_ph),
           no3: _number(_no3),
           po4: _number(_po4),
-          co2Ppm: _number(_co2),
+          co2MgPerLiter: _optionalNumber(_co2),
           previousPh: _number(_previousPh),
           lightHours: _lightHours,
         ),
@@ -675,6 +683,11 @@ class _AquariumDiagnosticScreenState extends State<AquariumDiagnosticScreen> {
 
   double _number(TextEditingController controller) =>
       double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
+
+  double? _optionalNumber(TextEditingController controller) {
+    final text = controller.text.trim().replaceAll(',', '.');
+    return text.isEmpty ? null : double.tryParse(text);
+  }
 }
 
 class _DiagnosticResultCard extends StatelessWidget {

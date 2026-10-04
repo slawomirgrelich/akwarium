@@ -288,7 +288,7 @@ class _DetailsContent extends StatelessWidget {
   }
 }
 
-enum _HistoryParameter { ph, temperature, no3 }
+enum _HistoryParameter { ph, temperature, no3, co2 }
 
 class _WaterHistoryChart extends StatefulWidget {
   const _WaterHistoryChart({required this.parameters});
@@ -462,18 +462,21 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
         _HistoryParameter.ph => measurement.ph,
         _HistoryParameter.temperature => measurement.temp,
         _HistoryParameter.no3 => measurement.no3,
+        _HistoryParameter.co2 => measurement.co2,
       };
 
   String get _unit => switch (_selected) {
     _HistoryParameter.ph => '',
     _HistoryParameter.temperature => '°C',
     _HistoryParameter.no3 => 'mg/l',
+    _HistoryParameter.co2 => 'mg/L',
   };
 
   String _parameterLabel(_HistoryParameter parameter) => switch (parameter) {
     _HistoryParameter.ph => 'pH',
     _HistoryParameter.temperature => 'Temperatura',
     _HistoryParameter.no3 => 'Azotany (NO3)',
+    _HistoryParameter.co2 => 'CO2',
   };
 
   String _axisValue(double value) => _selected == _HistoryParameter.ph
@@ -772,6 +775,8 @@ class _LatestParametersCard extends StatelessWidget {
               Text('NO3 ${value.toStringAsFixed(1)}'),
             if (latest.po4 case final value?)
               Text('PO4 ${value.toStringAsFixed(2)}'),
+            if (latest.co2 case final value?)
+              Text('CO2 ${value.toStringAsFixed(1)} mg/L'),
             Text(_date(latest.timestamp)),
           ],
         ),

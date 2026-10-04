@@ -2,7 +2,7 @@ import 'aquarium_model.dart';
 
 enum WaterStatus { good, warning, critical }
 
-enum WaterParameter { ph, no3, po4, fe, kh, gh, temp }
+enum WaterParameter { ph, no3, po4, co2, fe, kh, gh, temp }
 
 enum WaterAssessmentMessageKey {
   criticalNo3,
@@ -77,10 +77,19 @@ const waterStandards = <WaterParameter, WaterStandard>{
     parameter: WaterParameter.po4,
     label: 'PO4',
     unit: 'mg/l',
-    optimalMin: 0.02,
+    optimalMin: 0.2,
     optimalMax: 1.5,
     chartMin: 0,
     chartMax: 3,
+  ),
+  WaterParameter.co2: WaterStandard(
+    parameter: WaterParameter.co2,
+    label: 'CO2',
+    unit: 'mg/L',
+    optimalMin: 15,
+    optimalMax: 30,
+    chartMin: 0,
+    chartMax: 50,
   ),
   WaterParameter.fe: WaterStandard(
     parameter: WaterParameter.fe,
@@ -128,6 +137,8 @@ double? waterValue(WaterTest test, WaterParameter parameter) {
       return test.no3;
     case WaterParameter.po4:
       return test.po4;
+    case WaterParameter.co2:
+      return test.co2;
     case WaterParameter.fe:
       return test.fe;
     case WaterParameter.kh:
@@ -150,13 +161,13 @@ WaterAssessment assessWaterValue(WaterParameter parameter, double value) {
       parameter: WaterParameter.fe,
     );
   }
-  if (parameter == WaterParameter.po4 &&
-      value >= standard.chartMin &&
-      value < standard.optimalMin) {
-    return const WaterAssessment(
-      status: WaterStatus.good,
-      messageKey: WaterAssessmentMessageKey.withinOptimalRange,
+  if (parameter == WaterParameter.po4 && value < standard.optimalMin) {
+    return WaterAssessment(
+      status: WaterStatus.warning,
+      messageKey: WaterAssessmentMessageKey.lowPo4,
       parameter: WaterParameter.po4,
+      minValue: standard.optimalMin,
+      maxValue: standard.optimalMax,
     );
   }
   if (parameter == WaterParameter.no3 && value > 50) {

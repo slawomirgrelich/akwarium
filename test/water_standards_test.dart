@@ -35,6 +35,14 @@ void main() {
     );
   });
 
+  test('assesses recorded CO2 against the 15-30 mg/L plant range', () {
+    expect(assessWaterValue(WaterParameter.co2, 22).status, WaterStatus.good);
+    expect(
+      assessWaterValue(WaterParameter.co2, 31).status,
+      WaterStatus.warning,
+    );
+  });
+
   test('oblicza stosunek Redfielda NO3 do PO4', () {
     expect(redfieldRatio(makeTest()), 16);
   });

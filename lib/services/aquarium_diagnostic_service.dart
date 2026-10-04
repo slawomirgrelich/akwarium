@@ -3,7 +3,7 @@ class AquariumDiagnosticInput {
     required this.ph,
     required this.no3,
     required this.po4,
-    required this.co2Ppm,
+    this.co2MgPerLiter,
     required this.previousPh,
     required this.lightHours,
   });
@@ -11,7 +11,7 @@ class AquariumDiagnosticInput {
   final double ph;
   final double no3;
   final double po4;
-  final double co2Ppm;
+  final double? co2MgPerLiter;
   final double previousPh;
   final double lightHours;
 }
@@ -91,27 +91,31 @@ class AquariumDiagnosticService {
       actionPlan.add(AquariumDiagnosticActionKey.supplementPo4);
     }
 
-    if (input.co2Ppm > 30) {
-      findings.add(
-        const AquariumDiagnosticFinding(
-          key: AquariumDiagnosticFindingKey.dangerousCo2,
-          severity: DiagnosticSeverity.critical,
-        ),
-      );
-      actionPlan.add(
-        AquariumDiagnosticActionKey.reduceCo2AndIncreaseSurfaceMovement,
-      );
-    } else if (input.co2Ppm < 15) {
-      findings.add(
-        const AquariumDiagnosticFinding(
-          key: AquariumDiagnosticFindingKey.lowCo2,
-          severity: DiagnosticSeverity.warning,
-        ),
-      );
-      actionPlan.add(AquariumDiagnosticActionKey.stabilizeCo2);
+    final co2 = input.co2MgPerLiter;
+    if (co2 != null) {
+      if (co2 > 30) {
+        findings.add(
+          const AquariumDiagnosticFinding(
+            key: AquariumDiagnosticFindingKey.dangerousCo2,
+            severity: DiagnosticSeverity.critical,
+          ),
+        );
+        actionPlan.add(
+          AquariumDiagnosticActionKey.reduceCo2AndIncreaseSurfaceMovement,
+        );
+      } else if (co2 < 15) {
+        findings.add(
+          const AquariumDiagnosticFinding(
+            key: AquariumDiagnosticFindingKey.lowCo2,
+            severity: DiagnosticSeverity.warning,
+          ),
+        );
+        actionPlan.add(AquariumDiagnosticActionKey.stabilizeCo2);
+      }
     }
 
-    if ((input.ph - input.previousPh).abs() >= 0.4 || input.co2Ppm >= 30) {
+    if ((input.ph - input.previousPh).abs() >= 0.4 ||
+        (co2 != null && co2 >= 30)) {
       findings.add(
         const AquariumDiagnosticFinding(
           key: AquariumDiagnosticFindingKey.redAlgaeRisk,

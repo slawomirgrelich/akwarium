@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'l10n/app_localizations.dart';
 import 'models/aquarium_model.dart' as models;
+import 'services/experience_mode_controller.dart';
 
 import 'package:akwarium/utils/app_snackbar.dart';
 
@@ -15,11 +16,20 @@ class WaterTestScreen extends StatefulWidget {
 }
 
 class _WaterTestScreenState extends State<WaterTestScreen> {
+  static const _beginnerParameterKeys = {
+    'pH',
+    'NO3',
+    'PO4',
+    'CO2',
+    'Temperatura',
+  };
+
   final _formKey = GlobalKey<FormState>();
   final _controllers = <String, TextEditingController>{
     'pH': TextEditingController(),
     'NO3': TextEditingController(),
     'PO4': TextEditingController(),
+    'CO2': TextEditingController(),
     'Fe': TextEditingController(),
     'KH': TextEditingController(),
     'GH': TextEditingController(),
@@ -37,6 +47,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isBeginner = context.watch<ExperienceModeController>().isBeginner;
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.waterTestTitle),
@@ -51,7 +62,13 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: EdgeInsets.fromLTRB(
+                20,
+                12,
+                20,
+                32 + MediaQuery.viewInsetsOf(context).bottom,
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -67,32 +84,43 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(l10n.waterTestInfo),
+                    if (isBeginner) ...[
+                      const SizedBox(height: 4),
+                      Text(l10n.beginnerWaterMeasurementsHint),
+                    ],
                     const SizedBox(height: 20),
-                    ..._controllers.entries.map(
-                      (entry) => Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: TextFormField(
-                          controller: entry.value,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
+                    ..._controllers.entries
+                        .where(
+                          (entry) =>
+                              !isBeginner ||
+                              _beginnerParameterKeys.contains(entry.key),
+                        )
+                        .map(
+                          (entry) => Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: TextFormField(
+                              controller: entry.value,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return null;
+                                }
+                                final parsed = double.tryParse(
+                                  value.trim().replaceAll(',', '.'),
+                                );
+                                if (parsed == null || !parsed.isFinite) {
+                                  return l10n.chartInvalidNumber;
+                                }
+                                return null;
+                              },
+                              onChanged: (_) => setState(() {}),
+                              decoration: _decoration(context, entry.key),
+                            ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return null;
-                            }
-                            final parsed = double.tryParse(
-                              value.trim().replaceAll(',', '.'),
-                            );
-                            if (parsed == null || !parsed.isFinite) {
-                              return l10n.chartInvalidNumber;
-                            }
-                            return null;
-                          },
-                          onChanged: (_) => setState(() {}),
-                          decoration: _decoration(context, entry.key),
                         ),
-                      ),
-                    ),
                     const SizedBox(height: 8),
                     FilledButton.icon(
                       onPressed: _saveTest,
@@ -140,6 +168,7 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
       ph: _optionalNumber('pH'),
       no3: _optionalNumber('NO3'),
       po4: _optionalNumber('PO4'),
+      co2: _optionalNumber('CO2'),
       fe: _optionalNumber('Fe'),
       kh: _optionalNumber('KH'),
       gh: _optionalNumber('GH'),
@@ -159,9 +188,15 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
     return InputDecoration(
       labelText: key == 'Temperatura'
           ? AppLocalizations.of(context)!.temperature
+          : key == 'CO2'
+          ? AppLocalizations.of(context)!.co2Label
           : key,
       prefixIcon: const Icon(Icons.science_outlined),
-      suffixText: key == 'Temperatura' ? '°C' : null,
+      suffixText: key == 'Temperatura'
+          ? '°C'
+          : key == 'CO2'
+          ? 'mg/L'
+          : null,
     );
   }
 }

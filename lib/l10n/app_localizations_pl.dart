@@ -186,7 +186,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get addFirstTest => 'Dodaj pierwszy test';
 
   @override
-  String get parametersCount => '7 parametrów';
+  String get parametersCount => '8 parametrów';
 
   @override
   String get waterChange => 'Podmiana';
@@ -949,6 +949,127 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get unlockProHeadline => 'Odblokuj Akwarysta PRO';
+
+  @override
+  String get experienceMode => 'Tryb korzystania z aplikacji';
+
+  @override
+  String get experienceModeSubtitle =>
+      'Dopasuj pulpit i wskazówki do swojego doświadczenia.';
+
+  @override
+  String get beginnerMode => 'Początkujący';
+
+  @override
+  String get advancedMode => 'Zaawansowany';
+
+  @override
+  String get beginnerModeDescription =>
+      'Prostszy pulpit i prowadzenie krok po kroku.';
+
+  @override
+  String get advancedModeDescription => 'Pełne parametry, wykresy i narzędzia.';
+
+  @override
+  String get beginnerGuideTitle => 'Zacznij krok po kroku';
+
+  @override
+  String get beginnerGuideIntro =>
+      'Nie musisz znać wszystkich parametrów. Zacznij od tych czterech podstaw.';
+
+  @override
+  String get beginnerStepDimensions => 'Wymiary i pojemność';
+
+  @override
+  String get beginnerStepDimensionsDescription =>
+      'Zmierz długość, szerokość i wysokość akwarium. Zanotuj, ile wody rzeczywiście wlewasz.';
+
+  @override
+  String get beginnerStepWater => 'Woda kranowa';
+
+  @override
+  String get beginnerStepWaterDescription =>
+      'Przed wpuszczeniem zwierząt zbadaj wodę i uzdatnij ją zgodnie z instrukcją preparatu.';
+
+  @override
+  String get beginnerStepLighting => 'Oświetlenie';
+
+  @override
+  String get beginnerStepLightingDescription =>
+      'Zacznij od umiarkowanego czasu świecenia i zmieniaj go stopniowo, obserwując rośliny i glony.';
+
+  @override
+  String get beginnerStepPlants => 'Łatwe rośliny';
+
+  @override
+  String get beginnerStepPlantsDescription =>
+      'Wybierz niewymagające rośliny, na przykład anubiasy, kryptokoryny lub rogatek.';
+
+  @override
+  String get beginnerNextStep => 'Następny krok';
+
+  @override
+  String get beginnerPreviousStep => 'Poprzedni krok';
+
+  @override
+  String get beginnerDimensionsAction => 'Otwórz akwarium';
+
+  @override
+  String get beginnerLightingAction => 'Zobacz wskazówki';
+
+  @override
+  String get editAquariumTitle => 'Edytuj akwarium';
+
+  @override
+  String get hoursPerDayShort => 'godz./dzień';
+
+  @override
+  String get beginnerWaterStatusNoData =>
+      'Dodaj pierwszy pomiar, aby sprawdzić kondycję wody.';
+
+  @override
+  String get beginnerWaterStatusGood =>
+      'Ostatni pomiar nie wskazuje pilnego problemu.';
+
+  @override
+  String get beginnerWaterStatusNeedsAttention =>
+      'Warto sprawdzić ostatni pomiar i wprowadzić zalecane zmiany stopniowo.';
+
+  @override
+  String get beginnerTestSaved => 'Pomiar zapisany.';
+
+  @override
+  String get beginnerWaterMeasurementsHint =>
+      'Wpisuj tylko wyniki, które udało Ci się zmierzyć. Pozostałe pola możesz pominąć.';
+
+  @override
+  String get beginnerDimensionHint =>
+      'Podaj wewnętrzne wymiary akwarium w centymetrach. Przybliżoną pojemność obliczymy za Ciebie.';
+
+  @override
+  String get tankLength => 'Długość';
+
+  @override
+  String get tankWidth => 'Szerokość';
+
+  @override
+  String get tankHeight => 'Wysokość';
+
+  @override
+  String beginnerCalculatedCapacity(String liters) {
+    return 'Przybliżona pojemność brutto: $liters l';
+  }
+
+  @override
+  String get invalidTankDimensions => 'Wymiary muszą być dodatnimi liczbami.';
+
+  @override
+  String get invalidNetVolume =>
+      'Podaj prawidłową, dodatnią ilość wody w zbiorniku.';
+
+  @override
+  String get beginnerNetVolumeHint =>
+      'Wpisz przybliżoną ilość wody w zbiorniku. Nie musisz obliczać pojemności brutto.';
 
   @override
   String get monthlyPlan => 'Miesięczny';
@@ -2311,9 +2432,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String aquariumEstablishedOn(String date) {
     return 'Założone $date';
   }
-
-  @override
-  String get editAquariumTitle => 'Edytuj akwarium';
 
   @override
   String get addAquariumTitle => 'Dodaj akwarium';

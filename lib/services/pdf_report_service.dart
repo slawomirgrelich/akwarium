@@ -135,7 +135,17 @@ class PdfReportService {
   }
 
   pw.Widget _parametersTable(List<WaterParametersModel> parameters) {
-    final headers = ['Data', 'pH', 'KH', 'GH', 'NO3', 'PO4', 'Fe', 'Temp.'];
+    final headers = [
+      'Data',
+      'pH',
+      'KH',
+      'GH',
+      'NO3',
+      'PO4',
+      'CO2 (mg/L)',
+      'Fe',
+      'Temp.',
+    ];
     final rows = <pw.TableRow>[
       pw.TableRow(
         decoration: const pw.BoxDecoration(color: PdfColors.grey100),
@@ -152,6 +162,7 @@ class PdfReportService {
                 _parameterCell(item.gh, 5, 12),
                 _parameterCell(item.no3, 10, 25),
                 _parameterCell(item.po4, 0.5, 1.5),
+                _parameterCell(item.co2, 15, 30),
                 _parameterCell(item.fe, 0.1, 0.5),
                 _parameterCell(item.temp, 22, 28),
               ],

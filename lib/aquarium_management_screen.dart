@@ -12,6 +12,7 @@ import 'screens/species_atlas_screen.dart';
 import 'screens/tank_stocking_screen.dart';
 import 'screens/tank_photo_journal_screen.dart';
 import 'services/firestore_service.dart';
+import 'services/experience_mode_controller.dart';
 import 'services/pro_access_service.dart';
 import 'widgets/confirm_livestock_removal_dialog.dart';
 import 'widgets/pro_paywall_dialog.dart';
@@ -798,8 +799,12 @@ class AddAquariumModal extends StatefulWidget {
 
 class _AddAquariumModalState extends State<AddAquariumModal> {
   final _name = TextEditingController();
-  final _net = TextEditingController(text: '100');
-  final _gross = TextEditingController(text: '120');
+  final _net = TextEditingController();
+  final _gross = TextEditingController();
+  final _length = TextEditingController();
+  final _width = TextEditingController();
+  final _height = TextEditingController();
+  final _lighting = TextEditingController();
   TankType _type = TankType.freshwater;
   late DateTime _setupDate;
 
@@ -813,7 +818,14 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
       _net.text = initial.volumeNetLiters.toString();
       _gross.text = (initial.volumeGrossLiters ?? initial.volumeNetLiters)
           .toString();
+      _length.text = initial.lengthCm?.toString() ?? '';
+      _width.text = initial.widthCm?.toString() ?? '';
+      _height.text = initial.heightCm?.toString() ?? '';
+      _lighting.text = initial.lighting ?? '';
       _type = initial.type;
+    } else if (!context.read<ExperienceModeController>().isBeginner) {
+      _net.text = '100';
+      _gross.text = '120';
     }
   }
 
@@ -822,79 +834,185 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
     _name.dispose();
     _net.dispose();
     _gross.dispose();
+    _length.dispose();
+    _width.dispose();
+    _height.dispose();
+    _lighting.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(AppLocalizations.of(context)!.addNewTank),
-    content: SingleChildScrollView(
-      child: Column(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isBeginner = context.watch<ExperienceModeController>().isBeginner;
+    return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      scrollable: true,
+      actionsOverflowDirection: VerticalDirection.down,
+      actionsOverflowButtonSpacing: 8,
+      title: Text(
+        widget.initial == null ? l10n.addNewTank : l10n.editAquariumTitle,
+      ),
+      content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _name,
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.aquariumName,
-            ),
+            decoration: InputDecoration(labelText: l10n.aquariumName),
           ),
+          if (isBeginner) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                l10n.beginnerStepDimensions,
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                l10n.beginnerDimensionHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            TextField(
+              controller: _length,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: l10n.tankLength,
+                suffixText: 'cm',
+              ),
+            ),
+            TextField(
+              controller: _width,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: l10n.tankWidth,
+                suffixText: 'cm',
+              ),
+            ),
+            TextField(
+              controller: _height,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: l10n.tankHeight,
+                suffixText: 'cm',
+              ),
+            ),
+            if (_calculatedGrossVolume case final volume?) ...[
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.beginnerCalculatedCapacity(volume.toStringAsFixed(1)),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ],
           TextField(
             controller: _net,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.netVolume,
+              labelText: l10n.netVolume,
               suffixText: 'l',
             ),
           ),
-          TextField(
-            controller: _gross,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.grossVolume,
-              suffixText: 'l',
+          if (isBeginner)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.beginnerNetVolumeHint,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            )
+          else
+            TextField(
+              controller: _gross,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: l10n.grossVolume,
+                suffixText: 'l',
+              ),
             ),
-          ),
           DropdownButtonFormField<TankType>(
             initialValue: _type,
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context)!.tankType,
-            ),
+            isExpanded: true,
+            decoration: InputDecoration(labelText: l10n.tankType),
             items: TankType.values
                 .map(
                   (type) => DropdownMenuItem(
                     value: type,
-                    child: Text(
-                      _tankTypeLabel(AppLocalizations.of(context)!, type),
-                    ),
+                    child: Text(_tankTypeLabel(l10n, type)),
                   ),
                 )
                 .toList(),
             onChanged: (value) => setState(() => _type = value!),
           ),
+          TextField(
+            controller: _lighting,
+            decoration: InputDecoration(
+              labelText: isBeginner
+                  ? l10n.lightingTime
+                  : l10n.equipmentLighting,
+              suffixText: isBeginner ? l10n.hoursPerDayShort : null,
+              helperText: isBeginner
+                  ? l10n.beginnerStepLightingDescription
+                  : null,
+            ),
+          ),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(AppLocalizations.of(context)!.setupDateLabel),
+            title: Text(l10n.setupDateLabel),
             subtitle: Text(_formatSetupDate(_setupDate)),
             trailing: const Icon(Icons.calendar_today_outlined),
             onTap: _pickSetupDate,
           ),
         ],
       ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text(AppLocalizations.of(context)!.cancel),
-      ),
-      FilledButton(
-        onPressed: _save,
-        child: Text(AppLocalizations.of(context)!.add),
-      ),
-    ],
-  );
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(onPressed: _save, child: Text(l10n.add)),
+      ],
+    );
+  }
 
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) return;
+    final isBeginner = context.read<ExperienceModeController>().isBeginner;
+    final netVolume = double.tryParse(_net.text.trim().replaceAll(',', '.'));
+    if (netVolume == null || !netVolume.isFinite || netVolume <= 0) {
+      context.showAppSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.invalidNetVolume)),
+      );
+      return;
+    }
+    if (isBeginner && _hasInvalidDimensions) {
+      context.showAppSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.invalidTankDimensions),
+        ),
+      );
+      return;
+    }
     final provider = context.read<AquariumProvider>();
     final isProUser = context.read<ProAccessService>().isProUser;
     if (widget.initial == null &&
@@ -908,11 +1026,24 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
           widget.initial?.id ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       name: _name.text.trim(),
-      volumeNetLiters: double.tryParse(_net.text.replaceAll(',', '.')) ?? 0,
-      volumeGrossLiters: double.tryParse(_gross.text.replaceAll(',', '.')),
+      volumeNetLiters: netVolume,
+      volumeGrossLiters: isBeginner
+          ? _calculatedGrossVolume ?? widget.initial?.volumeGrossLiters
+          : double.tryParse(_gross.text.replaceAll(',', '.')),
       setupDate: _setupDate,
       type: _type,
+      lengthCm: isBeginner
+          ? _optionalNumber(_length)
+          : widget.initial?.lengthCm,
+      widthCm: isBeginner ? _optionalNumber(_width) : widget.initial?.widthCm,
+      heightCm: isBeginner
+          ? _optionalNumber(_height)
+          : widget.initial?.heightCm,
+      substrate: widget.initial?.substrate,
+      lighting: _lighting.text.trim().isEmpty ? null : _lighting.text.trim(),
+      filtration: widget.initial?.filtration,
       imagePath: widget.initial?.imagePath,
+      isActive: widget.initial?.isActive ?? false,
     );
     try {
       if (widget.initial == null) {
@@ -926,6 +1057,34 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
         context.showAppSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
+  }
+
+  double? get _calculatedGrossVolume {
+    final length = _optionalNumber(_length);
+    final width = _optionalNumber(_width);
+    final height = _optionalNumber(_height);
+    if (length == null ||
+        width == null ||
+        height == null ||
+        length <= 0 ||
+        width <= 0 ||
+        height <= 0) {
+      return null;
+    }
+    return length * width * height / 1000;
+  }
+
+  bool get _hasInvalidDimensions =>
+      [_length, _width, _height].any((controller) {
+        final value = controller.text.trim().replaceAll(',', '.');
+        if (value.isEmpty) return false;
+        final parsed = double.tryParse(value);
+        return parsed == null || !parsed.isFinite || parsed <= 0;
+      });
+
+  double? _optionalNumber(TextEditingController controller) {
+    final value = controller.text.trim().replaceAll(',', '.');
+    return value.isEmpty ? null : double.tryParse(value);
   }
 
   Future<void> _pickSetupDate() async {
@@ -971,111 +1130,116 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      scrollable: true,
+      actionsOverflowDirection: VerticalDirection.down,
+      actionsOverflowButtonSpacing: 8,
       title: Text(l10n.addSpecies),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SpeciesAutocompleteField(
-              onChanged: (value) => setState(() {
-                _name = value;
-                final selected = _selectedSpecies;
-                if (selected != null &&
-                    value.trim() !=
-                        localizedSpeciesDisplayName(context, selected)) {
-                  if (_latin.text == selected.nameLatin) _latin.clear();
-                  _selectedSpecies = null;
-                }
-              }),
-              onSelected: (species) => setState(() {
-                _selectedSpecies = species;
-                _name = localizedSpeciesDisplayName(context, species);
-                _latin.text = species.nameLatin;
-                _category = creatureCategoryForSpecies(species);
-                _position = null;
-              }),
-              decoration: InputDecoration(labelText: l10n.speciesNameLabel),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _latin,
-              decoration: InputDecoration(
-                labelText: l10n.latinNameOptionalLabel,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SpeciesAutocompleteField(
+            onChanged: (value) => setState(() {
+              _name = value;
+              final selected = _selectedSpecies;
+              if (selected != null &&
+                  value.trim() !=
+                      localizedSpeciesDisplayName(context, selected)) {
+                if (_latin.text == selected.nameLatin) _latin.clear();
+                _selectedSpecies = null;
+              }
+            }),
+            onSelected: (species) => setState(() {
+              _selectedSpecies = species;
+              _name = localizedSpeciesDisplayName(context, species);
+              _latin.text = species.nameLatin;
+              _category = creatureCategoryForSpecies(species);
+              _position = null;
+            }),
+            decoration: InputDecoration(labelText: l10n.speciesNameLabel),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _latin,
+            decoration: InputDecoration(labelText: l10n.latinNameOptionalLabel),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _count,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: l10n.speciesCountLabel),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<CreatureCategory>(
+            key: ValueKey(_category),
+            initialValue: _category,
+            decoration: InputDecoration(labelText: l10n.category),
+            items: CreatureCategory.values
+                .map(
+                  (category) => DropdownMenuItem(
+                    value: category,
+                    child: Text(creatureCategoryLabel(l10n, category)),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) => setState(() {
+              _category = value!;
+              if (_category != CreatureCategory.plant) _position = null;
+            }),
+          ),
+          if (_category == CreatureCategory.plant)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: DropdownButtonFormField<PlantPosition>(
+                initialValue: _position,
+                decoration: InputDecoration(
+                  labelText: l10n.plantPositionFieldLabel,
+                ),
+                items: PlantPosition.values
+                    .map(
+                      (position) => DropdownMenuItem(
+                        value: position,
+                        child: Text(plantPositionLabel(l10n, position)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => _position = value),
               ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _count,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: l10n.speciesCountLabel),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<CreatureCategory>(
-              key: ValueKey(_category),
-              initialValue: _category,
-              decoration: InputDecoration(labelText: l10n.category),
-              items: CreatureCategory.values
-                  .map(
-                    (category) => DropdownMenuItem(
-                      value: category,
-                      child: Text(creatureCategoryLabel(l10n, category)),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) => setState(() {
-                _category = value!;
-                if (_category != CreatureCategory.plant) _position = null;
-              }),
-            ),
-            if (_category == CreatureCategory.plant)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: DropdownButtonFormField<PlantPosition>(
-                  initialValue: _position,
-                  decoration: InputDecoration(
-                    labelText: l10n.plantPositionFieldLabel,
-                  ),
-                  items: PlantPosition.values
-                      .map(
-                        (position) => DropdownMenuItem(
-                          value: position,
-                          child: Text(plantPositionLabel(l10n, position)),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) => setState(() => _position = value),
-                ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _notes,
+            maxLines: 3,
+            decoration: InputDecoration(labelText: l10n.notesOptionalLabel),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => _pickImage(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library_outlined),
+                label: Text(l10n.galleryAction),
               ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _notes,
-              maxLines: 3,
-              decoration: InputDecoration(labelText: l10n.notesOptionalLabel),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () => _pickImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library_outlined),
-                  label: Text(l10n.galleryAction),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => _pickImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt_outlined),
-                  label: Text(l10n.cameraAction),
-                ),
-                if (_image != null)
-                  Expanded(
-                    child: Text(
-                      l10n.photoAdded,
-                      style: TextStyle(color: Colors.green),
-                    ),
-                  ),
-              ],
+              OutlinedButton.icon(
+                onPressed: () => _pickImage(ImageSource.camera),
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: Text(l10n.cameraAction),
+              ),
+            ],
+          ),
+          if (_image != null) ...[
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                l10n.photoAdded,
+                style: TextStyle(color: Colors.green),
+              ),
             ),
           ],
-        ),
+        ],
       ),
       actions: [
         TextButton(

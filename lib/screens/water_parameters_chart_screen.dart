@@ -1,18 +1,25 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../services/firestore_service.dart';
+import '../services/experience_mode_controller.dart';
 import '../utils/localized_labels.dart';
 import '../utils/water_measurement_range.dart';
 
-enum _ChartParameter { ph, no3, no2, po4, temp, gh, kh, fe, k, mg }
+enum _ChartParameter { ph, no3, no2, po4, co2, temp, gh, kh, fe, k, mg }
 
 class WaterParametersChartScreen extends StatefulWidget {
-  const WaterParametersChartScreen({required this.aquarium, super.key});
+  const WaterParametersChartScreen({
+    required this.aquarium,
+    this.service,
+    super.key,
+  });
 
   final AquariumModel aquarium;
+  final FirestoreService? service;
 
   @override
   State<WaterParametersChartScreen> createState() =>
@@ -29,7 +36,7 @@ class _WaterParametersChartScreenState
   @override
   void initState() {
     super.initState();
-    _service = FirestoreService();
+    _service = widget.service ?? FirestoreService();
     _parametersStream = _service.getWaterParameters(widget.aquarium.id);
   }
 
@@ -600,9 +607,14 @@ class _ErrorView extends StatelessWidget {
 }
 
 class FirestoreWaterParametersFormScreen extends StatefulWidget {
-  const FirestoreWaterParametersFormScreen({required this.aquarium, super.key});
+  const FirestoreWaterParametersFormScreen({
+    required this.aquarium,
+    this.service,
+    super.key,
+  });
 
   final AquariumModel aquarium;
+  final FirestoreService? service;
 
   @override
   State<FirestoreWaterParametersFormScreen> createState() =>
@@ -611,6 +623,14 @@ class FirestoreWaterParametersFormScreen extends StatefulWidget {
 
 class _FirestoreWaterParametersFormScreenState
     extends State<FirestoreWaterParametersFormScreen> {
+  static const _beginnerParameterKeys = {
+    'pH',
+    'NO3',
+    'PO4',
+    'CO2',
+    'Temperatura',
+  };
+
   final _formKey = GlobalKey<FormState>();
   final _controllers = <String, TextEditingController>{
     'pH': TextEditingController(),
@@ -619,15 +639,22 @@ class _FirestoreWaterParametersFormScreenState
     'NO3': TextEditingController(),
     'NO2': TextEditingController(),
     'PO4': TextEditingController(),
+    'CO2': TextEditingController(),
     'Fe': TextEditingController(),
     'K': TextEditingController(),
     'Mg': TextEditingController(),
     'Temperatura': TextEditingController(),
     'Notatka': TextEditingController(),
   };
-  final _service = FirestoreService();
+  late final FirestoreService _service;
   bool _isSaving = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _service = widget.service ?? FirestoreService();
+  }
 
   @override
   void dispose() {
@@ -640,6 +667,7 @@ class _FirestoreWaterParametersFormScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isBeginner = context.watch<ExperienceModeController>().isBeginner;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.chartNewMeasurement)),
       body: SafeArea(
@@ -649,7 +677,14 @@ class _FirestoreWaterParametersFormScreenState
             child: Form(
               key: _formKey,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  12,
+                  20,
+                  32 + MediaQuery.viewInsetsOf(context).bottom,
+                ),
                 children: [
                   Text(
                     widget.aquarium.name,
@@ -660,13 +695,22 @@ class _FirestoreWaterParametersFormScreenState
                   ),
                   const SizedBox(height: 6),
                   Text(l10n.waterTestInfo),
+                  if (isBeginner) ...[
+                    const SizedBox(height: 4),
+                    Text(l10n.beginnerWaterMeasurementsHint),
+                  ],
                   const SizedBox(height: 20),
                   if (_error != null) ...[
                     Text(_error!, style: TextStyle(color: Colors.red.shade700)),
                     const SizedBox(height: 12),
                   ],
                   ..._controllers.entries
-                      .where((entry) => entry.key != 'Notatka')
+                      .where(
+                        (entry) =>
+                            entry.key != 'Notatka' &&
+                            (!isBeginner ||
+                                _beginnerParameterKeys.contains(entry.key)),
+                      )
                       .map(
                         (entry) => Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -678,7 +722,10 @@ class _FirestoreWaterParametersFormScreenState
                             decoration: InputDecoration(
                               labelText: entry.key == 'Temperatura'
                                   ? l10n.temperature
+                                  : entry.key == 'CO2'
+                                  ? l10n.co2Label
                                   : entry.key,
+                              suffixText: entry.key == 'CO2' ? 'mg/L' : null,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -755,6 +802,7 @@ class _FirestoreWaterParametersFormScreenState
           no3: _optionalNumber('NO3'),
           no2: _optionalNumber('NO2'),
           po4: _optionalNumber('PO4'),
+          co2: _optionalNumber('CO2'),
           fe: _optionalNumber('Fe'),
           k: _optionalNumber('K'),
           mg: _optionalNumber('Mg'),
@@ -858,6 +906,14 @@ _ChartStandard _standardFor(_ChartParameter parameter, String aquariumType) {
               chartMax: 3,
               unit: 'mg/l',
             );
+    case _ChartParameter.co2:
+      return const _ChartStandard(
+        min: 15,
+        max: 30,
+        chartMin: 0,
+        chartMax: 50,
+        unit: 'mg/L',
+      );
     case _ChartParameter.temp:
       return marine
           ? const _ChartStandard(
@@ -950,6 +1006,8 @@ double? _valueFor(WaterParametersModel measurement, _ChartParameter parameter) {
       return measurement.no2!;
     case _ChartParameter.po4:
       return measurement.po4;
+    case _ChartParameter.co2:
+      return measurement.co2;
     case _ChartParameter.temp:
       return measurement.temp;
     case _ChartParameter.gh:
@@ -975,6 +1033,8 @@ String _labelFor(_ChartParameter parameter) {
       return 'NO2';
     case _ChartParameter.po4:
       return 'PO4';
+    case _ChartParameter.co2:
+      return 'CO2';
     case _ChartParameter.temp:
       return 'Temp.';
     case _ChartParameter.gh:

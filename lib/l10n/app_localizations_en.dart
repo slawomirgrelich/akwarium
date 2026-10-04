@@ -187,7 +187,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addFirstTest => 'Add your first test';
 
   @override
-  String get parametersCount => '7 parameters';
+  String get parametersCount => '8 parameters';
 
   @override
   String get waterChange => 'Water change';
@@ -942,6 +942,127 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unlockProHeadline => 'Unlock Aquarist PRO';
+
+  @override
+  String get experienceMode => 'App experience';
+
+  @override
+  String get experienceModeSubtitle =>
+      'Adapt the dashboard and guidance to your experience.';
+
+  @override
+  String get beginnerMode => 'Beginner';
+
+  @override
+  String get advancedMode => 'Advanced';
+
+  @override
+  String get beginnerModeDescription =>
+      'A simpler dashboard with step-by-step guidance.';
+
+  @override
+  String get advancedModeDescription => 'Full parameters, charts, and tools.';
+
+  @override
+  String get beginnerGuideTitle => 'Get started step by step';
+
+  @override
+  String get beginnerGuideIntro =>
+      'You don\'t need to know every parameter. Start with these four basics.';
+
+  @override
+  String get beginnerStepDimensions => 'Tank size and volume';
+
+  @override
+  String get beginnerStepDimensionsDescription =>
+      'Measure the tank\'s length, width, and height. Note how much water you actually add.';
+
+  @override
+  String get beginnerStepWater => 'Tap water';
+
+  @override
+  String get beginnerStepWaterDescription =>
+      'Test and condition tap water according to the product instructions before adding animals.';
+
+  @override
+  String get beginnerStepLighting => 'Lighting';
+
+  @override
+  String get beginnerStepLightingDescription =>
+      'Start with a moderate lighting period and adjust gradually while watching plants and algae.';
+
+  @override
+  String get beginnerStepPlants => 'Easy plants';
+
+  @override
+  String get beginnerStepPlantsDescription =>
+      'Choose undemanding plants such as Anubias, Cryptocoryne, or hornwort.';
+
+  @override
+  String get beginnerNextStep => 'Next step';
+
+  @override
+  String get beginnerPreviousStep => 'Previous step';
+
+  @override
+  String get beginnerDimensionsAction => 'Open tank';
+
+  @override
+  String get beginnerLightingAction => 'See lighting tips';
+
+  @override
+  String get editAquariumTitle => 'Edit aquarium';
+
+  @override
+  String get hoursPerDayShort => 'h/day';
+
+  @override
+  String get beginnerWaterStatusNoData =>
+      'Add your first test to check the water.';
+
+  @override
+  String get beginnerWaterStatusGood =>
+      'The latest test does not indicate an urgent issue.';
+
+  @override
+  String get beginnerWaterStatusNeedsAttention =>
+      'Review the latest test and make any recommended changes gradually.';
+
+  @override
+  String get beginnerTestSaved => 'Test saved.';
+
+  @override
+  String get beginnerWaterMeasurementsHint =>
+      'Enter only readings you have measured. You can leave the other fields blank.';
+
+  @override
+  String get beginnerDimensionHint =>
+      'Enter the tank\'s internal dimensions in centimetres. We\'ll estimate its capacity for you.';
+
+  @override
+  String get tankLength => 'Length';
+
+  @override
+  String get tankWidth => 'Width';
+
+  @override
+  String get tankHeight => 'Height';
+
+  @override
+  String beginnerCalculatedCapacity(String liters) {
+    return 'Approximate gross capacity: $liters L';
+  }
+
+  @override
+  String get invalidTankDimensions => 'Dimensions must be positive numbers.';
+
+  @override
+  String get invalidNetVolume =>
+      'Enter a valid positive amount of water in the tank.';
+
+  @override
+  String get beginnerNetVolumeHint =>
+      'Enter an estimate of the water in the tank. You don\'t need to calculate gross capacity.';
 
   @override
   String get monthlyPlan => 'Monthly';
@@ -2294,9 +2415,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String aquariumEstablishedOn(String date) {
     return 'Established $date';
   }
-
-  @override
-  String get editAquariumTitle => 'Edit aquarium';
 
   @override
   String get addAquariumTitle => 'Add aquarium';

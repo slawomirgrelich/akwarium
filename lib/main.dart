@@ -43,6 +43,7 @@ import 'services/admin_service.dart';
 import 'services/database_service.dart';
 import 'services/firestore_service.dart';
 import 'services/firestore_sync_status.dart';
+import 'services/experience_mode_controller.dart';
 import 'services/pro_access_service.dart';
 import 'services/referral_service.dart';
 import 'services/theme_controller.dart';
@@ -191,25 +192,30 @@ class AkwarystaProApp extends StatelessWidget {
         create: (_) => ThemeController(preferences: proPreferences)..init(),
         child: ChangeNotifierProvider<LocaleController>(
           create: (_) => LocaleController(preferences: proPreferences)..init(),
-          child: firebaseReady
-              ? ChangeNotifierProvider<ReferralService>(
-                  create: (_) => ReferralService()..init(),
-                  child: ChangeNotifierProvider<TicketService>(
-                    create: (_) => TicketService(),
-                    child: ChangeNotifierProvider<models.AquariumProvider>(
-                      create: (_) => models.AquariumProvider()..initialize(),
-                      child: Builder(
-                        builder: (context) => _buildApp(context, firebaseReady),
+          child: ChangeNotifierProvider<ExperienceModeController>(
+            create: (_) =>
+                ExperienceModeController(preferences: proPreferences)..init(),
+            child: firebaseReady
+                ? ChangeNotifierProvider<ReferralService>(
+                    create: (_) => ReferralService()..init(),
+                    child: ChangeNotifierProvider<TicketService>(
+                      create: (_) => TicketService(),
+                      child: ChangeNotifierProvider<models.AquariumProvider>(
+                        create: (_) => models.AquariumProvider()..initialize(),
+                        child: Builder(
+                          builder: (context) =>
+                              _buildApp(context, firebaseReady),
+                        ),
                       ),
                     ),
+                  )
+                : ChangeNotifierProvider<models.AquariumProvider>(
+                    create: (_) => models.AquariumProvider()..initialize(),
+                    child: Builder(
+                      builder: (context) => _buildApp(context, firebaseReady),
+                    ),
                   ),
-                )
-              : ChangeNotifierProvider<models.AquariumProvider>(
-                  create: (_) => models.AquariumProvider()..initialize(),
-                  child: Builder(
-                    builder: (context) => _buildApp(context, firebaseReady),
-                  ),
-                ),
+          ),
         ),
       ),
     );
@@ -332,13 +338,13 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<models.AquariumProvider>();
+    final isBeginner = context.watch<ExperienceModeController>().isBeginner;
     final activeAquarium = provider.selectedAquarium;
     if (activeAquarium == null || activeAquarium.id.trim().isEmpty) {
       return _PageContainer(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _Header(
@@ -347,15 +353,22 @@ class DashboardPage extends StatelessWidget {
                 subtitle: l10n.dashboardSubtitle,
               ),
               const SizedBox(height: 24),
+              if (isBeginner) ...[
+                _BeginnerGuideCard(
+                  aquariumExists: false,
+                  onDimensions: () => showCreateAquariumDialog(context),
+                  onWater: () => _showMessage(context, l10n.addAquariumToStart),
+                  onLighting: () =>
+                      _showMessage(context, l10n.addAquariumToStart),
+                  onPlants: () =>
+                      _showMessage(context, l10n.addAquariumToStart),
+                ),
+                const SizedBox(height: 16),
+              ],
               Text(l10n.dashboardNoAquarium, textAlign: TextAlign.center),
               const SizedBox(height: 16),
               FilledButton.icon(
-                onPressed: () => Navigator.push<void>(
-                  context,
-                  MaterialPageRoute<void>(
-                    builder: (_) => const AquariumManagementScreen(),
-                  ),
-                ),
+                onPressed: () => showCreateAquariumDialog(context),
                 icon: const Icon(Icons.add),
                 label: Text(l10n.addNewAquarium),
               ),
@@ -421,6 +434,35 @@ class DashboardPage extends StatelessWidget {
               ),
               child: _DashboardTankCard(aquarium: activeAquarium),
             ),
+            if (isBeginner) ...[
+              const SizedBox(height: 16),
+              _BeginnerGuideCard(
+                aquariumExists: true,
+                onDimensions: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => AddAquariumModal(initial: activeAquarium),
+                ),
+                onWater: () => Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const WaterTestScreen(),
+                  ),
+                ),
+                onLighting: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => AddAquariumModal(initial: activeAquarium),
+                ),
+                onPlants: () => Navigator.push<void>(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => SpeciesAtlasScreen(
+                      tankId: activeAquarium.id,
+                      onCreateAquarium: () => showCreateAquariumDialog(context),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             if (context.watch<ProAccessService>().isProUser) ...[
               const FirestoreRemindersWidget(),
@@ -439,6 +481,8 @@ class DashboardPage extends StatelessWidget {
                         : _formatDate(latestTest.date),
                     subtitle: latestTest == null
                         ? l10n.addFirstTest
+                        : isBeginner
+                        ? l10n.beginnerTestSaved
                         : l10n.parametersCount,
                     color: Colors.teal.shade700,
                   ),
@@ -458,27 +502,34 @@ class DashboardPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            _WaterStatusCard(
-              daysSinceChange: daysSinceChange,
-              isFresh: isWaterFresh,
-            ),
-            if (latestWaterAlert(latestTest) case final alert?) ...[
-              const SizedBox(height: 12),
-              _WaterAlertCard(test: latestTest!, alert: alert),
-            ],
-            const SizedBox(height: 24),
-            _SectionHeader(title: l10n.recentParameters),
-            const SizedBox(height: 12),
-            _WaterParametersCard(test: latestTest),
-            if (provider.waterTestsSyncFailed) ...[
-              const SizedBox(height: 8),
-              Text(
-                l10n.waterTestsSyncFailed,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+            if (isBeginner)
+              _BeginnerWaterSummary(
+                test: latestTest,
+                syncFailed: provider.waterTestsSyncFailed,
+              )
+            else ...[
+              _WaterStatusCard(
+                daysSinceChange: daysSinceChange,
+                isFresh: isWaterFresh,
               ),
+              if (latestWaterAlert(latestTest) case final alert?) ...[
+                const SizedBox(height: 12),
+                _WaterAlertCard(test: latestTest!, alert: alert),
+              ],
+              const SizedBox(height: 24),
+              _SectionHeader(title: l10n.recentParameters),
+              const SizedBox(height: 12),
+              _WaterParametersCard(test: latestTest),
+              if (provider.waterTestsSyncFailed) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.waterTestsSyncFailed,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+              const SizedBox(height: 16),
+              const WaterParametersChart(),
             ],
-            const SizedBox(height: 16),
-            const WaterParametersChart(),
             const SizedBox(height: 24),
             _SectionHeader(title: l10n.quickActions),
             const SizedBox(height: 12),
@@ -586,6 +637,211 @@ class DashboardPage extends StatelessWidget {
 
   void _showMessage(BuildContext context, String message) {
     context.showAppSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _BeginnerGuideCard extends StatefulWidget {
+  const _BeginnerGuideCard({
+    required this.aquariumExists,
+    required this.onDimensions,
+    required this.onWater,
+    required this.onLighting,
+    required this.onPlants,
+  });
+
+  final bool aquariumExists;
+  final VoidCallback onDimensions;
+  final VoidCallback onWater;
+  final VoidCallback onLighting;
+  final VoidCallback onPlants;
+
+  @override
+  State<_BeginnerGuideCard> createState() => _BeginnerGuideCardState();
+}
+
+class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
+  int _stepIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final steps = [
+      (
+        l10n.beginnerStepDimensions,
+        l10n.beginnerStepDimensionsDescription,
+        widget.aquariumExists
+            ? l10n.beginnerDimensionsAction
+            : l10n.addNewAquarium,
+        Icons.straighten,
+        widget.onDimensions,
+      ),
+      (
+        l10n.beginnerStepWater,
+        l10n.beginnerStepWaterDescription,
+        l10n.enterWaterTest,
+        Icons.water_drop_outlined,
+        widget.onWater,
+      ),
+      (
+        l10n.beginnerStepLighting,
+        l10n.beginnerStepLightingDescription,
+        l10n.beginnerLightingAction,
+        Icons.light_mode_outlined,
+        widget.onLighting,
+      ),
+      (
+        l10n.beginnerStepPlants,
+        l10n.beginnerStepPlantsDescription,
+        l10n.speciesAtlasTitle,
+        Icons.eco_outlined,
+        widget.onPlants,
+      ),
+    ];
+    final step = steps[_stepIndex];
+    final canContinue = widget.aquariumExists && _stepIndex < steps.length - 1;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.school_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.beginnerGuideTitle,
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.beginnerGuideIntro),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: LinearProgressIndicator(
+                    value: (_stepIndex + 1) / steps.length,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text('${_stepIndex + 1} / ${steps.length}'),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              step.$1,
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(step.$2),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: !widget.aquariumExists && _stepIndex > 0
+                    ? null
+                    : step.$5,
+                icon: Icon(step.$4),
+                label: Text(step.$3),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: _stepIndex == 0
+                      ? null
+                      : () => setState(() => _stepIndex--),
+                  icon: const Icon(Icons.chevron_left),
+                  label: Text(l10n.beginnerPreviousStep),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: canContinue
+                      ? () => setState(() => _stepIndex++)
+                      : null,
+                  icon: const Icon(Icons.chevron_right),
+                  label: Text(l10n.beginnerNextStep),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BeginnerWaterSummary extends StatelessWidget {
+  const _BeginnerWaterSummary({required this.test, required this.syncFailed});
+
+  final models.WaterTest? test;
+  final bool syncFailed;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final alert = latestWaterAlert(test);
+    final message = test == null
+        ? l10n.beginnerWaterStatusNoData
+        : alert == null
+        ? l10n.beginnerWaterStatusGood
+        : l10n.beginnerWaterStatusNeedsAttention;
+    final color = alert == null
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.tertiary;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              alert == null ? Icons.water_drop_outlined : Icons.info_outline,
+              color: color,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.aquariumStatus,
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(message),
+                  if (test?.co2 case final value?) ...[
+                    const SizedBox(height: 8),
+                    Text('${l10n.co2Label}: ${value.toStringAsFixed(1)} mg/L'),
+                  ],
+                  if (syncFailed) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.waterTestsSyncFailed,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -716,6 +972,7 @@ class ToolsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isBeginner = context.watch<ExperienceModeController>().isBeginner;
     return _PageContainer(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -778,23 +1035,25 @@ class ToolsPage extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 12),
-            _ToolCard(
-              icon: Icons.calculate_outlined,
-              color: Colors.indigo,
-              title: l10n.fertilizerCalcTitle,
-              description: l10n.fertilizerCalcDesc,
-              buttonLabel: l10n.openCalculator,
-              premium: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AquariumCalculatorsScreen(),
-                  ),
-                );
-              },
-            ),
+            if (!isBeginner) ...[
+              const SizedBox(height: 12),
+              _ToolCard(
+                icon: Icons.calculate_outlined,
+                color: Colors.indigo,
+                title: l10n.fertilizerCalcTitle,
+                description: l10n.fertilizerCalcDesc,
+                buttonLabel: l10n.openCalculator,
+                premium: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AquariumCalculatorsScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
             const SizedBox(height: 12),
             _ToolCard(
               icon: Icons.auto_awesome,
@@ -865,6 +1124,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
   final _fe = TextEditingController();
   final _ph = TextEditingController();
   final _kh = TextEditingController();
+  final _co2 = TextEditingController();
   final _lightHours = TextEditingController(text: '8');
   final _picker = ImagePicker();
   final _editedWaterFields = <String>{};
@@ -888,6 +1148,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
     _fe.text = _formatMeasurement(latest?.fe);
     _ph.text = _formatMeasurement(latest?.ph);
     _kh.text = _formatMeasurement(latest?.kh);
+    _co2.text = _formatMeasurement(latest?.co2);
     unawaited(_prefillLatestFirestoreMeasurement(aquariumId));
   }
 
@@ -915,6 +1176,9 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
         if (!_editedWaterFields.contains('KH')) {
           _kh.text = _formatMeasurement(latest.kh);
         }
+        if (!_editedWaterFields.contains('CO2')) {
+          _co2.text = _formatMeasurement(latest.co2);
+        }
       });
     } on Object catch (error) {
       debugPrint('Nie udało się pobrać ostatnich parametrów wody: $error');
@@ -923,7 +1187,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
 
   @override
   void dispose() {
-    for (final controller in [_no3, _po4, _fe, _ph, _kh, _lightHours]) {
+    for (final controller in [_no3, _po4, _fe, _ph, _kh, _co2, _lightHours]) {
       controller.dispose();
     }
     super.dispose();
@@ -974,7 +1238,13 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.algaeAssistantTitle)),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          32 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1180,6 +1450,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
       children: [
         _numberField(_no3, 'NO3', 'mg/l'),
         _numberField(_po4, 'PO4', 'mg/l'),
+        _numberField(_co2, AppLocalizations.of(context)!.co2Label, 'mg/L'),
         _numberField(_fe, 'Fe', 'mg/l'),
         _numberField(_ph, 'pH', ''),
         _numberField(_kh, 'KH', '°dKH'),
@@ -1249,6 +1520,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
       kh: _number(_kh),
       lightHours: _number(_lightHours),
       co2: _hasCo2,
+      co2MgPerLiter: _optionalNumber(_co2),
       substrate: _substrate,
       imageBytes: _imageBytes,
       imageMimeType: _imageMimeType,
@@ -1302,6 +1574,7 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
           'Fe': _number(_fe),
           'pH': _number(_ph),
           'KH': _number(_kh),
+          ...?_co2WaterParameter(),
         },
         imagePaths: _imageBytes == null
             ? const []
@@ -1315,6 +1588,16 @@ class _AlgaeAssistantPageState extends State<AlgaeAssistantPage> {
 
   double _number(TextEditingController controller) =>
       double.tryParse(controller.text.trim().replaceAll(',', '.')) ?? 0;
+
+  double? _optionalNumber(TextEditingController controller) {
+    final text = controller.text.trim().replaceAll(',', '.');
+    return text.isEmpty ? null : double.tryParse(text);
+  }
+
+  Map<String, double>? _co2WaterParameter() {
+    final value = _optionalNumber(_co2);
+    return value == null ? null : {'CO2': value};
+  }
 
   String _formatMeasurement(double? value) => value == null
       ? ''
@@ -2019,6 +2302,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 24),
             _SectionHeader(title: l10n.settings),
             const SizedBox(height: 12),
+            const _ExperienceModeTile(),
+            const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.notifications_none,
               title: l10n.notifications,
@@ -2649,6 +2934,8 @@ class _WaterParametersCard extends StatelessWidget {
                     _ParameterChip(label: 'NO3', value: '$value mg/l'),
                   if (test!.po4 case final value?)
                     _ParameterChip(label: 'PO4', value: '$value mg/l'),
+                  if (test!.co2 case final value?)
+                    _ParameterChip(label: l10n.co2Label, value: '$value mg/L'),
                   if (test!.fe case final value?)
                     _ParameterChip(label: 'Fe', value: '$value mg/l'),
                   if (test!.kh case final value?)
@@ -3139,6 +3426,38 @@ class _ThemeModeTile extends StatelessWidget {
   }
 }
 
+class _ExperienceModeTile extends StatelessWidget {
+  const _ExperienceModeTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final mode = context.watch<ExperienceModeController>().mode;
+    final isBeginner = mode == ExperienceMode.beginner;
+    return Card(
+      child: ListTile(
+        onTap: () => _showExperienceModePicker(
+          context,
+          context.read<ExperienceModeController>(),
+        ),
+        leading: Icon(
+          Icons.school_outlined,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        title: Text(
+          l10n.experienceMode,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          '${isBeginner ? l10n.beginnerMode : l10n.advancedMode} · '
+          '${isBeginner ? l10n.beginnerModeDescription : l10n.advancedModeDescription}',
+        ),
+        trailing: const Icon(Icons.expand_more),
+      ),
+    );
+  }
+}
+
 class _LocaleTile extends StatelessWidget {
   const _LocaleTile();
 
@@ -3230,6 +3549,70 @@ Future<void> _showLocalePicker(
     ),
   );
   if (selected != null) controller.setLocale(Locale(selected));
+}
+
+Future<void> _showExperienceModePicker(
+  BuildContext context,
+  ExperienceModeController controller,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final selected = await showDialog<ExperienceMode>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.experienceMode),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ExperienceModeOption(
+            title: l10n.beginnerMode,
+            subtitle: l10n.beginnerModeDescription,
+            selected: controller.mode == ExperienceMode.beginner,
+            onTap: () => Navigator.pop(dialogContext, ExperienceMode.beginner),
+          ),
+          _ExperienceModeOption(
+            title: l10n.advancedMode,
+            subtitle: l10n.advancedModeDescription,
+            selected: controller.mode == ExperienceMode.advanced,
+            onTap: () => Navigator.pop(dialogContext, ExperienceMode.advanced),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (selected == null) return;
+  try {
+    await controller.setMode(selected);
+  } on Object catch (error, stackTrace) {
+    debugPrint('Experience mode could not be saved: $error\n$stackTrace');
+    if (context.mounted) {
+      context.showAppSnackBar(SnackBar(content: Text(error.toString())));
+    }
+  }
+}
+
+class _ExperienceModeOption extends StatelessWidget {
+  const _ExperienceModeOption({
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    contentPadding: EdgeInsets.zero,
+    title: Text(title),
+    subtitle: Text(subtitle),
+    trailing: selected
+        ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
+        : const Icon(Icons.circle_outlined),
+    onTap: onTap,
+  );
 }
 
 class _ModeOption extends StatelessWidget {

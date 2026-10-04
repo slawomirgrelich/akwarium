@@ -10,6 +10,9 @@ class AquariumModel {
     DateTime? setupDate,
     DateTime? establishedAt,
     required this.type,
+    this.lengthCm,
+    this.widthCm,
+    this.heightCm,
     DateTime? createdAt,
     this.equipment,
   }) : capacityLiters = capacityLiters ?? netVolumeLiters ?? 0,
@@ -22,6 +25,9 @@ class AquariumModel {
   final double capacityLiters;
   final DateTime setupDate;
   final String type;
+  final double? lengthCm;
+  final double? widthCm;
+  final double? heightCm;
   final DateTime createdAt;
   final AquariumEquipment? equipment;
 
@@ -35,6 +41,9 @@ class AquariumModel {
     double? capacityLiters,
     DateTime? setupDate,
     String? type,
+    double? lengthCm,
+    double? widthCm,
+    double? heightCm,
     DateTime? createdAt,
     AquariumEquipment? equipment,
   }) {
@@ -45,6 +54,9 @@ class AquariumModel {
       capacityLiters: capacityLiters ?? this.capacityLiters,
       setupDate: setupDate ?? this.setupDate,
       type: type ?? this.type,
+      lengthCm: lengthCm ?? this.lengthCm,
+      widthCm: widthCm ?? this.widthCm,
+      heightCm: heightCm ?? this.heightCm,
       createdAt: createdAt ?? this.createdAt,
       equipment: equipment ?? this.equipment,
     );
@@ -58,6 +70,9 @@ class AquariumModel {
       'capacityLiters': capacityLiters,
       'setupDate': Timestamp.fromDate(setupDate),
       'type': type,
+      if (lengthCm != null) 'lengthCm': lengthCm,
+      if (widthCm != null) 'widthCm': widthCm,
+      if (heightCm != null) 'heightCm': heightCm,
       'createdAt': Timestamp.fromDate(createdAt),
       if (equipment != null) 'equipment': equipment!.toMap(),
     };
@@ -77,6 +92,9 @@ class AquariumModel {
       capacityLiters: _doubleFromValue(values['capacityLiters']),
       setupDate: _dateFromValue(values['setupDate']) ?? createdAt,
       type: _stringFromValue(values['type'], fallback: 'Słodkowodne'),
+      lengthCm: _nullableDoubleFromValue(values['lengthCm']),
+      widthCm: _nullableDoubleFromValue(values['widthCm']),
+      heightCm: _nullableDoubleFromValue(values['heightCm']),
       createdAt: createdAt,
       equipment: values['equipment'] is Map
           ? AquariumEquipment.fromMap(
@@ -148,6 +166,7 @@ class WaterParametersModel {
     this.k,
     this.mg,
     this.temp,
+    this.co2,
     required this.notes,
   });
 
@@ -164,6 +183,7 @@ class WaterParametersModel {
   final double? k;
   final double? mg;
   final double? temp;
+  final double? co2;
   final String notes;
 
   WaterParametersModel copyWith({
@@ -180,6 +200,7 @@ class WaterParametersModel {
     double? k,
     double? mg,
     double? temp,
+    double? co2,
     String? notes,
   }) {
     return WaterParametersModel(
@@ -196,6 +217,7 @@ class WaterParametersModel {
       k: k ?? this.k,
       mg: mg ?? this.mg,
       temp: temp ?? this.temp,
+      co2: co2 ?? this.co2,
       notes: notes ?? this.notes,
     );
   }
@@ -215,6 +237,7 @@ class WaterParametersModel {
       if (k != null) 'k': k,
       if (mg != null) 'mg': mg,
       if (temp != null) 'temp': temp,
+      if (co2 != null) 'co2': co2,
       'notes': notes,
     };
   }
@@ -243,6 +266,7 @@ class WaterParametersModel {
       k: _nullableDoubleFromValue(values['k']),
       mg: _nullableDoubleFromValue(values['mg']),
       temp: _nullableDoubleFromValue(values['temp']),
+      co2: _nullableDoubleFromValue(values['co2']),
       notes: _stringFromValue(values['notes']),
     );
   }

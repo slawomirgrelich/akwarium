@@ -57,7 +57,7 @@
   "lastTest": "Latest test",
   "noData": "No data",
   "addFirstTest": "Add your first test",
-  "parametersCount": "7 parameters",
+  "parametersCount": "8 parameters",
   "waterChange": "Water change",
   "daysCount": "{count, plural, =1{1 day} other{{count} days}}",
   "@daysCount": {"placeholders": {"count": {"type": "int"}}},
@@ -300,6 +300,42 @@
   ,"proBenefitFullPhotoHistory": "Full photo history"
   ,"proBenefitNoAds": "No ads"
   ,"unlockProHeadline": "Unlock Aquarist PRO"
+  ,"experienceMode": "App experience"
+  ,"experienceModeSubtitle": "Adapt the dashboard and guidance to your experience."
+  ,"beginnerMode": "Beginner"
+  ,"advancedMode": "Advanced"
+  ,"beginnerModeDescription": "A simpler dashboard with step-by-step guidance."
+  ,"advancedModeDescription": "Full parameters, charts, and tools."
+  ,"beginnerGuideTitle": "Get started step by step"
+  ,"beginnerGuideIntro": "You don't need to know every parameter. Start with these four basics."
+  ,"beginnerStepDimensions": "Tank size and volume"
+  ,"beginnerStepDimensionsDescription": "Measure the tank's length, width, and height. Note how much water you actually add."
+  ,"beginnerStepWater": "Tap water"
+  ,"beginnerStepWaterDescription": "Test and condition tap water according to the product instructions before adding animals."
+  ,"beginnerStepLighting": "Lighting"
+  ,"beginnerStepLightingDescription": "Start with a moderate lighting period and adjust gradually while watching plants and algae."
+  ,"beginnerStepPlants": "Easy plants"
+  ,"beginnerStepPlantsDescription": "Choose undemanding plants such as Anubias, Cryptocoryne, or hornwort."
+  ,"beginnerNextStep": "Next step"
+  ,"beginnerPreviousStep": "Previous step"
+  ,"beginnerDimensionsAction": "Open tank"
+  ,"beginnerLightingAction": "See lighting tips"
+  ,"editAquariumTitle": "Edit aquarium"
+  ,"hoursPerDayShort": "h/day"
+  ,"beginnerWaterStatusNoData": "Add your first test to check the water."
+  ,"beginnerWaterStatusGood": "The latest test does not indicate an urgent issue."
+  ,"beginnerWaterStatusNeedsAttention": "Review the latest test and make any recommended changes gradually."
+  ,"beginnerTestSaved": "Test saved."
+  ,"beginnerWaterMeasurementsHint": "Enter only readings you have measured. You can leave the other fields blank."
+  ,"beginnerDimensionHint": "Enter the tank's internal dimensions in centimetres. We'll estimate its capacity for you."
+  ,"tankLength": "Length"
+  ,"tankWidth": "Width"
+  ,"tankHeight": "Height"
+  ,"beginnerCalculatedCapacity": "Approximate gross capacity: {liters} L"
+  ,"@beginnerCalculatedCapacity": {"placeholders": {"liters": {"type": "String"}}}
+  ,"invalidTankDimensions": "Dimensions must be positive numbers."
+  ,"invalidNetVolume": "Enter a valid positive amount of water in the tank."
+  ,"beginnerNetVolumeHint": "Enter an estimate of the water in the tank. You don't need to calculate gross capacity."
   ,"monthlyPlan": "Monthly"
   ,"yearlyPlan": "Yearly"
   ,"mostPopularBadge": "Most popular"

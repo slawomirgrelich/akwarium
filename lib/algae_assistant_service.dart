@@ -14,6 +14,7 @@ class AlgaeDiagnosticInput {
     required this.kh,
     required this.lightHours,
     required this.co2,
+    this.co2MgPerLiter,
     required this.substrate,
     this.imageBytes,
     this.imageMimeType,
@@ -27,13 +28,21 @@ class AlgaeDiagnosticInput {
   final double kh;
   final double lightHours;
   final bool co2;
+  final double? co2MgPerLiter;
   final String substrate;
   final Uint8List? imageBytes;
   final String? imageMimeType;
 
   Map<String, dynamic> toJson() => {
     'glon': algaeType,
-    'parametry_wody': {'NO3': no3, 'PO4': po4, 'Fe': fe, 'pH': ph, 'KH': kh},
+    'parametry_wody': {
+      'NO3': no3,
+      'PO4': po4,
+      'Fe': fe,
+      'pH': ph,
+      'KH': kh,
+      if (co2MgPerLiter != null) 'CO2_mg_L': co2MgPerLiter,
+    },
     'czas_swiecenia_godziny': lightHours,
     'co2': co2,
     'podloze': substrate,
@@ -58,7 +67,9 @@ class AlgaeDiagnosticResult {
   factory AlgaeDiagnosticResult.fromJson(Map<String, dynamic> json) {
     final rawActions = json['plan_dzialania'] ?? json['plan'] ?? const [];
     if (rawActions is! List || rawActions.isEmpty) {
-      throw const AlgaeAssistantException('Odpowiedź nie zawiera planu działania.');
+      throw const AlgaeAssistantException(
+        'Odpowiedź nie zawiera planu działania.',
+      );
     }
     return AlgaeDiagnosticResult(
       algaeName: _text(json['glon'] ?? json['algae'], 'glon'),
@@ -69,7 +80,8 @@ class AlgaeDiagnosticResult {
 }
 
 class AlgaeAssistantService {
-  AlgaeAssistantService({http.Client? client}) : _client = client ?? http.Client();
+  AlgaeAssistantService({http.Client? client})
+    : _client = client ?? http.Client();
 
   static const endpoint = String.fromEnvironment('ALGAE_ASSISTANT_ENDPOINT');
   static const allowMock = bool.fromEnvironment(
@@ -81,7 +93,9 @@ class AlgaeAssistantService {
   Future<AlgaeDiagnosticResult> diagnose(AlgaeDiagnosticInput input) async {
     if (endpoint.isEmpty) {
       if (allowMock) return _mock(input);
-      throw const AlgaeAssistantException('Asystent glonów nie jest skonfigurowany.');
+      throw const AlgaeAssistantException(
+        'Asystent glonów nie jest skonfigurowany.',
+      );
     }
 
     late final http.Response response;
@@ -98,25 +112,36 @@ class AlgaeAssistantService {
           .timeout(const Duration(seconds: 45));
     } on http.ClientException {
       if (allowMock) return _mock(input);
-      throw const AlgaeAssistantException('Brak połączenia z serwerem diagnostyki.');
+      throw const AlgaeAssistantException(
+        'Brak połączenia z serwerem diagnostyki.',
+      );
     } on TimeoutException {
       if (allowMock) return _mock(input);
-      throw const AlgaeAssistantException('Serwer diagnostyki nie odpowiedział na czas.');
+      throw const AlgaeAssistantException(
+        'Serwer diagnostyki nie odpowiedział na czas.',
+      );
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw AlgaeAssistantException('Serwer diagnostyki zwrócił błąd (${response.statusCode}).');
+      throw AlgaeAssistantException(
+        'Serwer diagnostyki zwrócił błąd (${response.statusCode}).',
+      );
     }
     try {
       final decoded = jsonDecode(response.body);
-      final payload = decoded is Map<String, dynamic> && decoded['result'] is Map
+      final payload =
+          decoded is Map<String, dynamic> && decoded['result'] is Map
           ? Map<String, dynamic>.from(decoded['result'] as Map)
           : Map<String, dynamic>.from(decoded as Map);
       return AlgaeDiagnosticResult.fromJson(payload);
     } on FormatException {
-      throw const AlgaeAssistantException('Odpowiedź diagnostyki ma nieprawidłowy format.');
+      throw const AlgaeAssistantException(
+        'Odpowiedź diagnostyki ma nieprawidłowy format.',
+      );
     } on TypeError {
-      throw const AlgaeAssistantException('Odpowiedź diagnostyki nie zawiera danych.');
+      throw const AlgaeAssistantException(
+        'Odpowiedź diagnostyki nie zawiera danych.',
+      );
     }
   }
 
@@ -125,24 +150,31 @@ class AlgaeAssistantService {
     final cause = ratio > 30
         ? 'Stosunek NO3 do PO4 wynosi ${ratio.isFinite ? ratio.toStringAsFixed(0) : 'bardzo dużo'}:1 - za mało fosforu sprzyja zielenicom.'
         : input.fe > 0.5
-            ? 'Podwyższone Fe (${input.fe.toStringAsFixed(2)} mg/l) może wzmacniać wzrost glonów przy długim świeceniu.'
-            : !input.co2
-                ? 'Brak CO2 ogranicza konkurencyjny wzrost roślin, przez co glony łatwiej wykorzystują światło i składniki.'
-                : 'Najbardziej prawdopodobna jest nierównowaga światła, nawożenia i cyrkulacji w zbiorniku.';
+        ? 'Podwyższone Fe (${input.fe.toStringAsFixed(2)} mg/l) może wzmacniać wzrost glonów przy długim świeceniu.'
+        : input.co2MgPerLiter != null && input.co2MgPerLiter! < 15
+        ? 'Niski poziom CO2 (${input.co2MgPerLiter!.toStringAsFixed(1)} mg/L) ogranicza wzrost roślin i sprzyja glonom.'
+        : input.co2MgPerLiter != null && input.co2MgPerLiter! > 30
+        ? 'Wysoki poziom CO2 (${input.co2MgPerLiter!.toStringAsFixed(1)} mg/L) może zagrażać obsadzie.'
+        : !input.co2 && input.co2MgPerLiter == null
+        ? 'Brak CO2 ogranicza konkurencyjny wzrost roślin, przez co glony łatwiej wykorzystują światło i składniki.'
+        : 'Najbardziej prawdopodobna jest nierównowaga światła, nawożenia i cyrkulacji w zbiorniku.';
     return AlgaeDiagnosticResult(
       algaeName: input.algaeType,
       cause: cause,
       actions: [
         'Podmień 30% wody i usuń glony mechanicznie.',
         'Skróć świecenie do 6 godzin dziennie na najbliższy tydzień.',
-        ratio > 30 ? 'Uzupełnij PO4 ostrożnie i dąż do stabilnego NO3:PO4 około 10-20:1.' : 'Skoryguj nawożenie dopiero po 3-4 dniach stabilnych pomiarów.',
+        ratio > 30
+            ? 'Uzupełnij PO4 ostrożnie i dąż do stabilnego NO3:PO4 około 10-20:1.'
+            : 'Skoryguj nawożenie dopiero po 3-4 dniach stabilnych pomiarów.',
         'Sprawdź cyrkulację i oczyść filtr bez wymiany całego wkładu biologicznego.',
       ],
       isMock: true,
     );
   }
 
-  static const _systemPrompt = '''Jesteś diagnostą akwarystycznym. Na podstawie typu glonu, parametrów NO3, PO4, Fe, pH, KH, światła, CO2, podłoża i zdjęcia określ najbardziej prawdopodobną przyczynę. Uwzględnij stosunek Redfielda NO3:PO4, nadmiar Fe, brak CO2, zbyt długie światło i cyrkulację. Zwróć wyłącznie JSON: {"glon":"...","przyczyna":"...","plan_dzialania":["krok 1","krok 2"]}. Plan ma mieć konkretne, bezpieczne czynności i nie zalecać gwałtownych zmian parametrów.''';
+  static const _systemPrompt =
+      '''Jesteś diagnostą akwarystycznym. Na podstawie typu glonu, parametrów NO3, PO4, Fe, pH, KH, światła, obecności instalacji CO2, opcjonalnego pomiaru CO2 w mg/L, podłoża i zdjęcia określ najbardziej prawdopodobną przyczynę. Uwzględnij stosunek Redfielda NO3:PO4, nadmiar Fe, brak lub niebezpieczne stężenie CO2, zbyt długie światło i cyrkulację. Zwróć wyłącznie JSON: {"glon":"...","przyczyna":"...","plan_dzialania":["krok 1","krok 2"]}. Plan ma mieć konkretne, bezpieczne czynności i nie zalecać gwałtownych zmian parametrów.''';
 }
 
 class AlgaeAssistantException implements Exception {
@@ -156,6 +188,8 @@ class AlgaeAssistantException implements Exception {
 
 String _text(dynamic value, String field) {
   final text = value?.toString().trim() ?? '';
-  if (text.isEmpty) throw AlgaeAssistantException('Brak pola $field w odpowiedzi.');
+  if (text.isEmpty) {
+    throw AlgaeAssistantException('Brak pola $field w odpowiedzi.');
+  }
   return text;
 }
