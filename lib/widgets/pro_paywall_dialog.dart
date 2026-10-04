@@ -1,5 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -47,6 +49,7 @@ class ProPaywallDialog extends StatefulWidget {
   static Future<void> show(BuildContext context, {String? headline}) {
     return showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => ProPaywallDialog(headline: headline),
     );
   }
@@ -56,133 +59,395 @@ class ProPaywallDialog extends StatefulWidget {
 }
 
 class _ProPaywallDialogState extends State<ProPaywallDialog> {
-  bool _yearlyPlanSelected = true;
-  bool _activating = false;
+  static const _monthlyProductId = 'akwarysta_pro_monthly';
+  static const _yearlyProductId = 'akwarysta_pro_yearly';
+  static const _productIds = {_monthlyProductId, _yearlyProductId};
 
-  bool get _mockActivationEnabled => kDebugMode;
+  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  final Map<String, ProductDetails> _products = {};
+  StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
+
+  bool _yearlyPlanSelected = true;
+  bool _loadingProducts = true;
+  bool _storeAvailable = false;
+  bool _purchasePending = false;
+  bool _activating = false;
+  _PurchaseMessage? _purchaseMessage;
+
+  String get _selectedProductId =>
+      _yearlyPlanSelected ? _yearlyProductId : _monthlyProductId;
+  ProductDetails? get _selectedProduct => _products[_selectedProductId];
+  bool get _canPurchase =>
+      !_loadingProducts &&
+      _storeAvailable &&
+      !_purchasePending &&
+      !_activating &&
+      _selectedProduct != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _purchaseSubscription = _inAppPurchase.purchaseStream.listen(
+      _onPurchaseUpdates,
+      onError: (Object error, StackTrace stackTrace) {
+        debugPrint('Google Play purchase stream failed: $error');
+        debugPrintStack(stackTrace: stackTrace);
+        if (!mounted) return;
+        setState(() {
+          _purchasePending = false;
+          _activating = false;
+          _purchaseMessage = _PurchaseMessage.purchaseFailed;
+        });
+      },
+    );
+    unawaited(_loadProducts());
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      final available = await _inAppPurchase.isAvailable();
+      if (!mounted) return;
+      if (!available) {
+        setState(() {
+          _loadingProducts = false;
+          _purchaseMessage = _PurchaseMessage.storeUnavailable;
+        });
+        return;
+      }
+
+      final response = await _inAppPurchase.queryProductDetails(_productIds);
+      if (response.error != null) {
+        debugPrint(
+          'Google Play product query failed: ${response.error!.message}',
+        );
+      }
+      if (response.notFoundIDs.isNotEmpty) {
+        debugPrint(
+          'Google Play products not found: ${response.notFoundIDs.join(', ')}',
+        );
+      }
+      if (!mounted) return;
+
+      setState(() {
+        _storeAvailable = true;
+        _loadingProducts = false;
+        _products
+          ..clear()
+          ..addEntries(
+            response.productDetails.map(
+              (product) => MapEntry(product.id, product),
+            ),
+          );
+        _purchaseMessage = response.error != null || _selectedProduct == null
+            ? _PurchaseMessage.productsUnavailable
+            : null;
+      });
+    } on Object catch (error, stackTrace) {
+      debugPrint('Google Play initialization failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!mounted) return;
+      setState(() {
+        _loadingProducts = false;
+        _purchaseMessage = _PurchaseMessage.storeUnavailable;
+      });
+    }
+  }
+
+  Future<void> _onPurchaseUpdates(List<PurchaseDetails> purchases) async {
+    for (final purchase in purchases) {
+      if (!_productIds.contains(purchase.productID)) {
+        debugPrint(
+          'Ignoring purchase for an unexpected product: ${purchase.productID}',
+        );
+        continue;
+      }
+
+      switch (purchase.status) {
+        case PurchaseStatus.pending:
+          if (mounted) {
+            setState(() {
+              _purchasePending = true;
+              _purchaseMessage = _PurchaseMessage.purchasePending;
+            });
+          }
+        case PurchaseStatus.purchased:
+        case PurchaseStatus.restored:
+          await _activatePurchase(purchase);
+        case PurchaseStatus.error:
+          debugPrint('Google Play purchase failed: ${purchase.error?.message}');
+          await _completePurchase(purchase);
+          if (mounted) {
+            setState(() {
+              _purchasePending = false;
+              _activating = false;
+              _purchaseMessage = _PurchaseMessage.purchaseFailed;
+            });
+          }
+        case PurchaseStatus.canceled:
+          final completed = await _completePurchase(purchase);
+          if (mounted) {
+            setState(() {
+              _purchasePending = false;
+              _activating = false;
+              _purchaseMessage = completed
+                  ? _PurchaseMessage.purchaseCancelled
+                  : _PurchaseMessage.purchaseFailed;
+            });
+          }
+      }
+    }
+  }
+
+  Future<void> _activatePurchase(PurchaseDetails purchase) async {
+    final plan = switch (purchase.productID) {
+      _monthlyProductId => 'monthly',
+      _yearlyProductId => 'yearly',
+      _ => null,
+    };
+    if (plan == null) return;
+
+    if (mounted) {
+      setState(() {
+        _purchasePending = false;
+        _activating = true;
+        _purchaseMessage = null;
+      });
+    }
+
+    Object? activationError;
+    try {
+      await context.read<ProAccessService>().setProUser(true, plan: plan);
+    } on Object catch (error, stackTrace) {
+      activationError = error;
+      debugPrint('PRO subscription activation failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+    final completed = await _completePurchase(purchase);
+    if (!mounted) return;
+
+    setState(() {
+      _activating = false;
+      _purchasePending = false;
+      if (activationError != null || !completed) {
+        _purchaseMessage = _PurchaseMessage.purchaseFailed;
+      }
+    });
+    if (activationError != null) {
+      context.showAppSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!
+                .proActivationFailed(activationError.toString()),
+          ),
+        ),
+      );
+      return;
+    }
+    if (!completed) return;
+
+    Navigator.pop(context);
+    context.showAppSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.proActivatedMessage),
+      ),
+    );
+  }
+
+  Future<bool> _completePurchase(PurchaseDetails purchase) async {
+    if (!purchase.pendingCompletePurchase) return true;
+    try {
+      await _inAppPurchase.completePurchase(purchase);
+      return true;
+    } on Object catch (error, stackTrace) {
+      debugPrint('Google Play transaction completion failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      return false;
+    }
+  }
+
+  Future<void> _startPurchase() async {
+    final product = _selectedProduct;
+    if (!_canPurchase || product == null) return;
+
+    setState(() {
+      _purchasePending = true;
+      _purchaseMessage = null;
+    });
+    try {
+      final purchaseStarted = await _inAppPurchase.buyNonConsumable(
+        purchaseParam: PurchaseParam(productDetails: product),
+      );
+      if (!purchaseStarted && mounted) {
+        setState(() {
+          _purchasePending = false;
+          _purchaseMessage = _PurchaseMessage.purchaseFailed;
+        });
+      }
+    } on Object catch (error, stackTrace) {
+      debugPrint('Google Play purchase could not be started: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!mounted) return;
+      setState(() {
+        _purchasePending = false;
+        _purchaseMessage = _PurchaseMessage.purchaseFailed;
+      });
+    }
+  }
+
+  void _selectPlan(bool yearly) {
+    setState(() {
+      _yearlyPlanSelected = yearly;
+      if (!_storeAvailable) {
+        _purchaseMessage = _PurchaseMessage.storeUnavailable;
+      } else if (!_loadingProducts && _selectedProduct == null) {
+        _purchaseMessage = _PurchaseMessage.productsUnavailable;
+      } else {
+        _purchaseMessage = null;
+      }
+    });
+  }
+
+  String? _messageText(AppLocalizations l10n) {
+    return switch (_purchaseMessage) {
+      _PurchaseMessage.storeUnavailable => l10n.subscriptionStoreUnavailable,
+      _PurchaseMessage.productsUnavailable => l10n.purchaseNotConfigured,
+      _PurchaseMessage.purchasePending => l10n.subscriptionPurchasePending,
+      _PurchaseMessage.purchaseCancelled => l10n.subscriptionPurchaseCancelled,
+      _PurchaseMessage.purchaseFailed => l10n.subscriptionPurchaseFailed,
+      null => null,
+    };
+  }
+
+  @override
+  void dispose() {
+    unawaited(_purchaseSubscription?.cancel());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
-      title: Row(
-        children: [
-          Expanded(child: Text(widget.headline ?? l10n.unlockProHeadline)),
-          const SizedBox(width: 8),
-          const ProBadge(),
-        ],
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final selectedStatusText = _messageText(l10n);
+    return PopScope(
+      canPop: !_purchasePending && !_activating,
+      child: AlertDialog(
+        title: Row(
           children: [
-            Text(
-              l10n.proPaywallSubtitle,
-              style: TextStyle(color: Colors.grey.shade700),
-            ),
-            if (_mockActivationEnabled) ...[
-              const SizedBox(height: 8),
-              Text(
-                l10n.mockPurchaseTestingNotice,
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-              ),
-            ],
-            const SizedBox(height: 18),
-            _Benefit(icon: Icons.show_chart, text: l10n.featureUnlimitedCharts),
-            _Benefit(
-              icon: Icons.water_drop_outlined,
-              text: l10n.proBenefitUnlimitedAquariums,
-            ),
-            _Benefit(
-              icon: Icons.auto_awesome,
-              text: l10n.proBenefitAiScannerDiagnostics,
-            ),
-            _Benefit(
-              icon: Icons.eco_outlined,
-              text: l10n.featureFertilizerCalc,
-            ),
-            _Benefit(
-              icon: Icons.notifications_active_outlined,
-              text: l10n.featureReminders,
-            ),
-            _Benefit(
-              icon: Icons.picture_as_pdf_outlined,
-              text: l10n.featureExportPdf,
-            ),
-            _Benefit(
-              icon: Icons.photo_library_outlined,
-              text: l10n.proBenefitFullPhotoHistory,
-            ),
-            _Benefit(icon: Icons.block, text: l10n.proBenefitNoAds),
-            const SizedBox(height: 8),
-            _PlanTile(
-              title: l10n.monthlyPlan,
-              price: l10n.monthlyPrice,
-              selected: !_yearlyPlanSelected,
-              onTap: () => setState(() => _yearlyPlanSelected = false),
-            ),
-            const SizedBox(height: 8),
-            _PlanTile(
-              title: l10n.yearlyPlan,
-              price: l10n.yearlyPrice,
-              badge: l10n.mostPopularBadge,
-              selected: _yearlyPlanSelected,
-              onTap: () => setState(() => _yearlyPlanSelected = true),
-            ),
+            Expanded(child: Text(widget.headline ?? l10n.unlockProHeadline)),
+            const SizedBox(width: 8),
+            const ProBadge(),
           ],
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.maybeLater),
-        ),
-        FilledButton.icon(
-          onPressed: _activating || !_mockActivationEnabled
-              ? null
-              : _activatePro,
-          icon: _activating
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.auto_awesome),
-          label: Text(
-            _activating
-                ? l10n.activatingEllipsis
-                : _mockActivationEnabled
-                ? l10n.tryPro
-                : l10n.purchaseNotConfigured,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.proPaywallSubtitle,
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 18),
+              _Benefit(
+                icon: Icons.show_chart,
+                text: l10n.featureUnlimitedCharts,
+              ),
+              _Benefit(
+                icon: Icons.water_drop_outlined,
+                text: l10n.proBenefitUnlimitedAquariums,
+              ),
+              _Benefit(
+                icon: Icons.auto_awesome,
+                text: l10n.proBenefitAiScannerDiagnostics,
+              ),
+              _Benefit(
+                icon: Icons.eco_outlined,
+                text: l10n.featureFertilizerCalc,
+              ),
+              _Benefit(
+                icon: Icons.notifications_active_outlined,
+                text: l10n.featureReminders,
+              ),
+              _Benefit(
+                icon: Icons.picture_as_pdf_outlined,
+                text: l10n.featureExportPdf,
+              ),
+              _Benefit(
+                icon: Icons.photo_library_outlined,
+                text: l10n.proBenefitFullPhotoHistory,
+              ),
+              _Benefit(icon: Icons.block, text: l10n.proBenefitNoAds),
+              const SizedBox(height: 8),
+              _PlanTile(
+                title: l10n.monthlyPlan,
+                price:
+                    _products[_monthlyProductId]?.price ??
+                    (_loadingProducts
+                        ? l10n.loadingSubscriptionPrices
+                        : l10n.purchaseNotConfigured),
+                selected: !_yearlyPlanSelected,
+                onTap: () => _selectPlan(false),
+              ),
+              const SizedBox(height: 8),
+              _PlanTile(
+                title: l10n.yearlyPlan,
+                price:
+                    _products[_yearlyProductId]?.price ??
+                    (_loadingProducts
+                        ? l10n.loadingSubscriptionPrices
+                        : l10n.purchaseNotConfigured),
+                badge: l10n.mostPopularBadge,
+                selected: _yearlyPlanSelected,
+                onTap: () => _selectPlan(true),
+              ),
+              if (selectedStatusText != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  selectedStatusText,
+                  style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                ),
+              ],
+            ],
           ),
         ),
-      ],
+        actions: [
+          TextButton(
+            onPressed: _purchasePending || _activating
+                ? null
+                : () => Navigator.pop(context),
+            child: Text(l10n.maybeLater),
+          ),
+          FilledButton.icon(
+            onPressed: _canPurchase ? _startPurchase : null,
+            icon: _purchasePending || _activating
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.auto_awesome),
+            label: Text(
+              _loadingProducts
+                  ? l10n.loadingSubscriptionPrices
+                  : _purchasePending || _activating
+                  ? l10n.activatingEllipsis
+                  : _selectedProduct == null
+                  ? l10n.purchaseNotConfigured
+                  : l10n.tryPro,
+            ),
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Future<void> _activatePro() async {
-    final l10n = AppLocalizations.of(context)!;
-    setState(() => _activating = true);
-    try {
-      await context.read<ProAccessService>().setProUser(
-        true,
-        plan: _yearlyPlanSelected ? 'yearly' : 'monthly',
-      );
-      if (!mounted) return;
-      Navigator.pop(context);
-      context.showAppSnackBar(
-        SnackBar(content: Text(l10n.proActivatedMessage)),
-      );
-    } on Object catch (error) {
-      if (mounted) {
-        setState(() => _activating = false);
-        context.showAppSnackBar(
-          SnackBar(content: Text(l10n.proActivationFailed(error.toString()))),
-        );
-      }
-    }
-  }
+enum _PurchaseMessage {
+  storeUnavailable,
+  productsUnavailable,
+  purchasePending,
+  purchaseCancelled,
+  purchaseFailed,
 }
 
 class _PlanTile extends StatelessWidget {

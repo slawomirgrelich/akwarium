@@ -603,7 +603,7 @@ class AppLocalizationsPl extends AppLocalizations {
       'Rozpoznaj gatunek ze zdjęcia i poznaj jego wymagania.';
 
   @override
-  String get tryPro => 'Wypróbuj PRO';
+  String get tryPro => 'Subskrybuj';
 
   @override
   String get algaeAssistantTitle => 'Asystent glonów';
@@ -960,10 +960,11 @@ class AppLocalizationsPl extends AppLocalizations {
   String get mostPopularBadge => 'Najpopularniejszy';
 
   @override
-  String get activatingEllipsis => 'Aktywowanie…';
+  String get activatingEllipsis => 'Przetwarzanie…';
 
   @override
-  String get proActivatedMessage => 'Aktywowany status Akwarysta PRO.';
+  String get proActivatedMessage =>
+      'Subskrypcja Akwarysta PRO została aktywowana.';
 
   @override
   String proActivationFailed(String error) {
@@ -3051,11 +3052,25 @@ class AppLocalizationsPl extends AppLocalizations {
       'Wskazówki AI to wstępna ocena, nie diagnoza weterynaryjna. Przed leczeniem potwierdź objawy i parametry wody.';
 
   @override
-  String get mockPurchaseTestingNotice =>
-      'Tryb testowy: aktywacja PRO jest symulowana wyłącznie w kompilacji debug.';
+  String get purchaseNotConfigured => 'Plan niedostępny';
 
   @override
-  String get purchaseNotConfigured => 'Zakupy nie są skonfigurowane';
+  String get loadingSubscriptionPrices => 'Pobieranie cen…';
+
+  @override
+  String get subscriptionStoreUnavailable =>
+      'Sklep jest niedostępny. Spróbuj ponownie później.';
+
+  @override
+  String get subscriptionPurchasePending =>
+      'Oczekiwanie na potwierdzenie zakupu…';
+
+  @override
+  String get subscriptionPurchaseCancelled => 'Zakup został anulowany.';
+
+  @override
+  String get subscriptionPurchaseFailed =>
+      'Zakup nie powiódł się. Spróbuj ponownie.';
 
   @override
   String get mockAiUnavailable =>
@@ -3079,12 +3094,6 @@ class AppLocalizationsPl extends AppLocalizations {
   ) {
     return '$first i $second nie mają wspólnego zakresu temperatur.';
   }
-
-  @override
-  String get monthlyPrice => '9,99 zł / miesiąc';
-
-  @override
-  String get yearlyPrice => '69,99 zł / rok';
 
   @override
   String get journalSearchHint => 'Szukaj wpisów, tagów i obserwacji';

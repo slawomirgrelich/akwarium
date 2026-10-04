@@ -600,7 +600,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Identify a species from a photo and learn its needs.';
 
   @override
-  String get tryPro => 'Try PRO';
+  String get tryPro => 'Subscribe';
 
   @override
   String get algaeAssistantTitle => 'Algae assistant';
@@ -953,10 +953,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mostPopularBadge => 'Most popular';
 
   @override
-  String get activatingEllipsis => 'Activating…';
+  String get activatingEllipsis => 'Processing…';
 
   @override
-  String get proActivatedMessage => 'Aquarist PRO status activated.';
+  String get proActivatedMessage => 'Your Aquarist PRO subscription is active.';
 
   @override
   String proActivationFailed(String error) {
@@ -3032,11 +3032,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'AI guidance is an initial assessment, not a veterinary diagnosis. Confirm symptoms and water parameters before treatment.';
 
   @override
-  String get mockPurchaseTestingNotice =>
-      'Test mode: PRO activation is simulated in debug builds only.';
+  String get purchaseNotConfigured => 'Plan unavailable';
 
   @override
-  String get purchaseNotConfigured => 'Purchases are not configured';
+  String get loadingSubscriptionPrices => 'Loading prices…';
+
+  @override
+  String get subscriptionStoreUnavailable =>
+      'The store is unavailable. Please try again later.';
+
+  @override
+  String get subscriptionPurchasePending =>
+      'Waiting for purchase confirmation…';
+
+  @override
+  String get subscriptionPurchaseCancelled => 'Purchase cancelled.';
+
+  @override
+  String get subscriptionPurchaseFailed => 'Purchase failed. Please try again.';
 
   @override
   String get mockAiUnavailable =>
@@ -3060,12 +3073,6 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return '$first and $second have no overlapping temperature range.';
   }
-
-  @override
-  String get monthlyPrice => '9.99 PLN / month';
-
-  @override
-  String get yearlyPrice => '69.99 PLN / year';
 
   @override
   String get journalSearchHint => 'Search entries, tags and observations';

@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @tryPro.
   ///
   /// In pl, this message translates to:
-  /// **'Wypróbuj PRO'**
+  /// **'Subskrybuj'**
   String get tryPro;
 
   /// No description provided for @algaeAssistantTitle.
@@ -1871,13 +1871,13 @@ abstract class AppLocalizations {
   /// No description provided for @activatingEllipsis.
   ///
   /// In pl, this message translates to:
-  /// **'Aktywowanie…'**
+  /// **'Przetwarzanie…'**
   String get activatingEllipsis;
 
   /// No description provided for @proActivatedMessage.
   ///
   /// In pl, this message translates to:
-  /// **'Aktywowany status Akwarysta PRO.'**
+  /// **'Subskrypcja Akwarysta PRO została aktywowana.'**
   String get proActivatedMessage;
 
   /// No description provided for @proActivationFailed.
@@ -5557,17 +5557,41 @@ abstract class AppLocalizations {
   /// **'Wskazówki AI to wstępna ocena, nie diagnoza weterynaryjna. Przed leczeniem potwierdź objawy i parametry wody.'**
   String get scannerCareNotice;
 
-  /// No description provided for @mockPurchaseTestingNotice.
-  ///
-  /// In pl, this message translates to:
-  /// **'Tryb testowy: aktywacja PRO jest symulowana wyłącznie w kompilacji debug.'**
-  String get mockPurchaseTestingNotice;
-
   /// No description provided for @purchaseNotConfigured.
   ///
   /// In pl, this message translates to:
-  /// **'Zakupy nie są skonfigurowane'**
+  /// **'Plan niedostępny'**
   String get purchaseNotConfigured;
+
+  /// No description provided for @loadingSubscriptionPrices.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pobieranie cen…'**
+  String get loadingSubscriptionPrices;
+
+  /// No description provided for @subscriptionStoreUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sklep jest niedostępny. Spróbuj ponownie później.'**
+  String get subscriptionStoreUnavailable;
+
+  /// No description provided for @subscriptionPurchasePending.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oczekiwanie na potwierdzenie zakupu…'**
+  String get subscriptionPurchasePending;
+
+  /// No description provided for @subscriptionPurchaseCancelled.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakup został anulowany.'**
+  String get subscriptionPurchaseCancelled;
+
+  /// No description provided for @subscriptionPurchaseFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakup nie powiódł się. Spróbuj ponownie.'**
+  String get subscriptionPurchaseFailed;
 
   /// No description provided for @mockAiUnavailable.
   ///
@@ -5601,18 +5625,6 @@ abstract class AppLocalizations {
     String first,
     String second,
   );
-
-  /// No description provided for @monthlyPrice.
-  ///
-  /// In pl, this message translates to:
-  /// **'9,99 zł / miesiąc'**
-  String get monthlyPrice;
-
-  /// No description provided for @yearlyPrice.
-  ///
-  /// In pl, this message translates to:
-  /// **'69,99 zł / rok'**
-  String get yearlyPrice;
 
   /// No description provided for @journalSearchHint.
   ///
