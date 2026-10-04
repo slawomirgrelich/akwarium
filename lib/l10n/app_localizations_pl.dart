@@ -1012,6 +1012,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get beginnerPreviousStep => 'Poprzedni krok';
 
   @override
+  String get beginnerFinishGuide => 'Zakończ samouczek';
+
+  @override
+  String get beginnerGuideSaveFailed =>
+      'Nie udało się zapisać ukończenia samouczka. Spróbuj ponownie.';
+
+  @override
   String get beginnerDimensionsAction => 'Otwórz akwarium';
 
   @override

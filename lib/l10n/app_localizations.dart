@@ -1958,6 +1958,18 @@ abstract class AppLocalizations {
   /// **'Poprzedni krok'**
   String get beginnerPreviousStep;
 
+  /// No description provided for @beginnerFinishGuide.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakończ samouczek'**
+  String get beginnerFinishGuide;
+
+  /// No description provided for @beginnerGuideSaveFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zapisać ukończenia samouczka. Spróbuj ponownie.'**
+  String get beginnerGuideSaveFailed;
+
   /// No description provided for @beginnerDimensionsAction.
   ///
   /// In pl, this message translates to:

@@ -1005,6 +1005,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get beginnerPreviousStep => 'Previous step';
 
   @override
+  String get beginnerFinishGuide => 'Finish guide';
+
+  @override
+  String get beginnerGuideSaveFailed =>
+      'Couldn\'t save guide completion. Please try again.';
+
+  @override
   String get beginnerDimensionsAction => 'Open tank';
 
   @override

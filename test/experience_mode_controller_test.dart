@@ -22,4 +22,23 @@ void main() {
     expect(restartedController.mode, ExperienceMode.advanced);
     expect(restartedController.isBeginner, isFalse);
   });
+
+  test('persists beginner guide completion across app restarts', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final preferences = await SharedPreferences.getInstance();
+    final controller = ExperienceModeController(preferences: preferences);
+
+    await controller.init();
+    expect(controller.isInitialized, isTrue);
+    expect(controller.beginnerGuideCompleted, isFalse);
+
+    await controller.completeBeginnerGuide();
+
+    final restartedController = ExperienceModeController(
+      preferences: preferences,
+    );
+    await restartedController.init();
+
+    expect(restartedController.beginnerGuideCompleted, isTrue);
+  });
 }

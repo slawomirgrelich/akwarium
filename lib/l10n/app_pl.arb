@@ -318,6 +318,8 @@
   ,"beginnerStepPlantsDescription": "Wybierz niewymagające rośliny, na przykład anubiasy, kryptokoryny lub rogatek."
   ,"beginnerNextStep": "Następny krok"
   ,"beginnerPreviousStep": "Poprzedni krok"
+  ,"beginnerFinishGuide": "Zakończ samouczek"
+  ,"beginnerGuideSaveFailed": "Nie udało się zapisać ukończenia samouczka. Spróbuj ponownie."
   ,"beginnerDimensionsAction": "Otwórz akwarium"
   ,"beginnerLightingAction": "Zobacz wskazówki"
   ,"editAquariumTitle": "Edytuj akwarium"

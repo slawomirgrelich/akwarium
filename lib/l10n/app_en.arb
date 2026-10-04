@@ -318,6 +318,8 @@
   ,"beginnerStepPlantsDescription": "Choose undemanding plants such as Anubias, Cryptocoryne, or hornwort."
   ,"beginnerNextStep": "Next step"
   ,"beginnerPreviousStep": "Previous step"
+  ,"beginnerFinishGuide": "Finish guide"
+  ,"beginnerGuideSaveFailed": "Couldn't save guide completion. Please try again."
   ,"beginnerDimensionsAction": "Open tank"
   ,"beginnerLightingAction": "See lighting tips"
   ,"editAquariumTitle": "Edit aquarium"

@@ -338,7 +338,12 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<models.AquariumProvider>();
-    final isBeginner = context.watch<ExperienceModeController>().isBeginner;
+    final experienceMode = context.watch<ExperienceModeController>();
+    final isBeginner = experienceMode.isBeginner;
+    final showBeginnerGuide =
+        experienceMode.isInitialized &&
+        isBeginner &&
+        !experienceMode.beginnerGuideCompleted;
     final activeAquarium = provider.selectedAquarium;
     if (activeAquarium == null || activeAquarium.id.trim().isEmpty) {
       return _PageContainer(
@@ -353,7 +358,7 @@ class DashboardPage extends StatelessWidget {
                 subtitle: l10n.dashboardSubtitle,
               ),
               const SizedBox(height: 24),
-              if (isBeginner) ...[
+              if (showBeginnerGuide) ...[
                 _BeginnerGuideCard(
                   aquariumExists: false,
                   onDimensions: () => showCreateAquariumDialog(context),
@@ -434,7 +439,7 @@ class DashboardPage extends StatelessWidget {
               ),
               child: _DashboardTankCard(aquarium: activeAquarium),
             ),
-            if (isBeginner) ...[
+            if (showBeginnerGuide) ...[
               const SizedBox(height: 16),
               _BeginnerGuideCard(
                 aquariumExists: true,
@@ -716,7 +721,8 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
       ),
     ];
     final step = steps[_stepIndex];
-    final canContinue = widget.aquariumExists && _stepIndex < steps.length - 1;
+    final isLastStep = _stepIndex == steps.length - 1;
+    final canAdvance = widget.aquariumExists && !isLastStep;
 
     return Card(
       child: Padding(
@@ -768,7 +774,10 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
               child: FilledButton.icon(
                 onPressed: !widget.aquariumExists && _stepIndex > 0
                     ? null
-                    : step.$5,
+                    : () async {
+                        if (isLastStep) await _completeGuide();
+                        step.$5();
+                      },
                 icon: Icon(step.$4),
                 label: Text(step.$3),
               ),
@@ -785,11 +794,17 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
                 ),
                 const Spacer(),
                 TextButton.icon(
-                  onPressed: canContinue
+                  onPressed: canAdvance
                       ? () => setState(() => _stepIndex++)
+                      : isLastStep && widget.aquariumExists
+                      ? _completeGuide
                       : null,
-                  icon: const Icon(Icons.chevron_right),
-                  label: Text(l10n.beginnerNextStep),
+                  icon: Icon(isLastStep ? Icons.check : Icons.chevron_right),
+                  label: Text(
+                    isLastStep
+                        ? l10n.beginnerFinishGuide
+                        : l10n.beginnerNextStep,
+                  ),
                 ),
               ],
             ),
@@ -797,6 +812,24 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
         ),
       ),
     );
+  }
+
+  Future<void> _completeGuide() async {
+    try {
+      await context.read<ExperienceModeController>().completeBeginnerGuide();
+    } on Object catch (error, stackTrace) {
+      debugPrint('Beginner guide completion could not be saved: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) {
+        context.showAppSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.beginnerGuideSaveFailed,
+            ),
+          ),
+        );
+      }
+    }
   }
 }
 
