@@ -312,6 +312,7 @@ class _SpeciesAtlasScreenState extends State<SpeciesAtlasScreen> {
         minTankVolume: species.aquariumMinimumLiters ?? 0,
         addedAt: addition.addedAt,
         notes: addition.notes,
+        careNotes: species.careNotes ?? '',
         quantityUnit: addition.quantityUnit,
       );
       if (!pageContext.mounted) return;

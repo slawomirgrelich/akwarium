@@ -31,6 +31,8 @@ void main() {
             po4: 1,
             fe: 0.2,
             temp: 25,
+            nh3Nh4: 0.2,
+            tds: 185,
             notes: 'Pomiar kontrolny',
           ),
         ],

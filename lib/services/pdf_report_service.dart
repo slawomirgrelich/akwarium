@@ -141,8 +141,11 @@ class PdfReportService {
       'KH',
       'GH',
       'NO3',
+      'NO2',
       'PO4',
       'CO2 (mg/L)',
+      'NH3/NH4 (mg/L)',
+      'TDS (ppm)',
       'Fe',
       'Temp.',
     ];
@@ -161,8 +164,11 @@ class PdfReportService {
                 _parameterCell(item.kh, 3, 8),
                 _parameterCell(item.gh, 5, 12),
                 _parameterCell(item.no3, 10, 25),
+                _parameterCell(item.no2, 0, 0),
                 _parameterCell(item.po4, 0.5, 1.5),
                 _parameterCell(item.co2, 15, 30),
+                _parameterCell(item.nh3Nh4, 0, 0),
+                _parameterCell(item.tds),
                 _parameterCell(item.fe, 0.1, 0.5),
                 _parameterCell(item.temp, 22, 28),
               ],
@@ -213,9 +219,10 @@ class PdfReportService {
     );
   }
 
-  pw.Widget _parameterCell(double? value, double min, double max) {
+  pw.Widget _parameterCell(double? value, [double? min, double? max]) {
     if (value == null) return _tableCell('—');
-    final inRange = value >= min && value <= max;
+    final inRange =
+        min == null || max == null || (value >= min && value <= max);
     return pw.Container(
       padding: const pw.EdgeInsets.all(5),
       color: inRange ? PdfColors.white : PdfColors.red100,

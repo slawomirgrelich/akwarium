@@ -9,7 +9,21 @@ import '../services/experience_mode_controller.dart';
 import '../utils/localized_labels.dart';
 import '../utils/water_measurement_range.dart';
 
-enum _ChartParameter { ph, no3, no2, po4, co2, temp, gh, kh, fe, k, mg }
+enum _ChartParameter {
+  ph,
+  no3,
+  no2,
+  po4,
+  co2,
+  nh3Nh4,
+  tds,
+  temp,
+  gh,
+  kh,
+  fe,
+  k,
+  mg,
+}
 
 class WaterParametersChartScreen extends StatefulWidget {
   const WaterParametersChartScreen({
@@ -211,28 +225,19 @@ class _ChartContent extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  l10n.chartChangeOverTime(_labelFor(selected)),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                l10n.chartOptimalRange(
-                                  _formatNumber(standard.min),
-                                  _formatNumber(standard.max),
-                                  standard.unit,
-                                ),
-                                style: TextStyle(
-                                  color: Colors.teal.shade700,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                          Text(
+                            l10n.chartChangeOverTime(_labelFor(selected)),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _chartRangeDescription(l10n, selected, standard),
+                            style: TextStyle(
+                              color: standard.hasUniversalRange
+                                  ? Colors.teal.shade700
+                                  : Colors.blueGrey.shade600,
+                              fontSize: 12,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           SizedBox(
@@ -317,11 +322,12 @@ class _LineChart extends StatelessWidget {
         ),
         rangeAnnotations: RangeAnnotations(
           horizontalRangeAnnotations: [
-            HorizontalRangeAnnotation(
-              y1: standard.min,
-              y2: standard.max,
-              color: Colors.teal.withValues(alpha: 0.10),
-            ),
+            if (standard.hasUniversalRange && standard.max > standard.min)
+              HorizontalRangeAnnotation(
+                y1: standard.min,
+                y2: standard.max,
+                color: Colors.teal.withValues(alpha: 0.10),
+              ),
           ],
         ),
         titlesData: FlTitlesData(
@@ -434,18 +440,32 @@ class _QuickStatsCard extends StatelessWidget {
         : isUp
         ? l10n.chartRisingTrend
         : l10n.chartFallingTrend;
-    final inRange = latestValue >= standard.min && latestValue <= standard.max;
-    final status = latestValue < standard.min
+    final inRange =
+        !standard.hasUniversalRange ||
+        (latestValue >= standard.min && latestValue <= standard.max);
+    final status = !standard.hasUniversalRange
+        ? l10n.waterAssessmentReferenceOnly
+        : parameter == _ChartParameter.no2 && latestValue > 0
+        ? l10n.waterAssessmentNitriteDetected
+        : parameter == _ChartParameter.nh3Nh4 && latestValue > 0
+        ? l10n.waterAssessmentAmmoniaDetected
+        : latestValue < standard.min
         ? l10n.chartBelowRange
         : latestValue > standard.max
         ? l10n.chartAboveRange
         : l10n.chartWithinRange;
-    final statusColor = inRange
+    final statusColor = !standard.hasUniversalRange
+        ? Colors.blueGrey.shade600
+        : inRange
         ? const Color(0xFF10B981)
         : const Color(0xFFF59E0B);
 
     return Card(
-      color: inRange ? Colors.white : Colors.orange.shade50,
+      color: !standard.hasUniversalRange
+          ? Theme.of(context).cardColor
+          : inRange
+          ? Colors.white
+          : Colors.orange.shade50,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -461,7 +481,11 @@ class _QuickStatsCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 Icon(
-                  inRange ? Icons.check_circle_outline : Icons.warning_amber,
+                  !standard.hasUniversalRange
+                      ? Icons.info_outline
+                      : inRange
+                      ? Icons.check_circle_outline
+                      : Icons.warning_amber,
                   color: statusColor,
                 ),
               ],
@@ -497,7 +521,11 @@ class _QuickStatsCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              l10n.chartStatus(status),
+              standard.hasUniversalRange &&
+                      !(parameter == _ChartParameter.no2 && latestValue > 0) &&
+                      !(parameter == _ChartParameter.nh3Nh4 && latestValue > 0)
+                  ? l10n.chartStatus(status)
+                  : status,
               style: TextStyle(color: statusColor, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
@@ -628,6 +656,8 @@ class _FirestoreWaterParametersFormScreenState
     'NO3',
     'PO4',
     'CO2',
+    'NH3/NH4',
+    'TDS',
     'Temperatura',
   };
 
@@ -640,6 +670,8 @@ class _FirestoreWaterParametersFormScreenState
     'NO2': TextEditingController(),
     'PO4': TextEditingController(),
     'CO2': TextEditingController(),
+    'NH3/NH4': TextEditingController(),
+    'TDS': TextEditingController(),
     'Fe': TextEditingController(),
     'K': TextEditingController(),
     'Mg': TextEditingController(),
@@ -725,7 +757,12 @@ class _FirestoreWaterParametersFormScreenState
                                   : entry.key == 'CO2'
                                   ? l10n.co2Label
                                   : entry.key,
-                              suffixText: entry.key == 'CO2' ? 'mg/L' : null,
+                              suffixText:
+                                  entry.key == 'CO2' || entry.key == 'NH3/NH4'
+                                  ? 'mg/L'
+                                  : entry.key == 'TDS'
+                                  ? 'ppm'
+                                  : null,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -734,7 +771,9 @@ class _FirestoreWaterParametersFormScreenState
                               final parsed = double.tryParse(
                                 value.trim().replaceAll(',', '.'),
                               );
-                              return parsed == null || !parsed.isFinite
+                              return parsed == null ||
+                                      !parsed.isFinite ||
+                                      parsed < 0
                                   ? l10n.chartInvalidNumber
                                   : null;
                             },
@@ -803,6 +842,8 @@ class _FirestoreWaterParametersFormScreenState
           no2: _optionalNumber('NO2'),
           po4: _optionalNumber('PO4'),
           co2: _optionalNumber('CO2'),
+          nh3Nh4: _optionalNumber('NH3/NH4'),
+          tds: _optionalNumber('TDS'),
           fe: _optionalNumber('Fe'),
           k: _optionalNumber('K'),
           mg: _optionalNumber('Mg'),
@@ -834,6 +875,7 @@ class _ChartStandard {
     required this.chartMin,
     required this.chartMax,
     this.unit = '',
+    this.hasUniversalRange = true,
   });
 
   final double min;
@@ -841,6 +883,7 @@ class _ChartStandard {
   final double chartMin;
   final double chartMax;
   final String unit;
+  final bool hasUniversalRange;
 }
 
 _ChartStandard _standardFor(_ChartParameter parameter, String aquariumType) {
@@ -878,14 +921,14 @@ _ChartStandard _standardFor(_ChartParameter parameter, String aquariumType) {
       return marine
           ? const _ChartStandard(
               min: 0,
-              max: 0.05,
+              max: 0,
               chartMin: 0,
               chartMax: 1,
               unit: 'mg/l',
             )
           : const _ChartStandard(
               min: 0,
-              max: 0.1,
+              max: 0,
               chartMin: 0,
               chartMax: 1,
               unit: 'mg/l',
@@ -913,6 +956,23 @@ _ChartStandard _standardFor(_ChartParameter parameter, String aquariumType) {
         chartMin: 0,
         chartMax: 50,
         unit: 'mg/L',
+      );
+    case _ChartParameter.nh3Nh4:
+      return const _ChartStandard(
+        min: 0,
+        max: 0,
+        chartMin: 0,
+        chartMax: 0.5,
+        unit: 'mg/L',
+      );
+    case _ChartParameter.tds:
+      return const _ChartStandard(
+        min: 0,
+        max: 0,
+        chartMin: 0,
+        chartMax: 100,
+        unit: 'ppm',
+        hasUniversalRange: false,
       );
     case _ChartParameter.temp:
       return marine
@@ -990,6 +1050,7 @@ _ChartStandard _standardFor(_ChartParameter parameter, String aquariumType) {
 }
 
 Color _pointColor(double value, _ChartStandard standard) {
+  if (!standard.hasUniversalRange) return const Color(0xFF0F766E);
   if (value >= standard.min && value <= standard.max) {
     return const Color(0xFF10B981);
   }
@@ -1003,11 +1064,15 @@ double? _valueFor(WaterParametersModel measurement, _ChartParameter parameter) {
     case _ChartParameter.no3:
       return measurement.no3;
     case _ChartParameter.no2:
-      return measurement.no2!;
+      return measurement.no2;
     case _ChartParameter.po4:
       return measurement.po4;
     case _ChartParameter.co2:
       return measurement.co2;
+    case _ChartParameter.nh3Nh4:
+      return measurement.nh3Nh4;
+    case _ChartParameter.tds:
+      return measurement.tds;
     case _ChartParameter.temp:
       return measurement.temp;
     case _ChartParameter.gh:
@@ -1023,6 +1088,21 @@ double? _valueFor(WaterParametersModel measurement, _ChartParameter parameter) {
   }
 }
 
+String _chartRangeDescription(
+  AppLocalizations l10n,
+  _ChartParameter parameter,
+  _ChartStandard standard,
+) => switch (parameter) {
+  _ChartParameter.no2 => l10n.nitriteNonDetectableTarget,
+  _ChartParameter.nh3Nh4 => l10n.ammoniaNonDetectableTarget,
+  _ChartParameter.tds => l10n.tdsNoUniversalTarget,
+  _ => l10n.chartOptimalRange(
+    _formatNumber(standard.min),
+    _formatNumber(standard.max),
+    standard.unit,
+  ),
+};
+
 String _labelFor(_ChartParameter parameter) {
   switch (parameter) {
     case _ChartParameter.ph:
@@ -1035,6 +1115,10 @@ String _labelFor(_ChartParameter parameter) {
       return 'PO4';
     case _ChartParameter.co2:
       return 'CO2';
+    case _ChartParameter.nh3Nh4:
+      return 'NH3/NH4';
+    case _ChartParameter.tds:
+      return 'TDS';
     case _ChartParameter.temp:
       return 'Temp.';
     case _ChartParameter.gh:

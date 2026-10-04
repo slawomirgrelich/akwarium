@@ -59,6 +59,30 @@ void main() {
     });
   });
 
+  group('Livestock category and care details', () {
+    test('round-trips coral categories and structured care notes', () {
+      final inhabitant = local_models.Inhabitant(
+        id: 'coral-1',
+        aquariumId: 'reef-tank',
+        name: 'Zoanthid',
+        latinName: 'Zoanthus',
+        category: local_models.CreatureCategory.coral,
+        count: 3,
+        addedDate: DateTime(2026, 10, 1),
+        feedingNotes: 'Target feed twice a week',
+        behaviorNotes: 'Keep space from fast-growing colonies',
+        careNotes: 'Stable salinity and moderate flow',
+      );
+
+      final restored = local_models.Inhabitant.fromJson(inhabitant.toJson());
+
+      expect(restored.category, local_models.CreatureCategory.coral);
+      expect(restored.feedingNotes, 'Target feed twice a week');
+      expect(restored.behaviorNotes, 'Keep space from fast-growing colonies');
+      expect(restored.careNotes, 'Stable salinity and moderate flow');
+    });
+  });
+
   group('WaterParametersModel NO2 compatibility', () {
     test('keeps legacy measurements without a NO2 value', () {
       final measurement = WaterParametersModel.fromMap(const {'no3': 15});

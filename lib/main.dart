@@ -2983,10 +2983,16 @@ class _WaterParametersCard extends StatelessWidget {
                     _ParameterChip(label: 'pH', value: '$value'),
                   if (test!.no3 case final value?)
                     _ParameterChip(label: 'NO3', value: '$value mg/l'),
+                  if (test!.no2 case final value?)
+                    _ParameterChip(label: 'NO2', value: '$value mg/l'),
                   if (test!.po4 case final value?)
                     _ParameterChip(label: 'PO4', value: '$value mg/l'),
                   if (test!.co2 case final value?)
                     _ParameterChip(label: l10n.co2Label, value: '$value mg/L'),
+                  if (test!.nh3Nh4 case final value?)
+                    _ParameterChip(label: 'NH3/NH4', value: '$value mg/L'),
+                  if (test!.tds case final value?)
+                    _ParameterChip(label: 'TDS', value: '$value ppm'),
                   if (test!.fe case final value?)
                     _ParameterChip(label: 'Fe', value: '$value mg/l'),
                   if (test!.kh case final value?)
@@ -3015,6 +3021,16 @@ class _WaterAlertCard extends StatelessWidget {
     final color = isCritical ? Colors.red.shade700 : Colors.orange.shade800;
     final parameter = alert.parameter;
     final value = parameter == null ? null : waterValue(test, parameter);
+    final valuePrecision = switch (parameter) {
+      WaterParameter.nh3Nh4 => 3,
+      WaterParameter.no2 => 2,
+      WaterParameter.tds => 0,
+      _ => 1,
+    };
+    final unit = parameter == null ? '' : waterStandards[parameter]!.unit;
+    final valueDescription = value == null
+        ? ''
+        : ' (${value.toStringAsFixed(valuePrecision)}${unit.isEmpty ? '' : ' $unit'})';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -3031,8 +3047,7 @@ class _WaterAlertCard extends StatelessWidget {
           Expanded(
             child: Text(
               '${waterAssessmentLabel(l10n, alert)}: '
-              '${waterAssessmentMessage(l10n, alert)}'
-              '${value == null ? '' : ' (${value.toStringAsFixed(1)})'}',
+              '${waterAssessmentMessage(l10n, alert)}$valueDescription',
               style: TextStyle(color: color, fontWeight: FontWeight.w700),
             ),
           ),
@@ -3937,6 +3952,7 @@ Future<void> _showAddToAquariumSheet(
       phRange: result.ph,
       tempRange: result.temperature,
       minTankVolume: result.minimumVolume,
+      careNotes: result.description,
       photoUrl: 'data:image/jpeg;base64,${base64Encode(imageBytes)}',
     );
     if (!context.mounted) return;

@@ -43,6 +43,31 @@ void main() {
     );
   });
 
+  test('treats any detectable nitrite as a warning', () {
+    expect(assessWaterValue(WaterParameter.no2, 0).status, WaterStatus.good);
+    final detected = assessWaterValue(WaterParameter.no2, 0.05);
+    expect(detected.status, WaterStatus.warning);
+    expect(detected.messageKey, WaterAssessmentMessageKey.nitriteDetected);
+  });
+
+  test('treats detectable ammonia as a warning', () {
+    expect(assessWaterValue(WaterParameter.nh3Nh4, 0).status, WaterStatus.good);
+    final detected = assessWaterValue(WaterParameter.nh3Nh4, 0.1);
+    expect(detected.status, WaterStatus.warning);
+    expect(detected.messageKey, WaterAssessmentMessageKey.ammoniaDetected);
+  });
+
+  test('does not apply a universal TDS safety range', () {
+    final assessment = assessWaterValue(WaterParameter.tds, 900);
+
+    expect(assessment.status, WaterStatus.good);
+    expect(assessment.messageKey, WaterAssessmentMessageKey.tdsReferenceOnly);
+    expect(
+      waterStandards[WaterParameter.tds]!.hasUniversalOptimalRange,
+      isFalse,
+    );
+  });
+
   test('oblicza stosunek Redfielda NO3 do PO4', () {
     expect(redfieldRatio(makeTest()), 16);
   });
@@ -78,6 +103,26 @@ void main() {
     expect(
       waterAssessmentMessage(english, assessment),
       'Critical NO3 level. A 30% water change is recommended.',
+    );
+  });
+
+  test('localizes ammonia warnings and TDS reference guidance', () async {
+    final nitrite = assessWaterValue(WaterParameter.no2, 0.05);
+    final ammonia = assessWaterValue(WaterParameter.nh3Nh4, 0.1);
+    final tds = assessWaterValue(WaterParameter.tds, 900);
+    final english = await AppLocalizations.delegate.load(const Locale('en'));
+
+    expect(
+      waterAssessmentMessage(english, nitrite),
+      contains('Nitrite is harmful to fish'),
+    );
+    expect(
+      waterAssessmentMessage(english, ammonia),
+      contains('risk depends on pH and temperature'),
+    );
+    expect(
+      waterAssessmentMessage(english, tds),
+      contains('no universal target'),
     );
   });
 }

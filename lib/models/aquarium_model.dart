@@ -20,7 +20,7 @@ enum AquariumType { planted, marine, community }
 
 enum TankType { freshwater, marine, planted, biotope, shrimp }
 
-enum CreatureCategory { fish, shrimp, snail, crab, plant, other }
+enum CreatureCategory { fish, shrimp, snail, crab, coral, plant, other }
 
 enum PlantPosition {
   foreground,
@@ -80,6 +80,8 @@ extension CreatureCategoryLabel on CreatureCategory {
         return 'Ślimaki';
       case CreatureCategory.crab:
         return 'Kraby';
+      case CreatureCategory.coral:
+        return 'Korale';
       case CreatureCategory.plant:
         return 'Rośliny';
       case CreatureCategory.other:
@@ -203,6 +205,9 @@ class Inhabitant {
     this.status = 'Zdrowe',
     this.difficulty,
     this.notes,
+    this.feedingNotes,
+    this.behaviorNotes,
+    this.careNotes,
     this.imagePath,
   });
 
@@ -217,6 +222,9 @@ class Inhabitant {
   final String status;
   final String? difficulty;
   final String? notes;
+  final String? feedingNotes;
+  final String? behaviorNotes;
+  final String? careNotes;
   final String? imagePath;
 
   Map<String, dynamic> toJson() => {
@@ -231,6 +239,9 @@ class Inhabitant {
     'status': status,
     'difficulty': difficulty,
     'notes': notes,
+    'feedingNotes': feedingNotes,
+    'behaviorNotes': behaviorNotes,
+    'careNotes': careNotes,
     'imagePath': imagePath,
   };
 
@@ -250,6 +261,9 @@ class Inhabitant {
     status: json['status'] as String? ?? 'Zdrowe',
     difficulty: json['difficulty'] as String?,
     notes: json['notes'] as String?,
+    feedingNotes: json['feedingNotes'] as String?,
+    behaviorNotes: json['behaviorNotes'] as String?,
+    careNotes: json['careNotes'] as String?,
     imagePath: json['imagePath'] as String?,
   );
 }
@@ -261,12 +275,15 @@ class WaterTest {
     required this.date,
     this.ph,
     this.no3,
+    this.no2,
     this.po4,
     this.fe,
     this.kh,
     this.gh,
     this.temp,
     this.co2,
+    this.nh3Nh4,
+    this.tds,
     this.aquariumId = '',
   });
 
@@ -274,12 +291,15 @@ class WaterTest {
   final DateTime date;
   final double? ph;
   final double? no3;
+  final double? no2;
   final double? po4;
   final double? fe;
   final double? kh;
   final double? gh;
   final double? temp;
   final double? co2;
+  final double? nh3Nh4;
+  final double? tds;
   final String aquariumId;
 
   Map<String, dynamic> toMap() => {
@@ -287,12 +307,15 @@ class WaterTest {
     'date': date.toIso8601String(),
     if (ph != null) 'ph': ph,
     if (no3 != null) 'no3': no3,
+    if (no2 != null) 'no2': no2,
     if (po4 != null) 'po4': po4,
     if (fe != null) 'fe': fe,
     if (kh != null) 'kh': kh,
     if (gh != null) 'gh': gh,
     if (temp != null) 'temp': temp,
     if (co2 != null) 'co2': co2,
+    if (nh3Nh4 != null) 'nh3Nh4': nh3Nh4,
+    if (tds != null) 'tds': tds,
     'aquariumId': aquariumId,
   };
 
@@ -302,12 +325,15 @@ class WaterTest {
       date: _readDate(map['date']),
       ph: (map['ph'] as num?)?.toDouble(),
       no3: (map['no3'] as num?)?.toDouble(),
+      no2: (map['no2'] as num?)?.toDouble(),
       po4: (map['po4'] as num?)?.toDouble(),
       fe: (map['fe'] as num?)?.toDouble(),
       kh: (map['kh'] as num?)?.toDouble(),
       gh: (map['gh'] as num?)?.toDouble(),
       temp: (map['temp'] as num?)?.toDouble(),
       co2: (map['co2'] as num?)?.toDouble(),
+      nh3Nh4: (map['nh3Nh4'] as num?)?.toDouble(),
+      tds: (map['tds'] as num?)?.toDouble(),
       aquariumId: map['aquariumId'] as String? ?? '',
     );
   }
@@ -316,12 +342,15 @@ class WaterTest {
 String waterTestSummary(WaterTest test) => [
   if (test.ph != null) 'pH ${test.ph}',
   if (test.no3 != null) 'NO3 ${test.no3} mg/l',
+  if (test.no2 != null) 'NO2 ${test.no2} mg/l',
   if (test.po4 != null) 'PO4 ${test.po4} mg/l',
   if (test.fe != null) 'Fe ${test.fe} mg/l',
   if (test.kh != null) 'KH ${test.kh} dKH',
   if (test.gh != null) 'GH ${test.gh} dGH',
   if (test.temp != null) 'Temp ${test.temp}°C',
   if (test.co2 != null) 'CO2 ${test.co2} mg/L',
+  if (test.nh3Nh4 != null) 'NH3/NH4 ${test.nh3Nh4} mg/L',
+  if (test.tds != null) 'TDS ${test.tds} ppm',
 ].join(' · ');
 
 DateTime _readDate(dynamic value) {

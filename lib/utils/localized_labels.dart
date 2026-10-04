@@ -55,6 +55,7 @@ String creatureCategoryLabel(
   CreatureCategory.shrimp => l10n.categoryShrimp,
   CreatureCategory.snail => l10n.categorySnails,
   CreatureCategory.crab => l10n.categoryCrabs,
+  CreatureCategory.coral => l10n.categoryCorals,
   CreatureCategory.plant => l10n.filterPlants,
   CreatureCategory.other => l10n.categoryOther,
 };
@@ -89,6 +90,9 @@ String speciesCategoryLabel(AppLocalizations l10n, String? value) {
   }
   if (normalized.contains('crab') || normalized.contains('krab')) {
     return l10n.categoryCrabs;
+  }
+  if (normalized.contains('coral') || normalized.contains('korale')) {
+    return l10n.categoryCorals;
   }
   if (normalized.contains('plant') ||
       normalized.contains('flora') ||

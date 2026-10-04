@@ -288,7 +288,7 @@ class _DetailsContent extends StatelessWidget {
   }
 }
 
-enum _HistoryParameter { ph, temperature, no3, co2 }
+enum _HistoryParameter { ph, temperature, no3, no2, co2, nh3Nh4, tds }
 
 class _WaterHistoryChart extends StatefulWidget {
   const _WaterHistoryChart({required this.parameters});
@@ -462,21 +462,30 @@ class _WaterHistoryChartState extends State<_WaterHistoryChart> {
         _HistoryParameter.ph => measurement.ph,
         _HistoryParameter.temperature => measurement.temp,
         _HistoryParameter.no3 => measurement.no3,
+        _HistoryParameter.no2 => measurement.no2,
         _HistoryParameter.co2 => measurement.co2,
+        _HistoryParameter.nh3Nh4 => measurement.nh3Nh4,
+        _HistoryParameter.tds => measurement.tds,
       };
 
   String get _unit => switch (_selected) {
     _HistoryParameter.ph => '',
     _HistoryParameter.temperature => '°C',
     _HistoryParameter.no3 => 'mg/l',
+    _HistoryParameter.no2 => 'mg/l',
     _HistoryParameter.co2 => 'mg/L',
+    _HistoryParameter.nh3Nh4 => 'mg/L',
+    _HistoryParameter.tds => 'ppm',
   };
 
   String _parameterLabel(_HistoryParameter parameter) => switch (parameter) {
     _HistoryParameter.ph => 'pH',
     _HistoryParameter.temperature => 'Temperatura',
     _HistoryParameter.no3 => 'Azotany (NO3)',
+    _HistoryParameter.no2 => 'Azotyny (NO2)',
     _HistoryParameter.co2 => 'CO2',
+    _HistoryParameter.nh3Nh4 => 'NH3/NH4',
+    _HistoryParameter.tds => 'TDS',
   };
 
   String _axisValue(double value) => _selected == _HistoryParameter.ph
@@ -773,10 +782,16 @@ class _LatestParametersCard extends StatelessWidget {
               Text('pH ${value.toStringAsFixed(2)}'),
             if (latest.no3 case final value?)
               Text('NO3 ${value.toStringAsFixed(1)}'),
+            if (latest.no2 case final value?)
+              Text('NO2 ${value.toStringAsFixed(2)}'),
             if (latest.po4 case final value?)
               Text('PO4 ${value.toStringAsFixed(2)}'),
             if (latest.co2 case final value?)
               Text('CO2 ${value.toStringAsFixed(1)} mg/L'),
+            if (latest.nh3Nh4 case final value?)
+              Text('NH3/NH4 ${value.toStringAsFixed(2)} mg/L'),
+            if (latest.tds case final value?)
+              Text('TDS ${value.toStringAsFixed(0)} ppm'),
             Text(_date(latest.timestamp)),
           ],
         ),

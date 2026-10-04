@@ -24,15 +24,15 @@ class Tank {
   String? get effectiveCoverPhotoUrl => coverPhotoUrl ?? imageUrl;
 
   Map<String, dynamic> toFirestore() => {
-        'id': id,
-        'name': name,
-        'capacityLiters': capacityLiters,
-        'dimensions': dimensions,
-        'createdAt': Timestamp.fromDate(createdAt),
-        'imageUrl': imageUrl,
-        'coverPhotoUrl': coverPhotoUrl,
-        'coverImagePath': coverImagePath,
-      };
+    'id': id,
+    'name': name,
+    'capacityLiters': capacityLiters,
+    'dimensions': dimensions,
+    'createdAt': Timestamp.fromDate(createdAt),
+    'imageUrl': imageUrl,
+    'coverPhotoUrl': coverPhotoUrl,
+    'coverImagePath': coverImagePath,
+  };
 
   factory Tank.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final data = snapshot.data() ?? const <String, dynamic>{};
@@ -43,9 +43,10 @@ class Tank {
       dimensions: _string(data['dimensions']),
       createdAt: _date(data['createdAt']) ?? DateTime.now(),
       imageUrl: _nullableString(data['imageUrl']),
-        coverPhotoUrl: _nullableString(data['coverPhotoUrl']) ??
+      coverPhotoUrl:
+          _nullableString(data['coverPhotoUrl']) ??
           _nullableString(data['imageUrl']),
-        coverImagePath: _nullableString(data['coverImagePath']),
+      coverImagePath: _nullableString(data['coverImagePath']),
     );
   }
 }
@@ -64,7 +65,10 @@ class WaterParameter {
     required this.mg,
     required this.temp,
     required this.note,
+    this.no2,
     this.co2,
+    this.nh3Nh4,
+    this.tds,
   });
 
   final String id;
@@ -79,23 +83,29 @@ class WaterParameter {
   final double mg;
   final double temp;
   final String note;
+  final double? no2;
   final double? co2;
+  final double? nh3Nh4;
+  final double? tds;
 
   Map<String, dynamic> toFirestore() => {
-        'id': id,
-        'timestamp': Timestamp.fromDate(timestamp),
-        'pH': pH,
-        'kh': kh,
-        'gh': gh,
-        'no3': no3,
-        'po4': po4,
-        'fe': fe,
-        'k': k,
-        'mg': mg,
-        'temp': temp,
-        'note': note,
-        if (co2 != null) 'co2': co2,
-      };
+    'id': id,
+    'timestamp': Timestamp.fromDate(timestamp),
+    'pH': pH,
+    'kh': kh,
+    'gh': gh,
+    'no3': no3,
+    'po4': po4,
+    'fe': fe,
+    'k': k,
+    'mg': mg,
+    'temp': temp,
+    'note': note,
+    if (no2 != null) 'no2': no2,
+    if (co2 != null) 'co2': co2,
+    if (nh3Nh4 != null) 'nh3Nh4': nh3Nh4,
+    if (tds != null) 'tds': tds,
+  };
 
   factory WaterParameter.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
@@ -114,7 +124,10 @@ class WaterParameter {
       mg: _double(data['mg']),
       temp: _double(data['temp']),
       note: _string(data['note']),
+      no2: _nullableDouble(data['no2']),
       co2: _nullableDouble(data['co2']),
+      nh3Nh4: _nullableDouble(data['nh3Nh4']),
+      tds: _nullableDouble(data['tds']),
     );
   }
 }
@@ -137,13 +150,13 @@ class JournalLog {
   final String note;
 
   Map<String, dynamic> toFirestore() => {
-        'id': id,
-        'timestamp': Timestamp.fromDate(timestamp),
-        'activityType': activityType,
-        'title': title,
-        'waterReplacedLiters': waterReplacedLiters,
-        'note': note,
-      };
+    'id': id,
+    'timestamp': Timestamp.fromDate(timestamp),
+    'activityType': activityType,
+    'title': title,
+    'waterReplacedLiters': waterReplacedLiters,
+    'note': note,
+  };
 
   factory JournalLog.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,

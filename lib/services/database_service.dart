@@ -385,7 +385,10 @@ extension on WaterParameter {
     mg: mg,
     temp: temp,
     note: note,
+    no2: no2,
     co2: co2,
+    nh3Nh4: nh3Nh4,
+    tds: tds,
   );
 }
 

@@ -69,14 +69,36 @@ AquariumVolumeResult calculateVolume({
   required double decorationPercent,
   double glassThicknessCm = 0,
 }) {
+  final dimensions = [lengthCm, widthCm, heightCm];
+  final otherInputs = [
+    substrateThicknessCm,
+    decorationPercent,
+    glassThicknessCm,
+  ];
+  if (dimensions.any((value) => !value.isFinite || value <= 0) ||
+      otherInputs.any((value) => !value.isFinite || value < 0) ||
+      decorationPercent > 100) {
+    throw ArgumentError(
+      'Dimensions must be positive, and thickness/decoration inputs must be in range.',
+    );
+  }
+
   final gross = lengthCm * widthCm * heightCm / 1000;
   final innerLength = math.max(0.0, lengthCm - 2 * glassThicknessCm);
   final innerWidth = math.max(0.0, widthCm - 2 * glassThicknessCm);
   final innerHeight = math.max(0.0, heightCm - 2 * glassThicknessCm);
+  if (innerLength <= 0 ||
+      innerWidth <= 0 ||
+      innerHeight <= 0 ||
+      substrateThicknessCm >= innerHeight) {
+    throw ArgumentError(
+      'Glass and substrate thickness must leave positive water volume.',
+    );
+  }
   final innerGross = innerLength * innerWidth * innerHeight / 1000;
   final substrate = innerLength * innerWidth * substrateThicknessCm / 1000;
   final decorations =
-      math.max(0.0, gross - substrate) * decorationPercent / 100;
+      math.max(0.0, innerGross - substrate) * decorationPercent / 100;
   final net = math.max(0.0, innerGross - substrate - decorations).toDouble();
   final glassVolume = math.max(0.0, gross - innerGross).toDouble();
   final glassWeight = glassVolume * 2.5;
@@ -111,8 +133,16 @@ FertilizerDoseResult calculateFertilizerDose({
   required double targetPpm,
   required double saltFactor,
 }) {
-  if (aquariumLiters <= 0 || solutionMl <= 0 || saltGrams < 0) {
-    return const FertilizerDoseResult(ppmPerMl: 0, dailyMl: 0, weeklyMl: 0);
+  final inputs = [aquariumLiters, solutionMl, saltGrams, targetPpm, saltFactor];
+  if (inputs.any((value) => !value.isFinite) ||
+      aquariumLiters <= 0 ||
+      solutionMl <= 0 ||
+      saltGrams < 0 ||
+      targetPpm < 0 ||
+      saltFactor <= 0) {
+    throw ArgumentError(
+      'Tank and solution volumes must be positive; salt, target, and factor must be valid.',
+    );
   }
   final ppmPerMl = saltGrams * 1000 * saltFactor / solutionMl / aquariumLiters;
   final weeklyMl = ppmPerMl <= 0 ? 0.0 : targetPpm / ppmPerMl;

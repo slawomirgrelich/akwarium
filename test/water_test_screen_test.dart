@@ -39,9 +39,16 @@ void main() {
       ),
     );
 
-    expect(find.text('mg/L'), findsOneWidget);
+    expect(find.text('mg/L'), findsNWidgets(3));
+    expect(find.text('ppm'), findsOneWidget);
     await tester.enterText(find.byType(TextFormField).first, '12.7');
-    await tester.enterText(find.byType(TextFormField).at(3), '22.5');
+    await tester.enterText(find.widgetWithText(TextFormField, 'NO2'), '0.05');
+    await tester.enterText(find.widgetWithText(TextFormField, 'CO2'), '22.5');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'NH3/NH4'),
+      '0.2',
+    );
+    await tester.enterText(find.widgetWithText(TextFormField, 'TDS'), '185');
     expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
     await tester.ensureVisible(find.text('Save measurement'));
     await tester.tap(find.text('Save measurement'));
@@ -50,8 +57,11 @@ void main() {
     expect(provider.waterTests, hasLength(1));
     expect(provider.waterTests.single.ph, 12.7);
     expect(provider.waterTests.single.no3, isNull);
+    expect(provider.waterTests.single.no2, 0.05);
     expect(provider.waterTests.single.po4, isNull);
     expect(provider.waterTests.single.co2, 22.5);
+    expect(provider.waterTests.single.nh3Nh4, 0.2);
+    expect(provider.waterTests.single.tds, 185);
     expect(provider.waterTests.single.fe, isNull);
     expect(provider.waterTests.single.kh, isNull);
     expect(provider.waterTests.single.gh, isNull);

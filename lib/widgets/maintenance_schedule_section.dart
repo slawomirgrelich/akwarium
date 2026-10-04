@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
-import '../local_reminder_service.dart';
 import '../services/aquarium_journal_service.dart';
+import '../services/maintenance_reminder_scheduler.dart';
 
 import 'package:akwarium/utils/app_snackbar.dart';
 
@@ -21,71 +21,23 @@ class MaintenanceScheduleSection extends StatefulWidget {
 class _MaintenanceScheduleSectionState
     extends State<MaintenanceScheduleSection> {
   final _service = AquariumJournalService();
-  final _scheduledDates = <String, DateTime>{};
-  StreamSubscription<List<MaintenanceTaskModel>>? _taskSubscription;
+  late MaintenanceReminderScheduler _notificationScheduler;
+  late Stream<List<MaintenanceTaskModel>> _taskStream;
 
   @override
   void initState() {
     super.initState();
-    _listenForTaskChanges();
+    _notificationScheduler = MaintenanceReminderScheduler();
+    _taskStream = _service.getMaintenanceTasks(widget.aquariumId);
   }
 
   @override
   void didUpdateWidget(covariant MaintenanceScheduleSection oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.aquariumId != widget.aquariumId) {
-      _listenForTaskChanges();
+      _notificationScheduler = MaintenanceReminderScheduler();
+      _taskStream = _service.getMaintenanceTasks(widget.aquariumId);
     }
-  }
-
-  @override
-  void dispose() {
-    _taskSubscription?.cancel();
-    super.dispose();
-  }
-
-  void _listenForTaskChanges() {
-    _taskSubscription?.cancel();
-    _scheduledDates.clear();
-    _taskSubscription = _service.getMaintenanceTasks(widget.aquariumId).listen((
-      tasks,
-    ) {
-      unawaited(_syncTaskNotifications(tasks));
-    }, onError: (Object _) {});
-  }
-
-  Future<void> _syncTaskNotifications(List<MaintenanceTaskModel> tasks) async {
-    for (final task in tasks) {
-      await _scheduleTaskNotification(task);
-    }
-  }
-
-  Future<void> _scheduleTaskNotification(MaintenanceTaskModel task) async {
-    final l10n = AppLocalizations.of(context)!;
-    if (task.id.isEmpty || _scheduledDates[task.id] == task.nextDueDate) return;
-    _scheduledDates[task.id] = task.nextDueDate;
-
-    final now = DateTime.now();
-    var scheduledDate = task.nextDueDate;
-    if (!scheduledDate.isAfter(now)) {
-      final isDueToday =
-          scheduledDate.year == now.year &&
-          scheduledDate.month == now.month &&
-          scheduledDate.day == now.day;
-      if (!isDueToday) return;
-      scheduledDate = now.add(const Duration(minutes: 1));
-    }
-
-    final reminderId = _notificationId(task);
-    await LocalReminderService.instance.cancel(reminderId);
-    await LocalReminderService.instance.schedule(
-      ScheduledReminder(
-        id: reminderId,
-        title: task.title,
-        body: l10n.scheduledAquariumTaskNotification,
-        date: scheduledDate,
-      ),
-    );
   }
 
   @override
@@ -113,7 +65,7 @@ class _MaintenanceScheduleSectionState
               ],
             ),
             StreamBuilder<List<MaintenanceTaskModel>>(
-              stream: _service.getMaintenanceTasks(widget.aquariumId),
+              stream: _taskStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting &&
                     !snapshot.hasData) {
@@ -126,6 +78,14 @@ class _MaintenanceScheduleSectionState
                   return Text(l10n.maintenanceLoadError);
                 }
                 final tasks = snapshot.data ?? const <MaintenanceTaskModel>[];
+                if (snapshot.hasData) {
+                  unawaited(
+                    _notificationScheduler.syncTasks(
+                      tasks,
+                      notificationBody: l10n.scheduledAquariumTaskNotification,
+                    ),
+                  );
+                }
                 if (tasks.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -139,6 +99,7 @@ class _MaintenanceScheduleSectionState
                           task: task,
                           onComplete: () => _completeTask(task),
                           onEdit: () => _openTaskForm(task),
+                          onDelete: () => _deleteTask(task),
                         ),
                       )
                       .toList(growable: false),
@@ -152,6 +113,7 @@ class _MaintenanceScheduleSectionState
   }
 
   Future<void> _openTaskForm([MaintenanceTaskModel? existingTask]) async {
+    final l10n = AppLocalizations.of(context)!;
     final task = await showDialog<MaintenanceTaskModel>(
       context: context,
       builder: (_) => _MaintenanceTaskDialog(
@@ -159,16 +121,21 @@ class _MaintenanceScheduleSectionState
         existingTask: existingTask,
       ),
     );
-    if (task == null) return;
+    if (task == null || !mounted) return;
     try {
       final savedTask = await _service.saveMaintenanceTask(task);
-      await _scheduleTaskNotification(savedTask);
+      await _notificationScheduler.scheduleTask(
+        savedTask,
+        notificationBody: l10n.scheduledAquariumTaskNotification,
+      );
     } on Object catch (error) {
       if (mounted) {
         context.showAppSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context)!.maintenanceTaskAddedError('$error'),
+              existingTask == null
+                  ? l10n.maintenanceTaskAddedError('$error')
+                  : l10n.maintenanceTaskUpdateError('$error'),
             ),
           ),
         );
@@ -177,37 +144,55 @@ class _MaintenanceScheduleSectionState
   }
 
   Future<void> _completeTask(MaintenanceTaskModel task) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final performedAt = DateTime.now();
-      await _service.completeMaintenanceTask(task, completedAt: performedAt);
-      final nextDue = DateTime(
-        performedAt.year,
-        performedAt.month,
-        performedAt.day,
-        task.nextDueDate.hour,
-        task.nextDueDate.minute,
-      ).add(Duration(days: task.repeatFrequencyDays));
-      await _scheduleTaskNotification(
-        MaintenanceTaskModel(
-          id: task.id,
-          aquariumId: task.aquariumId,
-          taskType: task.taskType,
-          title: task.title,
-          repeatFrequencyDays: task.repeatFrequencyDays,
-          lastPerformedDate: performedAt,
-          nextDueDate: nextDue,
-        ),
+      final updated = await _service.completeMaintenanceTask(
+        task,
+        completedAt: performedAt,
+      );
+      await _notificationScheduler.scheduleTask(
+        updated,
+        notificationBody: l10n.scheduledAquariumTaskNotification,
       );
       if (mounted) {
         context.showAppSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!
-                  .maintenanceTaskCompleted(task.title),
-            ),
-          ),
+          SnackBar(content: Text(l10n.maintenanceTaskCompleted(task.title))),
         );
       }
+    } on Object catch (error) {
+      if (mounted) {
+        context.showAppSnackBar(
+          SnackBar(content: Text(l10n.maintenanceTaskUpdateError('$error'))),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteTask(MaintenanceTaskModel task) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.deleteAction),
+        content: Text(l10n.maintenanceTaskDeleteConfirm(task.title)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.deleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await _service.deleteMaintenanceTask(task);
+      await _notificationScheduler.cancelTask(task);
     } on Object catch (error) {
       if (mounted) {
         context.showAppSnackBar(
@@ -228,11 +213,13 @@ class _MaintenanceTaskTile extends StatelessWidget {
     required this.task,
     required this.onComplete,
     required this.onEdit,
+    required this.onDelete,
   });
 
   final MaintenanceTaskModel task;
   final VoidCallback onComplete;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -289,6 +276,12 @@ class _MaintenanceTaskTile extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
                 onPressed: onEdit,
                 icon: const Icon(Icons.edit_outlined, size: 18),
+              ),
+              IconButton(
+                tooltip: l10n.deleteAction,
+                visualDensity: VisualDensity.compact,
+                onPressed: onDelete,
+                icon: const Icon(Icons.delete_outline, size: 18),
               ),
               TextButton(onPressed: onComplete, child: Text(l10n.performTask)),
             ],
@@ -500,15 +493,6 @@ String _maintenanceTaskLabel(AppLocalizations l10n, String taskType) =>
       'quickCheck' => l10n.maintenanceTaskQuickCheck,
       _ => l10n.maintenanceTaskCustom,
     };
-
-int _notificationId(MaintenanceTaskModel task) {
-  final value = '${task.aquariumId}:${task.id}';
-  var hash = 0x811c9dc5;
-  for (final codeUnit in value.codeUnits) {
-    hash = ((hash ^ codeUnit) * 0x01000193) & 0x7fffffff;
-  }
-  return hash;
-}
 
 IconData _taskIcon(String taskType) => switch (taskType) {
   'feeding' => Icons.set_meal_outlined,

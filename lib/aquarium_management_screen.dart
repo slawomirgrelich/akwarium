@@ -239,7 +239,9 @@ class _ManagementContentState extends State<_ManagementContent>
                 .toList(growable: false);
         final query = _search.text.toLowerCase();
         final filtered = inhabitants.where((item) {
-          return '${item.name} ${item.latinName} ${item.notes ?? ''}'
+          return '${item.name} ${item.latinName} ${item.notes ?? ''} '
+                  '${item.feedingNotes ?? ''} ${item.behaviorNotes ?? ''} '
+                  '${item.careNotes ?? ''}'
               .toLowerCase()
               .contains(query);
         }).toList();
@@ -341,13 +343,9 @@ Inhabitant _inhabitantFromFirestore(
   Map<String, dynamic> data,
   String aquariumId,
 ) {
-  final rawCategory = '${data['category'] ?? data['categoryLabel'] ?? ''}'
-      .toLowerCase();
-  final isPlant =
-      rawCategory.contains('flora') ||
-      rawCategory.contains('plant') ||
-      rawCategory.contains('roślin') ||
-      rawCategory.contains('roslin');
+  final category = _creatureCategoryFromValue(
+    '${data['categoryLabel'] ?? data['category'] ?? ''}',
+  );
   final rawDate = data['addedAt'];
   final addedDate = rawDate is Timestamp
       ? rawDate.toDate()
@@ -359,14 +357,45 @@ Inhabitant _inhabitantFromFirestore(
     aquariumId: aquariumId,
     name: '${data['namePl'] ?? data['name'] ?? 'Nieznany gatunek'}',
     latinName: '${data['nameLatin'] ?? data['latinName'] ?? ''}',
-    category: isPlant ? CreatureCategory.plant : CreatureCategory.fish,
+    category: category,
     count: data['count'] is num ? (data['count'] as num).toInt() : 1,
     addedDate: addedDate,
     status: 'Zdrowe',
     difficulty: data['difficulty']?.toString(),
     notes: data['notes']?.toString(),
+    feedingNotes: data['feedingNotes']?.toString(),
+    behaviorNotes: data['behaviorNotes']?.toString(),
+    careNotes: data['careNotes']?.toString(),
     imagePath: data['photoUrl']?.toString(),
   );
+}
+
+CreatureCategory _creatureCategoryFromValue(String value) {
+  final normalized = value.trim().toLowerCase();
+  if (normalized.contains('plant') ||
+      normalized.contains('flora') ||
+      normalized.contains('roślin') ||
+      normalized.contains('roslin')) {
+    return CreatureCategory.plant;
+  }
+  if (normalized.contains('shrimp') || normalized.contains('krewet')) {
+    return CreatureCategory.shrimp;
+  }
+  if (normalized.contains('snail') || normalized.contains('ślimak')) {
+    return CreatureCategory.snail;
+  }
+  if (normalized.contains('crab') || normalized.contains('krab')) {
+    return CreatureCategory.crab;
+  }
+  if (normalized.contains('coral') || normalized.contains('korale')) {
+    return CreatureCategory.coral;
+  }
+  if (normalized.contains('fish') ||
+      normalized.contains('fauna') ||
+      normalized.contains('ryb')) {
+    return CreatureCategory.fish;
+  }
+  return CreatureCategory.other;
 }
 
 class _ManagementTabView extends StatelessWidget {
@@ -691,18 +720,22 @@ class _InhabitantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final status = item.status == 'Zdrowe' ? l10n.healthy : item.status;
+    final icon = switch (item.category) {
+      CreatureCategory.plant => Icons.local_florist,
+      CreatureCategory.shrimp => Icons.water_drop_outlined,
+      CreatureCategory.snail => Icons.circle_outlined,
+      CreatureCategory.crab => Icons.pest_control_outlined,
+      CreatureCategory.coral => Icons.bubble_chart,
+      CreatureCategory.fish => Icons.pets,
+      CreatureCategory.other => Icons.category_outlined,
+    };
     return Card(
       color: Theme.of(context).cardColor,
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).primaryColor.withAlpha(25),
-          child: Icon(
-            item.category == CreatureCategory.plant
-                ? Icons.local_florist
-                : Icons.pets,
-            color: Theme.of(context).primaryColor,
-          ),
+          child: Icon(icon, color: Theme.of(context).primaryColor),
         ),
         title: Text(
           item.name,
@@ -712,7 +745,14 @@ class _InhabitantCard extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          '${item.latinName} · ${l10n.livestockCount(item.count)}\n$status${item.plantPosition == null ? '' : ' · ${plantPositionLabel(l10n, item.plantPosition!)}'}',
+          [
+            if (item.latinName.isNotEmpty) item.latinName,
+            creatureCategoryLabel(l10n, item.category),
+            l10n.livestockCount(item.count),
+            status,
+            if (item.plantPosition != null)
+              plantPositionLabel(l10n, item.plantPosition!),
+          ].join(' · '),
           style: TextStyle(
             color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
@@ -756,6 +796,8 @@ Future<void> _showInhabitantDetails(
   await showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
+      scrollable: true,
+      actionsOverflowDirection: VerticalDirection.down,
       title: Text(item.name),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -772,6 +814,12 @@ Future<void> _showInhabitantDetails(
           Text(status),
           if (item.plantPosition != null)
             Text(plantPositionLabel(l10n, item.plantPosition!)),
+          if (item.feedingNotes?.trim().isNotEmpty ?? false)
+            Text('${l10n.feedingNotes}: ${item.feedingNotes!.trim()}'),
+          if (item.behaviorNotes?.trim().isNotEmpty ?? false)
+            Text('${l10n.behaviorNotes}: ${item.behaviorNotes!.trim()}'),
+          if (item.careNotes?.trim().isNotEmpty ?? false)
+            Text('${l10n.careNotes}: ${item.careNotes!.trim()}'),
           if (item.notes?.trim().isNotEmpty == true) ...[
             const SizedBox(height: 8),
             Text(item.notes!.trim()),
@@ -1111,6 +1159,9 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
   final _latin = TextEditingController();
   final _count = TextEditingController(text: '1');
   final _notes = TextEditingController();
+  final _feedingNotes = TextEditingController();
+  final _behaviorNotes = TextEditingController();
+  final _careNotes = TextEditingController();
   final _picker = ImagePicker();
   CreatureCategory _category = CreatureCategory.fish;
   String _name = '';
@@ -1120,7 +1171,14 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
 
   @override
   void dispose() {
-    for (final controller in [_latin, _count, _notes]) {
+    for (final controller in [
+      _latin,
+      _count,
+      _notes,
+      _feedingNotes,
+      _behaviorNotes,
+      _careNotes,
+    ]) {
       controller.dispose();
     }
     super.dispose();
@@ -1213,6 +1271,24 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
             decoration: InputDecoration(labelText: l10n.notesOptionalLabel),
           ),
           const SizedBox(height: 12),
+          TextField(
+            controller: _feedingNotes,
+            maxLines: 2,
+            decoration: InputDecoration(labelText: l10n.feedingNotes),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _behaviorNotes,
+            maxLines: 2,
+            decoration: InputDecoration(labelText: l10n.behaviorNotes),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _careNotes,
+            maxLines: 2,
+            decoration: InputDecoration(labelText: l10n.careNotes),
+          ),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 4,
@@ -1291,6 +1367,9 @@ class _AddInhabitantModalState extends State<AddInhabitantModal> {
         minTankVolume: _selectedSpecies?.aquariumMinimumLiters ?? 0,
         addedAt: DateTime.now(),
         notes: _notes.text.trim(),
+        feedingNotes: _feedingNotes.text.trim(),
+        behaviorNotes: _behaviorNotes.text.trim(),
+        careNotes: _careNotes.text.trim(),
         photoUrl: _image,
       );
       if (mounted) Navigator.pop(context);

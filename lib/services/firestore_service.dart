@@ -243,6 +243,9 @@ class FirestoreService {
     required int minTankVolume,
     DateTime? addedAt,
     String notes = '',
+    String feedingNotes = '',
+    String behaviorNotes = '',
+    String careNotes = '',
     String? photoUrl,
     String quantityUnit = 'pieces',
   }) async {
@@ -274,6 +277,10 @@ class FirestoreService {
             ? FieldValue.serverTimestamp()
             : Timestamp.fromDate(addedAt),
         'notes': notes,
+        if (feedingNotes.trim().isNotEmpty) 'feedingNotes': feedingNotes.trim(),
+        if (behaviorNotes.trim().isNotEmpty)
+          'behaviorNotes': behaviorNotes.trim(),
+        if (careNotes.trim().isNotEmpty) 'careNotes': careNotes.trim(),
         'photoUrl': ?photoUrl,
       });
       await FirestoreSyncStatus.recordSuccessfulSync();

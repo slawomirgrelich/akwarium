@@ -152,6 +152,9 @@ class AquariumLivestockScreen extends StatelessWidget {
         tempRange: entry.tempRange,
         minTankVolume: entry.minTankVolume,
         notes: entry.notes,
+        feedingNotes: entry.feedingNotes,
+        behaviorNotes: entry.behaviorNotes,
+        careNotes: entry.careNotes,
       );
     } on FirestoreServiceException catch (error) {
       if (context.mounted) {
@@ -168,6 +171,9 @@ Future<void> _showLivestockDetails(
   final l10n = AppLocalizations.of(context)!;
   final latinName = entry['nameLatin']?.toString() ?? '';
   final notes = entry['notes']?.toString().trim() ?? '';
+  final feedingNotes = entry['feedingNotes']?.toString().trim() ?? '';
+  final behaviorNotes = entry['behaviorNotes']?.toString().trim() ?? '';
+  final careNotes = entry['careNotes']?.toString().trim() ?? '';
   final addedAt = entry['addedAt'];
   final addedDate = addedAt is Timestamp
       ? addedAt.toDate()
@@ -177,6 +183,8 @@ Future<void> _showLivestockDetails(
   await showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
+      scrollable: true,
+      actionsOverflowDirection: VerticalDirection.down,
       title: Text(entry['namePl']?.toString() ?? l10n.unknownSpecies),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -202,6 +210,11 @@ Future<void> _showLivestockDetails(
                 '${addedDate.day.toString().padLeft(2, '0')}.${addedDate.month.toString().padLeft(2, '0')}.${addedDate.year}',
               ),
             ),
+          if (feedingNotes.isNotEmpty)
+            Text('${l10n.feedingNotes}: $feedingNotes'),
+          if (behaviorNotes.isNotEmpty)
+            Text('${l10n.behaviorNotes}: $behaviorNotes'),
+          if (careNotes.isNotEmpty) Text('${l10n.careNotes}: $careNotes'),
           if (notes.isNotEmpty) ...[const SizedBox(height: 8), Text(notes)],
         ],
       ),
@@ -222,6 +235,9 @@ class _CustomSpeciesEntry {
     required this.category,
     required this.count,
     required this.notes,
+    required this.feedingNotes,
+    required this.behaviorNotes,
+    required this.careNotes,
     required this.phRange,
     required this.tempRange,
     required this.minTankVolume,
@@ -232,6 +248,9 @@ class _CustomSpeciesEntry {
   final CreatureCategory category;
   final int count;
   final String notes;
+  final String feedingNotes;
+  final String behaviorNotes;
+  final String careNotes;
   final String phRange;
   final String tempRange;
   final int minTankVolume;
@@ -250,6 +269,9 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
   final _latin = TextEditingController();
   final _count = TextEditingController(text: '1');
   final _notes = TextEditingController();
+  final _feedingNotes = TextEditingController();
+  final _behaviorNotes = TextEditingController();
+  final _careNotes = TextEditingController();
   CreatureCategory _category = CreatureCategory.fish;
   Species? _selectedSpecies;
 
@@ -258,6 +280,9 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
     _latin.dispose();
     _count.dispose();
     _notes.dispose();
+    _feedingNotes.dispose();
+    _behaviorNotes.dispose();
+    _careNotes.dispose();
     super.dispose();
   }
 
@@ -265,6 +290,8 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      actionsOverflowDirection: VerticalDirection.down,
       title: Text(l10n.addCustomSpecies),
       content: Form(
         key: _formKey,
@@ -334,6 +361,24 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
                 maxLines: 3,
                 decoration: InputDecoration(labelText: l10n.notesOptionalLabel),
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _feedingNotes,
+                maxLines: 2,
+                decoration: InputDecoration(labelText: l10n.feedingNotes),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _behaviorNotes,
+                maxLines: 2,
+                decoration: InputDecoration(labelText: l10n.behaviorNotes),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _careNotes,
+                maxLines: 2,
+                decoration: InputDecoration(labelText: l10n.careNotes),
+              ),
             ],
           ),
         ),
@@ -354,6 +399,9 @@ class _CustomSpeciesDialogState extends State<_CustomSpeciesDialog> {
                 category: _category,
                 count: int.parse(_count.text.trim()),
                 notes: _notes.text.trim(),
+                feedingNotes: _feedingNotes.text.trim(),
+                behaviorNotes: _behaviorNotes.text.trim(),
+                careNotes: _careNotes.text.trim(),
                 phRange: _selectedSpecies == null
                     ? ''
                     : speciesRangeLabel(_selectedSpecies!.phRange),

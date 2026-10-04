@@ -33,6 +33,32 @@ void main() {
     expect(result.totalWeightKg, greaterThan(result.netLiters));
   });
 
+  test('calculates decoration displacement from internal aquarium volume', () {
+    final result = calculateVolume(
+      lengthCm: 100,
+      widthCm: 40,
+      heightCm: 45,
+      glassThicknessCm: 0.6,
+      substrateThicknessCm: 5,
+      decorationPercent: 10,
+    );
+
+    expect(result.decorationsLiters, closeTo(14.8737472, 0.001));
+  });
+
+  test('rejects invalid tank volume inputs', () {
+    expect(
+      () => calculateVolume(
+        lengthCm: 0,
+        widthCm: 40,
+        heightCm: 45,
+        substrateThicknessCm: 5,
+        decorationPercent: 10,
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('classifies CO2 zones', () {
     expect(calculateCo2(ph: 7, kh: 5).status, Co2Status.optimal);
     expect(calculateCo2(ph: 8, kh: 1).status, Co2Status.low);
@@ -70,5 +96,18 @@ void main() {
 
     expect(result.ppmPerMl, greaterThan(0));
     expect(result.weeklyMl, greaterThan(0));
+  });
+
+  test('rejects invalid fertilizer dose inputs', () {
+    expect(
+      () => calculateFertilizerDose(
+        aquariumLiters: 0,
+        solutionMl: 500,
+        saltGrams: 50,
+        targetPpm: 10,
+        saltFactor: 0.613,
+      ),
+      throwsArgumentError,
+    );
   });
 }

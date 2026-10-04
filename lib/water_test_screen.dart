@@ -19,8 +19,11 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
   static const _beginnerParameterKeys = {
     'pH',
     'NO3',
+    'NO2',
     'PO4',
     'CO2',
+    'NH3/NH4',
+    'TDS',
     'Temperatura',
   };
 
@@ -28,8 +31,11 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
   final _controllers = <String, TextEditingController>{
     'pH': TextEditingController(),
     'NO3': TextEditingController(),
+    'NO2': TextEditingController(),
     'PO4': TextEditingController(),
     'CO2': TextEditingController(),
+    'NH3/NH4': TextEditingController(),
+    'TDS': TextEditingController(),
     'Fe': TextEditingController(),
     'KH': TextEditingController(),
     'GH': TextEditingController(),
@@ -111,7 +117,9 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
                                 final parsed = double.tryParse(
                                   value.trim().replaceAll(',', '.'),
                                 );
-                                if (parsed == null || !parsed.isFinite) {
+                                if (parsed == null ||
+                                    !parsed.isFinite ||
+                                    parsed < 0) {
                                   return l10n.chartInvalidNumber;
                                 }
                                 return null;
@@ -167,8 +175,11 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
       date: DateTime.now(),
       ph: _optionalNumber('pH'),
       no3: _optionalNumber('NO3'),
+      no2: _optionalNumber('NO2'),
       po4: _optionalNumber('PO4'),
       co2: _optionalNumber('CO2'),
+      nh3Nh4: _optionalNumber('NH3/NH4'),
+      tds: _optionalNumber('TDS'),
       fe: _optionalNumber('Fe'),
       kh: _optionalNumber('KH'),
       gh: _optionalNumber('GH'),
@@ -194,8 +205,10 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
       prefixIcon: const Icon(Icons.science_outlined),
       suffixText: key == 'Temperatura'
           ? '°C'
-          : key == 'CO2'
+          : key == 'CO2' || key == 'NH3/NH4' || key == 'NO2'
           ? 'mg/L'
+          : key == 'TDS'
+          ? 'ppm'
           : null,
     );
   }

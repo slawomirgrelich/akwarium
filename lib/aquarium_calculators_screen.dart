@@ -127,14 +127,30 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final result = calculateVolume(
-      lengthCm: _number(_length),
-      widthCm: _number(_width),
-      heightCm: _number(_height),
-      substrateThicknessCm: _number(_substrate),
-      decorationPercent: _decorations,
-      glassThicknessCm: _number(_glass) / 10,
-    );
+    final length = _tryNumber(_length);
+    final width = _tryNumber(_width);
+    final height = _tryNumber(_height);
+    final substrate = _tryNumber(_substrate);
+    final glassThickness = _tryNumber(_glass);
+    AquariumVolumeResult? result;
+    if (length != null &&
+        width != null &&
+        height != null &&
+        substrate != null &&
+        glassThickness != null) {
+      try {
+        result = calculateVolume(
+          lengthCm: length,
+          widthCm: width,
+          heightCm: height,
+          substrateThicknessCm: substrate,
+          decorationPercent: _decorations,
+          glassThicknessCm: glassThickness / 10,
+        );
+      } on ArgumentError {
+        result = null;
+      }
+    }
     return _CalculatorScroll(
       children: [
         _CalculatorIntro(
@@ -211,10 +227,15 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
             ],
           ),
         ),
-        _VolumeResult(result: result),
+        if (result != null)
+          _VolumeResult(result: result)
+        else
+          _GlassCard(child: Text(l10n.calculatorInvalidValues)),
         const SizedBox(height: 24),
         FilledButton.icon(
-          onPressed: () => _saveCapacity(context, result.netLiters),
+          onPressed: result == null
+              ? null
+              : () => _saveCapacity(context, result!.netLiters),
           icon: const Icon(Icons.bookmark_add_outlined),
           label: Text(l10n.saveNetDefault),
         ),
@@ -222,8 +243,10 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
     );
   }
 
-  double _number(TextEditingController controller) =>
-      double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
+  double? _tryNumber(TextEditingController controller) {
+    final parsed = double.tryParse(controller.text.trim().replaceAll(',', '.'));
+    return parsed != null && parsed.isFinite ? parsed : null;
+  }
 
   Future<void> _saveCapacity(BuildContext context, double liters) async {
     final preferences = await SharedPreferences.getInstance();
@@ -232,7 +255,8 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
     context.showAppSnackBar(
       SnackBar(
         content: Text(
-          'Zapisano pojemność netto: ${liters.toStringAsFixed(1)} l',
+          AppLocalizations.of(context)!
+              .netCapacitySaved(liters.toStringAsFixed(1)),
         ),
       ),
     );
@@ -366,15 +390,29 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
 
   @override
   Widget build(BuildContext context) {
-    final result = calculateFertilizerDose(
-      aquariumLiters: _number(_volume),
-      solutionMl: _number(_solution),
-      saltGrams: _number(_salt),
-      targetPpm: _number(_target),
-      saltFactor: _recipe.factor,
-    );
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final aquariumLiters = _tryNumber(_volume);
+    final solutionMl = _tryNumber(_solution);
+    final saltGrams = _tryNumber(_salt);
+    final targetPpm = _tryNumber(_target);
+    FertilizerDoseResult? result;
+    if (aquariumLiters != null &&
+        aquariumLiters > 0 &&
+        solutionMl != null &&
+        solutionMl > 0 &&
+        saltGrams != null &&
+        saltGrams >= 0 &&
+        targetPpm != null &&
+        targetPpm >= 0) {
+      result = calculateFertilizerDose(
+        aquariumLiters: aquariumLiters,
+        solutionMl: solutionMl,
+        saltGrams: saltGrams,
+        targetPpm: targetPpm,
+        saltFactor: _recipe.factor,
+      );
+    }
     return _CalculatorScroll(
       children: [
         _CalculatorIntro(
@@ -459,45 +497,50 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
             ],
           ),
         ),
-        _GlassCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${_recipe.element} po 1 ml',
-                style: TextStyle(
-                  color: theme.primaryColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+        if (result case final dose?) ...[
+          _GlassCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${_recipe.element} po 1 ml',
+                  style: TextStyle(
+                    color: theme.primaryColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${result.ppmPerMl.toStringAsFixed(3)} mg/l',
-                style: TextStyle(
-                  color: _calculatorAccent,
-                  fontSize: 34,
-                  fontWeight: FontWeight.w800,
+                const SizedBox(height: 8),
+                Text(
+                  '${dose.ppmPerMl.toStringAsFixed(3)} mg/l',
+                  style: TextStyle(
+                    color: _calculatorAccent,
+                    fontSize: 34,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                '${AppLocalizations.of(context)!.dailyDose}: ${result.dailyMl.toStringAsFixed(2)} ml',
-                style: TextStyle(color: theme.textTheme.bodyMedium?.color),
-              ),
-              Text(
-                '${AppLocalizations.of(context)!.weeklyDose}: ${result.weeklyMl.toStringAsFixed(2)} ml',
-                style: TextStyle(color: theme.textTheme.bodyMedium?.color),
-              ),
-            ],
+                const SizedBox(height: 14),
+                Text(
+                  '${l10n.dailyDose}: ${dose.dailyMl.toStringAsFixed(2)} ml',
+                  style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+                ),
+                Text(
+                  '${l10n.weeklyDose}: ${dose.weeklyMl.toStringAsFixed(2)} ml',
+                  style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+                ),
+              ],
+            ),
           ),
-        ),
+        ] else
+          _GlassCard(child: Text(l10n.calculatorInvalidValues)),
       ],
     );
   }
 
-  double _number(TextEditingController controller) =>
-      double.tryParse(controller.text.replaceAll(',', '.')) ?? 0;
+  double? _tryNumber(TextEditingController controller) {
+    final parsed = double.tryParse(controller.text.trim().replaceAll(',', '.'));
+    return parsed != null && parsed.isFinite ? parsed : null;
+  }
 }
 
 class _CalculatorScroll extends StatelessWidget {

@@ -2,11 +2,14 @@ import 'aquarium_model.dart';
 
 enum WaterStatus { good, warning, critical }
 
-enum WaterParameter { ph, no3, po4, co2, fe, kh, gh, temp }
+enum WaterParameter { ph, no3, no2, po4, co2, nh3Nh4, tds, fe, kh, gh, temp }
 
 enum WaterAssessmentMessageKey {
   criticalNo3,
   phOutsideSafeRange,
+  nitriteDetected,
+  ammoniaDetected,
+  tdsReferenceOnly,
   highNo3,
   lowPo4,
   highPo4,
@@ -43,6 +46,7 @@ class WaterStandard {
     required this.optimalMax,
     required this.chartMin,
     required this.chartMax,
+    this.hasUniversalOptimalRange = true,
   });
 
   final WaterParameter parameter;
@@ -52,6 +56,7 @@ class WaterStandard {
   final double optimalMax;
   final double chartMin;
   final double chartMax;
+  final bool hasUniversalOptimalRange;
 }
 
 const waterStandards = <WaterParameter, WaterStandard>{
@@ -73,6 +78,15 @@ const waterStandards = <WaterParameter, WaterStandard>{
     chartMin: 0,
     chartMax: 60,
   ),
+  WaterParameter.no2: WaterStandard(
+    parameter: WaterParameter.no2,
+    label: 'NO2',
+    unit: 'mg/L',
+    optimalMin: 0,
+    optimalMax: 0,
+    chartMin: 0,
+    chartMax: 1,
+  ),
   WaterParameter.po4: WaterStandard(
     parameter: WaterParameter.po4,
     label: 'PO4',
@@ -90,6 +104,25 @@ const waterStandards = <WaterParameter, WaterStandard>{
     optimalMax: 30,
     chartMin: 0,
     chartMax: 50,
+  ),
+  WaterParameter.nh3Nh4: WaterStandard(
+    parameter: WaterParameter.nh3Nh4,
+    label: 'NH3/NH4',
+    unit: 'mg/L',
+    optimalMin: 0,
+    optimalMax: 0,
+    chartMin: 0,
+    chartMax: 1,
+  ),
+  WaterParameter.tds: WaterStandard(
+    parameter: WaterParameter.tds,
+    label: 'TDS',
+    unit: 'ppm',
+    optimalMin: 0,
+    optimalMax: 0,
+    chartMin: 0,
+    chartMax: 100,
+    hasUniversalOptimalRange: false,
   ),
   WaterParameter.fe: WaterStandard(
     parameter: WaterParameter.fe,
@@ -135,10 +168,16 @@ double? waterValue(WaterTest test, WaterParameter parameter) {
       return test.ph;
     case WaterParameter.no3:
       return test.no3;
+    case WaterParameter.no2:
+      return test.no2;
     case WaterParameter.po4:
       return test.po4;
     case WaterParameter.co2:
       return test.co2;
+    case WaterParameter.nh3Nh4:
+      return test.nh3Nh4;
+    case WaterParameter.tds:
+      return test.tds;
     case WaterParameter.fe:
       return test.fe;
     case WaterParameter.kh:
@@ -152,6 +191,38 @@ double? waterValue(WaterTest test, WaterParameter parameter) {
 
 WaterAssessment assessWaterValue(WaterParameter parameter, double value) {
   final standard = waterStandards[parameter]!;
+  if (parameter == WaterParameter.nh3Nh4 && value > 0) {
+    return const WaterAssessment(
+      status: WaterStatus.warning,
+      messageKey: WaterAssessmentMessageKey.ammoniaDetected,
+      parameter: WaterParameter.nh3Nh4,
+      minValue: 0,
+      maxValue: 0,
+    );
+  }
+  if (parameter == WaterParameter.no2 && value > 0) {
+    return const WaterAssessment(
+      status: WaterStatus.warning,
+      messageKey: WaterAssessmentMessageKey.nitriteDetected,
+      parameter: WaterParameter.no2,
+      minValue: 0,
+      maxValue: 0,
+    );
+  }
+  if (parameter == WaterParameter.tds && value < 0) {
+    return const WaterAssessment(
+      status: WaterStatus.warning,
+      messageKey: WaterAssessmentMessageKey.outsideMeasurementRange,
+      parameter: WaterParameter.tds,
+    );
+  }
+  if (parameter == WaterParameter.tds) {
+    return const WaterAssessment(
+      status: WaterStatus.good,
+      messageKey: WaterAssessmentMessageKey.tdsReferenceOnly,
+      parameter: WaterParameter.tds,
+    );
+  }
   if (parameter == WaterParameter.fe &&
       value >= standard.chartMin &&
       value < standard.optimalMin) {

@@ -177,19 +177,51 @@ class MaintenanceTaskModel {
     'nextDueDate': Timestamp.fromDate(nextDueDate),
   };
 
-  factory MaintenanceTaskModel.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-  ) {
-    final data = snapshot.data() ?? const <String, dynamic>{};
+  factory MaintenanceTaskModel.fromMap(
+    Map<String, dynamic> data, {
+    String idFallback = '',
+  }) {
     final lastPerformed = _date(data['lastPerformedDate']) ?? DateTime.now();
     return MaintenanceTaskModel(
-      id: _string(data['id'], snapshot.id),
+      id: _string(data['id'], idFallback),
       aquariumId: _string(data['aquariumId']),
       taskType: _string(data['taskType'], 'custom'),
       title: _string(data['title'], 'Zadanie konserwacyjne'),
       repeatFrequencyDays: (data['repeatFrequencyDays'] as num?)?.toInt() ?? 7,
       lastPerformedDate: lastPerformed,
       nextDueDate: _date(data['nextDueDate']) ?? lastPerformed,
+    );
+  }
+
+  factory MaintenanceTaskModel.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    return MaintenanceTaskModel.fromMap(
+      snapshot.data() ?? const <String, dynamic>{},
+      idFallback: snapshot.id,
+    );
+  }
+
+  MaintenanceTaskModel completed(DateTime performedAt) {
+    if (repeatFrequencyDays < 1) {
+      throw ArgumentError.value(
+        repeatFrequencyDays,
+        'repeatFrequencyDays',
+        'Must be positive.',
+      );
+    }
+    return MaintenanceTaskModel(
+      id: id,
+      aquariumId: aquariumId,
+      taskType: taskType,
+      title: title,
+      repeatFrequencyDays: repeatFrequencyDays,
+      lastPerformedDate: performedAt,
+      nextDueDate: nextRecurrenceDateAfter(
+        performedAt,
+        nextDueDate,
+        repeatFrequencyDays,
+      ),
     );
   }
 }
@@ -310,30 +342,32 @@ class AquariumJournalService {
     }
   }
 
-  Future<void> completeMaintenanceTask(
+  Future<MaintenanceTaskModel> completeMaintenanceTask(
     MaintenanceTaskModel task, {
     DateTime? completedAt,
   }) async {
     final performedAt = completedAt ?? DateTime.now();
-    final nextDue = nextRecurrenceDateAfter(
-      performedAt,
-      task.nextDueDate,
-      task.repeatFrequencyDays,
-    );
-    final updated = MaintenanceTaskModel(
-      id: task.id,
-      aquariumId: task.aquariumId,
-      taskType: task.taskType,
-      title: task.title,
-      repeatFrequencyDays: task.repeatFrequencyDays,
-      lastPerformedDate: performedAt,
-      nextDueDate: nextDue,
-    );
+    final updated = task.completed(performedAt);
     await _write(
       _collection(_userId(), task.aquariumId, 'maintenance_tasks'),
       task.id,
       updated.toMap(),
     );
+    return updated;
+  }
+
+  Future<void> deleteMaintenanceTask(MaintenanceTaskModel task) async {
+    try {
+      _requirePathId(task.id, 'maintenanceTaskId');
+      await _collection(
+        _userId(),
+        task.aquariumId,
+        'maintenance_tasks',
+      ).doc(task.id).delete();
+      await FirestoreSyncStatus.recordSuccessfulSync();
+    } catch (error) {
+      throw AquariumJournalServiceException(_message(error));
+    }
   }
 
   Future<void> addJournalEntry(JournalEntryModel entry) async {

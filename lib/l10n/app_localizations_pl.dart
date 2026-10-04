@@ -1006,6 +1006,11 @@ class AppLocalizationsPl extends AppLocalizations {
       'Wybierz niewymagające rośliny, na przykład anubiasy, kryptokoryny lub rogatek.';
 
   @override
+  String maintenanceTaskDeleteConfirm(String title) {
+    return 'Czy na pewno chcesz usunąć zadanie „$title”?';
+  }
+
+  @override
   String get beginnerNextStep => 'Następny krok';
 
   @override
@@ -2348,6 +2353,26 @@ class AppLocalizationsPl extends AppLocalizations {
   String get categoryCrabs => 'Kraby';
 
   @override
+  String get categoryCorals => 'Korale';
+
+  @override
+  String get feedingNotes => 'Karmienie';
+
+  @override
+  String get behaviorNotes => 'Zachowanie';
+
+  @override
+  String get careNotes => 'Wymagania pielęgnacyjne';
+
+  @override
+  String get compatibilityNotChecked => 'Niepełna ocena';
+
+  @override
+  String livestockUnverifiedSpecies(int count) {
+    return 'Nie oceniono $count pozycji spoza katalogu. Sprawdź ich wymagania ręcznie.';
+  }
+
+  @override
   String get categoryOther => 'Inne';
 
   @override
@@ -2799,9 +2824,34 @@ class AppLocalizationsPl extends AppLocalizations {
   String get enterPositiveNumber => 'Wpisz liczbę większą od zera.';
 
   @override
+  String get calculatorInvalidValues =>
+      'Sprawdź wpisane wartości. Wymiary i objętość akwarium muszą być prawidłowe.';
+
+  @override
   String netCapacitySaved(String liters) {
     return 'Zapisano pojemność netto: $liters l';
   }
+
+  @override
+  String get ammoniaNonDetectableTarget => 'Cel: poziom niewykrywalny (0 mg/L)';
+
+  @override
+  String get nitriteNonDetectableTarget => 'Cel: poziom niewykrywalny (0 mg/L)';
+
+  @override
+  String get waterAssessmentNitriteDetected =>
+      'Wykryto NO2. Azotyny są szkodliwe dla ryb; sprawdź pomiar i zareaguj szybko.';
+
+  @override
+  String get waterAssessmentAmmoniaDetected =>
+      'Wykryto NH3/NH4. Nawet niskie stężenie może szkodzić; ryzyko zależy od pH i temperatury.';
+
+  @override
+  String get waterAssessmentReferenceOnly => 'Informacja orientacyjna';
+
+  @override
+  String get tdsNoUniversalTarget =>
+      'TDS nie ma uniwersalnego zakresu — porównuj z potrzebami obsady i wodą źródłową.';
 
   @override
   String get knowledgeBaseAddAquariumPrompt =>

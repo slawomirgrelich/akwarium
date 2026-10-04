@@ -1,16 +1,16 @@
 import '../l10n/app_localizations.dart';
 import '../models/water_standards.dart';
 
-String waterAssessmentLabel(
-  AppLocalizations l10n,
-  WaterAssessment assessment,
-) {
+String waterAssessmentLabel(AppLocalizations l10n, WaterAssessment assessment) {
   return switch (assessment.messageKey) {
     WaterAssessmentMessageKey.criticalNo3 => l10n.waterAssessmentCritical,
+    WaterAssessmentMessageKey.nitriteDetected => l10n.waterAssessmentWarning,
+    WaterAssessmentMessageKey.ammoniaDetected => l10n.waterAssessmentWarning,
+    WaterAssessmentMessageKey.tdsReferenceOnly =>
+      l10n.waterAssessmentReferenceOnly,
     WaterAssessmentMessageKey.outsideOptimalRange =>
       l10n.waterAssessmentOutsideOptimum,
-    WaterAssessmentMessageKey.withinOptimalRange =>
-      l10n.waterAssessmentNormal,
+    WaterAssessmentMessageKey.withinOptimalRange => l10n.waterAssessmentNormal,
     _ => l10n.waterAssessmentWarning,
   };
 }
@@ -23,6 +23,11 @@ String waterAssessmentMessage(
     WaterAssessmentMessageKey.criticalNo3 => l10n.waterAssessmentCriticalNo3,
     WaterAssessmentMessageKey.phOutsideSafeRange =>
       l10n.waterAssessmentPhOutsideSafeRange,
+    WaterAssessmentMessageKey.nitriteDetected =>
+      l10n.waterAssessmentNitriteDetected,
+    WaterAssessmentMessageKey.ammoniaDetected =>
+      l10n.waterAssessmentAmmoniaDetected,
+    WaterAssessmentMessageKey.tdsReferenceOnly => l10n.tdsNoUniversalTarget,
     WaterAssessmentMessageKey.highNo3 => l10n.waterAssessmentHighNo3,
     WaterAssessmentMessageKey.lowPo4 => l10n.waterAssessmentLowPo4,
     WaterAssessmentMessageKey.highPo4 => l10n.waterAssessmentHighPo4,

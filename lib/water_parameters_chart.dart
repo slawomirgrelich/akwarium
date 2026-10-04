@@ -25,6 +25,10 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
         .reversed
         .toList();
     final standard = waterStandards[_selected]!;
+    final compactRangeHeader =
+        standard.hasUniversalOptimalRange &&
+        _selected != WaterParameter.nh3Nh4 &&
+        _selected != WaterParameter.no2;
     final points = <({WaterTest test, double value})>[
       for (final test in tests)
         if (waterValue(test, _selected) case final value?)
@@ -38,23 +42,43 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.chartHistoryTitle,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
+            if (compactRangeHeader)
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.chartHistoryTitle,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
+                  Text(
+                    _standardDescription(_selected, standard, l10n),
+                    style: TextStyle(color: Colors.teal.shade700, fontSize: 12),
+                  ),
+                ],
+              )
+            else ...[
+              Text(
+                l10n.chartHistoryTitle,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
                 ),
-                Text(
-                  '${standard.optimalMin}-${standard.optimalMax} ${standard.unit}',
-                  style: TextStyle(color: Colors.teal.shade700, fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _standardDescription(_selected, standard, l10n),
+                style: TextStyle(
+                  color: standard.hasUniversalOptimalRange
+                      ? Colors.teal.shade700
+                      : Colors.blueGrey.shade600,
+                  fontSize: 12,
                 ),
-              ],
-            ),
+              ),
+            ],
             const SizedBox(height: 12),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -96,11 +120,13 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
                     borderData: FlBorderData(show: false),
                     rangeAnnotations: RangeAnnotations(
                       horizontalRangeAnnotations: [
-                        HorizontalRangeAnnotation(
-                          y1: standard.optimalMin,
-                          y2: standard.optimalMax,
-                          color: Colors.teal.withAlpha(24),
-                        ),
+                        if (standard.hasUniversalOptimalRange &&
+                            standard.optimalMax > standard.optimalMin)
+                          HorizontalRangeAnnotation(
+                            y1: standard.optimalMin,
+                            y2: standard.optimalMax,
+                            color: Colors.teal.withAlpha(24),
+                          ),
                       ],
                     ),
                     titlesData: FlTitlesData(
@@ -166,3 +192,14 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
     return maximum > standard.chartMax ? maximum * 1.1 : standard.chartMax;
   }
 }
+
+String _standardDescription(
+  WaterParameter parameter,
+  WaterStandard standard,
+  AppLocalizations l10n,
+) => switch (parameter) {
+  WaterParameter.no2 => l10n.nitriteNonDetectableTarget,
+  WaterParameter.nh3Nh4 => l10n.ammoniaNonDetectableTarget,
+  WaterParameter.tds => l10n.tdsNoUniversalTarget,
+  _ => '${standard.optimalMin}-${standard.optimalMax} ${standard.unit}',
+};

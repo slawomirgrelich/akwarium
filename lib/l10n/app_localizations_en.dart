@@ -999,6 +999,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose undemanding plants such as Anubias, Cryptocoryne, or hornwort.';
 
   @override
+  String maintenanceTaskDeleteConfirm(String title) {
+    return 'Are you sure you want to delete the task “$title”?';
+  }
+
+  @override
   String get beginnerNextStep => 'Next step';
 
   @override
@@ -2332,6 +2337,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryCrabs => 'Crabs';
 
   @override
+  String get categoryCorals => 'Corals';
+
+  @override
+  String get feedingNotes => 'Feeding';
+
+  @override
+  String get behaviorNotes => 'Behavior';
+
+  @override
+  String get careNotes => 'Care requirements';
+
+  @override
+  String get compatibilityNotChecked => 'Incomplete assessment';
+
+  @override
+  String livestockUnverifiedSpecies(int count) {
+    return '$count entries are not in the catalog. Check their requirements manually.';
+  }
+
+  @override
   String get categoryOther => 'Other';
 
   @override
@@ -2781,9 +2806,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPositiveNumber => 'Enter a number greater than zero.';
 
   @override
+  String get calculatorInvalidValues =>
+      'Check the entered values. Tank dimensions and volume must be valid.';
+
+  @override
   String netCapacitySaved(String liters) {
     return 'Saved net capacity: $liters L';
   }
+
+  @override
+  String get ammoniaNonDetectableTarget => 'Target: undetectable (0 mg/L)';
+
+  @override
+  String get nitriteNonDetectableTarget => 'Target: undetectable (0 mg/L)';
+
+  @override
+  String get waterAssessmentNitriteDetected =>
+      'NO2 was detected. Nitrite is harmful to fish; verify the reading and respond promptly.';
+
+  @override
+  String get waterAssessmentAmmoniaDetected =>
+      'NH3/NH4 was detected. Even low levels may be harmful; risk depends on pH and temperature.';
+
+  @override
+  String get waterAssessmentReferenceOnly => 'Reference only';
+
+  @override
+  String get tdsNoUniversalTarget =>
+      'TDS has no universal target; compare it with your livestock and source water.';
 
   @override
   String get knowledgeBaseAddAquariumPrompt =>

@@ -167,6 +167,8 @@ class WaterParametersModel {
     this.mg,
     this.temp,
     this.co2,
+    this.nh3Nh4,
+    this.tds,
     required this.notes,
   });
 
@@ -184,6 +186,8 @@ class WaterParametersModel {
   final double? mg;
   final double? temp;
   final double? co2;
+  final double? nh3Nh4;
+  final double? tds;
   final String notes;
 
   WaterParametersModel copyWith({
@@ -201,6 +205,8 @@ class WaterParametersModel {
     double? mg,
     double? temp,
     double? co2,
+    double? nh3Nh4,
+    double? tds,
     String? notes,
   }) {
     return WaterParametersModel(
@@ -218,6 +224,8 @@ class WaterParametersModel {
       mg: mg ?? this.mg,
       temp: temp ?? this.temp,
       co2: co2 ?? this.co2,
+      nh3Nh4: nh3Nh4 ?? this.nh3Nh4,
+      tds: tds ?? this.tds,
       notes: notes ?? this.notes,
     );
   }
@@ -238,6 +246,8 @@ class WaterParametersModel {
       if (mg != null) 'mg': mg,
       if (temp != null) 'temp': temp,
       if (co2 != null) 'co2': co2,
+      if (nh3Nh4 != null) 'nh3Nh4': nh3Nh4,
+      if (tds != null) 'tds': tds,
       'notes': notes,
     };
   }
@@ -267,6 +277,8 @@ class WaterParametersModel {
       mg: _nullableDoubleFromValue(values['mg']),
       temp: _nullableDoubleFromValue(values['temp']),
       co2: _nullableDoubleFromValue(values['co2']),
+      nh3Nh4: _nullableDoubleFromValue(values['nh3Nh4']),
+      tds: _nullableDoubleFromValue(values['tds']),
       notes: _stringFromValue(values['notes']),
     );
   }

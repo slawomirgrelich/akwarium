@@ -105,10 +105,15 @@ class _StockingBody extends StatelessWidget {
             pH: latest?.ph,
             species: species,
           );
+          final unverifiedSpeciesCount = items.length - species.length;
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             children: [
-              _CompatibilityCard(report: report),
+              _CompatibilityCard(
+                report: report,
+                hasLivestock: items.isNotEmpty,
+                unverifiedSpeciesCount: unverifiedSpeciesCount,
+              ),
               const SizedBox(height: 16),
               if (snapshot.hasError)
                 Padding(
@@ -257,15 +262,23 @@ Species? _catalogSpeciesForEntry(Map<String, dynamic> entry) {
 }
 
 class _CompatibilityCard extends StatelessWidget {
-  const _CompatibilityCard({required this.report});
+  const _CompatibilityCard({
+    required this.report,
+    required this.hasLivestock,
+    required this.unverifiedSpeciesCount,
+  });
 
   final CompatibilityReport report;
+  final bool hasLivestock;
+  final int unverifiedSpeciesCount;
 
   @override
   Widget build(BuildContext context) {
-    final color = report.isCompatible
+    final isComplete = hasLivestock && unverifiedSpeciesCount == 0;
+    final hasWarnings = report.warnings.isNotEmpty;
+    final color = isComplete && report.isCompatible
         ? const Color(0xFF10B981)
-        : report.warnings.any((warning) => warning.isCritical)
+        : hasWarnings && report.warnings.any((warning) => warning.isCritical)
         ? Theme.of(context).colorScheme.error
         : const Color(0xFFF59E0B);
     return Card(
@@ -277,23 +290,27 @@ class _CompatibilityCard extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  report.isCompatible
+                  isComplete && report.isCompatible
                       ? Icons.check_circle
                       : Icons.warning_amber,
                   color: color,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!
-                      .compatibilityPercent(report.score),
+                  isComplete
+                      ? AppLocalizations.of(context)!
+                            .compatibilityPercent(report.score)
+                      : AppLocalizations.of(context)!.compatibilityNotChecked,
                   style: TextStyle(color: color, fontWeight: FontWeight.w800),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            if (report.isCompatible)
+            if (!hasLivestock)
+              Text(AppLocalizations.of(context)!.noSpeciesAddedOpenAtlas)
+            else if (report.isCompatible && isComplete)
               Text(AppLocalizations.of(context)!.livestockWithinRange)
-            else
+            else if (hasWarnings)
               ...report.warnings.map(
                 (warning) => Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -302,6 +319,13 @@ class _CompatibilityCard extends StatelessWidget {
                   ),
                 ),
               ),
+            if (unverifiedSpeciesCount > 0) ...[
+              const SizedBox(height: 4),
+              Text(
+                AppLocalizations.of(context)!
+                    .livestockUnverifiedSpecies(unverifiedSpeciesCount),
+              ),
+            ],
           ],
         ),
       ),

@@ -1946,6 +1946,12 @@ abstract class AppLocalizations {
   /// **'Wybierz niewymagające rośliny, na przykład anubiasy, kryptokoryny lub rogatek.'**
   String get beginnerStepPlantsDescription;
 
+  /// No description provided for @maintenanceTaskDeleteConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno chcesz usunąć zadanie „{title}”?'**
+  String maintenanceTaskDeleteConfirm(String title);
+
   /// No description provided for @beginnerNextStep.
   ///
   /// In pl, this message translates to:
@@ -4279,6 +4285,42 @@ abstract class AppLocalizations {
   /// **'Kraby'**
   String get categoryCrabs;
 
+  /// No description provided for @categoryCorals.
+  ///
+  /// In pl, this message translates to:
+  /// **'Korale'**
+  String get categoryCorals;
+
+  /// No description provided for @feedingNotes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Karmienie'**
+  String get feedingNotes;
+
+  /// No description provided for @behaviorNotes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zachowanie'**
+  String get behaviorNotes;
+
+  /// No description provided for @careNotes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymagania pielęgnacyjne'**
+  String get careNotes;
+
+  /// No description provided for @compatibilityNotChecked.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niepełna ocena'**
+  String get compatibilityNotChecked;
+
+  /// No description provided for @livestockUnverifiedSpecies.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie oceniono {count} pozycji spoza katalogu. Sprawdź ich wymagania ręcznie.'**
+  String livestockUnverifiedSpecies(int count);
+
   /// No description provided for @categoryOther.
   ///
   /// In pl, this message translates to:
@@ -5107,11 +5149,53 @@ abstract class AppLocalizations {
   /// **'Wpisz liczbę większą od zera.'**
   String get enterPositiveNumber;
 
+  /// No description provided for @calculatorInvalidValues.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź wpisane wartości. Wymiary i objętość akwarium muszą być prawidłowe.'**
+  String get calculatorInvalidValues;
+
   /// No description provided for @netCapacitySaved.
   ///
   /// In pl, this message translates to:
   /// **'Zapisano pojemność netto: {liters} l'**
   String netCapacitySaved(String liters);
+
+  /// No description provided for @ammoniaNonDetectableTarget.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cel: poziom niewykrywalny (0 mg/L)'**
+  String get ammoniaNonDetectableTarget;
+
+  /// No description provided for @nitriteNonDetectableTarget.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cel: poziom niewykrywalny (0 mg/L)'**
+  String get nitriteNonDetectableTarget;
+
+  /// No description provided for @waterAssessmentNitriteDetected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykryto NO2. Azotyny są szkodliwe dla ryb; sprawdź pomiar i zareaguj szybko.'**
+  String get waterAssessmentNitriteDetected;
+
+  /// No description provided for @waterAssessmentAmmoniaDetected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykryto NH3/NH4. Nawet niskie stężenie może szkodzić; ryzyko zależy od pH i temperatury.'**
+  String get waterAssessmentAmmoniaDetected;
+
+  /// No description provided for @waterAssessmentReferenceOnly.
+  ///
+  /// In pl, this message translates to:
+  /// **'Informacja orientacyjna'**
+  String get waterAssessmentReferenceOnly;
+
+  /// No description provided for @tdsNoUniversalTarget.
+  ///
+  /// In pl, this message translates to:
+  /// **'TDS nie ma uniwersalnego zakresu — porównuj z potrzebami obsady i wodą źródłową.'**
+  String get tdsNoUniversalTarget;
 
   /// No description provided for @knowledgeBaseAddAquariumPrompt.
   ///
