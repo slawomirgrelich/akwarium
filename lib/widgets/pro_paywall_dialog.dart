@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:provider/provider.dart';
@@ -63,7 +64,7 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
   static const _yearlyProductId = 'akwarysta_pro_yearly';
   static const _productIds = {_monthlyProductId, _yearlyProductId};
 
-  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  InAppPurchase? _inAppPurchase;
   final Map<String, ProductDetails> _products = {};
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
 
@@ -84,10 +85,24 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
       !_activating &&
       _selectedProduct != null;
 
+  bool get _storePlatformSupported =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
+
   @override
   void initState() {
     super.initState();
-    _purchaseSubscription = _inAppPurchase.purchaseStream.listen(
+    if (!_storePlatformSupported) {
+      _loadingProducts = false;
+      _purchaseMessage = _PurchaseMessage.storeUnavailable;
+      return;
+    }
+
+    final inAppPurchase = InAppPurchase.instance;
+    _inAppPurchase = inAppPurchase;
+    _purchaseSubscription = inAppPurchase.purchaseStream.listen(
       _onPurchaseUpdates,
       onError: (Object error, StackTrace stackTrace) {
         debugPrint('Google Play purchase stream failed: $error');
@@ -104,8 +119,11 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
   }
 
   Future<void> _loadProducts() async {
+    final inAppPurchase = _inAppPurchase;
+    if (inAppPurchase == null) return;
+
     try {
-      final available = await _inAppPurchase.isAvailable();
+      final available = await inAppPurchase.isAvailable();
       if (!mounted) return;
       if (!available) {
         setState(() {
@@ -115,7 +133,7 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
         return;
       }
 
-      final response = await _inAppPurchase.queryProductDetails(_productIds);
+      final response = await inAppPurchase.queryProductDetails(_productIds);
       if (response.error != null) {
         debugPrint(
           'Google Play product query failed: ${response.error!.message}',
@@ -255,8 +273,10 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
 
   Future<bool> _completePurchase(PurchaseDetails purchase) async {
     if (!purchase.pendingCompletePurchase) return true;
+    final inAppPurchase = _inAppPurchase;
+    if (inAppPurchase == null) return false;
     try {
-      await _inAppPurchase.completePurchase(purchase);
+      await inAppPurchase.completePurchase(purchase);
       return true;
     } on Object catch (error, stackTrace) {
       debugPrint('Google Play transaction completion failed: $error');
@@ -267,14 +287,15 @@ class _ProPaywallDialogState extends State<ProPaywallDialog> {
 
   Future<void> _startPurchase() async {
     final product = _selectedProduct;
-    if (!_canPurchase || product == null) return;
+    final inAppPurchase = _inAppPurchase;
+    if (!_canPurchase || product == null || inAppPurchase == null) return;
 
     setState(() {
       _purchasePending = true;
       _purchaseMessage = null;
     });
     try {
-      final purchaseStarted = await _inAppPurchase.buyNonConsumable(
+      final purchaseStarted = await inAppPurchase.buyNonConsumable(
         purchaseParam: PurchaseParam(productDetails: product),
       );
       if (!purchaseStarted && mounted) {
