@@ -450,7 +450,25 @@ class DashboardPage extends StatelessWidget {
                 ),
                 onLighting: () => showDialog<void>(
                   context: context,
-                  builder: (_) => AddAquariumModal(initial: activeAquarium),
+                  builder: (dialogContext) => AlertDialog(
+                    scrollable: true,
+                    title: Text(l10n.beginnerStepLighting),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.beginnerStepLightingDescription),
+                        const SizedBox(height: 12),
+                        Text(l10n.plantLightingPowerNote),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text(l10n.closeAction),
+                      ),
+                    ],
+                  ),
                 ),
                 onPlants: () => Navigator.push<void>(
                   context,
