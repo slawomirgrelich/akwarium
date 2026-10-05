@@ -654,6 +654,7 @@ class _FirestoreWaterParametersFormScreenState
   static const _beginnerParameterKeys = {
     'pH',
     'NO3',
+    'NO2',
     'PO4',
     'CO2',
     'NH3/NH4',
@@ -756,9 +757,13 @@ class _FirestoreWaterParametersFormScreenState
                                   ? l10n.temperature
                                   : entry.key == 'CO2'
                                   ? l10n.co2Label
+                                  : entry.key == 'NH3/NH4'
+                                  ? l10n.ammoniaParameterLabel
                                   : entry.key,
                               suffixText:
-                                  entry.key == 'CO2' || entry.key == 'NH3/NH4'
+                                  entry.key == 'CO2' ||
+                                      entry.key == 'NH3/NH4' ||
+                                      entry.key == 'NO2'
                                   ? 'mg/L'
                                   : entry.key == 'TDS'
                                   ? 'ppm'
@@ -1116,7 +1121,7 @@ String _labelFor(_ChartParameter parameter) {
     case _ChartParameter.co2:
       return 'CO2';
     case _ChartParameter.nh3Nh4:
-      return 'NH3/NH4';
+      return 'NH4 (NH3/NH4)';
     case _ChartParameter.tds:
       return 'TDS';
     case _ChartParameter.temp:

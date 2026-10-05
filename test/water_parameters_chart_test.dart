@@ -56,7 +56,7 @@ void main() {
     expect(find.text('NO2'), findsOneWidget);
     expect(find.text('PO4'), findsOneWidget);
     expect(find.text('CO2'), findsOneWidget);
-    expect(find.text('NH3/NH4'), findsOneWidget);
+    expect(find.text('Ammonia (NH3/NH4)'), findsOneWidget);
     expect(find.text('TDS'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'CO2'));
@@ -82,7 +82,7 @@ void main() {
     );
     expect(find.text('Target: undetectable (0 mg/L)'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(ChoiceChip, 'NH3/NH4'));
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Ammonia (NH3/NH4)'));
     await tester.pumpAndSettle();
     expect(
       tester

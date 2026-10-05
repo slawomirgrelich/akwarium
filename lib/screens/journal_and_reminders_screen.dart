@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import '../aquarium_calculators_service.dart';
 import '../local_reminder_service.dart';
 import '../aquarium_management_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_model.dart';
+import '../models/aquarium_reminder.dart';
 import '../services/aquarium_journal_service.dart';
+import '../services/database_service.dart';
 import '../services/firestore_service.dart';
 import '../services/pro_access_service.dart';
+import '../widgets/firestore_reminders_widget.dart' show AquariumReminderDialog;
 import '../widgets/pro_paywall_dialog.dart';
 
 import 'package:akwarium/utils/app_snackbar.dart';
@@ -32,13 +37,41 @@ class JournalAndRemindersScreen extends StatefulWidget {
 }
 
 class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
+  static final _emptyDashboardReminders = Stream<List<AquariumReminder>>.value(
+    const [],
+  ).asBroadcastStream();
+
   AquariumJournalService? _service;
+  DatabaseService? _database;
+  Stream<List<AquariumReminder>>? _dashboardRemindersStream;
+  String? _dashboardRemindersUserId;
+  String? _dashboardRemindersAquariumId;
+  final _pendingWaterChangeMigrations = <String>{};
   JournalEntryType? _entryFilter;
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
 
   AquariumJournalService get _journalService =>
       _service ??= AquariumJournalService();
+
+  Stream<List<AquariumReminder>> _remindersForDashboard(
+    String? userId,
+    String aquariumId,
+  ) {
+    if (userId == null || userId.isEmpty) return _emptyDashboardReminders;
+    if (_dashboardRemindersUserId == userId &&
+        _dashboardRemindersAquariumId == aquariumId &&
+        _dashboardRemindersStream != null) {
+      return _dashboardRemindersStream!;
+    }
+    _database ??= DatabaseService();
+    _dashboardRemindersUserId = userId;
+    _dashboardRemindersAquariumId = aquariumId;
+    return _dashboardRemindersStream = _database!.getRemindersStream(
+      userId,
+      aquariumId,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +104,11 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
         ),
       );
     }
+    final dashboardUserId = FirebaseAuth.instance.currentUser?.uid;
+    final dashboardRemindersStream = _remindersForDashboard(
+      dashboardUserId,
+      aquariumId,
+    );
 
     return StreamBuilder<List<JournalEntryModel>>(
       stream: _journalService.getJournalEntries(aquariumId),
@@ -78,83 +116,129 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
         return StreamBuilder<List<ReminderModel>>(
           stream: _journalService.getReminders(aquariumId),
           builder: (context, reminderSnapshot) {
-            if (journalSnapshot.connectionState == ConnectionState.waiting &&
-                reminderSnapshot.connectionState == ConnectionState.waiting &&
-                !journalSnapshot.hasData &&
-                !reminderSnapshot.hasData) {
-              return const _JournalScaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            }
+            return StreamBuilder<List<AquariumReminder>>(
+              stream: dashboardRemindersStream,
+              builder: (context, dashboardReminderSnapshot) {
+                if (journalSnapshot.connectionState ==
+                        ConnectionState.waiting &&
+                    reminderSnapshot.connectionState ==
+                        ConnectionState.waiting &&
+                    dashboardReminderSnapshot.connectionState ==
+                        ConnectionState.waiting &&
+                    !journalSnapshot.hasData &&
+                    !reminderSnapshot.hasData &&
+                    !dashboardReminderSnapshot.hasData) {
+                  return const _JournalScaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
+                }
 
-            final journal = _mergeJournalEntries(
-              journalSnapshot.data ?? const <JournalEntryModel>[],
-              provider.journalEntries,
-            );
-            final reminders = reminderSnapshot.data ?? const <ReminderModel>[];
-            final error = journalSnapshot.error ?? reminderSnapshot.error;
-            if (error != null && journal.isEmpty && reminders.isEmpty) {
-              return _JournalScaffold(
-                body: _JournalError(message: _messageFor(context, error)),
-              );
-            }
+                final journal = _mergeJournalEntries(
+                  journalSnapshot.data ?? const <JournalEntryModel>[],
+                  provider.journalEntries,
+                );
+                _migrateJournalWaterChanges(
+                  provider,
+                  aquariumId,
+                  journalSnapshot.data ?? const <JournalEntryModel>[],
+                );
+                final reminders =
+                    reminderSnapshot.data ?? const <ReminderModel>[];
+                final dashboardReminders =
+                    dashboardReminderSnapshot.data ??
+                    const <AquariumReminder>[];
+                final error =
+                    journalSnapshot.error ??
+                    reminderSnapshot.error ??
+                    dashboardReminderSnapshot.error;
+                if (error != null &&
+                    journal.isEmpty &&
+                    reminders.isEmpty &&
+                    dashboardReminders.isEmpty) {
+                  return _JournalScaffold(
+                    body: _JournalError(message: _messageFor(context, error)),
+                  );
+                }
 
-            return _JournalScaffold(
-              onAdd: () => _openEntryForm(context, aquariumId),
-              body: DefaultTabController(
-                length: 2,
-                child: Column(
-                  children: [
-                    TabBar(
-                      tabs: [
-                        Tab(icon: Icon(Icons.timeline), text: l10n.tabTimeline),
-                        Tab(
-                          icon: Icon(Icons.calendar_month),
-                          text: l10n.tabCalendar,
+                return _JournalScaffold(
+                  onAdd: () => _openEntryForm(context, aquariumId),
+                  body: DefaultTabController(
+                    length: 2,
+                    child: Column(
+                      children: [
+                        TabBar(
+                          tabs: [
+                            Tab(
+                              icon: Icon(Icons.timeline),
+                              text: l10n.tabTimeline,
+                            ),
+                            Tab(
+                              icon: Icon(Icons.calendar_month),
+                              text: l10n.tabCalendar,
+                            ),
+                          ],
+                        ),
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              _TimelineTab(
+                                entries: journal,
+                                filter: _entryFilter,
+                                waterTestIds: provider.waterTests
+                                    .map((test) => test.id)
+                                    .toSet(),
+                                onFilterChanged: (value) =>
+                                    setState(() => _entryFilter = value),
+                                onDeleteWaterTest: (entry) =>
+                                    _deleteWaterTest(context, entry),
+                              ),
+                              _CalendarTab(
+                                reminders: reminders,
+                                dashboardReminders: dashboardReminders,
+                                selectedDay: _selectedDay,
+                                focusedDay: _focusedDay,
+                                onDaySelected: (selected, focused) =>
+                                    setState(() {
+                                      _selectedDay = selected;
+                                      _focusedDay = focused;
+                                    }),
+                                onAdd: () => _openReminderForm(
+                                  context,
+                                  aquariumId,
+                                  reminders,
+                                ),
+                                onComplete: (reminder) =>
+                                    _completeReminder(context, reminder),
+                                onDelete: (reminder) =>
+                                    _deleteReminder(context, reminder),
+                                onEdit: (reminder) =>
+                                    _editReminder(context, reminder),
+                                onCompleteDashboardReminder: (reminder) =>
+                                    _completeDashboardReminder(
+                                      context,
+                                      dashboardUserId,
+                                      aquariumId,
+                                      reminder,
+                                    ),
+                                onEditDashboardReminder: (reminder) =>
+                                    _editDashboardReminder(
+                                      context,
+                                      dashboardUserId,
+                                      aquariumId,
+                                      reminder,
+                                    ),
+                                isProUser: context
+                                    .watch<ProAccessService>()
+                                    .isProUser,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                    Expanded(
-                      child: TabBarView(
-                        children: [
-                          _TimelineTab(
-                            entries: journal,
-                            filter: _entryFilter,
-                            waterTestIds: provider.waterTests
-                                .map((test) => test.id)
-                                .toSet(),
-                            onFilterChanged: (value) =>
-                                setState(() => _entryFilter = value),
-                            onDeleteWaterTest: (entry) =>
-                                _deleteWaterTest(context, entry),
-                          ),
-                          _CalendarTab(
-                            reminders: reminders,
-                            selectedDay: _selectedDay,
-                            focusedDay: _focusedDay,
-                            onDaySelected: (selected, focused) => setState(() {
-                              _selectedDay = selected;
-                              _focusedDay = focused;
-                            }),
-                            onAdd: () => _openReminderForm(
-                              context,
-                              aquariumId,
-                              reminders,
-                            ),
-                            onComplete: (reminder) =>
-                                _completeReminder(context, reminder),
-                            onDelete: (reminder) =>
-                                _deleteReminder(context, reminder),
-                            isProUser: context
-                                .watch<ProAccessService>()
-                                .isProUser,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             );
           },
         );
@@ -190,8 +274,65 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
+  void _migrateJournalWaterChanges(
+    AquariumProvider provider,
+    String aquariumId,
+    List<JournalEntryModel> entries,
+  ) {
+    final aquarium = provider.aquariums
+        .where((item) => item.id == aquariumId)
+        .firstOrNull;
+    if (aquarium == null) return;
+    final existingIds = provider.waterChanges
+        .map((change) => change.id)
+        .toSet();
+    for (final entry in entries) {
+      if (entry.entryType != JournalEntryType.waterChange ||
+          entry.id.isEmpty ||
+          existingIds.contains(entry.id) ||
+          !_pendingWaterChangeMigrations.add(entry.id)) {
+        continue;
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _pendingWaterChangeMigrations.remove(entry.id);
+        if (!mounted ||
+            provider.waterChanges.any((change) => change.id == entry.id)) {
+          return;
+        }
+        final percentage = entry.percentageWaterChanged;
+        if (percentage != null &&
+            (!percentage.isFinite || percentage <= 0 || percentage > 100)) {
+          debugPrint(
+            'Skipping invalid legacy water-change percentage '
+            'for journal entry ${entry.id}.',
+          );
+          return;
+        }
+        provider.addWaterChange(
+          WaterChange(
+            id: entry.id,
+            aquariumId: aquariumId,
+            date: entry.timestamp,
+            volumeLiters: percentage == null
+                ? null
+                : waterChangeVolumeLiters(
+                    amount: percentage,
+                    netVolumeLiters: aquarium.volumeNetLiters,
+                    isPercent: true,
+                  ),
+            notes: [
+              if (percentage != null) '${percentage.toStringAsFixed(0)}%',
+              if (entry.notes.trim().isNotEmpty) entry.notes.trim(),
+            ].join(' · '),
+          ),
+        );
+      });
+    }
+  }
+
   Future<void> _openEntryForm(BuildContext context, String aquariumId) async {
-    aquariumId = context.read<AquariumProvider>().resolveAquariumId(aquariumId);
+    final provider = context.read<AquariumProvider>();
+    aquariumId = provider.resolveAquariumId(aquariumId);
     if (aquariumId.isEmpty) {
       _showMessage(
         context,
@@ -206,24 +347,210 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
       builder: (_) => const _JournalEntryFormDialog(),
     );
     if (entry == null || !context.mounted) return;
+    final savedEntry = JournalEntryModel(
+      id: entry.id.isEmpty
+          ? DateTime.now().microsecondsSinceEpoch.toString()
+          : entry.id,
+      aquariumId: aquariumId,
+      timestamp: entry.timestamp,
+      entryType: entry.entryType,
+      title: entry.title,
+      notes: entry.notes,
+      percentageWaterChanged: entry.percentageWaterChanged,
+    );
     try {
-      await _journalService.addJournalEntry(
-        JournalEntryModel(
-          id: entry.id,
-          aquariumId: aquariumId,
-          timestamp: entry.timestamp,
-          entryType: entry.entryType,
-          title: entry.title,
-          notes: entry.notes,
-          percentageWaterChanged: entry.percentageWaterChanged,
-        ),
-      );
+      if (entry.entryType == JournalEntryType.waterChange) {
+        final aquarium = provider.selectedAquarium;
+        final percentage = entry.percentageWaterChanged;
+        if (aquarium == null || aquarium.isArchived) {
+          _showMessage(
+            context,
+            AppLocalizations.of(context)!.addAquariumToStart,
+            error: true,
+          );
+          return;
+        }
+        if (percentage == null ||
+            !percentage.isFinite ||
+            percentage <= 0 ||
+            percentage > 100) {
+          _showMessage(
+            context,
+            AppLocalizations.of(context)!.invalidWaterChangeAmount,
+            error: true,
+          );
+          return;
+        }
+        provider.addWaterChange(
+          WaterChange(
+            id: savedEntry.id,
+            aquariumId: aquariumId,
+            date: savedEntry.timestamp,
+            volumeLiters: waterChangeVolumeLiters(
+              amount: percentage,
+              netVolumeLiters: aquarium.volumeNetLiters,
+              isPercent: true,
+            ),
+            notes: [
+              '${percentage.toStringAsFixed(0)}%',
+              if (savedEntry.notes.trim().isNotEmpty) savedEntry.notes.trim(),
+            ].join(' · '),
+          ),
+        );
+      } else {
+        await _journalService.addJournalEntry(savedEntry);
+      }
       if (context.mounted) {
         _showMessage(context, AppLocalizations.of(context)!.entryAddedMessage);
       }
     } on AquariumJournalServiceException catch (error) {
       if (context.mounted) _showMessage(context, error.message, error: true);
     }
+  }
+
+  Future<void> _editReminder(
+    BuildContext context,
+    ReminderModel existing,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final isPro = context.read<ProAccessService>().isProUser;
+    final edited = await showDialog<ReminderModel>(
+      context: context,
+      builder: (_) => _ReminderFormDialog(initial: existing),
+    );
+    if (edited == null || !context.mounted) return;
+    if (!isPro && edited.isProFeature) {
+      await ProPaywallDialog.show(context);
+      return;
+    }
+
+    try {
+      await _journalService.updateReminder(edited);
+      if (edited.isCompleted || !isPro) {
+        await LocalReminderService.instance.cancel(_notificationId(edited.id));
+      } else {
+        await _scheduleReminder(l10n, edited);
+      }
+    } on AquariumJournalServiceException catch (error) {
+      if (context.mounted) _showMessage(context, error.message, error: true);
+    }
+  }
+
+  Future<void> _completeDashboardReminder(
+    BuildContext context,
+    String? userId,
+    String aquariumId,
+    AquariumReminder reminder,
+  ) async {
+    if (userId == null || userId.isEmpty) {
+      _showMessage(
+        context,
+        AppLocalizations.of(context)!.firebaseGenericError,
+        error: true,
+      );
+      return;
+    }
+    final l10n = AppLocalizations.of(context)!;
+    if (reminder.taskType == ReminderTaskType.waterChange &&
+        context.read<AquariumProvider>().selectedAquarium?.isArchived == true) {
+      _showMessage(context, l10n.archivedHistoryNotice, error: true);
+      return;
+    }
+    try {
+      final AquariumReminder updated;
+      if (reminder.isCompleted) {
+        updated = reminder.copyWith(isCompleted: false);
+        await (_database ??= DatabaseService()).updateReminder(
+          userId,
+          aquariumId,
+          updated,
+        );
+      } else {
+        final completedAt = DateTime.now();
+        if (reminder.taskType == ReminderTaskType.waterChange) {
+          context.read<AquariumProvider>().addWaterChange(
+            waterChangeForReminder(
+              reminderId: reminder.id,
+              aquariumId: aquariumId,
+              title: reminder.title,
+              completedAt: completedAt,
+            ),
+          );
+        }
+        updated = await (_database ??= DatabaseService()).completeReminder(
+          userId,
+          aquariumId,
+          reminder,
+          completedAt: completedAt,
+        );
+      }
+      if (updated.isCompleted || !updated.isEnabled) {
+        await LocalReminderService.instance.cancel(updated.id.hashCode.abs());
+      } else {
+        await _scheduleDashboardReminder(updated, l10n);
+      }
+    } on Object catch (error, stackTrace) {
+      debugPrint('Dashboard reminder completion failed: $error\n$stackTrace');
+      if (context.mounted) {
+        _showMessage(context, l10n.aquariumTaskUpdateFailed, error: true);
+      }
+    }
+  }
+
+  Future<void> _editDashboardReminder(
+    BuildContext context,
+    String? userId,
+    String aquariumId,
+    AquariumReminder existing,
+  ) async {
+    if (userId == null || userId.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
+    final edited = await showDialog<AquariumReminder>(
+      context: context,
+      builder: (_) => AquariumReminderDialog(initial: existing),
+    );
+    if (edited == null || !context.mounted) return;
+    final updated = edited.copyWith(
+      id: existing.id,
+      tankId: aquariumId,
+      isCompleted: existing.isCompleted,
+      lastCompletedAt: existing.lastCompletedAt,
+      isEnabled: existing.isEnabled,
+    );
+    try {
+      await (_database ??= DatabaseService()).updateReminder(
+        userId,
+        aquariumId,
+        updated,
+      );
+      if (updated.isCompleted || !updated.isEnabled) {
+        await LocalReminderService.instance.cancel(updated.id.hashCode.abs());
+      } else {
+        await _scheduleDashboardReminder(updated, l10n);
+      }
+    } on Object catch (error, stackTrace) {
+      debugPrint('Dashboard reminder edit failed: $error\n$stackTrace');
+      if (context.mounted) {
+        _showMessage(context, l10n.aquariumTaskUpdateFailed, error: true);
+      }
+    }
+  }
+
+  Future<void> _scheduleDashboardReminder(
+    AquariumReminder reminder,
+    AppLocalizations l10n,
+  ) {
+    final now = DateTime.now();
+    return LocalReminderService.instance.schedule(
+      ScheduledReminder(
+        id: reminder.id.hashCode.abs(),
+        title: reminder.title,
+        body: l10n.scheduledAquariumTaskNotification,
+        date: reminder.dueDate.isAfter(now)
+            ? reminder.dueDate
+            : now.add(const Duration(minutes: 1)),
+      ),
+    );
   }
 
   Future<void> _openReminderForm(
@@ -552,33 +879,62 @@ class _JournalTimelineCard extends StatelessWidget {
 class _CalendarTab extends StatelessWidget {
   const _CalendarTab({
     required this.reminders,
+    required this.dashboardReminders,
     required this.selectedDay,
     required this.focusedDay,
     required this.onDaySelected,
     required this.onAdd,
     required this.onComplete,
     required this.onDelete,
+    required this.onEdit,
+    required this.onCompleteDashboardReminder,
+    required this.onEditDashboardReminder,
     required this.isProUser,
   });
 
   final List<ReminderModel> reminders;
+  final List<AquariumReminder> dashboardReminders;
   final DateTime selectedDay;
   final DateTime focusedDay;
   final void Function(DateTime, DateTime) onDaySelected;
   final VoidCallback onAdd;
   final ValueChanged<ReminderModel> onComplete;
   final ValueChanged<ReminderModel> onDelete;
+  final ValueChanged<ReminderModel> onEdit;
+  final ValueChanged<AquariumReminder> onCompleteDashboardReminder;
+  final ValueChanged<AquariumReminder> onEditDashboardReminder;
   final bool isProUser;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final selected = reminders
-        .where((reminder) => isSameDay(reminder.nextDueDate, selectedDay))
+    final calendarReminders = <_CalendarReminderItem>[
+      ...reminders.map(_CalendarReminderItem.fromJournalReminder),
+      ...dashboardReminders.map(_CalendarReminderItem.fromDashboardReminder),
+    ]..sort((first, second) => first.dueDate.compareTo(second.dueDate));
+    final selected = calendarReminders
+        .where((reminder) => isSameDay(reminder.dueDate, selectedDay))
         .toList();
-    final upcoming =
-        reminders.where((reminder) => !reminder.isCompleted).toList()
-          ..sort((a, b) => a.nextDueDate.compareTo(b.nextDueDate));
+    final upcoming = calendarReminders
+        .where((reminder) => !reminder.isCompleted)
+        .toList();
+
+    Widget reminderTile(_CalendarReminderItem item) {
+      if (item.journalReminder case final reminder?) {
+        return _ReminderTile(
+          reminder: reminder,
+          onComplete: () => onComplete(reminder),
+          onDelete: () => onDelete(reminder),
+          onEdit: () => onEdit(reminder),
+        );
+      }
+      final reminder = item.dashboardReminder!;
+      return _DashboardReminderTile(
+        reminder: reminder,
+        onComplete: () => onCompleteDashboardReminder(reminder),
+        onEdit: () => onEditDashboardReminder(reminder),
+      );
+    }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 32),
@@ -607,17 +963,15 @@ class _CalendarTab extends StatelessWidget {
             child: Builder(
               builder: (context) {
                 try {
-                  return TableCalendar<ReminderModel>(
+                  return TableCalendar<_CalendarReminderItem>(
                     locale: Localizations.localeOf(context).languageCode,
                     firstDay: DateTime.utc(2020),
                     lastDay: DateTime.utc(2035),
                     focusedDay: focusedDay,
                     selectedDayPredicate: (day) => isSameDay(day, selectedDay),
                     onDaySelected: onDaySelected,
-                    eventLoader: (day) => reminders
-                        .where(
-                          (reminder) => isSameDay(reminder.nextDueDate, day),
-                        )
+                    eventLoader: (day) => calendarReminders
+                        .where((reminder) => isSameDay(reminder.dueDate, day))
                         .toList(),
                     calendarStyle: const CalendarStyle(
                       markerDecoration: BoxDecoration(
@@ -645,13 +999,7 @@ class _CalendarTab extends StatelessWidget {
         if (selected.isEmpty)
           _JournalEmpty(icon: Icons.event_available, text: l10n.noTasksForDay)
         else
-          ...selected.map(
-            (reminder) => _ReminderTile(
-              reminder: reminder,
-              onComplete: () => onComplete(reminder),
-              onDelete: () => onDelete(reminder),
-            ),
-          ),
+          ...selected.map(reminderTile),
         if (upcoming.isNotEmpty) ...[
           const SizedBox(height: 20),
           Text(
@@ -659,19 +1007,28 @@ class _CalendarTab extends StatelessWidget {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          ...upcoming
-              .take(5)
-              .map(
-                (reminder) => _ReminderTile(
-                  reminder: reminder,
-                  onComplete: () => onComplete(reminder),
-                  onDelete: () => onDelete(reminder),
-                ),
-              ),
+          ...upcoming.take(5).map(reminderTile),
         ],
       ],
     );
   }
+}
+
+class _CalendarReminderItem {
+  const _CalendarReminderItem.fromJournalReminder(this.journalReminder)
+    : dashboardReminder = null;
+
+  const _CalendarReminderItem.fromDashboardReminder(this.dashboardReminder)
+    : journalReminder = null;
+
+  final ReminderModel? journalReminder;
+  final AquariumReminder? dashboardReminder;
+
+  DateTime get dueDate =>
+      journalReminder?.nextDueDate ?? dashboardReminder!.dueDate;
+
+  bool get isCompleted =>
+      journalReminder?.isCompleted ?? dashboardReminder!.isCompleted;
 }
 
 class _CalendarFallback extends StatelessWidget {
@@ -699,11 +1056,13 @@ class _ReminderTile extends StatelessWidget {
     required this.reminder,
     required this.onComplete,
     required this.onDelete,
+    required this.onEdit,
   });
 
   final ReminderModel reminder;
   final VoidCallback onComplete;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -745,11 +1104,68 @@ class _ReminderTile extends StatelessWidget {
             PopupMenuButton<String>(
               tooltip: l10n.reminderOptionsTooltip,
               onSelected: (value) {
+                if (value == 'edit') onEdit();
                 if (value == 'delete') onDelete();
               },
               itemBuilder: (_) => [
+                PopupMenuItem(value: 'edit', child: Text(l10n.editAction)),
                 PopupMenuItem(value: 'delete', child: Text(l10n.deleteAction)),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardReminderTile extends StatelessWidget {
+  const _DashboardReminderTile({
+    required this.reminder,
+    required this.onComplete,
+    required this.onEdit,
+  });
+
+  final AquariumReminder reminder;
+  final VoidCallback onComplete;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final repeatDays = reminder.repeatIntervalDays;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: Icon(
+          reminder.isCompleted ? Icons.check_circle : Icons.schedule,
+          color: reminder.isCompleted ? Colors.teal : Colors.orange,
+        ),
+        title: Text(reminder.title),
+        subtitle: Text(
+          '${_formatDate(reminder.dueDate)} · '
+          '${repeatDays == null
+              ? l10n.oneTime
+              : repeatDays == 1
+              ? l10n.dailyRecurrence
+              : l10n.everyDays(repeatDays)}',
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: l10n.editReminder,
+              onPressed: onEdit,
+              icon: const Icon(Icons.edit_outlined),
+            ),
+            IconButton(
+              tooltip: reminder.isCompleted
+                  ? l10n.markReminderIncomplete
+                  : l10n.markReminderComplete,
+              onPressed: onComplete,
+              icon: Icon(
+                reminder.isCompleted ? Icons.check_circle : Icons.check,
+              ),
             ),
           ],
         ),
@@ -771,6 +1187,8 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
   final _notes = TextEditingController();
   final _percentage = TextEditingController();
   JournalEntryType _type = JournalEntryType.waterChange;
+  bool _waterChangeAsPercent = true;
+  String? _waterChangeError;
 
   @override
   void dispose() {
@@ -809,12 +1227,32 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
             ),
             if (_type == JournalEntryType.waterChange) ...[
               const SizedBox(height: 10),
+              SegmentedButton<bool>(
+                segments: [
+                  ButtonSegment(
+                    value: false,
+                    label: Text(l10n.waterChangeLiters),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    label: Text(l10n.waterChangePercent),
+                  ),
+                ],
+                selected: {_waterChangeAsPercent},
+                onSelectionChanged: (selection) =>
+                    setState(() => _waterChangeAsPercent = selection.single),
+              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: _percentage,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                onChanged: (_) => setState(() => _waterChangeError = null),
                 decoration: InputDecoration(
                   labelText: l10n.waterReplaced,
-                  suffixText: '%',
+                  suffixText: _waterChangeAsPercent ? '%' : l10n.liters,
+                  errorText: _waterChangeError,
                 ),
               ),
             ],
@@ -839,6 +1277,27 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
 
   void _save() {
     if (_title.text.trim().isEmpty) return;
+    double? percentageWaterChanged;
+    if (_type == JournalEntryType.waterChange) {
+      final l10n = AppLocalizations.of(context)!;
+      final amount = double.tryParse(
+        _percentage.text.trim().replaceAll(',', '.'),
+      );
+      final aquarium = context.read<AquariumProvider>().selectedAquarium;
+      if (aquarium == null ||
+          aquarium.isArchived ||
+          amount == null ||
+          !amount.isFinite ||
+          amount <= 0 ||
+          (_waterChangeAsPercent && amount > 100) ||
+          (!_waterChangeAsPercent && amount > aquarium.volumeNetLiters)) {
+        setState(() => _waterChangeError = l10n.invalidWaterChangeAmount);
+        return;
+      }
+      percentageWaterChanged = _waterChangeAsPercent
+          ? amount
+          : amount / aquarium.volumeNetLiters * 100;
+    }
     Navigator.pop(
       context,
       JournalEntryModel(
@@ -848,16 +1307,16 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
         entryType: _type,
         title: _title.text.trim(),
         notes: _notes.text.trim(),
-        percentageWaterChanged: double.tryParse(
-          _percentage.text.trim().replaceAll(',', '.'),
-        ),
+        percentageWaterChanged: percentageWaterChanged,
       ),
     );
   }
 }
 
 class _ReminderFormDialog extends StatefulWidget {
-  const _ReminderFormDialog();
+  const _ReminderFormDialog({this.initial});
+
+  final ReminderModel? initial;
 
   @override
   State<_ReminderFormDialog> createState() => _ReminderFormDialogState();
@@ -873,6 +1332,19 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
   String? _intervalError;
 
   @override
+  void initState() {
+    super.initState();
+    final initial = widget.initial;
+    if (initial != null) {
+      _customTitle.text = initial.title;
+      _interval.text = initial.intervalDays.toString();
+      _nextDueDate = initial.nextDueDate;
+      _recurring = initial.isRecurring;
+      _preset = _ReminderTaskPreset.custom;
+    }
+  }
+
+  @override
   void dispose() {
     _customTitle.dispose();
     _interval.dispose();
@@ -883,7 +1355,11 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(l10n.newReminder),
+      title: Text(
+        widget.initial == null
+            ? l10n.newReminder
+            : l10n.editReminderDialogTitle,
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -939,7 +1415,15 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.event_outlined),
               title: Text(l10n.dueDate),
-              subtitle: Text(_formatDate(_nextDueDate)),
+              subtitle: Text(
+                '${_formatDate(_nextDueDate)} · ${_formatTime(_nextDueDate)}',
+              ),
+              trailing: IconButton(
+                tooltip: MaterialLocalizations.of(context)
+                    .timePickerDialHelpText,
+                icon: const Icon(Icons.schedule_outlined),
+                onPressed: _selectTime,
+              ),
               onTap: _selectDate,
             ),
             SwitchListTile(
@@ -985,13 +1469,46 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
   }
 
   Future<void> _selectDate() async {
+    final now = DateTime.now();
     final date = await showDatePicker(
       context: context,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 3650)),
-      initialDate: _nextDueDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      initialDate: _nextDueDate.isAfter(DateTime(2100))
+          ? DateTime(2100)
+          : _nextDueDate.isBefore(DateTime(2000))
+          ? now
+          : _nextDueDate,
     );
-    if (date != null && mounted) setState(() => _nextDueDate = date);
+    if (date != null && mounted) {
+      setState(
+        () => _nextDueDate = DateTime(
+          date.year,
+          date.month,
+          date.day,
+          _nextDueDate.hour,
+          _nextDueDate.minute,
+        ),
+      );
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_nextDueDate),
+    );
+    if (selected != null && mounted) {
+      setState(
+        () => _nextDueDate = DateTime(
+          _nextDueDate.year,
+          _nextDueDate.month,
+          _nextDueDate.day,
+          selected.hour,
+          selected.minute,
+        ),
+      );
+    }
   }
 
   void _save() {
@@ -1013,19 +1530,21 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
     Navigator.pop(
       context,
       ReminderModel(
-        id: '',
-        aquariumId: '',
-        title: switch (_preset) {
-          _ReminderTaskPreset.waterChange => l10n.reminderTaskWaterChange,
-          _ReminderTaskPreset.filter => l10n.reminderTaskFilter,
-          _ReminderTaskPreset.waterTest => l10n.reminderTaskWaterTest,
-          _ReminderTaskPreset.fertilizer => l10n.reminderTaskFertilizer,
-          _ReminderTaskPreset.custom => _customTitle.text.trim(),
-        },
+        id: widget.initial?.id ?? '',
+        aquariumId: widget.initial?.aquariumId ?? '',
+        title: _preset == _ReminderTaskPreset.custom
+            ? _customTitle.text.trim()
+            : switch (_preset) {
+                _ReminderTaskPreset.waterChange => l10n.reminderTaskWaterChange,
+                _ReminderTaskPreset.filter => l10n.reminderTaskFilter,
+                _ReminderTaskPreset.waterTest => l10n.reminderTaskWaterTest,
+                _ReminderTaskPreset.fertilizer => l10n.reminderTaskFertilizer,
+                _ReminderTaskPreset.custom => _customTitle.text.trim(),
+              },
         intervalDays: _recurring ? interval : 1,
         nextDueDate: _nextDueDate,
         isRecurring: _recurring,
-        isCompleted: false,
+        isCompleted: widget.initial?.isCompleted ?? false,
         isProFeature: _recurring,
       ),
     );
@@ -1093,3 +1612,6 @@ String _formatDate(DateTime date) {
   final month = date.month.toString().padLeft(2, '0');
   return '$day.$month.${date.year}';
 }
+
+String _formatTime(DateTime date) =>
+    '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';

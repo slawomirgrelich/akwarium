@@ -357,7 +357,7 @@ class _Co2CalculatorState extends State<_Co2Calculator> {
                 ],
               ),
               const SizedBox(height: 8),
-              _Co2MatrixMarker(ph: _ph, kh: _kh),
+              _Co2MatrixMarker(mgPerLiter: result.mgPerLiter),
             ],
           ),
         ),
@@ -841,22 +841,22 @@ class _BreakdownRow extends StatelessWidget {
 }
 
 class _Co2MatrixMarker extends StatelessWidget {
-  const _Co2MatrixMarker({required this.ph, required this.kh});
-  final double ph;
-  final double kh;
+  const _Co2MatrixMarker({required this.mgPerLiter});
+  final double mgPerLiter;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
+      height: 36,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Colors.amber, Colors.green, Colors.red],
+          colors: [Colors.amber, Colors.green, Colors.green, Colors.red],
+          stops: [0, 1 / 3, 2 / 3, 1],
         ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Align(
-        alignment: Alignment(((ph - 6) / 2 * 2) - 1, ((kh - 1) / 19 * 2) - 1),
+        alignment: Alignment(co2ScalePosition(mgPerLiter) * 2 - 1, 0),
         child: Container(
           width: 18,
           height: 18,

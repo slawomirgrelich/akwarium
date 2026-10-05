@@ -15,6 +15,8 @@ class AquariumModel {
     this.heightCm,
     DateTime? createdAt,
     this.equipment,
+    this.isArchived = false,
+    this.endDate,
   }) : capacityLiters = capacityLiters ?? netVolumeLiters ?? 0,
        setupDate = setupDate ?? establishedAt ?? DateTime(1970),
        createdAt = createdAt ?? DateTime(1970);
@@ -30,6 +32,8 @@ class AquariumModel {
   final double? heightCm;
   final DateTime createdAt;
   final AquariumEquipment? equipment;
+  final bool isArchived;
+  final DateTime? endDate;
 
   double get netVolumeLiters => capacityLiters;
   DateTime get establishedAt => setupDate;
@@ -46,6 +50,9 @@ class AquariumModel {
     double? heightCm,
     DateTime? createdAt,
     AquariumEquipment? equipment,
+    bool? isArchived,
+    DateTime? endDate,
+    bool clearEndDate = false,
   }) {
     return AquariumModel(
       id: id ?? this.id,
@@ -59,6 +66,8 @@ class AquariumModel {
       heightCm: heightCm ?? this.heightCm,
       createdAt: createdAt ?? this.createdAt,
       equipment: equipment ?? this.equipment,
+      isArchived: isArchived ?? this.isArchived,
+      endDate: clearEndDate ? null : endDate ?? this.endDate,
     );
   }
 
@@ -74,6 +83,8 @@ class AquariumModel {
       if (widthCm != null) 'widthCm': widthCm,
       if (heightCm != null) 'heightCm': heightCm,
       'createdAt': Timestamp.fromDate(createdAt),
+      'isArchived': isArchived,
+      'endDate': endDate == null ? null : Timestamp.fromDate(endDate!),
       if (equipment != null) 'equipment': equipment!.toMap(),
     };
   }
@@ -96,6 +107,8 @@ class AquariumModel {
       widthCm: _nullableDoubleFromValue(values['widthCm']),
       heightCm: _nullableDoubleFromValue(values['heightCm']),
       createdAt: createdAt,
+      isArchived: values['isArchived'] as bool? ?? false,
+      endDate: _dateFromValue(values['endDate']),
       equipment: values['equipment'] is Map
           ? AquariumEquipment.fromMap(
               Map<String, dynamic>.from(values['equipment'] as Map),

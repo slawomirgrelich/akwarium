@@ -46,6 +46,7 @@ class TankSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
     final activeAquarium = provider.selectedAquarium;
+    final l10n = AppLocalizations.of(context)!;
     if (activeAquarium == null) {
       return ActionChip(
         avatar: const Icon(Icons.add, size: 18),
@@ -68,13 +69,19 @@ class TankSwitcher extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    aquarium.id == provider.activeAquariumId
+                    aquarium.isArchived
+                        ? Icons.inventory_2_outlined
+                        : aquarium.id == provider.activeAquariumId
                         ? Icons.radio_button_checked
                         : Icons.radio_button_unchecked,
                     color: Theme.of(context).primaryColor,
                   ),
                   const SizedBox(width: 8),
-                  Text(aquarium.name),
+                  Text(
+                    aquarium.isArchived
+                        ? '${aquarium.name} · ${l10n.archivedTank}'
+                        : aquarium.name,
+                  ),
                 ],
               ),
             ),
@@ -97,6 +104,7 @@ class AquariumManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final selectedAquarium = context.watch<AquariumProvider>().selectedAquarium;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -158,11 +166,13 @@ class AquariumManagementScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddInhabitant(context),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addSpeciesToStock),
-      ),
+      floatingActionButton: selectedAquarium?.isArchived == true
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _showAddInhabitant(context),
+              icon: const Icon(Icons.add),
+              label: Text(l10n.addSpeciesToStock),
+            ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -461,6 +471,7 @@ class _TankProfileStrip extends StatelessWidget {
           }
           final aquarium = provider.aquariums[index];
           final active = aquarium.id == provider.activeAquariumId;
+          final l10n = AppLocalizations.of(context)!;
           return InkWell(
             onTap: () => provider.selectAquarium(aquarium.id),
             borderRadius: BorderRadius.circular(16),
@@ -489,7 +500,12 @@ class _TankProfileStrip extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.water, color: Theme.of(context).primaryColor),
+                      Icon(
+                        aquarium.isArchived
+                            ? Icons.inventory_2_outlined
+                            : Icons.water,
+                        color: Theme.of(context).primaryColor,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -552,7 +568,7 @@ class _TankProfileStrip extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    '${AppLocalizations.of(context)!.netVolumeShort(aquarium.volumeNetLiters.round())} · ${_tankTypeLabel(AppLocalizations.of(context)!, aquarium.type)}',
+                    '${l10n.netVolumeShort(aquarium.volumeNetLiters.round())} · ${_tankTypeLabel(l10n, aquarium.type)}',
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color,
                       fontSize: 12,
@@ -573,7 +589,13 @@ class _TankProfileStrip extends StatelessWidget {
                                         : 1),
                               );
                       return Text(
-                        '${AppLocalizations.of(context)!.daysCount(aquarium.ageInDays)} · ${AppLocalizations.of(context)!.inhabitantsCount(count)}',
+                        aquarium.isArchived
+                            ? l10n.archivedEndDate(
+                                _formatSetupDate(
+                                  aquarium.endDate ?? aquarium.setupDate,
+                                ),
+                              )
+                            : '${l10n.daysCount(aquarium.ageInDays)} · ${l10n.inhabitantsCount(count)}',
                         style: TextStyle(
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                           fontSize: 12,
@@ -855,12 +877,16 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
   final _lighting = TextEditingController();
   TankType _type = TankType.freshwater;
   late DateTime _setupDate;
+  DateTime? _endDate;
+  bool _isArchived = false;
 
   @override
   void initState() {
     super.initState();
     final initial = widget.initial;
     _setupDate = initial?.setupDate ?? DateTime.now();
+    _endDate = initial?.endDate;
+    _isArchived = initial?.isArchived ?? false;
     if (initial != null) {
       _name.text = initial.name;
       _net.text = initial.volumeNetLiters.toString();
@@ -1031,6 +1057,25 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
             trailing: const Icon(Icons.calendar_today_outlined),
             onTap: _pickSetupDate,
           ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(l10n.archivedTank),
+            value: _isArchived,
+            onChanged: (value) => setState(() {
+              _isArchived = value;
+              _endDate = value ? _endDate ?? DateTime.now() : null;
+            }),
+          ),
+          if (_isArchived)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.endDateLabel),
+              subtitle: Text(
+                _formatSetupDate(_endDate ?? DateTime.now()),
+              ),
+              trailing: const Icon(Icons.calendar_today_outlined),
+              onTap: _pickEndDate,
+            ),
         ],
       ),
       actions: [
@@ -1092,6 +1137,8 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
       filtration: widget.initial?.filtration,
       imagePath: widget.initial?.imagePath,
       isActive: widget.initial?.isActive ?? false,
+      isArchived: _isArchived,
+      endDate: _isArchived ? _endDate ?? DateTime.now() : null,
     );
     try {
       if (widget.initial == null) {
@@ -1145,6 +1192,19 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
       lastDate: DateTime.now(),
     );
     if (selected != null && mounted) setState(() => _setupDate = selected);
+  }
+
+  Future<void> _pickEndDate() async {
+    final now = DateTime.now();
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _endDate == null || _endDate!.isAfter(now)
+          ? now
+          : _endDate!,
+      firstDate: DateTime(2000),
+      lastDate: now,
+    );
+    if (selected != null && mounted) setState(() => _endDate = selected);
   }
 }
 

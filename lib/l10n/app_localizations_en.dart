@@ -187,10 +187,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addFirstTest => 'Add your first test';
 
   @override
-  String get parametersCount => '8 parameters';
+  String parametersCount(int count) {
+    return '$count measured parameters';
+  }
 
   @override
   String get waterChange => 'Water change';
+
+  @override
+  String get waterChangeLiters => 'Liters';
+
+  @override
+  String get waterChangePercent => 'Percentage';
+
+  @override
+  String waterChangeEquivalent(String liters) {
+    return '≈ $liters L';
+  }
+
+  @override
+  String get invalidWaterChangeAmount =>
+      'Enter a positive amount. Percentage must be no more than 100%, and liters must not exceed the tank\'s net volume.';
 
   @override
   String daysCount(int count) {
@@ -238,6 +255,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showOlderEntries => 'Show older entries';
+
+  @override
+  String get archivedTank => 'Archived';
+
+  @override
+  String get endDateLabel => 'End date';
+
+  @override
+  String get archivedHistoryNotice =>
+      'This aquarium is archived. You are viewing its history; new measurements and water changes are disabled.';
+
+  @override
+  String archivedEndDate(String date) {
+    return 'Archived · $date';
+  }
 
   @override
   String get journalEmpty => 'The journal is still empty';
@@ -1388,6 +1420,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get markReminderComplete => 'Mark as complete';
+
+  @override
+  String get editReminder => 'Edit task';
+
+  @override
+  String get editReminderDialogTitle => 'Edit task';
+
+  @override
+  String get showMoreTasks => 'Show more tasks';
+
+  @override
+  String get showFewerTasks => 'Show fewer tasks';
+
+  @override
+  String get ammoniaParameterLabel => 'Ammonia (NH3/NH4)';
+
+  @override
+  String get waterChangesSyncFailed =>
+      'Water-change history could not sync. Your entry is saved locally and will retry when the connection returns.';
 
   @override
   String get addReminderDialogTitle => 'Add reminder';

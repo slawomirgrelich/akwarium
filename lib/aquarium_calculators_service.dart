@@ -126,6 +126,38 @@ Co2Result calculateCo2({required double ph, required double kh}) {
   return Co2Result(mgPerLiter: co2, status: status);
 }
 
+const double co2ScaleMaximumMgPerLiter = 45;
+
+double co2ScalePosition(double mgPerLiter) {
+  if (!mgPerLiter.isFinite || mgPerLiter < 0) {
+    throw ArgumentError.value(mgPerLiter, 'mgPerLiter');
+  }
+  return (mgPerLiter / co2ScaleMaximumMgPerLiter).clamp(0.0, 1.0);
+}
+
+double waterChangeVolumeLiters({
+  required double amount,
+  required double netVolumeLiters,
+  required bool isPercent,
+}) {
+  if (!amount.isFinite ||
+      amount <= 0 ||
+      !netVolumeLiters.isFinite ||
+      netVolumeLiters <= 0 ||
+      (isPercent && amount > 100) ||
+      (!isPercent && amount > netVolumeLiters)) {
+    throw ArgumentError('Invalid water change amount or aquarium volume.');
+  }
+  return isPercent ? netVolumeLiters * amount / 100 : amount;
+}
+
+double suggestedWaterChangeLiters(double netVolumeLiters) {
+  if (!netVolumeLiters.isFinite || netVolumeLiters <= 0) {
+    throw ArgumentError.value(netVolumeLiters, 'netVolumeLiters');
+  }
+  return netVolumeLiters < 30 ? netVolumeLiters : 30;
+}
+
 FertilizerDoseResult calculateFertilizerDose({
   required double aquariumLiters,
   required double solutionMl,

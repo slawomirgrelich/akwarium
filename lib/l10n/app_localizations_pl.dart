@@ -186,10 +186,27 @@ class AppLocalizationsPl extends AppLocalizations {
   String get addFirstTest => 'Dodaj pierwszy test';
 
   @override
-  String get parametersCount => '8 parametrów';
+  String parametersCount(int count) {
+    return 'Liczba zmierzonych parametrów: $count';
+  }
 
   @override
   String get waterChange => 'Podmiana';
+
+  @override
+  String get waterChangeLiters => 'Litry';
+
+  @override
+  String get waterChangePercent => 'Procentowo';
+
+  @override
+  String waterChangeEquivalent(String liters) {
+    return '≈ $liters l';
+  }
+
+  @override
+  String get invalidWaterChangeAmount =>
+      'Wpisz dodatnią wartość. Procent nie może przekraczać 100%, a litry nie mogą przekraczać pojemności netto akwarium.';
 
   @override
   String daysCount(int count) {
@@ -237,6 +254,21 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get showOlderEntries => 'Pokaż starsze wpisy';
+
+  @override
+  String get archivedTank => 'Archiwalne';
+
+  @override
+  String get endDateLabel => 'Data likwidacji';
+
+  @override
+  String get archivedHistoryNotice =>
+      'To akwarium jest archiwalne. Przeglądasz jego historię; dodawanie pomiarów i podmian jest wyłączone.';
+
+  @override
+  String archivedEndDate(String date) {
+    return 'Archiwalne · $date';
+  }
 
   @override
   String get journalEmpty => 'Dziennik jest jeszcze pusty';
@@ -1398,6 +1430,25 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get markReminderComplete => 'Oznacz jako wykonane';
+
+  @override
+  String get editReminder => 'Edytuj zadanie';
+
+  @override
+  String get editReminderDialogTitle => 'Edytuj zadanie';
+
+  @override
+  String get showMoreTasks => 'Pokaż więcej zadań';
+
+  @override
+  String get showFewerTasks => 'Pokaż mniej zadań';
+
+  @override
+  String get ammoniaParameterLabel => 'Amoniak (NH3/NH4)';
+
+  @override
+  String get waterChangesSyncFailed =>
+      'Nie udało się zsynchronizować historii podmian. Wpis zapisano lokalnie i ponowi się po przywróceniu połączenia.';
 
   @override
   String get addReminderDialogTitle => 'Dodaj przypomnienie';

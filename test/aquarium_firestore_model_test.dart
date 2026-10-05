@@ -37,6 +37,26 @@ void main() {
       expect(restored.equipment?.lightingHoursPerDay, 7);
     });
 
+    test('round-trips archived state and end date through Firestore', () {
+      final endDate = DateTime(2026, 10, 5);
+      final aquarium = AquariumModel(
+        id: 'closed-tank',
+        name: 'Archived tank',
+        type: 'freshwater',
+        isArchived: true,
+        endDate: endDate,
+      );
+
+      final restored = AquariumModel.fromMap(aquarium.toMap());
+
+      expect(restored.isArchived, isTrue);
+      expect(restored.endDate, endDate);
+      expect(
+        restored.copyWith(isArchived: false, clearEndDate: true).endDate,
+        isNull,
+      );
+    });
+
     test('round-trips beginner setup details in the local profile', () {
       final aquarium = local_models.AquariumProfile(
         id: 'tank-1',

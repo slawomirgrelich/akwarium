@@ -26,6 +26,23 @@ void main() {
     expect(Inhabitant.fromJson(inhabitant.toJson()).aquariumId, 'tank-1');
   });
 
+  test('preserves archive state and measures age through the end date', () {
+    final profile = AquariumProfile(
+      id: 'closed-tank',
+      name: 'Zlikwidowane',
+      volumeNetLiters: 54,
+      setupDate: DateTime(2026, 1, 1),
+      type: TankType.freshwater,
+      isArchived: true,
+      endDate: DateTime(2026, 1, 11),
+    );
+    final restored = AquariumProfile.fromJson(profile.toJson());
+
+    expect(restored.isArchived, isTrue);
+    expect(restored.endDate, DateTime(2026, 1, 11));
+    expect(restored.ageInDays, 10);
+  });
+
   test('loads legacy aquarium profiles without a setup date', () {
     final profile = AquariumProfile.fromJson({
       'id': 'tank-legacy',
@@ -118,6 +135,100 @@ void main() {
     expect(provider.inhabitants.single.id, 'shrimp');
   });
 
+  test('archived aquariums remain selectable with their saved history', () {
+    final archive = AquariumProfile(
+      id: 'closed',
+      name: 'Dawny zbiornik',
+      volumeNetLiters: 60,
+      setupDate: DateTime(2026),
+      type: TankType.planted,
+      isArchived: true,
+      endDate: DateTime(2026, 8, 1),
+    );
+    final provider = AquariumProvider(
+      aquariums: [
+        AquariumProfile(
+          id: 'active',
+          name: 'Aktywny',
+          volumeNetLiters: 30,
+          setupDate: DateTime(2026),
+          type: TankType.freshwater,
+        ),
+        archive,
+      ],
+      activeAquariumId: 'active',
+      waterTests: [
+        WaterTest(
+          id: 'old-test',
+          aquariumId: 'closed',
+          date: DateTime(2026, 7, 1),
+          ph: 7,
+        ),
+      ],
+      inhabitants: [
+        Inhabitant(
+          id: 'old-fish',
+          aquariumId: 'closed',
+          name: 'Ryba',
+          latinName: 'Piscis',
+          category: CreatureCategory.fish,
+          count: 2,
+          addedDate: DateTime(2026, 2, 1),
+        ),
+      ],
+    );
+    addTearDown(provider.dispose);
+
+    provider.selectAquarium('closed');
+
+    expect(provider.selectedAquarium, archive);
+    expect(provider.waterTests.single.id, 'old-test');
+    expect(provider.inhabitants.single.id, 'old-fish');
+  });
+
+  test('water changes update the dashboard history without a fake volume', () {
+    final provider = AquariumProvider(
+      aquariums: [
+        AquariumProfile(
+          id: 'tank',
+          name: 'Shrimp tank',
+          volumeNetLiters: 20,
+          setupDate: DateTime(2026),
+          type: TankType.shrimp,
+        ),
+      ],
+    );
+    addTearDown(provider.dispose);
+    final completedAt = DateTime(2026, 10, 5, 19);
+    final change = waterChangeForReminder(
+      reminderId: 'water-change-task',
+      aquariumId: 'tank',
+      title: 'Weekly water change',
+      completedAt: completedAt,
+    );
+
+    provider.addWaterChange(change);
+
+    expect(provider.waterChanges.single.date, completedAt);
+    expect(provider.waterChanges.single.volumeLiters, isNull);
+    expect(provider.journalEntries.single.id, change.id);
+    expect(provider.journalEntries.single.description, 'Weekly water change');
+    expect(WaterChange.fromMap(change.toMap()).volumeLiters, isNull);
+  });
+
+  test('counts only non-null readings in a water test', () {
+    final test = WaterTest(
+      id: 'partial',
+      aquariumId: 'tank',
+      date: DateTime(2026, 1, 1),
+      ph: 7,
+      co2: 20,
+      tds: 170,
+    );
+
+    expect(test.measuredParametersCount, 3);
+  });
+
   test('uses the first aquarium when no active id is available', () {
     final provider = AquariumProvider(
       aquariums: [
@@ -164,11 +275,15 @@ void main() {
         netVolumeLiters: 70,
         establishedAt: DateTime(2026),
         type: 'Słodkowodne',
+        isArchived: true,
+        endDate: DateTime(2026, 9, 1),
       ),
     ]);
 
     expect(provider.selectedAquariumId, 'cloud-70');
     expect(provider.activeAquarium.volumeNetLiters, 70);
+    expect(provider.activeAquarium.isArchived, isTrue);
+    expect(provider.activeAquarium.endDate, DateTime(2026, 9, 1));
   });
 
   test('retains a selected aquarium while its cloud profile is loading', () {

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import '../models/aquarium_model.dart' show waterChangeForReminder;
 import '../models/tank_firestore_models.dart';
 import '../models/aquarium_reminder.dart';
 import '../models/species_models.dart';
@@ -49,6 +50,16 @@ class DatabaseService {
     _requirePathId(tankId, 'tankId');
     return _tanks(userId).doc(tankId).collection('reminders');
   }
+
+  CollectionReference<Map<String, dynamic>> _aquariumWaterChanges(
+    String userId,
+    String aquariumId,
+  ) => _firestore
+      .collection('users')
+      .doc(userId)
+      .collection('aquariums')
+      .doc(aquariumId)
+      .collection('water_changes');
 
   CollectionReference<Map<String, dynamic>> _stocking(
     String userId,
@@ -192,14 +203,15 @@ class DatabaseService {
   Future<AquariumReminder> completeReminder(
     String userId,
     String tankId,
-    AquariumReminder reminder,
-  ) async {
+    AquariumReminder reminder, {
+    DateTime? completedAt,
+  }) async {
     _requirePathId(reminder.id, 'reminderId');
-    final completedAt = DateTime.now();
+    final performedAt = completedAt ?? DateTime.now();
     final nextDueDate = reminder.repeatIntervalDays == null
         ? reminder.dueDate
         : nextRecurrenceDateAfter(
-            completedAt,
+            performedAt,
             reminder.dueDate,
             reminder.repeatIntervalDays!,
           );
@@ -207,7 +219,7 @@ class DatabaseService {
       tankId: tankId,
       dueDate: nextDueDate,
       isCompleted: reminder.repeatIntervalDays == null,
-      lastCompletedAt: completedAt,
+      lastCompletedAt: performedAt,
     );
     final batch = _firestore.batch();
     batch.set(
@@ -219,12 +231,26 @@ class DatabaseService {
       journalReference,
       JournalLog(
         id: journalReference.id,
-        timestamp: completedAt,
+        timestamp: performedAt,
         activityType: reminder.taskType.name,
         title: reminder.title,
         note: 'Przypomnienie wykonane',
       ).toFirestore(),
     );
+    if (reminder.taskType == ReminderTaskType.waterChange) {
+      final waterChange = waterChangeForReminder(
+        reminderId: reminder.id,
+        aquariumId: tankId,
+        title: reminder.title,
+        completedAt: performedAt,
+      );
+      final waterChangeData = Map<String, dynamic>.from(waterChange.toMap())
+        ..['date'] = Timestamp.fromDate(performedAt);
+      batch.set(
+        _aquariumWaterChanges(userId, tankId).doc(waterChange.id),
+        waterChangeData,
+      );
+    }
     await batch.commit();
     await FirestoreSyncStatus.recordSuccessfulSync();
     return updated;

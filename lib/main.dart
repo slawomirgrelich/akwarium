@@ -19,6 +19,7 @@ import 'l10n/app_localizations.dart';
 import 'algae_assistant_service.dart';
 import 'ai_scanner_service.dart';
 import 'app_version_widget.dart';
+import 'aquarium_calculators_service.dart';
 import 'aquarium_management_screen.dart';
 import 'screens/admin_dashboard_screen.dart';
 import 'local_reminder_service.dart';
@@ -382,6 +383,7 @@ class DashboardPage extends StatelessWidget {
         ),
       );
     }
+    final isArchived = activeAquarium.isArchived;
     final latestTest = provider.waterTests.isEmpty
         ? null
         : provider.waterTests.first;
@@ -439,7 +441,22 @@ class DashboardPage extends StatelessWidget {
               ),
               child: _DashboardTankCard(aquarium: activeAquarium),
             ),
-            if (showBeginnerGuide) ...[
+            if (isArchived) ...[
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.history),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(l10n.archivedHistoryNotice)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            if (showBeginnerGuide && !isArchived) ...[
               const SizedBox(height: 16),
               _BeginnerGuideCard(
                 aquariumExists: true,
@@ -487,8 +504,8 @@ class DashboardPage extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 20),
-            if (context.watch<ProAccessService>().isProUser) ...[
-              const FirestoreRemindersWidget(),
+            if (context.watch<ProAccessService>().isProUser && !isArchived) ...[
+              const FirestoreRemindersWidget(compact: true),
               const SizedBox(height: 20),
             ],
             _SectionHeader(title: l10n.aquariumStatus),
@@ -504,9 +521,9 @@ class DashboardPage extends StatelessWidget {
                         : _formatDate(latestTest.date),
                     subtitle: latestTest == null
                         ? l10n.addFirstTest
-                        : isBeginner
-                        ? l10n.beginnerTestSaved
-                        : l10n.parametersCount,
+                        : l10n.parametersCount(
+                            latestTest.measuredParametersCount,
+                          ),
                     color: Colors.teal.shade700,
                   ),
                 ),
@@ -525,6 +542,13 @@ class DashboardPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
+            if (provider.waterChangesSyncFailed) ...[
+              Text(
+                l10n.waterChangesSyncFailed,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              const SizedBox(height: 8),
+            ],
             if (isBeginner)
               _BeginnerWaterSummary(
                 test: latestTest,
@@ -553,109 +577,177 @@ class DashboardPage extends StatelessWidget {
               const SizedBox(height: 16),
               const WaterParametersChart(),
             ],
-            const SizedBox(height: 24),
-            _SectionHeader(title: l10n.quickActions),
-            const SizedBox(height: 12),
-            _ActionTile(
-              icon: Icons.science_outlined,
-              title: l10n.enterWaterTest,
-              subtitle: l10n.saveTankParameters,
-              accent: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const WaterTestScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            _ActionTile(
-              icon: Icons.water_drop_outlined,
-              title: l10n.addWaterChange,
-              subtitle: l10n.saveVolumeAndNote,
-              accent: true,
-              onTap: () => _showWaterChangeDialog(context),
-            ),
-            const SizedBox(height: 24),
+            if (!isArchived) ...[
+              const SizedBox(height: 24),
+              _SectionHeader(title: l10n.quickActions),
+              const SizedBox(height: 12),
+              _ActionTile(
+                icon: Icons.science_outlined,
+                title: l10n.enterWaterTest,
+                subtitle: l10n.saveTankParameters,
+                accent: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const WaterTestScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _ActionTile(
+                icon: Icons.water_drop_outlined,
+                title: l10n.addWaterChange,
+                subtitle: l10n.saveVolumeAndNote,
+                accent: true,
+                onTap: () => _showWaterChangeDialog(context),
+              ),
+              const SizedBox(height: 24),
+            ],
           ],
         ),
       ),
     );
   }
 
-  void _showWaterChangeDialog(BuildContext context) {
+  Future<void> _showWaterChangeDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final volumeController = TextEditingController(text: '30');
-    final notesController = TextEditingController();
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(l10n.addWaterChange),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: volumeController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: l10n.volume,
-                  suffixText: l10n.liters,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: notesController,
-                decoration: InputDecoration(labelText: l10n.note),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () {
-                final volume =
-                    double.tryParse(
-                      volumeController.text.trim().replaceAll(',', '.'),
-                    ) ??
-                    0;
-                if (volume <= 0) {
-                  return;
-                }
-
-                final provider = context.read<models.AquariumProvider>();
-                final aquariumId = provider.resolveAquariumId();
-                if (aquariumId.isEmpty) {
-                  context.showAppSnackBar(
-                    SnackBar(content: Text(l10n.addAquariumToStart)),
-                  );
-                  return;
-                }
-
-                provider.addWaterChange(
-                  models.WaterChange(
-                    id: DateTime.now().microsecondsSinceEpoch.toString(),
-                    aquariumId: aquariumId,
-                    date: DateTime.now(),
-                    volumeLiters: volume,
-                    notes: notesController.text.trim(),
-                  ),
-                );
-                Navigator.pop(dialogContext);
-                context.showAppSnackBar(
-                  SnackBar(content: Text(l10n.saveTankParameters)),
-                );
-              },
-              child: Text(l10n.save),
-            ),
-          ],
-        );
-      },
+    final provider = context.read<models.AquariumProvider>();
+    final aquarium = provider.selectedAquarium;
+    if (aquarium == null || aquarium.isArchived) {
+      context.showAppSnackBar(SnackBar(content: Text(l10n.addAquariumToStart)));
+      return;
+    }
+    final defaultLiters = suggestedWaterChangeLiters(
+      aquarium.volumeNetLiters,
     );
+    final amountController = TextEditingController(
+      text: defaultLiters.toStringAsFixed(1),
+    );
+    final notesController = TextEditingController();
+    var asPercent = false;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            final enteredAmount = double.tryParse(
+              amountController.text.trim().replaceAll(',', '.'),
+            );
+            final convertedLiters =
+                enteredAmount == null ||
+                    !enteredAmount.isFinite ||
+                    enteredAmount <= 0 ||
+                    (asPercent && enteredAmount > 100) ||
+                    (!asPercent &&
+                        enteredAmount > aquarium.volumeNetLiters)
+                ? null
+                : waterChangeVolumeLiters(
+                    amount: enteredAmount,
+                    netVolumeLiters: aquarium.volumeNetLiters,
+                    isPercent: asPercent,
+                  );
+            return AlertDialog(
+              title: Text(l10n.addWaterChange),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SegmentedButton<bool>(
+                    segments: [
+                      ButtonSegment(
+                        value: false,
+                        label: Text(l10n.waterChangeLiters),
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        label: Text(l10n.waterChangePercent),
+                      ),
+                    ],
+                    selected: {asPercent},
+                    onSelectionChanged: (selection) =>
+                        setDialogState(() => asPercent = selection.single),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    onChanged: (_) => setDialogState(() {}),
+                    decoration: InputDecoration(
+                      labelText: l10n.volume,
+                      suffixText: asPercent ? '%' : l10n.liters,
+                    ),
+                  ),
+                  if (asPercent && convertedLiters != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          l10n.waterChangeEquivalent(
+                            convertedLiters.toStringAsFixed(1),
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: notesController,
+                    decoration: InputDecoration(labelText: l10n.note),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final amount = double.tryParse(
+                      amountController.text.trim().replaceAll(',', '.'),
+                    );
+                    if (amount == null ||
+                        !amount.isFinite ||
+                        amount <= 0 ||
+                        (asPercent && amount > 100) ||
+                        (!asPercent && amount > aquarium.volumeNetLiters)) {
+                      context.showAppSnackBar(
+                        SnackBar(content: Text(l10n.invalidWaterChangeAmount)),
+                      );
+                      return;
+                    }
+
+                    provider.addWaterChange(
+                      models.WaterChange(
+                        id: DateTime.now().microsecondsSinceEpoch.toString(),
+                        aquariumId: aquarium.id,
+                        date: DateTime.now(),
+                        volumeLiters: waterChangeVolumeLiters(
+                          amount: amount,
+                          netVolumeLiters: aquarium.volumeNetLiters,
+                          isPercent: asPercent,
+                        ),
+                        notes: notesController.text.trim(),
+                      ),
+                    );
+                    Navigator.pop(dialogContext);
+                    context.showAppSnackBar(
+                      SnackBar(content: Text(l10n.saveTankParameters)),
+                    );
+                  },
+                  child: Text(l10n.save),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    } finally {
+      amountController.dispose();
+      notesController.dispose();
+    }
   }
 
   void _showMessage(BuildContext context, String message) {
@@ -2990,7 +3082,10 @@ class _WaterParametersCard extends StatelessWidget {
                   if (test!.co2 case final value?)
                     _ParameterChip(label: l10n.co2Label, value: '$value mg/L'),
                   if (test!.nh3Nh4 case final value?)
-                    _ParameterChip(label: 'NH3/NH4', value: '$value mg/L'),
+                    _ParameterChip(
+                      label: l10n.ammoniaParameterLabel,
+                      value: '$value mg/L',
+                    ),
                   if (test!.tds case final value?)
                     _ParameterChip(label: 'TDS', value: '$value ppm'),
                   if (test!.fe case final value?)

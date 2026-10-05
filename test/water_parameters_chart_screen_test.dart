@@ -69,7 +69,7 @@ void main() {
     );
     expect(find.text('Target: undetectable (0 mg/L)'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(ChoiceChip, 'NH3/NH4'));
+    await tester.tap(find.widgetWithText(ChoiceChip, 'NH4 (NH3/NH4)'));
     await tester.pumpAndSettle();
     expect(find.text('Target: undetectable (0 mg/L)'), findsOneWidget);
     expect(
@@ -136,7 +136,7 @@ void main() {
   testWidgets('Firestore measurement form saves combined ammonia and TDS', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(360, 480);
+    tester.view.physicalSize = const Size(560, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -162,27 +162,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.widgetWithText(TextFormField, 'NH3/NH4'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-
+    await tester.enterText(find.widgetWithText(TextFormField, 'NO2'), '0.05');
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'NH3/NH4'),
+      find.widgetWithText(TextFormField, 'Ammonia (NH3/NH4)'),
       '0.2',
     );
-    await tester.scrollUntilVisible(
-      find.widgetWithText(TextFormField, 'TDS'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
     await tester.enterText(find.widgetWithText(TextFormField, 'TDS'), '185');
-    await tester.ensureVisible(find.text('Save measurement'));
     await tester.tap(find.text('Save measurement'));
     await tester.pumpAndSettle();
 
     expect(service.savedMeasurement?.nh3Nh4, 0.2);
+    expect(service.savedMeasurement?.no2, 0.05);
     expect(service.savedMeasurement?.tds, 185);
     expect(tester.takeException(), isNull);
   });

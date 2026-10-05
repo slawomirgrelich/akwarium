@@ -443,14 +443,38 @@ abstract class AppLocalizations {
   /// No description provided for @parametersCount.
   ///
   /// In pl, this message translates to:
-  /// **'8 parametrów'**
-  String get parametersCount;
+  /// **'Liczba zmierzonych parametrów: {count}'**
+  String parametersCount(int count);
 
   /// No description provided for @waterChange.
   ///
   /// In pl, this message translates to:
   /// **'Podmiana'**
   String get waterChange;
+
+  /// No description provided for @waterChangeLiters.
+  ///
+  /// In pl, this message translates to:
+  /// **'Litry'**
+  String get waterChangeLiters;
+
+  /// No description provided for @waterChangePercent.
+  ///
+  /// In pl, this message translates to:
+  /// **'Procentowo'**
+  String get waterChangePercent;
+
+  /// No description provided for @waterChangeEquivalent.
+  ///
+  /// In pl, this message translates to:
+  /// **'≈ {liters} l'**
+  String waterChangeEquivalent(String liters);
+
+  /// No description provided for @invalidWaterChangeAmount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz dodatnią wartość. Procent nie może przekraczać 100%, a litry nie mogą przekraczać pojemności netto akwarium.'**
+  String get invalidWaterChangeAmount;
 
   /// No description provided for @daysCount.
   ///
@@ -529,6 +553,30 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Pokaż starsze wpisy'**
   String get showOlderEntries;
+
+  /// No description provided for @archivedTank.
+  ///
+  /// In pl, this message translates to:
+  /// **'Archiwalne'**
+  String get archivedTank;
+
+  /// No description provided for @endDateLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Data likwidacji'**
+  String get endDateLabel;
+
+  /// No description provided for @archivedHistoryNotice.
+  ///
+  /// In pl, this message translates to:
+  /// **'To akwarium jest archiwalne. Przeglądasz jego historię; dodawanie pomiarów i podmian jest wyłączone.'**
+  String get archivedHistoryNotice;
+
+  /// No description provided for @archivedEndDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Archiwalne · {date}'**
+  String archivedEndDate(String date);
 
   /// No description provided for @journalEmpty.
   ///
@@ -2611,6 +2659,42 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Oznacz jako wykonane'**
   String get markReminderComplete;
+
+  /// No description provided for @editReminder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj zadanie'**
+  String get editReminder;
+
+  /// No description provided for @editReminderDialogTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj zadanie'**
+  String get editReminderDialogTitle;
+
+  /// No description provided for @showMoreTasks.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokaż więcej zadań'**
+  String get showMoreTasks;
+
+  /// No description provided for @showFewerTasks.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokaż mniej zadań'**
+  String get showFewerTasks;
+
+  /// No description provided for @ammoniaParameterLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Amoniak (NH3/NH4)'**
+  String get ammoniaParameterLabel;
+
+  /// No description provided for @waterChangesSyncFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zsynchronizować historii podmian. Wpis zapisano lokalnie i ponowi się po przywróceniu połączenia.'**
+  String get waterChangesSyncFailed;
 
   /// No description provided for @addReminderDialogTitle.
   ///

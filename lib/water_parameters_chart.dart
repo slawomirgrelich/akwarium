@@ -88,7 +88,11 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
-                      label: Text(item.label),
+                      label: Text(
+                        parameter == WaterParameter.nh3Nh4
+                            ? l10n.ammoniaParameterLabel
+                            : item.label,
+                      ),
                       selected: _selected == parameter,
                       onSelected: (_) => setState(() => _selected = parameter),
                     ),

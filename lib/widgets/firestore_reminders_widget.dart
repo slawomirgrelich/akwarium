@@ -7,9 +7,12 @@ import '../l10n/app_localizations.dart';
 import '../models/aquarium_model.dart';
 import '../models/aquarium_reminder.dart';
 import '../services/database_service.dart';
+import '../utils/app_snackbar.dart';
 
 class FirestoreRemindersWidget extends StatefulWidget {
-  const FirestoreRemindersWidget({super.key});
+  const FirestoreRemindersWidget({this.compact = false, super.key});
+
+  final bool compact;
 
   @override
   State<FirestoreRemindersWidget> createState() =>
@@ -19,6 +22,7 @@ class FirestoreRemindersWidget extends StatefulWidget {
 class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
   final _database = DatabaseService();
   final _auth = FirebaseAuth.instance;
+  bool _showAllCompactTasks = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +39,22 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
         final overdue = pending.where((item) => item.isOverdue).toList();
         final upcoming = pending.where((item) => !item.isOverdue).toList();
         final completed = reminders.where((item) => item.isCompleted).toList();
+        final openReminders = [...overdue, ...upcoming]
+          ..sort((first, second) => first.dueDate.compareTo(second.dueDate));
+        final compactPreview =
+            widget.compact && !_showAllCompactTasks && openReminders.length > 3;
+        final visibleOpenReminders = compactPreview
+            ? openReminders.take(3).toList()
+            : openReminders;
+        final visibleOverdue = visibleOpenReminders
+            .where((item) => item.isOverdue)
+            .toList();
+        final visibleUpcoming = visibleOpenReminders
+            .where((item) => !item.isOverdue)
+            .toList();
+        final visibleCompleted = widget.compact && !_showAllCompactTasks
+            ? const <AquariumReminder>[]
+            : completed;
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -69,32 +89,52 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                 else if (reminders.isEmpty)
                   Text(l10n.noScheduledTasks)
                 else ...[
-                  if (overdue.isNotEmpty)
+                  if (visibleOverdue.isNotEmpty)
                     _ReminderGroup(
                       title: l10n.overdueTasks,
                       color: Colors.red,
-                      reminders: overdue,
+                      reminders: visibleOverdue,
                       onComplete: (item) => _complete(userId, tankId, item),
                       onSnooze: (item) =>
                           _snooze(context, userId, tankId, item),
+                      onEdit: (item) =>
+                          _edit(context, userId, tankId, item),
                     ),
-                  if (upcoming.isNotEmpty)
+                  if (visibleUpcoming.isNotEmpty)
                     _ReminderGroup(
                       title: l10n.todayAndUpcomingTasks,
                       color: Theme.of(context).colorScheme.primary,
-                      reminders: upcoming,
+                      reminders: visibleUpcoming,
                       onComplete: (item) => _complete(userId, tankId, item),
                       onSnooze: (item) =>
                           _snooze(context, userId, tankId, item),
+                      onEdit: (item) =>
+                          _edit(context, userId, tankId, item),
                     ),
-                  if (completed.isNotEmpty)
+                  if (visibleCompleted.isNotEmpty)
                     _ReminderGroup(
                       title: l10n.completedTasks,
                       color: Colors.blueGrey,
-                      reminders: completed,
+                      reminders: visibleCompleted,
                       onComplete: (item) => _complete(userId, tankId, item),
                       onSnooze: (item) =>
                           _snooze(context, userId, tankId, item),
+                      onEdit: (item) =>
+                          _edit(context, userId, tankId, item),
+                    ),
+                  if (widget.compact && pending.length > 3)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => setState(
+                          () => _showAllCompactTasks = !_showAllCompactTasks,
+                        ),
+                        child: Text(
+                          _showAllCompactTasks
+                              ? l10n.showFewerTasks
+                              : l10n.showMoreTasks,
+                        ),
+                      ),
                     ),
                 ],
               ],
@@ -110,20 +150,50 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
     String tankId,
     AquariumReminder reminder,
   ) async {
-    final notificationBody = AppLocalizations.of(context)!
-        .scheduledAquariumTaskNotification;
-    if (reminder.isCompleted) {
-      final updated = reminder.copyWith(isCompleted: false);
-      await _database.updateReminder(userId, tankId, updated);
-      await _schedule(updated, notificationBody);
+    final l10n = AppLocalizations.of(context)!;
+    if (reminder.taskType == ReminderTaskType.waterChange &&
+        context.read<AquariumProvider>().selectedAquarium?.isArchived == true) {
+      context.showAppSnackBar(
+        SnackBar(content: Text(l10n.archivedHistoryNotice)),
+      );
       return;
     }
-
-    final updated = await _database.completeReminder(userId, tankId, reminder);
-    if (updated.repeatIntervalDays == null) {
-      await LocalReminderService.instance.cancel(updated.id.hashCode.abs());
-    } else {
-      await _schedule(updated, notificationBody);
+    try {
+      final AquariumReminder updated;
+      if (reminder.isCompleted) {
+        updated = reminder.copyWith(isCompleted: false);
+        await _database.updateReminder(userId, tankId, updated);
+      } else {
+        final completedAt = DateTime.now();
+        if (reminder.taskType == ReminderTaskType.waterChange) {
+          context.read<AquariumProvider>().addWaterChange(
+            waterChangeForReminder(
+              reminderId: reminder.id,
+              aquariumId: tankId,
+              title: reminder.title,
+              completedAt: completedAt,
+            ),
+          );
+        }
+        updated = await _database.completeReminder(
+          userId,
+          tankId,
+          reminder,
+          completedAt: completedAt,
+        );
+      }
+      if (updated.isCompleted || !updated.isEnabled) {
+        await LocalReminderService.instance.cancel(updated.id.hashCode.abs());
+      } else {
+        await _schedule(updated, l10n.scheduledAquariumTaskNotification);
+      }
+    } on Object catch (error, stackTrace) {
+      debugPrint('Aquarium reminder completion failed: $error\n$stackTrace');
+      if (mounted) {
+        context.showAppSnackBar(
+          SnackBar(content: Text(l10n.aquariumTaskUpdateFailed)),
+        );
+      }
     }
   }
 
@@ -152,11 +222,48 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
         .scheduledAquariumTaskNotification;
     final reminder = await showDialog<AquariumReminder>(
       context: context,
-      builder: (_) => const _ReminderDialog(),
+      builder: (_) => const AquariumReminderDialog(),
     );
     if (reminder == null || !context.mounted) return;
     final saved = await _database.addReminder(userId, tankId, reminder);
     await _schedule(saved, notificationBody);
+  }
+
+  Future<void> _edit(
+    BuildContext context,
+    String userId,
+    String tankId,
+    AquariumReminder existing,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final notificationBody = l10n.scheduledAquariumTaskNotification;
+    final reminder = await showDialog<AquariumReminder>(
+      context: context,
+      builder: (_) => AquariumReminderDialog(initial: existing),
+    );
+    if (reminder == null || !context.mounted) return;
+    final updated = reminder.copyWith(
+      id: existing.id,
+      tankId: tankId,
+      isCompleted: existing.isCompleted,
+      lastCompletedAt: existing.lastCompletedAt,
+      isEnabled: existing.isEnabled,
+    );
+    try {
+      await _database.updateReminder(userId, tankId, updated);
+      if (updated.isCompleted || !updated.isEnabled) {
+        await LocalReminderService.instance.cancel(updated.id.hashCode.abs());
+      } else {
+        await _schedule(updated, notificationBody);
+      }
+    } on Object catch (error, stackTrace) {
+      debugPrint('Aquarium reminder edit failed: $error\n$stackTrace');
+      if (context.mounted) {
+        context.showAppSnackBar(
+          SnackBar(content: Text(l10n.aquariumTaskUpdateFailed)),
+        );
+      }
+    }
   }
 
   Future<void> _schedule(AquariumReminder reminder, String body) {
@@ -178,6 +285,7 @@ class _ReminderGroup extends StatelessWidget {
     required this.reminders,
     required this.onComplete,
     required this.onSnooze,
+    required this.onEdit,
   });
 
   final String title;
@@ -185,6 +293,7 @@ class _ReminderGroup extends StatelessWidget {
   final List<AquariumReminder> reminders;
   final ValueChanged<AquariumReminder> onComplete;
   final ValueChanged<AquariumReminder> onSnooze;
+  final ValueChanged<AquariumReminder> onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -211,8 +320,8 @@ class _ReminderGroup extends StatelessWidget {
             ),
             subtitle: Text(
               item.repeatIntervalDays == null
-                  ? _formatDate(item.dueDate)
-                  : '${_formatDate(item.dueDate)} · '
+                  ? '${_formatDate(item.dueDate)} · ${_formatTime(item.dueDate)}'
+                  : '${_formatDate(item.dueDate)} · ${_formatTime(item.dueDate)} · '
                         '${item.repeatIntervalDays == 1 ? l10n.dailyRecurrence : l10n.everyDays(item.repeatIntervalDays!)}',
             ),
             trailing: Wrap(
@@ -224,6 +333,11 @@ class _ReminderGroup extends StatelessWidget {
                     onPressed: () => onSnooze(item),
                     icon: const Icon(Icons.next_plan_outlined),
                   ),
+                IconButton(
+                  tooltip: l10n.editReminder,
+                  onPressed: () => onEdit(item),
+                  icon: const Icon(Icons.edit_outlined),
+                ),
                 IconButton(
                   tooltip: item.isCompleted
                       ? l10n.markReminderIncomplete
@@ -259,18 +373,32 @@ class _CountBadge extends StatelessWidget {
   }
 }
 
-class _ReminderDialog extends StatefulWidget {
-  const _ReminderDialog();
+class AquariumReminderDialog extends StatefulWidget {
+  const AquariumReminderDialog({this.initial, super.key});
+
+  final AquariumReminder? initial;
 
   @override
-  State<_ReminderDialog> createState() => _ReminderDialogState();
+  State<AquariumReminderDialog> createState() => _AquariumReminderDialogState();
 }
 
-class _ReminderDialogState extends State<_ReminderDialog> {
+class _AquariumReminderDialogState extends State<AquariumReminderDialog> {
   final _title = TextEditingController();
   ReminderTaskType _type = ReminderTaskType.custom;
   int? _repeatDays;
   DateTime _dueDate = DateTime.now().add(const Duration(hours: 1));
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initial;
+    if (initial != null) {
+      _title.text = initial.title;
+      _type = initial.taskType;
+      _repeatDays = initial.repeatIntervalDays;
+      _dueDate = initial.dueDate;
+    }
+  }
 
   @override
   void dispose() {
@@ -282,7 +410,11 @@ class _ReminderDialogState extends State<_ReminderDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(l10n.addReminderDialogTitle),
+      title: Text(
+        widget.initial == null
+            ? l10n.addReminderDialogTitle
+            : l10n.editReminderDialogTitle,
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -320,27 +452,26 @@ class _ReminderDialogState extends State<_ReminderDialog> {
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text('${l10n.dueDate}: ${_formatDate(_dueDate)}'),
-              trailing: const Icon(Icons.calendar_month_outlined),
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 3650)),
-                  initialDate: _dueDate,
-                );
-                if (date != null) {
-                  setState(
-                    () => _dueDate = DateTime(
-                      date.year,
-                      date.month,
-                      date.day,
-                      _dueDate.hour,
-                      _dueDate.minute,
-                    ),
-                  );
-                }
-              },
+              title: Text(l10n.dueDate),
+              subtitle: Text(
+                '${_formatDate(_dueDate)} · ${_formatTime(_dueDate)}',
+              ),
+              trailing: Wrap(
+                spacing: 0,
+                children: [
+                  IconButton(
+                    tooltip: l10n.dueDate,
+                    icon: const Icon(Icons.calendar_month_outlined),
+                    onPressed: _pickDate,
+                  ),
+                  IconButton(
+                    tooltip: MaterialLocalizations.of(context).timePickerDialHelpText,
+                    icon: const Icon(Icons.schedule_outlined),
+                    onPressed: _pickTime,
+                  ),
+                ],
+              ),
+              onTap: _pickDate,
             ),
           ],
         ),
@@ -353,15 +484,19 @@ class _ReminderDialogState extends State<_ReminderDialog> {
         FilledButton(
           onPressed: () {
             if (_title.text.trim().isEmpty) return;
+            final initial = widget.initial;
             Navigator.pop(
               context,
               AquariumReminder(
-                id: '',
-                tankId: '',
+                id: initial?.id ?? '',
+                tankId: initial?.tankId ?? '',
                 title: _title.text.trim(),
                 taskType: _type,
                 dueDate: _dueDate,
                 repeatIntervalDays: _repeatDays,
+                isCompleted: initial?.isCompleted ?? false,
+                lastCompletedAt: initial?.lastCompletedAt,
+                isEnabled: initial?.isEnabled ?? true,
               ),
             );
           },
@@ -369,6 +504,44 @@ class _ReminderDialogState extends State<_ReminderDialog> {
         ),
       ],
     );
+  }
+
+  Future<void> _pickDate() async {
+    final date = await showDatePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      initialDate: _dueDate,
+    );
+    if (date != null && mounted) {
+      setState(
+        () => _dueDate = DateTime(
+          date.year,
+          date.month,
+          date.day,
+          _dueDate.hour,
+          _dueDate.minute,
+        ),
+      );
+    }
+  }
+
+  Future<void> _pickTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_dueDate),
+    );
+    if (time != null && mounted) {
+      setState(
+        () => _dueDate = DateTime(
+          _dueDate.year,
+          _dueDate.month,
+          _dueDate.day,
+          time.hour,
+          time.minute,
+        ),
+      );
+    }
   }
 }
 
@@ -383,3 +556,6 @@ String _taskLabel(AppLocalizations l10n, ReminderTaskType type) =>
 
 String _formatDate(DateTime date) =>
     '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+
+String _formatTime(DateTime date) =>
+    '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';

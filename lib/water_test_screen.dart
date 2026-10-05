@@ -163,6 +163,12 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
     }
 
     final provider = context.read<models.AquariumProvider>();
+    if (provider.selectedAquarium?.isArchived == true) {
+      context.showAppSnackBar(
+        SnackBar(content: Text(l10n.archivedHistoryNotice)),
+      );
+      return;
+    }
     final aquariumId = provider.resolveAquariumId();
     if (aquariumId.isEmpty) {
       context.showAppSnackBar(SnackBar(content: Text(l10n.addAquariumToStart)));
@@ -201,6 +207,8 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
           ? AppLocalizations.of(context)!.temperature
           : key == 'CO2'
           ? AppLocalizations.of(context)!.co2Label
+          : key == 'NH3/NH4'
+          ? AppLocalizations.of(context)!.ammoniaParameterLabel
           : key,
       prefixIcon: const Icon(Icons.science_outlined),
       suffixText: key == 'Temperatura'

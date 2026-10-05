@@ -57,8 +57,14 @@
   "lastTest": "Latest test",
   "noData": "No data",
   "addFirstTest": "Add your first test",
-  "parametersCount": "8 parameters",
+  "parametersCount": "{count} measured parameters",
+  "@parametersCount": {"placeholders": {"count": {"type": "int"}}},
   "waterChange": "Water change",
+  "waterChangeLiters": "Liters",
+  "waterChangePercent": "Percentage",
+  "waterChangeEquivalent": "≈ {liters} L",
+  "@waterChangeEquivalent": {"placeholders": {"liters": {"type": "String"}}},
+  "invalidWaterChangeAmount": "Enter a positive amount. Percentage must be no more than 100%, and liters must not exceed the tank's net volume.",
   "daysCount": "{count, plural, =1{1 day} other{{count} days}}",
   "@daysCount": {"placeholders": {"count": {"type": "int"}}},
   "freshWater": "Water is fresh",
@@ -73,6 +79,11 @@
   "journalSubtitle": "The complete history of aquarium care.",
   "recentEntries": "Recent entries",
   "showOlderEntries": "Show older entries",
+  "archivedTank": "Archived",
+  "endDateLabel": "End date",
+  "archivedHistoryNotice": "This aquarium is archived. You are viewing its history; new measurements and water changes are disabled.",
+  "archivedEndDate": "Archived · {date}",
+  "@archivedEndDate": {"placeholders": {"date": {"type": "String"}}},
   "journalEmpty": "The journal is still empty",
   "addFirstWaterEntry": "Add your first water test or water change.",
   "toolsCenter": "TOOLS CENTER",
@@ -448,6 +459,12 @@
   ,"snoozeOneDay": "Snooze for 1 day"
   ,"markReminderIncomplete": "Mark as incomplete"
   ,"markReminderComplete": "Mark as complete"
+  ,"editReminder": "Edit task"
+  ,"editReminderDialogTitle": "Edit task"
+  ,"showMoreTasks": "Show more tasks"
+  ,"showFewerTasks": "Show fewer tasks"
+  ,"ammoniaParameterLabel": "Ammonia (NH3/NH4)"
+  ,"waterChangesSyncFailed": "Water-change history could not sync. Your entry is saved locally and will retry when the connection returns."
   ,"addReminderDialogTitle": "Add reminder"
   ,"taskTypeLabel": "Task type"
   ,"repeatLabel": "Repeat"

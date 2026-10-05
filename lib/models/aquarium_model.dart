@@ -125,6 +125,8 @@ class AquariumProfile {
     this.filtration,
     this.imagePath,
     this.isActive = false,
+    this.isArchived = false,
+    this.endDate,
   });
 
   final String id;
@@ -141,16 +143,23 @@ class AquariumProfile {
   final String? filtration;
   final String? imagePath;
   final bool isActive;
+  final bool isArchived;
+  final DateTime? endDate;
 
   int get ageInDays {
     final now = DateTime.now();
-    final today = DateTime.utc(now.year, now.month, now.day);
+    final referenceDate = endDate ?? now;
+    final referenceDay = DateTime.utc(
+      referenceDate.year,
+      referenceDate.month,
+      referenceDate.day,
+    );
     final setupDay = DateTime.utc(
       setupDate.year,
       setupDate.month,
       setupDate.day,
     );
-    final elapsedDays = today.difference(setupDay).inDays;
+    final elapsedDays = referenceDay.difference(setupDay).inDays;
     return elapsedDays < 0 ? 0 : elapsedDays;
   }
 
@@ -169,6 +178,8 @@ class AquariumProfile {
     'filtration': filtration,
     'imagePath': imagePath,
     'isActive': isActive,
+    'isArchived': isArchived,
+    'endDate': endDate?.toIso8601String(),
   };
 
   factory AquariumProfile.fromJson(Map<String, dynamic> json) =>
@@ -189,6 +200,8 @@ class AquariumProfile {
         filtration: json['filtration'] as String?,
         imagePath: json['imagePath'] as String?,
         isActive: json['isActive'] as bool? ?? false,
+        isArchived: json['isArchived'] as bool? ?? false,
+        endDate: DateTime.tryParse(json['endDate'] as String? ?? ''),
       );
 }
 
@@ -302,6 +315,20 @@ class WaterTest {
   final double? tds;
   final String aquariumId;
 
+  int get measuredParametersCount => [
+    ph,
+    no3,
+    no2,
+    po4,
+    fe,
+    kh,
+    gh,
+    temp,
+    co2,
+    nh3Nh4,
+    tds,
+  ].where((value) => value != null).length;
+
   Map<String, dynamic> toMap() => {
     'id': id,
     'date': date.toIso8601String(),
@@ -375,14 +402,14 @@ class WaterChange {
 
   final String id;
   final DateTime date;
-  final double volumeLiters;
+  final double? volumeLiters;
   final String notes;
   final String aquariumId;
 
   Map<String, dynamic> toMap() => {
     'id': id,
     'date': date.toIso8601String(),
-    'volumeLiters': volumeLiters,
+    if (volumeLiters != null) 'volumeLiters': volumeLiters,
     'notes': notes,
     'aquariumId': aquariumId,
   };
@@ -390,13 +417,31 @@ class WaterChange {
   factory WaterChange.fromMap(Map<String, dynamic> map) {
     return WaterChange(
       id: map['id'] as String,
-      date: DateTime.parse(map['date'] as String),
-      volumeLiters: (map['volumeLiters'] as num).toDouble(),
+      date: _readDate(map['date']),
+      volumeLiters: (map['volumeLiters'] as num?)?.toDouble(),
       notes: map['notes'] as String? ?? '',
       aquariumId: map['aquariumId'] as String? ?? '',
     );
   }
 }
+
+String waterChangeDescription(WaterChange change) => [
+  if (change.volumeLiters case final liters?) '${liters.toStringAsFixed(0)} l',
+  if (change.notes.trim().isNotEmpty) change.notes.trim(),
+].join(' · ');
+
+WaterChange waterChangeForReminder({
+  required String reminderId,
+  required String aquariumId,
+  required String title,
+  required DateTime completedAt,
+}) => WaterChange(
+  id: 'reminder-$reminderId-${completedAt.microsecondsSinceEpoch}',
+  aquariumId: aquariumId,
+  date: completedAt,
+  notes: title,
+  volumeLiters: null,
+);
 
 enum JournalCategory {
   observation,
@@ -672,7 +717,9 @@ class AquariumProvider extends ChangeNotifier {
        _activeAquariumId =
            activeAquariumId != null && activeAquariumId.trim().isNotEmpty
            ? activeAquariumId.trim()
-           : aquariums?.firstOrNull?.id ?? '';
+           : aquariums?.where((item) => !item.isArchived).firstOrNull?.id ??
+                 aquariums?.firstOrNull?.id ??
+                 '';
 
   final List<WaterTest> _waterTests;
   final List<WaterChange> _waterChanges;
@@ -683,18 +730,24 @@ class AquariumProvider extends ChangeNotifier {
   String _activeAquariumId;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
   _waterTestsSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+  _waterChangesSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _tasksSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
   _aquariumsSubscription;
   StreamSubscription<User?>? _authStateSubscription;
   String? _currentTasksUserId;
+  String _waterChangesUserId = '';
+  String _waterChangesAquariumId = '';
   int _authGeneration = 0;
   bool _hasResolvedAuthState = false;
   bool _waterTestsSyncFailed = false;
+  bool _waterChangesSyncFailed = false;
 
   String get activeAquariumId => _activeAquariumId;
   String get selectedAquariumId => _activeAquariumId;
   bool get waterTestsSyncFailed => _waterTestsSyncFailed;
+  bool get waterChangesSyncFailed => _waterChangesSyncFailed;
   String resolveAquariumId([String? requestedId]) {
     final requested = requestedId?.trim() ?? '';
     if (requested.isNotEmpty) return requested;
@@ -707,7 +760,10 @@ class AquariumProvider extends ChangeNotifier {
     for (final aquarium in _aquariums) {
       if (aquarium.id == _activeAquariumId) return aquarium;
     }
-    return _activeAquariumId.isEmpty ? _aquariums.firstOrNull : null;
+    return _activeAquariumId.isEmpty
+        ? _aquariums.where((item) => !item.isArchived).firstOrNull ??
+              _aquariums.firstOrNull
+        : null;
   }
 
   AquariumProfile get activeAquarium =>
@@ -764,7 +820,11 @@ class AquariumProvider extends ChangeNotifier {
     _hasResolvedAuthState = true;
     await _aquariumsSubscription?.cancel();
     await _waterTestsSubscription?.cancel();
+    await _waterChangesSubscription?.cancel();
     await _tasksSubscription?.cancel();
+    _waterChangesSubscription = null;
+    _waterChangesUserId = '';
+    _waterChangesAquariumId = '';
 
     if (!isFirstAuthState && previousUserId != user?.uid) {
       _clearTasks();
@@ -791,6 +851,7 @@ class AquariumProvider extends ChangeNotifier {
 
     _listenToAquariums(user.uid);
     _listenToWaterTests(user.uid);
+    _listenToWaterChanges(user.uid);
     _listenToTasks(user.uid, preserveLegacyTasks: preserveLegacyTasks);
   }
 
@@ -927,6 +988,8 @@ class AquariumProvider extends ChangeNotifier {
     _activeAquariumId = aquariumId;
     notifyListeners();
     _persist();
+    final userId = _currentTasksUserId;
+    if (userId != null) _listenToWaterChanges(userId);
   }
 
   void setSelectedAquarium(String aquariumId) => selectAquarium(aquariumId);
@@ -936,6 +999,7 @@ class AquariumProvider extends ChangeNotifier {
     bool isFromCache = false,
   }) {
     if (cloudAquariums.isEmpty && isFromCache && _aquariums.isNotEmpty) return;
+    final previousActiveAquariumId = _activeAquariumId;
     final mapped = cloudAquariums
         .map(
           (aquarium) => AquariumProfile(
@@ -951,14 +1015,19 @@ class AquariumProvider extends ChangeNotifier {
                 aquarium.equipment?.lightingHoursPerDay?.toString() ??
                 aquarium.equipment?.lightingModel,
             isActive: aquarium.id == _activeAquariumId,
+            isArchived: aquarium.isArchived,
+            endDate: aquarium.endDate,
           ),
         )
         .toList(growable: false);
     mapped.sort((first, second) => second.setupDate.compareTo(first.setupDate));
-    final nextActiveAquariumId =
-        mapped.any((aquarium) => aquarium.id == _activeAquariumId)
+    final nextActiveAquariumId = mapped.any(
+      (aquarium) => aquarium.id == _activeAquariumId,
+    )
         ? _activeAquariumId
-        : mapped.firstOrNull?.id ?? '';
+        : mapped.where((item) => !item.isArchived).firstOrNull?.id ??
+              mapped.firstOrNull?.id ??
+              '';
     final hasChanged =
         mapped.length != _aquariums.length ||
         nextActiveAquariumId != _activeAquariumId ||
@@ -973,7 +1042,9 @@ class AquariumProvider extends ChangeNotifier {
               current.lengthCm != previous.lengthCm ||
               current.widthCm != previous.widthCm ||
               current.heightCm != previous.heightCm ||
-              current.lighting != previous.lighting;
+              current.lighting != previous.lighting ||
+              current.isArchived != previous.isArchived ||
+              current.endDate != previous.endDate;
         });
     if (!hasChanged) return;
 
@@ -983,6 +1054,10 @@ class AquariumProvider extends ChangeNotifier {
     _activeAquariumId = nextActiveAquariumId;
     notifyListeners();
     _persist();
+    if (_activeAquariumId != previousActiveAquariumId) {
+      final userId = _currentTasksUserId;
+      if (userId != null) _listenToWaterChanges(userId);
+    }
   }
 
   Future<void> addAquarium(AquariumProfile profile) async {
@@ -1000,17 +1075,28 @@ class AquariumProvider extends ChangeNotifier {
   }
 
   void _upsertAquarium(AquariumProfile profile) {
+    final previousActiveAquariumId = _activeAquariumId;
     final index = _aquariums.indexWhere((item) => item.id == profile.id);
     if (index == -1) {
       _aquariums.add(profile);
     } else {
       _aquariums[index] = profile;
     }
-    if (_activeAquariumId.isEmpty || _aquariums.length == 1) {
-      _activeAquariumId = profile.id;
+    if (_activeAquariumId == profile.id && profile.isArchived) {
+      _activeAquariumId =
+          _aquariums.where((item) => !item.isArchived).firstOrNull?.id ??
+          profile.id;
+    } else if (_activeAquariumId.isEmpty || _aquariums.length == 1) {
+      _activeAquariumId =
+          _aquariums.where((item) => !item.isArchived).firstOrNull?.id ??
+          profile.id;
     }
     notifyListeners();
     _persist();
+    if (_activeAquariumId != previousActiveAquariumId) {
+      final userId = _currentTasksUserId;
+      if (userId != null) _listenToWaterChanges(userId);
+    }
   }
 
   Future<void> deleteAquarium(String aquariumId) async {
@@ -1044,10 +1130,15 @@ class AquariumProvider extends ChangeNotifier {
       );
     }
     if (_activeAquariumId == aquariumId) {
-      _activeAquariumId = _aquariums.firstOrNull?.id ?? '';
+      _activeAquariumId =
+          _aquariums.where((item) => !item.isArchived).firstOrNull?.id ??
+          _aquariums.firstOrNull?.id ??
+          '';
     }
     notifyListeners();
     _persist();
+    final userId = _currentTasksUserId;
+    if (userId != null) _listenToWaterChanges(userId);
   }
 
   void addInhabitant(Inhabitant inhabitant) {
@@ -1110,6 +1201,8 @@ class AquariumProvider extends ChangeNotifier {
       widthCm: profile.widthCm,
       heightCm: profile.heightCm,
       createdAt: createdAt,
+      isArchived: profile.isArchived,
+      endDate: profile.endDate,
       equipment: lighting == null || lighting.isEmpty
           ? null
           : firestore_models.AquariumEquipment(
@@ -1210,23 +1303,7 @@ class AquariumProvider extends ChangeNotifier {
   }
 
   void addWaterChange(WaterChange change) {
-    _waterChanges.insert(0, change);
-    _journalEntries.insert(
-      0,
-      JournalEntry(
-        id: change.id,
-        aquariumId: change.aquariumId,
-        date: change.date,
-        title: 'Podmiana wody',
-        description: [
-          '${change.volumeLiters.toStringAsFixed(0)} litrów',
-          if (change.notes.trim().isNotEmpty) change.notes.trim(),
-        ].join(' · '),
-        type: 'waterChange',
-      ),
-    );
-    notifyListeners();
-    _persist();
+    _upsertWaterChange(change);
   }
 
   void updateWaterChange(WaterChange change) {
@@ -1234,26 +1311,25 @@ class AquariumProvider extends ChangeNotifier {
     if (index == -1) {
       return;
     }
+    _upsertWaterChange(change);
+  }
 
-    _waterChanges[index] = change;
-    final journalIndex = _journalEntries.indexWhere(
-      (entry) => entry.id == change.id,
-    );
-    if (journalIndex != -1) {
-      _journalEntries[journalIndex] = JournalEntry(
-        id: change.id,
-        aquariumId: change.aquariumId,
-        date: change.date,
-        title: 'Podmiana wody',
-        description: [
-          '${change.volumeLiters.toStringAsFixed(0)} litrów',
-          if (change.notes.trim().isNotEmpty) change.notes.trim(),
-        ].join(' · '),
-        type: 'waterChange',
-      );
+  void _upsertWaterChange(WaterChange change) {
+    final index = _waterChanges.indexWhere((item) => item.id == change.id);
+    if (index == -1) {
+      _waterChanges.add(change);
+    } else {
+      _waterChanges[index] = change;
     }
+    _waterChanges.sort((first, second) => second.date.compareTo(first.date));
+    _journalEntries.removeWhere(
+      (entry) => entry.id == change.id && entry.type == 'waterChange',
+    );
+    _journalEntries.add(_journalEntryForWaterChange(change));
+    _journalEntries.sort((first, second) => second.date.compareTo(first.date));
     notifyListeners();
     _persist();
+    unawaited(_saveWaterChangeToFirestore(change));
   }
 
   List<T> _decodeList<T>(
@@ -1465,6 +1541,155 @@ class AquariumProvider extends ChangeNotifier {
     );
   }
 
+  JournalEntry _journalEntryForWaterChange(WaterChange change) {
+    return JournalEntry(
+      id: change.id,
+      aquariumId: change.aquariumId,
+      date: change.date,
+      title: 'Podmiana wody',
+      description: waterChangeDescription(change),
+      type: 'waterChange',
+    );
+  }
+
+  CollectionReference<Map<String, dynamic>> _aquariumWaterChanges(
+    String userId,
+    String aquariumId,
+  ) => FirebaseFirestore.instance
+      .collection('users')
+      .doc(userId)
+      .collection('aquariums')
+      .doc(aquariumId)
+      .collection('water_changes');
+
+  void _listenToWaterChanges(String userId) {
+    if (userId.trim().isEmpty) return;
+    final aquariumId = resolveAquariumId();
+    if (aquariumId.isEmpty) {
+      unawaited(_waterChangesSubscription?.cancel());
+      _waterChangesSubscription = null;
+      _waterChangesUserId = userId;
+      _waterChangesAquariumId = '';
+      return;
+    }
+    if (_waterChangesUserId == userId &&
+        _waterChangesAquariumId == aquariumId &&
+        _waterChangesSubscription != null) {
+      return;
+    }
+
+    unawaited(_waterChangesSubscription?.cancel());
+    _waterChangesUserId = userId;
+    _waterChangesAquariumId = aquariumId;
+    _waterChangesSubscription = _aquariumWaterChanges(userId, aquariumId)
+        .orderBy('date', descending: true)
+        .snapshots()
+        .listen(
+          (snapshot) {
+            if (_currentTasksUserId != userId ||
+                _activeAquariumId != aquariumId) {
+              return;
+            }
+            final changes = snapshot.docs
+                .map(
+                  (document) => WaterChange.fromMap({
+                    ...document.data(),
+                    'id': document.id,
+                    'aquariumId': aquariumId,
+                  }),
+                )
+                .toList(growable: false);
+            _replaceWaterChangesForAquarium(aquariumId, changes);
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            _recordWaterChangesSyncError(error, stackTrace);
+          },
+        );
+  }
+
+  void _replaceWaterChangesForAquarium(
+    String aquariumId,
+    List<WaterChange> cloudChanges,
+  ) {
+    _waterChangesSyncFailed = false;
+    final localChanges = _waterChanges
+        .where((change) => change.aquariumId == aquariumId)
+        .toList();
+    final mergedById = <String, WaterChange>{
+      for (final change in localChanges) change.id: change,
+      for (final change in cloudChanges) change.id: change,
+    };
+    final mergedChanges = mergedById.values.toList()
+      ..sort((first, second) => second.date.compareTo(first.date));
+    final replacedIds = mergedById.keys.toSet();
+    _waterChanges
+      ..removeWhere((change) => change.aquariumId == aquariumId)
+      ..addAll(mergedChanges)
+      ..sort((first, second) => second.date.compareTo(first.date));
+    _journalEntries
+      ..removeWhere(
+        (entry) =>
+            entry.aquariumId == aquariumId &&
+            entry.type == 'waterChange' &&
+            replacedIds.contains(entry.id),
+      )
+      ..addAll(mergedChanges.map(_journalEntryForWaterChange))
+      ..sort((first, second) => second.date.compareTo(first.date));
+    notifyListeners();
+    _persist();
+  }
+
+  Future<void> _saveWaterChangeToFirestore(WaterChange change) async {
+    final userId = _currentTasksUserId;
+    if (userId == null ||
+        userId.trim().isEmpty ||
+        change.id.trim().isEmpty ||
+        change.aquariumId.trim().isEmpty) {
+      return;
+    }
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final timestamp = Timestamp.fromDate(change.date);
+      final waterChangeReference = _aquariumWaterChanges(
+        userId,
+        change.aquariumId,
+      ).doc(change.id);
+      final journalReference = firestore
+          .collection('users')
+          .doc(userId)
+          .collection('aquariums')
+          .doc(change.aquariumId)
+          .collection('journal')
+          .doc(change.id);
+      final waterChangeData = Map<String, dynamic>.from(change.toMap())
+        ..['date'] = timestamp;
+      final batch = firestore.batch();
+      batch.set(waterChangeReference, waterChangeData, SetOptions(merge: true));
+      batch.set(journalReference, {
+        'id': change.id,
+        'aquariumId': change.aquariumId,
+        'timestamp': timestamp,
+        'entryType': 'waterChange',
+        'title': 'Podmiana wody',
+        'notes': waterChangeDescription(change),
+      }, SetOptions(merge: true));
+      await batch.commit();
+      final hadSyncError = _waterChangesSyncFailed;
+      _waterChangesSyncFailed = false;
+      if (hadSyncError) notifyListeners();
+      await FirestoreSyncStatus.recordSuccessfulSync();
+    } on Object catch (error, stackTrace) {
+      _recordWaterChangesSyncError(error, stackTrace);
+    }
+  }
+
+  void _recordWaterChangesSyncError(Object error, StackTrace stackTrace) {
+    debugPrint('Water-change Firestore sync failed: $error\n$stackTrace');
+    if (_waterChangesSyncFailed) return;
+    _waterChangesSyncFailed = true;
+    notifyListeners();
+  }
+
   Future<void> _saveWaterTestToFirestore(WaterTest test) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -1498,7 +1723,9 @@ class AquariumProvider extends ChangeNotifier {
             if (test.po4 != null) 'po4': test.po4,
             if (test.fe != null) 'fe': test.fe,
             if (test.temp != null) 'temp': test.temp,
+            if (test.no2 != null) 'no2': test.no2,
             if (test.co2 != null) 'co2': test.co2,
+            if (test.nh3Nh4 != null) 'nh3Nh4': test.nh3Nh4,
             'notes': '',
           },
           SetOptions(merge: true),
@@ -1524,6 +1751,7 @@ class AquariumProvider extends ChangeNotifier {
   @override
   void dispose() {
     _waterTestsSubscription?.cancel();
+    _waterChangesSubscription?.cancel();
     _tasksSubscription?.cancel();
     _aquariumsSubscription?.cancel();
     _authStateSubscription?.cancel();

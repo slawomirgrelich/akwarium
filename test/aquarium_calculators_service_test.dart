@@ -65,6 +65,51 @@ void main() {
     expect(calculateCo2(ph: 6, kh: 10).status, Co2Status.high);
   });
 
+  test('maps high CO2 values to the risk end of the scale', () {
+    expect(co2ScalePosition(15), closeTo(1 / 3, 0.0001));
+    expect(co2ScalePosition(30), closeTo(2 / 3, 0.0001));
+    expect(co2ScalePosition(40), greaterThan(co2ScalePosition(30)));
+    expect(co2ScalePosition(60), 1);
+    expect(() => co2ScalePosition(double.nan), throwsArgumentError);
+  });
+
+  test('converts water-change percentages using net aquarium volume', () {
+    expect(suggestedWaterChangeLiters(20), 20);
+    expect(suggestedWaterChangeLiters(100), 30);
+    expect(
+      waterChangeVolumeLiters(
+        amount: 30,
+        netVolumeLiters: 240,
+        isPercent: true,
+      ),
+      72,
+    );
+    expect(
+      waterChangeVolumeLiters(
+        amount: 30,
+        netVolumeLiters: 240,
+        isPercent: false,
+      ),
+      30,
+    );
+    expect(
+      () => waterChangeVolumeLiters(
+        amount: 101,
+        netVolumeLiters: 240,
+        isPercent: true,
+      ),
+      throwsArgumentError,
+    );
+    expect(
+      () => waterChangeVolumeLiters(
+        amount: 30,
+        netVolumeLiters: 20,
+        isPercent: false,
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('calculates fertilizer ppm per ml and weekly dose', () {
     final result = calculateFertilizerDose(
       aquariumLiters: 100,

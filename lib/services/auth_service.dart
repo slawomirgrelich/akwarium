@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -70,9 +72,9 @@ class AuthService {
       final user = credential.user;
       if (user != null) {
         if (credential.additionalUserInfo?.isNewUser ?? false) {
-          await _createUserProfile(user);
+          unawaited(_createUserProfile(user));
         } else {
-          await _updateGoogleUserIdentity(user);
+          unawaited(_updateGoogleUserIdentity(user));
         }
       }
       return credential;

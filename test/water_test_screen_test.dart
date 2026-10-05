@@ -45,7 +45,7 @@ void main() {
     await tester.enterText(find.widgetWithText(TextFormField, 'NO2'), '0.05');
     await tester.enterText(find.widgetWithText(TextFormField, 'CO2'), '22.5');
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'NH3/NH4'),
+      find.widgetWithText(TextFormField, 'Ammonia (NH3/NH4)'),
       '0.2',
     );
     await tester.enterText(find.widgetWithText(TextFormField, 'TDS'), '185');
