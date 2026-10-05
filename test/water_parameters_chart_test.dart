@@ -115,6 +115,67 @@ void main() {
     );
   });
 
+  testWidgets('water parameter chips scroll horizontally on narrow screens', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final provider = AquariumProvider(
+      activeAquariumId: 'tank-1',
+      waterTests: [
+        _test(
+          id: 'old',
+          date: DateTime(2026, 1, 1),
+          ph: 6.8,
+          nh3Nh4: 0.2,
+        ),
+        _test(
+          id: 'new',
+          date: DateTime(2026, 1, 2),
+          ph: 7.1,
+          nh3Nh4: 0.3,
+        ),
+      ],
+    );
+    addTearDown(provider.dispose);
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: const Scaffold(
+            body: SingleChildScrollView(child: WaterParametersChart()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final parameterList = find.byWidgetPredicate(
+      (widget) =>
+          widget is ListView &&
+          widget.scrollDirection == Axis.horizontal,
+    );
+    expect(parameterList, findsOneWidget);
+    await tester.drag(parameterList, const Offset(-500, 0));
+    await tester.pumpAndSettle();
+
+    final ammoniaChip = find.widgetWithText(
+      ChoiceChip,
+      'Ammonia (NH3/NH4)',
+    );
+    expect(ammoniaChip, findsOneWidget);
+    await tester.tap(ammoniaChip);
+    await tester.pumpAndSettle();
+    expect(tester.widget<ChoiceChip>(ammoniaChip).selected, isTrue);
+  });
+
   testWidgets('uses a compact empty state before two tests are available', (
     tester,
   ) async {

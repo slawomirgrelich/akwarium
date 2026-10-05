@@ -2769,7 +2769,7 @@ class _Header extends StatelessWidget {
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Text(
             title,
             style: TextStyle(

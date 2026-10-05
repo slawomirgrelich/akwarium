@@ -80,24 +80,26 @@ class _WaterParametersChartState extends State<WaterParametersChart> {
               ),
             ],
             const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: WaterParameter.values.map((parameter) {
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: WaterParameter.values.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final parameter = WaterParameter.values[index];
                   final item = waterStandards[parameter]!;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(
-                        parameter == WaterParameter.nh3Nh4
-                            ? l10n.ammoniaParameterLabel
-                            : item.label,
-                      ),
-                      selected: _selected == parameter,
-                      onSelected: (_) => setState(() => _selected = parameter),
+                  return ChoiceChip(
+                    label: Text(
+                      parameter == WaterParameter.nh3Nh4
+                          ? l10n.ammoniaParameterLabel
+                          : item.label,
                     ),
+                    selected: _selected == parameter,
+                    onSelected: (_) => setState(() => _selected = parameter),
                   );
-                }).toList(),
+                },
               ),
             ),
             const SizedBox(height: 12),
