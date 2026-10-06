@@ -617,9 +617,7 @@ class DashboardPage extends StatelessWidget {
       context.showAppSnackBar(SnackBar(content: Text(l10n.addAquariumToStart)));
       return;
     }
-    final defaultLiters = suggestedWaterChangeLiters(
-      aquarium.volumeNetLiters,
-    );
+    final defaultLiters = suggestedWaterChangeLiters(aquarium.volumeNetLiters);
     final amountController = TextEditingController(
       text: defaultLiters.toStringAsFixed(1),
     );
@@ -639,8 +637,7 @@ class DashboardPage extends StatelessWidget {
                     !enteredAmount.isFinite ||
                     enteredAmount <= 0 ||
                     (asPercent && enteredAmount > 100) ||
-                    (!asPercent &&
-                        enteredAmount > aquarium.volumeNetLiters)
+                    (!asPercent && enteredAmount > aquarium.volumeNetLiters)
                 ? null
                 : waterChangeVolumeLiters(
                     amount: enteredAmount,
@@ -2769,7 +2766,7 @@ class _Header extends StatelessWidget {
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           Text(
             title,
             style: TextStyle(
