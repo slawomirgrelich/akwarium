@@ -2373,6 +2373,7 @@ class ProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final proService = context.watch<ProAccessService>();
+    final theme = Theme.of(context);
     final activeAquarium = context
         .watch<models.AquariumProvider>()
         .selectedAquarium;
@@ -2389,10 +2390,35 @@ class ProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Header(
-              eyebrow: l10n.account,
-              title: l10n.profileTitle,
-              subtitle: l10n.profileSubtitle,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.account,
+                  style: TextStyle(
+                    color: theme.colorScheme.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.profileTitle,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.profileSubtitle,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             const _SignedInAccountCard(),
