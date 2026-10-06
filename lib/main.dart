@@ -2394,15 +2394,6 @@ class ProfilePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  l10n.account,
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
                   l10n.profileTitle,
                   style: TextStyle(
                     color: theme.colorScheme.onSurface,
@@ -2423,7 +2414,7 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 12),
             const _SignedInAccountCard(),
             const _ProCard(),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             const _ProfileDisplayNameTile(),
             const SizedBox(height: 10),
             _SettingsTile(

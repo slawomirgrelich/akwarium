@@ -256,12 +256,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                               label: Text(l10n.signInWithGoogle),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              l10n.googleConfigurationHint,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
                           ],
                           if (!_isRegistering) ...[
                             const SizedBox(height: 8),
