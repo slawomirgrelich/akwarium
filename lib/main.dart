@@ -2411,7 +2411,7 @@ class ProfilePage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             const _SignedInAccountCard(),
             const _ProCard(),
             const SizedBox(height: 16),
