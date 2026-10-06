@@ -2412,9 +2412,8 @@ class ProfilePage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            const _SignedInAccountCard(),
-            const _ProCard(),
-            const SizedBox(height: 16),
+            const _ProfileHeader(),
+            const SizedBox(height: 24),
             const _ProfileDisplayNameTile(),
             const SizedBox(height: 10),
             _SettingsTile(
@@ -3405,12 +3404,15 @@ class _AdminPanelTile extends StatelessWidget {
   );
 }
 
-class _SignedInAccountCard extends StatelessWidget {
-  const _SignedInAccountCard();
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader();
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isProUser = context.watch<ProAccessService>().isProUser;
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.userChanges(),
       initialData: FirebaseAuth.instance.currentUser,
@@ -3419,8 +3421,27 @@ class _SignedInAccountCard extends StatelessWidget {
         if (user == null) return const SizedBox.shrink();
         final displayName = user.displayName?.trim();
         final email = user.email?.trim();
+        final hasDisplayName = displayName?.isNotEmpty == true;
+        final hasEmail = email?.isNotEmpty == true;
+        final accountName = hasDisplayName
+            ? displayName!
+            : hasEmail
+            ? email!
+            : l10n.signedInAccount;
+        final initial = hasDisplayName
+            ? displayName![0].toUpperCase()
+            : hasEmail
+            ? email![0].toUpperCase()
+            : '?';
+        final statusColor = isProUser
+            ? colorScheme.tertiaryContainer
+            : colorScheme.surfaceContainerHighest;
+        final statusForegroundColor = isProUser
+            ? colorScheme.onTertiaryContainer
+            : colorScheme.onSurfaceVariant;
         return Card(
           child: ListTile(
+            isThreeLine: true,
             leading: SizedBox(
               width: 48,
               height: 48,
@@ -3429,11 +3450,7 @@ class _SignedInAccountCard extends StatelessWidget {
                     ? CircleAvatar(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         child: Text(
-                          (displayName?.isNotEmpty ?? false)
-                              ? displayName![0].toUpperCase()
-                              : (email?.isNotEmpty ?? false)
-                              ? email![0].toUpperCase()
-                              : '?',
+                          initial,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
@@ -3447,17 +3464,71 @@ class _SignedInAccountCard extends StatelessWidget {
                           backgroundColor: Theme.of(context)
                               .colorScheme
                               .primaryContainer,
-                          child: const Icon(Icons.person_outline),
+                          child: Text(
+                            initial,
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
               ),
             ),
-            title: Text(
-              (displayName?.isNotEmpty ?? false)
-                  ? displayName!
-                  : email ?? l10n.signedInAccount,
+            title: Text(accountName),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (hasDisplayName && hasEmail)
+                  Text(
+                    email!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                const SizedBox(height: 8),
+                Material(
+                  color: statusColor,
+                  borderRadius: BorderRadius.circular(20),
+                  child: InkWell(
+                    onTap: isProUser
+                        ? null
+                        : () => ProPaywallDialog.show(context),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isProUser
+                                ? Icons.verified_outlined
+                                : Icons.workspace_premium_outlined,
+                            size: 14,
+                            color: statusForegroundColor,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            isProUser ? 'PRO' : l10n.freePlan,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: statusForegroundColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            subtitle: Text(email ?? l10n.signedInAccount),
           ),
         );
       },
