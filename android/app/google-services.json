@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:760131458678:android:f8e04c550b9f6ddf113157",
         "android_client_info": {
-          "package_name": "com.slawek.grelich.akwarium"
+          "package_name": "com.example.akwarium"
         }
       },
       "oauth_client": [
@@ -17,8 +17,52 @@
           "client_id": "760131458678-mcmhq24rvivk2p6jtcfo23e58i1djosc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.slawek.grelich.akwarium",
+            "package_name": "com.example.akwarium",
             "certificate_hash": "335a5808081321120ef28fea4f13cf50c3f40ec5"
+          }
+        },
+        {
+          "client_id": "760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6RN0XYuIMi5eEOIGjkMCbAdFqxaxOqqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "760131458678-fdlqoal3kaf6st74kkttldiggllidukg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.akwarium"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760131458678:android:6c4bdf99d3b3961e113157",
+        "android_client_info": {
+          "package_name": "com.slawek.grelich.akwarium"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "760131458678-f90k1ij538ack72hdlqpckk8o51qboum.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.slawek.grelich.akwarium",
+            "certificate_hash": "335a589bd8132112def2bfea4f13cf5dc3f40ec5"
           }
         },
         {
