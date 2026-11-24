@@ -14,7 +14,7 @@
       "android": {
         "default": {
           "projectId": "moje-akwarium-40a75",
-          "appId": "1:760131458678:android:f8e04c550b9f6ddf113157",
+          "appId": "1:760131458678:android:6c4bdf99d3b3961e113157",
           "fileOutput": "android/app/google-services.json"
         }
       },

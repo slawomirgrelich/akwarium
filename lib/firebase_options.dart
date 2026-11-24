@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyC6RN0XYuIMi5eEOIGjkMCbAdFqxaxOqqE',
-    appId: '1:760131458678:android:f8e04c550b9f6ddf113157',
+    appId: '1:760131458678:android:6c4bdf99d3b3961e113157',
     messagingSenderId: '760131458678',
     projectId: 'moje-akwarium-40a75',
     storageBucket: 'moje-akwarium-40a75.firebasestorage.app',

@@ -29,7 +29,7 @@ class DatabaseService {
 
   CollectionReference<Map<String, dynamic>> _tanks(String userId) {
     _requirePathId(userId, 'userId');
-    return _firestore.collection('users').doc(userId).collection('tanks');
+    return _firestore.collection('users').doc(userId).collection('aquariums');
   }
 
   CollectionReference<Map<String, dynamic>> _waterParameters(
@@ -45,7 +45,7 @@ class DatabaseService {
     String tankId,
   ) {
     _requirePathId(tankId, 'tankId');
-    return _tanks(userId).doc(tankId).collection('journal_logs');
+    return _tanks(userId).doc(tankId).collection('journal');
   }
 
   CollectionReference<Map<String, dynamic>> _reminders(
@@ -241,7 +241,15 @@ class DatabaseService {
         activityType: reminder.taskType.name,
         title: reminder.title,
         note: 'Przypomnienie wykonane',
-      ).toFirestore(),
+      ).toFirestore()..addAll({
+        'aquariumId': tankId,
+        'entryType': switch (reminder.taskType) {
+          ReminderTaskType.filterClean => 'filter',
+          ReminderTaskType.fertilizer => 'fertilizing',
+          _ => reminder.taskType.name,
+        },
+        'notes': 'Przypomnienie wykonane',
+      }),
     );
     if (reminder.taskType == ReminderTaskType.waterChange) {
       final waterChange = waterChangeForReminder(
@@ -320,7 +328,8 @@ class DatabaseService {
   }) async {
     await _ensurePhotoOwnerAccess(userId, tankId);
     final document = _photos(userId, tankId).doc();
-    final storagePath = 'users/$userId/tanks/$tankId/photos/${document.id}.jpg';
+    final storagePath =
+        'users/$userId/aquariums/$tankId/photos/${document.id}.jpg';
     final storageReference = _storage.ref(storagePath);
     late TankPhoto photo;
     try {

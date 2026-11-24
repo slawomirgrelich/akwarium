@@ -148,10 +148,8 @@ class AuthService {
   Future<void> _updateGoogleUserIdentity(User user) async {
     try {
       await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        if (user.email != null) 'email': user.email,
         if (user.displayName != null) 'displayName': user.displayName,
-        if (user.photoURL != null) 'photoURL': user.photoURL,
+        if (user.photoURL != null) 'photoUrl': user.photoURL,
       }, SetOptions(merge: true));
       await FirestoreSyncStatus.recordSuccessfulSync();
     } on Object catch (error, stackTrace) {
