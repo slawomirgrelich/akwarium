@@ -923,6 +923,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
     return AlertDialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       scrollable: true,
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
       actionsOverflowDirection: VerticalDirection.down,
       actionsOverflowButtonSpacing: 8,
       title: Text(
@@ -935,8 +936,8 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
             controller: _name,
             decoration: InputDecoration(labelText: l10n.aquariumName),
           ),
+          const SizedBox(height: 18),
           if (isBeginner) ...[
-            const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -953,6 +954,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
+            const SizedBox(height: 16),
           ],
           TextField(
             controller: _length,
@@ -963,6 +965,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
               suffixText: 'cm',
             ),
           ),
+          const SizedBox(height: 16),
           TextField(
             controller: _width,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -972,6 +975,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
               suffixText: 'cm',
             ),
           ),
+          const SizedBox(height: 16),
           TextField(
             controller: _height,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -982,7 +986,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
             ),
           ),
           if (_calculatedGrossVolume case final volume?) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 10),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -991,6 +995,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
               ),
             ),
           ],
+          const SizedBox(height: 18),
           TextField(
             controller: _net,
             keyboardType: TextInputType.number,
@@ -999,6 +1004,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
               suffixText: 'l',
             ),
           ),
+          const SizedBox(height: 8),
           FutureBuilder<double?>(
             future: _savedCalculatorCapacity(),
             builder: (context, snapshot) {
@@ -1020,7 +1026,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
           ),
           if (isBeginner)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 2, bottom: 16),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -1029,7 +1035,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
                 ),
               ),
             )
-          else
+          else ...[
             TextField(
               controller: _gross,
               keyboardType: TextInputType.number,
@@ -1038,6 +1044,8 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
                 suffixText: 'l',
               ),
             ),
+            const SizedBox(height: 16),
+          ],
           DropdownButtonFormField<TankType>(
             initialValue: _type,
             isExpanded: true,
@@ -1052,6 +1060,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
                 .toList(),
             onChanged: (value) => setState(() => _type = value!),
           ),
+          const SizedBox(height: 16),
           TextField(
             controller: _lighting,
             decoration: InputDecoration(
@@ -1062,8 +1071,10 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
               helperText: isBeginner
                   ? l10n.beginnerStepLightingDescription
                   : null,
+              helperMaxLines: null,
             ),
           ),
+          const SizedBox(height: 16),
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(l10n.setupDateLabel),

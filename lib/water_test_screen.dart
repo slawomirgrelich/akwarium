@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'models/aquarium_model.dart' as models;
 import 'services/experience_mode_controller.dart';
+import 'widgets/experience_mode_banner.dart';
 
 import 'package:akwarium/utils/app_snackbar.dart';
 
@@ -93,6 +94,8 @@ class _WaterTestScreenState extends State<WaterTestScreen> {
                     if (isBeginner) ...[
                       const SizedBox(height: 4),
                       Text(l10n.beginnerWaterMeasurementsHint),
+                      const SizedBox(height: 12),
+                      const ExperienceModeBanner(compact: true),
                     ],
                     const SizedBox(height: 20),
                     ..._controllers.entries

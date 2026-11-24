@@ -50,6 +50,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
   String? _dashboardRemindersAquariumId;
   final _pendingWaterChangeMigrations = <String>{};
   JournalEntryType? _entryFilter;
+  bool _journalMutationPending = false;
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
 
@@ -168,6 +169,8 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                     length: 2,
                     child: Column(
                       children: [
+                        if (_journalMutationPending)
+                          const LinearProgressIndicator(minHeight: 2),
                         TabBar(
                           tabs: [
                             Tab(
@@ -193,8 +196,11 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                                     setState(() => _entryFilter = value),
                                 onDeleteWaterTest: (entry) =>
                                     _deleteWaterTest(context, entry),
+                                onOpen: (entry) =>
+                                    _openJournalEntryDetails(context, entry),
                               ),
                               _CalendarTab(
+                                entries: journal,
                                 reminders: reminders,
                                 dashboardReminders: dashboardReminders,
                                 selectedDay: _selectedDay,
@@ -232,6 +238,8 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                                 isProUser: context
                                     .watch<ProAccessService>()
                                     .isProUser,
+                                onOpenEntry: (entry) =>
+                                    _openJournalEntryDetails(context, entry),
                               ),
                             ],
                           ),
@@ -256,21 +264,28 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
       for (final entry in cloudEntries) entry.id: entry,
     };
     for (final entry in localEntries) {
-      entriesById[entry.id] = JournalEntryModel(
-        id: entry.id,
-        aquariumId: entry.aquariumId,
-        timestamp: entry.timestamp,
-        entryType: switch (entry.type) {
-          'waterChange' => JournalEntryType.waterChange,
-          'filter' => JournalEntryType.filter,
-          'trimming' => JournalEntryType.trimming,
-          'medication' => JournalEntryType.medication,
-          'fertilizing' => JournalEntryType.fertilizing,
-          'waterTest' => JournalEntryType.waterTest,
-          _ => JournalEntryType.cleaning,
-        },
-        title: entry.title,
-        notes: entry.description,
+      entriesById.putIfAbsent(
+        entry.id,
+        () => JournalEntryModel(
+          id: entry.id,
+          aquariumId: entry.aquariumId,
+          timestamp: entry.timestamp,
+          entryType: switch (entry.type) {
+            'waterChange' => JournalEntryType.waterChange,
+            'filter' => JournalEntryType.filter,
+            'trimming' => JournalEntryType.trimming,
+            'medication' => JournalEntryType.medication,
+            'fertilizing' => JournalEntryType.fertilizing,
+            'waterTest' => JournalEntryType.waterTest,
+            _ => JournalEntryType.cleaning,
+          },
+          title: entry.title,
+          notes: entry.description,
+          attachedWaterParameters: entry.attachedWaterParameters,
+          tags: entry.tags,
+          category: entry.category.name,
+          isLocalOnly: true,
+        ),
       );
     }
     return entriesById.values.toList()
@@ -408,6 +423,157 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
       }
     } on AquariumJournalServiceException catch (error) {
       if (context.mounted) _showMessage(context, error.message, error: true);
+    }
+  }
+
+  Future<void> _openJournalEntryDetails(
+    BuildContext context,
+    JournalEntryModel entry,
+  ) async {
+    final action = await showModalBottomSheet<_JournalEntryAction>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _JournalEntryDetails(entry: entry),
+    );
+    if (!context.mounted || action == null) return;
+    if (action == _JournalEntryAction.edit) {
+      await _editJournalEntry(context, entry);
+    } else {
+      await _deleteJournalEntry(context, entry);
+    }
+  }
+
+  Future<void> _editJournalEntry(
+    BuildContext context,
+    JournalEntryModel entry,
+  ) async {
+    if (entry.entryType == JournalEntryType.waterTest) return;
+    final provider = context.read<AquariumProvider>();
+    final edited = await showDialog<JournalEntryModel>(
+      context: context,
+      builder: (_) => _JournalEntryFormDialog(initial: entry),
+    );
+    if (edited == null || !context.mounted) return;
+    setState(() => _journalMutationPending = true);
+
+    try {
+      if (entry.isLocalOnly &&
+          entry.entryType != JournalEntryType.waterChange) {
+        final original = provider.journalEntries
+            .where((item) => item.id == entry.id)
+            .firstOrNull;
+        if (original == null) {
+          throw StateError('Wpis nie jest już dostępny.');
+        }
+        provider.updateJournalEntry(
+          JournalEntry(
+            id: original.id,
+            aquariumId: original.aquariumId,
+            date: edited.timestamp,
+            title: edited.title,
+            description: edited.notes,
+            type: original.type,
+            imagePaths: original.imagePaths,
+            category: original.category,
+            tags: original.tags,
+            attachedWaterParameters: original.attachedWaterParameters,
+          ),
+        );
+      } else {
+        await _journalService.updateJournalEntry(edited);
+        if (entry.entryType == JournalEntryType.waterChange) {
+          final change = provider.waterChanges
+              .where((item) => item.id == entry.id)
+              .firstOrNull;
+          if (change != null) {
+            provider.updateWaterChange(
+              WaterChange(
+                id: change.id,
+                aquariumId: change.aquariumId,
+                date: edited.timestamp,
+                volumeLiters: change.volumeLiters,
+                notes: edited.notes,
+              ),
+            );
+          }
+        }
+      }
+      if (context.mounted) {
+        _showMessage(
+          context,
+          AppLocalizations.of(context)!.journalEntryUpdated,
+        );
+      }
+    } on Object catch (error) {
+      debugPrint('Journal entry update failed: $error');
+      if (context.mounted) {
+        _showMessage(
+          context,
+          AppLocalizations.of(context)!.journalEntryUpdateError,
+          error: true,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _journalMutationPending = false);
+    }
+  }
+
+  Future<void> _deleteJournalEntry(
+    BuildContext context,
+    JournalEntryModel entry,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.journalDeleteEntryTitle),
+        content: Text(l10n.journalDeleteEntryBody(entry.title)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.deleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    setState(() => _journalMutationPending = true);
+
+    try {
+      if (entry.entryType == JournalEntryType.waterTest) {
+        await _deleteWaterTest(context, entry, confirm: false);
+      } else if (entry.isLocalOnly &&
+          entry.entryType != JournalEntryType.waterChange) {
+        final provider = context.read<AquariumProvider>();
+        final original = provider.journalEntries
+            .where((item) => item.id == entry.id)
+            .firstOrNull;
+        if (original != null) {
+          await provider.deleteJournalEntry(original);
+        }
+      } else if (entry.entryType == JournalEntryType.waterChange) {
+        await context.read<AquariumProvider>().deleteWaterChange(
+          entry.aquariumId,
+          entry.id,
+        );
+      } else {
+        await _journalService.deleteJournalEntry(entry);
+      }
+      if (context.mounted) {
+        _showMessage(context, l10n.journalEntryDeleted);
+      }
+    } on Object catch (error) {
+      debugPrint('Journal entry deletion failed: $error');
+      if (context.mounted) {
+        _showMessage(context, l10n.journalEntryDeleteError, error: true);
+      }
+    } finally {
+      if (mounted) setState(() => _journalMutationPending = false);
     }
   }
 
@@ -660,8 +826,9 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
 
   Future<void> _deleteWaterTest(
     BuildContext context,
-    JournalEntryModel entry,
-  ) async {
+    JournalEntryModel entry, {
+    bool confirm = true,
+  }) async {
     final l10n = AppLocalizations.of(context)!;
     final aquariumId = context.read<AquariumProvider>().resolveAquariumId(
       entry.aquariumId,
@@ -671,30 +838,33 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
       return;
     }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.waterTestDeleteTitle),
-        content: Text(l10n.waterTestDeletePrompt),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.deleteAction),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
+    if (confirm) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.waterTestDeleteTitle),
+          content: Text(l10n.waterTestDeletePrompt),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l10n.deleteAction),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !context.mounted) return;
+    }
 
     try {
       await FirestoreService().deleteWaterParameter(aquariumId, entry.id);
       if (context.mounted) _showMessage(context, l10n.waterTestDeletedMessage);
     } on FirestoreServiceException catch (error) {
       debugPrint('Water-test deletion failed: $error');
+      if (!confirm) rethrow;
       if (context.mounted) {
         _showMessage(context, l10n.waterTestDeleteFailed, error: true);
       }
@@ -777,6 +947,7 @@ class _TimelineTab extends StatelessWidget {
     required this.waterTestIds,
     required this.onFilterChanged,
     required this.onDeleteWaterTest,
+    required this.onOpen,
   });
 
   final List<JournalEntryModel> entries;
@@ -784,6 +955,7 @@ class _TimelineTab extends StatelessWidget {
   final Set<String> waterTestIds;
   final ValueChanged<JournalEntryType?> onFilterChanged;
   final ValueChanged<JournalEntryModel> onDeleteWaterTest;
+  final ValueChanged<JournalEntryModel> onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -823,6 +995,7 @@ class _TimelineTab extends StatelessWidget {
           ...filtered.map(
             (entry) => _JournalTimelineCard(
               entry: entry,
+              onOpen: () => onOpen(entry),
               onDeleteWaterTest:
                   entry.entryType == JournalEntryType.waterTest &&
                       waterTestIds.contains(entry.id)
@@ -839,10 +1012,12 @@ class _JournalTimelineCard extends StatelessWidget {
   const _JournalTimelineCard({
     required this.entry,
     required this.onDeleteWaterTest,
+    required this.onOpen,
   });
 
   final JournalEntryModel entry;
   final VoidCallback? onDeleteWaterTest;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -850,6 +1025,7 @@ class _JournalTimelineCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
+        onTap: onOpen,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           backgroundColor: Colors.teal.withValues(alpha: 0.12),
@@ -881,8 +1057,124 @@ class _JournalTimelineCard extends StatelessWidget {
   }
 }
 
+enum _JournalEntryAction { edit, delete }
+
+class _JournalEntryDetails extends StatelessWidget {
+  const _JournalEntryDetails({required this.entry});
+
+  final JournalEntryModel entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.72,
+      minChildSize: 0.45,
+      maxChildSize: 0.95,
+      builder: (context, controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.journalEntryDetails,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(entry.title, style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              Chip(label: Text(_journalTypeLabel(l10n, entry.entryType))),
+              Chip(label: Text(_formatDateTime(entry.timestamp))),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SelectableText(
+            entry.notes.trim().isEmpty ? '-' : entry.notes,
+            style: Theme.of(context).textTheme.bodyLarge
+                ?.copyWith(height: 1.45),
+          ),
+          if (entry.percentageWaterChanged case final percentage?) ...[
+            const SizedBox(height: 16),
+            _DetailValue(
+              label: l10n.waterReplaced,
+              value: '${percentage.toStringAsFixed(0)}%',
+            ),
+          ],
+          if (entry.attachedWaterParameters?.isNotEmpty == true) ...[
+            const SizedBox(height: 18),
+            Text(
+              l10n.journalEntryParameters,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            ...entry.attachedWaterParameters!.entries.map(
+              (parameter) => _DetailValue(
+                label: parameter.key,
+                value: parameter.value.toString(),
+              ),
+            ),
+          ],
+          const SizedBox(height: 24),
+          if (entry.entryType != JournalEntryType.waterTest)
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(context, _JournalEntryAction.edit),
+              icon: const Icon(Icons.edit_outlined),
+              label: Text(l10n.journalEditEntry),
+            ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.pop(context, _JournalEntryAction.delete),
+            icon: Icon(
+              Icons.delete_outline,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            label: Text(
+              l10n.deleteAction,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailValue extends StatelessWidget {
+  const _DetailValue({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: Text(label)),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _CalendarTab extends StatelessWidget {
   const _CalendarTab({
+    required this.entries,
     required this.reminders,
     required this.dashboardReminders,
     required this.selectedDay,
@@ -895,8 +1187,10 @@ class _CalendarTab extends StatelessWidget {
     required this.onCompleteDashboardReminder,
     required this.onEditDashboardReminder,
     required this.isProUser,
+    required this.onOpenEntry,
   });
 
+  final List<JournalEntryModel> entries;
   final List<ReminderModel> reminders;
   final List<AquariumReminder> dashboardReminders;
   final DateTime selectedDay;
@@ -909,6 +1203,7 @@ class _CalendarTab extends StatelessWidget {
   final ValueChanged<AquariumReminder> onCompleteDashboardReminder;
   final ValueChanged<AquariumReminder> onEditDashboardReminder;
   final bool isProUser;
+  final ValueChanged<JournalEntryModel> onOpenEntry;
 
   @override
   Widget build(BuildContext context) {
@@ -920,6 +1215,9 @@ class _CalendarTab extends StatelessWidget {
     final selected = calendarReminders
         .where((reminder) => isSameDay(reminder.dueDate, selectedDay))
         .toList();
+    final selectedEntries = entries
+        .where((entry) => isSameDay(entry.timestamp, selectedDay))
+        .toList(growable: false);
     final upcoming = calendarReminders
         .where((reminder) => !reminder.isCompleted)
         .toList();
@@ -968,16 +1266,21 @@ class _CalendarTab extends StatelessWidget {
             child: Builder(
               builder: (context) {
                 try {
-                  return TableCalendar<_CalendarReminderItem>(
+                  return TableCalendar<Object>(
                     locale: Localizations.localeOf(context).languageCode,
                     firstDay: DateTime.utc(2020),
                     lastDay: DateTime.utc(2035),
                     focusedDay: focusedDay,
                     selectedDayPredicate: (day) => isSameDay(day, selectedDay),
                     onDaySelected: onDaySelected,
-                    eventLoader: (day) => calendarReminders
-                        .where((reminder) => isSameDay(reminder.dueDate, day))
-                        .toList(),
+                    eventLoader: (day) => [
+                      ...calendarReminders.where(
+                        (reminder) => isSameDay(reminder.dueDate, day),
+                      ),
+                      ...entries.where(
+                        (entry) => isSameDay(entry.timestamp, day),
+                      ),
+                    ],
                     calendarStyle: const CalendarStyle(
                       markerDecoration: BoxDecoration(
                         color: Colors.teal,
@@ -1001,10 +1304,18 @@ class _CalendarTab extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        if (selected.isEmpty)
+        if (selected.isEmpty && selectedEntries.isEmpty)
           _JournalEmpty(icon: Icons.event_available, text: l10n.noTasksForDay)
-        else
+        else ...[
+          ...selectedEntries.map(
+            (entry) => _JournalTimelineCard(
+              entry: entry,
+              onDeleteWaterTest: null,
+              onOpen: () => onOpenEntry(entry),
+            ),
+          ),
           ...selected.map(reminderTile),
+        ],
         if (upcoming.isNotEmpty) ...[
           const SizedBox(height: 20),
           Text(
@@ -1180,7 +1491,9 @@ class _DashboardReminderTile extends StatelessWidget {
 }
 
 class _JournalEntryFormDialog extends StatefulWidget {
-  const _JournalEntryFormDialog();
+  const _JournalEntryFormDialog({this.initial});
+
+  final JournalEntryModel? initial;
 
   @override
   State<_JournalEntryFormDialog> createState() =>
@@ -1194,6 +1507,22 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
   JournalEntryType _type = JournalEntryType.waterChange;
   bool _waterChangeAsPercent = true;
   String? _waterChangeError;
+  late DateTime _timestamp;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initial;
+    _timestamp = initial?.timestamp ?? DateTime.now();
+    if (initial != null) {
+      _title.text = initial.title;
+      _notes.text = initial.notes;
+      _type = initial.entryType;
+      if (initial.percentageWaterChanged case final percentage?) {
+        _percentage.text = percentage.toString();
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -1207,7 +1536,9 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(l10n.newActivity),
+      title: Text(
+        widget.initial == null ? l10n.newActivity : l10n.journalEditEntry,
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1217,6 +1548,13 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
               decoration: InputDecoration(labelText: l10n.title),
             ),
             const SizedBox(height: 10),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.event_outlined),
+              title: Text(l10n.journalEntryDate),
+              subtitle: Text(_formatDateTime(_timestamp)),
+              onTap: _pickTimestamp,
+            ),
             DropdownButtonFormField<JournalEntryType>(
               initialValue: _type,
               decoration: InputDecoration(labelText: l10n.activityType),
@@ -1228,7 +1566,9 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
                     ),
                   )
                   .toList(),
-              onChanged: (value) => setState(() => _type = value ?? _type),
+              onChanged: widget.initial == null
+                  ? (value) => setState(() => _type = value ?? _type)
+                  : null,
             ),
             if (_type == JournalEntryType.waterChange) ...[
               const SizedBox(height: 10),
@@ -1306,15 +1646,43 @@ class _JournalEntryFormDialogState extends State<_JournalEntryFormDialog> {
     Navigator.pop(
       context,
       JournalEntryModel(
-        id: '',
-        aquariumId: '',
-        timestamp: DateTime.now(),
+        id: widget.initial?.id ?? '',
+        aquariumId: widget.initial?.aquariumId ?? '',
+        timestamp: _timestamp,
         entryType: _type,
         title: _title.text.trim(),
         notes: _notes.text.trim(),
         percentageWaterChanged: percentageWaterChanged,
+        attachedWaterParameters: widget.initial?.attachedWaterParameters,
+        tags: widget.initial?.tags ?? const [],
+        category: widget.initial?.category,
+        isLocalOnly: widget.initial?.isLocalOnly ?? false,
       ),
     );
+  }
+
+  Future<void> _pickTimestamp() async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _timestamp,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+    );
+    if (selectedDate == null || !mounted) return;
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_timestamp),
+    );
+    if (selectedTime == null || !mounted) return;
+    setState(() {
+      _timestamp = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      );
+    });
   }
 }
 
@@ -1657,3 +2025,6 @@ String _formatDate(DateTime date) {
 
 String _formatTime(DateTime date) =>
     '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+
+String _formatDateTime(DateTime date) =>
+    '${_formatDate(date)} · ${_formatTime(date)}';

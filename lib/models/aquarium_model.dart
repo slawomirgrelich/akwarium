@@ -1258,6 +1258,25 @@ class AquariumProvider extends ChangeNotifier {
     _persist();
   }
 
+  void updateJournalEntry(JournalEntry entry) {
+    final index = _journalEntries.indexWhere(
+      (item) => item.id == entry.id && item.aquariumId == entry.aquariumId,
+    );
+    if (index == -1) return;
+    _journalEntries[index] = entry;
+    _journalEntries.sort((a, b) => b.date.compareTo(a.date));
+    notifyListeners();
+    _persist();
+  }
+
+  Future<void> deleteJournalEntry(JournalEntry entry) async {
+    _journalEntries.removeWhere(
+      (item) => item.id == entry.id && item.aquariumId == entry.aquariumId,
+    );
+    notifyListeners();
+    await _persist();
+  }
+
   Future<void> addTask(AquariumTask task) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -1336,6 +1355,35 @@ class AquariumProvider extends ChangeNotifier {
       return;
     }
     _upsertWaterChange(change);
+  }
+
+  Future<void> deleteWaterChange(String aquariumId, String changeId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw StateError('Zaloguj się, aby usunąć podmianę wody.');
+    }
+    final firestore = FirebaseFirestore.instance;
+    final batch = firestore.batch();
+    batch.delete(_aquariumWaterChanges(user.uid, aquariumId).doc(changeId));
+    batch.delete(
+      firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('aquariums')
+          .doc(aquariumId)
+          .collection('journal')
+          .doc(changeId),
+    );
+    await batch.commit();
+    _waterChanges.removeWhere(
+      (item) => item.id == changeId && item.aquariumId == aquariumId,
+    );
+    _journalEntries.removeWhere(
+      (item) => item.id == changeId && item.aquariumId == aquariumId,
+    );
+    notifyListeners();
+    await _persist();
+    await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
   void _upsertWaterChange(WaterChange change) {

@@ -980,7 +980,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get experienceModeSubtitle =>
-      'Adapt the dashboard and guidance to your experience.';
+      'Switch the view any time. Aquarium data and settings stay unchanged.';
 
   @override
   String get beginnerMode => 'Beginner';
@@ -990,10 +990,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get beginnerModeDescription =>
-      'A simpler dashboard with step-by-step guidance.';
+      'Essential guidance, a simple water overview, and fewer fields. Full options are one switch away.';
 
   @override
-  String get advancedModeDescription => 'Full parameters, charts, and tools.';
+  String get advancedModeDescription =>
+      'All KH, GH, and Fe parameters, trend charts, detailed analysis, diagnostics, and every tool.';
+
+  @override
+  String get modeOnboardingTitle => 'How would you like to use the app?';
+
+  @override
+  String get modeOnboardingDescription =>
+      'Choose the view that fits you. This does not limit your data or PRO features — you can change modes with one click.';
+
+  @override
+  String get modeChangeAnytimeHint =>
+      'Change it later in Profile → App experience.';
+
+  @override
+  String get modeOnboardingContinue => 'Continue';
+
+  @override
+  String get beginnerModeActiveTitle => 'Beginner mode is active';
+
+  @override
+  String get beginnerModeActiveDescription =>
+      'We show a simplified form and the most important information. Full parameters, charts, and analysis are available by switching modes.';
+
+  @override
+  String get switchToAdvancedMode => 'Switch to Advanced';
+
+  @override
+  String get experienceModeChanged => 'App experience mode changed.';
+
+  @override
+  String get experienceModeSaveFailed =>
+      'Could not save the app experience mode.';
+
+  @override
+  String get faqModesTitle =>
+      'What is the difference between Beginner and Advanced?';
+
+  @override
+  String get faqModesAnswer =>
+      'Beginner reduces fields and shows key guidance. Advanced adds all parameters, charts, trends, and analysis. Change it any time in Profile → App experience without losing data.';
 
   @override
   String get beginnerGuideTitle => 'Get started step by step';
@@ -2311,6 +2351,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get adminAccountProvidersLoadError =>
       'Could not determine the user\'s sign-in method.';
+
+  @override
+  String get journalEntryDetails => 'Entry details';
+
+  @override
+  String get journalEntryDate => 'Entry date';
+
+  @override
+  String get journalEntryParameters => 'Related parameters';
+
+  @override
+  String get journalEditEntry => 'Edit entry';
+
+  @override
+  String get journalEntryUpdated => 'Entry updated.';
+
+  @override
+  String get journalDeleteEntryTitle => 'Delete entry?';
+
+  @override
+  String journalDeleteEntryBody(String title) {
+    return 'Entry “$title” will be permanently deleted.';
+  }
+
+  @override
+  String get journalEntryDeleted => 'Entry deleted.';
+
+  @override
+  String get journalEntryDeleteError => 'Could not delete the entry.';
+
+  @override
+  String get journalEntryUpdateError => 'Could not update the entry.';
 
   @override
   String get ticketBugCategory => '🐛 Report an app bug';

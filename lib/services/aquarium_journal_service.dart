@@ -44,6 +44,10 @@ class JournalEntryModel {
     required this.title,
     required this.notes,
     this.percentageWaterChanged,
+    this.attachedWaterParameters,
+    this.tags = const [],
+    this.category,
+    this.isLocalOnly = false,
   });
 
   final String id;
@@ -53,6 +57,38 @@ class JournalEntryModel {
   final String title;
   final String notes;
   final double? percentageWaterChanged;
+  final Map<String, double>? attachedWaterParameters;
+  final List<String> tags;
+  final String? category;
+  final bool isLocalOnly;
+
+  JournalEntryModel copyWith({
+    String? id,
+    String? aquariumId,
+    DateTime? timestamp,
+    JournalEntryType? entryType,
+    String? title,
+    String? notes,
+    double? percentageWaterChanged,
+    Map<String, double>? attachedWaterParameters,
+    List<String>? tags,
+    String? category,
+    bool? isLocalOnly,
+  }) => JournalEntryModel(
+    id: id ?? this.id,
+    aquariumId: aquariumId ?? this.aquariumId,
+    timestamp: timestamp ?? this.timestamp,
+    entryType: entryType ?? this.entryType,
+    title: title ?? this.title,
+    notes: notes ?? this.notes,
+    percentageWaterChanged:
+        percentageWaterChanged ?? this.percentageWaterChanged,
+    attachedWaterParameters:
+        attachedWaterParameters ?? this.attachedWaterParameters,
+    tags: tags ?? this.tags,
+    category: category ?? this.category,
+    isLocalOnly: isLocalOnly ?? this.isLocalOnly,
+  );
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -62,6 +98,9 @@ class JournalEntryModel {
     'title': title,
     'notes': notes,
     'percentageWaterChanged': percentageWaterChanged,
+    'attachedWaterParameters': attachedWaterParameters,
+    'tags': tags,
+    if (category != null) 'category': category,
   };
 
   factory JournalEntryModel.fromFirestore(
@@ -76,6 +115,11 @@ class JournalEntryModel {
       title: _string(data['title'], 'Wpis dziennika'),
       notes: _string(data['notes']),
       percentageWaterChanged: _doubleOrNull(data['percentageWaterChanged']),
+      attachedWaterParameters: (data['attachedWaterParameters'] as Map?)?.map(
+        (key, value) => MapEntry(key.toString(), (value as num).toDouble()),
+      ),
+      tags: List<String>.from(data['tags'] as List? ?? const []),
+      category: data['category'] as String?,
     );
   }
 }
@@ -418,6 +462,29 @@ class AquariumJournalService {
       entry.id,
       entry.toMap(),
     );
+  }
+
+  Future<void> updateJournalEntry(JournalEntryModel entry) async {
+    _requirePathId(entry.id, 'journalEntryId');
+    await _write(
+      _collection(_userId(), entry.aquariumId, 'journal'),
+      entry.id,
+      entry.toMap(),
+    );
+  }
+
+  Future<void> deleteJournalEntry(JournalEntryModel entry) async {
+    try {
+      _requirePathId(entry.id, 'journalEntryId');
+      await _collection(
+        _userId(),
+        entry.aquariumId,
+        'journal',
+      ).doc(entry.id).delete();
+      await FirestoreSyncStatus.recordSuccessfulSync();
+    } catch (error) {
+      throw AquariumJournalServiceException(_message(error));
+    }
   }
 
   Future<void> addReminder(ReminderModel reminder) async {

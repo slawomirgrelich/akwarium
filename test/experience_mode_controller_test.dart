@@ -12,6 +12,7 @@ void main() {
     await controller.init();
     expect(controller.mode, ExperienceMode.beginner);
     expect(controller.isBeginner, isTrue);
+    expect(controller.modeOnboardingCompleted, isFalse);
 
     await controller.setMode(ExperienceMode.advanced);
     final restartedController = ExperienceModeController(
@@ -40,5 +41,24 @@ void main() {
     await restartedController.init();
 
     expect(restartedController.beginnerGuideCompleted, isTrue);
+    expect(restartedController.modeOnboardingCompleted, isTrue);
+  });
+
+  test('persists mode onboarding independently from beginner guide', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final preferences = await SharedPreferences.getInstance();
+    final controller = ExperienceModeController(preferences: preferences);
+    await controller.init();
+
+    await controller.setMode(ExperienceMode.advanced);
+    await controller.completeModeOnboarding();
+
+    final restartedController = ExperienceModeController(
+      preferences: preferences,
+    );
+    await restartedController.init();
+    expect(restartedController.mode, ExperienceMode.advanced);
+    expect(restartedController.modeOnboardingCompleted, isTrue);
+    expect(restartedController.beginnerGuideCompleted, isFalse);
   });
 }

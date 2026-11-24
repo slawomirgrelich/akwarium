@@ -1907,7 +1907,7 @@ abstract class AppLocalizations {
   /// No description provided for @experienceModeSubtitle.
   ///
   /// In pl, this message translates to:
-  /// **'Dopasuj pulpit i wskazówki do swojego doświadczenia.'**
+  /// **'Przełączaj widok w dowolnym momencie. Dane i ustawienia akwarium pozostają bez zmian.'**
   String get experienceModeSubtitle;
 
   /// No description provided for @beginnerMode.
@@ -1925,14 +1925,80 @@ abstract class AppLocalizations {
   /// No description provided for @beginnerModeDescription.
   ///
   /// In pl, this message translates to:
-  /// **'Prostszy pulpit i prowadzenie krok po kroku.'**
+  /// **'Najważniejsze wskazówki, prosty podgląd wody i mniej pól. Pełne opcje można włączyć jednym przełączeniem.'**
   String get beginnerModeDescription;
 
   /// No description provided for @advancedModeDescription.
   ///
   /// In pl, this message translates to:
-  /// **'Pełne parametry, wykresy i narzędzia.'**
+  /// **'Pełne parametry KH, GH i Fe, wykresy trendów, dokładne analizy, diagnozy oraz wszystkie narzędzia.'**
   String get advancedModeDescription;
+
+  /// No description provided for @modeOnboardingTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jak chcesz korzystać z aplikacji?'**
+  String get modeOnboardingTitle;
+
+  /// No description provided for @modeOnboardingDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz widok, który najlepiej pasuje do Ciebie. To nie ogranicza danych ani funkcji PRO — tryb możesz zmienić jednym kliknięciem.'**
+  String get modeOnboardingDescription;
+
+  /// No description provided for @modeChangeAnytimeHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmienisz tryb później w Profilu → Tryb korzystania z aplikacji.'**
+  String get modeChangeAnytimeHint;
+
+  /// No description provided for @modeOnboardingContinue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przejdź dalej'**
+  String get modeOnboardingContinue;
+
+  /// No description provided for @beginnerModeActiveTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jesteś w trybie Początkujący'**
+  String get beginnerModeActiveTitle;
+
+  /// No description provided for @beginnerModeActiveDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokazujemy uproszczony formularz i najważniejsze informacje. Pełne parametry, wykresy i analizy są dostępne po przełączeniu trybu.'**
+  String get beginnerModeActiveDescription;
+
+  /// No description provided for @switchToAdvancedMode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przełącz na Zaawansowany'**
+  String get switchToAdvancedMode;
+
+  /// No description provided for @experienceModeChanged.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tryb korzystania został zmieniony.'**
+  String get experienceModeChanged;
+
+  /// No description provided for @experienceModeSaveFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zapisać trybu korzystania.'**
+  String get experienceModeSaveFailed;
+
+  /// No description provided for @faqModesTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jaka jest różnica między trybem Początkujący i Zaawansowany?'**
+  String get faqModesTitle;
+
+  /// No description provided for @faqModesAnswer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Początkujący ogranicza liczbę pól i pokazuje najważniejsze wskazówki. Zaawansowany dodaje pełny zestaw parametrów, wykresy, trendy i analizy. Zmiana jest możliwa w każdej chwili w Profilu → Tryb korzystania z aplikacji i nie usuwa żadnych danych.'**
+  String get faqModesAnswer;
 
   /// No description provided for @beginnerGuideTitle.
   ///
@@ -4230,6 +4296,66 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nie udało się sprawdzić metody logowania użytkownika.'**
   String get adminAccountProvidersLoadError;
+
+  /// No description provided for @journalEntryDetails.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szczegóły wpisu'**
+  String get journalEntryDetails;
+
+  /// No description provided for @journalEntryDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Data wpisu'**
+  String get journalEntryDate;
+
+  /// No description provided for @journalEntryParameters.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powiązane parametry'**
+  String get journalEntryParameters;
+
+  /// No description provided for @journalEditEntry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj wpis'**
+  String get journalEditEntry;
+
+  /// No description provided for @journalEntryUpdated.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpis został zaktualizowany.'**
+  String get journalEntryUpdated;
+
+  /// No description provided for @journalDeleteEntryTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunąć wpis?'**
+  String get journalDeleteEntryTitle;
+
+  /// No description provided for @journalDeleteEntryBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpis „{title}” zostanie trwale usunięty.'**
+  String journalDeleteEntryBody(String title);
+
+  /// No description provided for @journalEntryDeleted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpis został usunięty.'**
+  String get journalEntryDeleted;
+
+  /// No description provided for @journalEntryDeleteError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się usunąć wpisu.'**
+  String get journalEntryDeleteError;
+
+  /// No description provided for @journalEntryUpdateError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zaktualizować wpisu.'**
+  String get journalEntryUpdateError;
 
   /// No description provided for @ticketBugCategory.
   ///

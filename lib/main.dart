@@ -58,6 +58,7 @@ import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
 import 'widgets/pro_paywall_dialog.dart';
 import 'widgets/firestore_reminders_widget.dart';
+import 'widgets/experience_mode_banner.dart';
 
 import 'package:akwarium/utils/app_snackbar.dart';
 
@@ -355,6 +356,8 @@ class DashboardPage extends StatelessWidget {
         experienceMode.isInitialized &&
         isBeginner &&
         !experienceMode.beginnerGuideCompleted;
+    final showModeOnboarding =
+        experienceMode.isInitialized && !experienceMode.modeOnboardingCompleted;
     final activeAquarium = provider.selectedAquarium;
     if (activeAquarium == null || activeAquarium.id.trim().isEmpty) {
       return _PageContainer(
@@ -369,6 +372,10 @@ class DashboardPage extends StatelessWidget {
                 subtitle: l10n.dashboardSubtitle,
               ),
               const SizedBox(height: 24),
+              if (showModeOnboarding) ...[
+                const ExperienceModeOnboardingCard(),
+                const SizedBox(height: 16),
+              ],
               if (showBeginnerGuide) ...[
                 _BeginnerGuideCard(
                   aquariumExists: false,
@@ -466,6 +473,10 @@ class DashboardPage extends StatelessWidget {
                 ),
               ),
             ],
+            if (showModeOnboarding) ...[
+              const ExperienceModeOnboardingCard(),
+              const SizedBox(height: 16),
+            ],
             if (showBeginnerGuide && !isArchived) ...[
               const SizedBox(height: 16),
               _BeginnerGuideCard(
@@ -560,9 +571,15 @@ class DashboardPage extends StatelessWidget {
               const SizedBox(height: 8),
             ],
             if (isBeginner)
-              _BeginnerWaterSummary(
-                test: latestTest,
-                syncFailed: provider.waterTestsSyncFailed,
+              Column(
+                children: [
+                  _BeginnerWaterSummary(
+                    test: latestTest,
+                    syncFailed: provider.waterTestsSyncFailed,
+                  ),
+                  const SizedBox(height: 12),
+                  const ExperienceModeBanner(),
+                ],
               )
             else ...[
               _WaterStatusCard(
@@ -3706,8 +3723,10 @@ class _ExperienceModeTile extends StatelessWidget {
         ),
         subtitle: Text(
           '${isBeginner ? l10n.beginnerMode : l10n.advancedMode} · '
-          '${isBeginner ? l10n.beginnerModeDescription : l10n.advancedModeDescription}',
+          '${isBeginner ? l10n.beginnerModeDescription : l10n.advancedModeDescription}\n'
+          '${l10n.modeChangeAnytimeHint}',
         ),
+        isThreeLine: true,
         trailing: const Icon(Icons.expand_more),
       ),
     );
@@ -3816,15 +3835,20 @@ Future<void> _showExperienceModePicker(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(l10n.experienceMode),
+      scrollable: true,
       content: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(l10n.experienceModeSubtitle),
+          const SizedBox(height: 12),
           _ExperienceModeOption(
             title: l10n.beginnerMode,
             subtitle: l10n.beginnerModeDescription,
             selected: controller.mode == ExperienceMode.beginner,
             onTap: () => Navigator.pop(dialogContext, ExperienceMode.beginner),
           ),
+          const SizedBox(height: 8),
           _ExperienceModeOption(
             title: l10n.advancedMode,
             subtitle: l10n.advancedModeDescription,
@@ -3838,10 +3862,17 @@ Future<void> _showExperienceModePicker(
   if (selected == null) return;
   try {
     await controller.setMode(selected);
+    if (context.mounted) {
+      context.showAppSnackBar(
+        SnackBar(content: Text(l10n.experienceModeChanged)),
+      );
+    }
   } on Object catch (error, stackTrace) {
     debugPrint('Experience mode could not be saved: $error\n$stackTrace');
     if (context.mounted) {
-      context.showAppSnackBar(SnackBar(content: Text(error.toString())));
+      context.showAppSnackBar(
+        SnackBar(content: Text(l10n.experienceModeSaveFailed)),
+      );
     }
   }
 }

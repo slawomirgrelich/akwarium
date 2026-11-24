@@ -8,16 +8,20 @@ class ExperienceModeController extends ChangeNotifier {
 
   static const experienceModeKey = 'experience_mode';
   static const beginnerGuideCompletedKey = 'beginner_guide_completed';
+  static const modeOnboardingCompletedKey =
+      'experience_mode_onboarding_completed';
 
   final SharedPreferences? preferences;
   SharedPreferences? _loadedPreferences;
   ExperienceMode _mode = ExperienceMode.beginner;
   bool _beginnerGuideCompleted = false;
+  bool _modeOnboardingCompleted = false;
   bool _initialized = false;
 
   ExperienceMode get mode => _mode;
   bool get isBeginner => _mode == ExperienceMode.beginner;
   bool get beginnerGuideCompleted => _beginnerGuideCompleted;
+  bool get modeOnboardingCompleted => _modeOnboardingCompleted;
   bool get isInitialized => _initialized;
 
   Future<void> init() async {
@@ -29,6 +33,8 @@ class ExperienceModeController extends ChangeNotifier {
     };
     _beginnerGuideCompleted =
         stored.getBool(beginnerGuideCompletedKey) ?? false;
+    _modeOnboardingCompleted =
+        stored.getBool(modeOnboardingCompletedKey) ?? _beginnerGuideCompleted;
     _initialized = true;
     notifyListeners();
   }
@@ -48,6 +54,15 @@ class ExperienceModeController extends ChangeNotifier {
     await stored.setBool(beginnerGuideCompletedKey, true);
     _beginnerGuideCompleted = true;
     _initialized = true;
+    notifyListeners();
+  }
+
+  Future<void> completeModeOnboarding() async {
+    if (_modeOnboardingCompleted) return;
+    final stored = _loadedPreferences ??=
+        preferences ?? await SharedPreferences.getInstance();
+    await stored.setBool(modeOnboardingCompletedKey, true);
+    _modeOnboardingCompleted = true;
     notifyListeners();
   }
 }

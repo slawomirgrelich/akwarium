@@ -8,6 +8,7 @@ import '../services/firestore_service.dart';
 import '../services/experience_mode_controller.dart';
 import '../utils/localized_labels.dart';
 import '../utils/water_measurement_range.dart';
+import '../widgets/experience_mode_banner.dart';
 
 enum _ChartParameter {
   ph,
@@ -731,6 +732,8 @@ class _FirestoreWaterParametersFormScreenState
                   if (isBeginner) ...[
                     const SizedBox(height: 4),
                     Text(l10n.beginnerWaterMeasurementsHint),
+                    const SizedBox(height: 12),
+                    const ExperienceModeBanner(compact: true),
                   ],
                   const SizedBox(height: 20),
                   if (_error != null) ...[

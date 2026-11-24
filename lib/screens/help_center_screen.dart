@@ -117,6 +117,16 @@ class _FaqSection extends StatelessWidget {
     return Column(
       children: [
         ExpansionTile(
+          leading: Icon(Icons.tune_outlined),
+          title: Text(l10n.faqModesTitle),
+          children: [
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(l10n.faqModesAnswer),
+            ),
+          ],
+        ),
+        ExpansionTile(
           leading: Icon(Icons.science_outlined),
           title: Text(l10n.faqAiTitle),
           children: [

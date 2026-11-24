@@ -3,6 +3,47 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:akwarium/models/aquarium_model.dart';
 
 void main() {
+  test(
+    'updates and deletes local journal entries without changing other data',
+    () async {
+      final entry = JournalEntry(
+        id: 'diagnosis-1',
+        aquariumId: 'tank-1',
+        date: DateTime(2026, 1, 1, 10),
+        title: 'Diagnoza glonów',
+        description: 'Pełna treść diagnozy',
+        type: 'algaeDiagnosis',
+        category: JournalCategory.algae,
+        attachedWaterParameters: const {'NO3': 5},
+      );
+      final provider = AquariumProvider(journalEntries: [entry]);
+
+      provider.updateJournalEntry(
+        JournalEntry(
+          id: entry.id,
+          aquariumId: entry.aquariumId,
+          date: DateTime(2026, 1, 2, 12),
+          title: 'Skorygowana diagnoza',
+          description: 'Zmodyfikowana treść',
+          type: entry.type,
+          category: entry.category,
+          attachedWaterParameters: entry.attachedWaterParameters,
+        ),
+      );
+
+      expect(provider.journalEntries, isEmpty);
+      provider.selectAquarium('tank-1');
+      expect(provider.journalEntries.single.title, 'Skorygowana diagnoza');
+      expect(provider.journalEntries.single.attachedWaterParameters, {
+        'NO3': 5,
+      });
+
+      await provider.deleteJournalEntry(provider.journalEntries.single);
+      expect(provider.journalEntries, isEmpty);
+      provider.dispose();
+    },
+  );
+
   test('serializes aquarium profiles and inhabitants', () {
     final profile = AquariumProfile(
       id: 'tank-1',

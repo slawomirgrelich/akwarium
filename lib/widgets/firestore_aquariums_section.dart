@@ -315,9 +315,11 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
     final isEditing = widget.initial != null;
     return AlertDialog(
       title: Text(isEditing ? l10n.editAquariumTitle : l10n.addAquariumTitle),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -333,7 +335,7 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
                     ? l10n.aquariumNameRequired
                     : null,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _capacityController,
                 keyboardType: const TextInputType.numberWithOptions(
@@ -353,7 +355,7 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
                       : null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: _type,
                 decoration: InputDecoration(
@@ -384,7 +386,7 @@ class _AquariumFormDialogState extends State<_AquariumFormDialog> {
                 ],
                 onChanged: (value) => setState(() => _type = value ?? _type),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 12),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.event_outlined),

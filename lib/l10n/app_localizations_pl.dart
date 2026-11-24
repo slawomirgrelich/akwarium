@@ -987,7 +987,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get experienceModeSubtitle =>
-      'Dopasuj pulpit i wskazówki do swojego doświadczenia.';
+      'Przełączaj widok w dowolnym momencie. Dane i ustawienia akwarium pozostają bez zmian.';
 
   @override
   String get beginnerMode => 'Początkujący';
@@ -997,10 +997,50 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get beginnerModeDescription =>
-      'Prostszy pulpit i prowadzenie krok po kroku.';
+      'Najważniejsze wskazówki, prosty podgląd wody i mniej pól. Pełne opcje można włączyć jednym przełączeniem.';
 
   @override
-  String get advancedModeDescription => 'Pełne parametry, wykresy i narzędzia.';
+  String get advancedModeDescription =>
+      'Pełne parametry KH, GH i Fe, wykresy trendów, dokładne analizy, diagnozy oraz wszystkie narzędzia.';
+
+  @override
+  String get modeOnboardingTitle => 'Jak chcesz korzystać z aplikacji?';
+
+  @override
+  String get modeOnboardingDescription =>
+      'Wybierz widok, który najlepiej pasuje do Ciebie. To nie ogranicza danych ani funkcji PRO — tryb możesz zmienić jednym kliknięciem.';
+
+  @override
+  String get modeChangeAnytimeHint =>
+      'Zmienisz tryb później w Profilu → Tryb korzystania z aplikacji.';
+
+  @override
+  String get modeOnboardingContinue => 'Przejdź dalej';
+
+  @override
+  String get beginnerModeActiveTitle => 'Jesteś w trybie Początkujący';
+
+  @override
+  String get beginnerModeActiveDescription =>
+      'Pokazujemy uproszczony formularz i najważniejsze informacje. Pełne parametry, wykresy i analizy są dostępne po przełączeniu trybu.';
+
+  @override
+  String get switchToAdvancedMode => 'Przełącz na Zaawansowany';
+
+  @override
+  String get experienceModeChanged => 'Tryb korzystania został zmieniony.';
+
+  @override
+  String get experienceModeSaveFailed =>
+      'Nie udało się zapisać trybu korzystania.';
+
+  @override
+  String get faqModesTitle =>
+      'Jaka jest różnica między trybem Początkujący i Zaawansowany?';
+
+  @override
+  String get faqModesAnswer =>
+      'Początkujący ogranicza liczbę pól i pokazuje najważniejsze wskazówki. Zaawansowany dodaje pełny zestaw parametrów, wykresy, trendy i analizy. Zmiana jest możliwa w każdej chwili w Profilu → Tryb korzystania z aplikacji i nie usuwa żadnych danych.';
 
   @override
   String get beginnerGuideTitle => 'Zacznij krok po kroku';
@@ -2327,6 +2367,38 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get adminAccountProvidersLoadError =>
       'Nie udało się sprawdzić metody logowania użytkownika.';
+
+  @override
+  String get journalEntryDetails => 'Szczegóły wpisu';
+
+  @override
+  String get journalEntryDate => 'Data wpisu';
+
+  @override
+  String get journalEntryParameters => 'Powiązane parametry';
+
+  @override
+  String get journalEditEntry => 'Edytuj wpis';
+
+  @override
+  String get journalEntryUpdated => 'Wpis został zaktualizowany.';
+
+  @override
+  String get journalDeleteEntryTitle => 'Usunąć wpis?';
+
+  @override
+  String journalDeleteEntryBody(String title) {
+    return 'Wpis „$title” zostanie trwale usunięty.';
+  }
+
+  @override
+  String get journalEntryDeleted => 'Wpis został usunięty.';
+
+  @override
+  String get journalEntryDeleteError => 'Nie udało się usunąć wpisu.';
+
+  @override
+  String get journalEntryUpdateError => 'Nie udało się zaktualizować wpisu.';
 
   @override
   String get ticketBugCategory => '🐛 Zgłoś błąd w aplikacji';

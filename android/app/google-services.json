@@ -66,6 +66,22 @@
           }
         },
         {
+          "client_id": "760131458678-iikp8771n2re2ufjn4e673mpj42i7pjh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.slawek.grelich.akwarium",
+            "certificate_hash": "8d9626168212d14a2789a25ba56e9e42070787ad"
+          }
+        },
+        {
+          "client_id": "760131458678-lrbrf45fsfboqj5msicknlsm714o21ai.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.slawek.grelich.akwarium",
+            "certificate_hash": "ef112292a0224e5b6b71dd269e1c4a17651e42c5"
+          }
+        },
+        {
           "client_id": "760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com",
           "client_type": 3
         }
