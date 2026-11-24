@@ -2216,6 +2216,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminDuration7Days => '7 days';
 
   @override
+  String get adminDuration1Day => '1 day (24 hours)';
+
+  @override
   String get adminDuration14Days => '14 days';
 
   @override
@@ -2260,6 +2263,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminCancel => 'Cancel';
+
+  @override
+  String get adminRegisteredAt => 'Registration date';
+
+  @override
+  String get adminLastActiveAt => 'Last active';
+
+  @override
+  String get adminNoData => 'No data';
+
+  @override
+  String get adminSendPasswordReset => 'Send password reset link';
+
+  @override
+  String get adminPasswordResetSent => 'Password reset link sent.';
+
+  @override
+  String get adminPasswordResetGoogleOnly =>
+      'This account uses Google sign-in and has no password to reset.';
+
+  @override
+  String get adminDeleteAccount => 'Delete account';
+
+  @override
+  String get adminDeleteAccountTitle => 'Irreversible account deletion';
+
+  @override
+  String get adminDeleteAccountBody =>
+      'This deletes the sign-in account, user data, files, and related documents. This cannot be undone.';
+
+  @override
+  String get adminDeleteAccountSecondTitle => 'Delete this user?';
+
+  @override
+  String adminDeleteAccountSecondBody(String email) {
+    return 'Confirm deletion of account $email again.';
+  }
+
+  @override
+  String get adminDeleteAccountSuccess => 'The user account was deleted.';
+
+  @override
+  String get adminEmailUnavailable =>
+      'No email address is available for this account.';
+
+  @override
+  String get adminAccountProvidersLoadError =>
+      'Could not determine the user\'s sign-in method.';
 
   @override
   String get ticketBugCategory => '🐛 Report an app bug';

@@ -2232,6 +2232,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get adminDuration7Days => '7 dni';
 
   @override
+  String get adminDuration1Day => '1 dzień (24 godziny)';
+
+  @override
   String get adminDuration14Days => '14 dni';
 
   @override
@@ -2276,6 +2279,54 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get adminCancel => 'Anuluj';
+
+  @override
+  String get adminRegisteredAt => 'Data rejestracji';
+
+  @override
+  String get adminLastActiveAt => 'Ostatnia aktywność';
+
+  @override
+  String get adminNoData => 'Brak danych';
+
+  @override
+  String get adminSendPasswordReset => 'Wyślij link do resetu hasła';
+
+  @override
+  String get adminPasswordResetSent => 'Link do resetu hasła został wysłany.';
+
+  @override
+  String get adminPasswordResetGoogleOnly =>
+      'To konto korzysta z logowania Google i nie ma hasła do zresetowania.';
+
+  @override
+  String get adminDeleteAccount => 'Usuń konto';
+
+  @override
+  String get adminDeleteAccountTitle => 'Nieodwracalne usunięcie konta';
+
+  @override
+  String get adminDeleteAccountBody =>
+      'Usunięcie obejmie konto logowania, dane użytkownika, pliki i powiązane dokumenty. Tej operacji nie można cofnąć.';
+
+  @override
+  String get adminDeleteAccountSecondTitle =>
+      'Czy na pewno usunąć użytkownika?';
+
+  @override
+  String adminDeleteAccountSecondBody(String email) {
+    return 'Potwierdź ponownie usunięcie konta $email.';
+  }
+
+  @override
+  String get adminDeleteAccountSuccess => 'Konto użytkownika zostało usunięte.';
+
+  @override
+  String get adminEmailUnavailable => 'Brak adresu e-mail dla tego konta.';
+
+  @override
+  String get adminAccountProvidersLoadError =>
+      'Nie udało się sprawdzić metody logowania użytkownika.';
 
   @override
   String get ticketBugCategory => '🐛 Zgłoś błąd w aplikacji';

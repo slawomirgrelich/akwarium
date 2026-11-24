@@ -323,9 +323,8 @@ class DatabaseService {
     String userId,
     String tankId,
     Uint8List imageBytes,
-    String caption, {
-    String? localFilePath,
-  }) async {
+    String caption,
+  ) async {
     await _ensurePhotoOwnerAccess(userId, tankId);
     final document = _photos(userId, tankId).doc();
     final storagePath =
@@ -336,7 +335,6 @@ class DatabaseService {
       await photo_uploader.uploadTankPhotoBytes(
         reference: storageReference,
         bytes: imageBytes,
-        filePath: localFilePath,
         metadata: SettableMetadata(contentType: 'image/jpeg'),
       );
       photo = TankPhoto(

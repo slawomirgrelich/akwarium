@@ -670,8 +670,10 @@ class _AdminUserTile extends StatelessWidget {
         ),
         title: Text(name.isEmpty ? l10n.adminNameUnavailable : name),
         subtitle: Text(
-          '${user.email}\n${l10n.adminReferralsCount(user.successfulReferralsCount)}',
-          maxLines: 2,
+          '${user.email}\n'
+          '${l10n.adminRegisteredAt}: ${_optionalDateLabel(context, user.createdAt, l10n.adminNoData)}\n'
+          '${l10n.adminLastActiveAt}: ${_optionalDateLabel(context, user.lastActiveAt, l10n.adminNoData)}',
+          maxLines: 4,
           overflow: TextOverflow.ellipsis,
         ),
         isThreeLine: true,
@@ -700,6 +702,7 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
   late DateTime? _expiry;
   late String _plan;
   late Future<List<AdminInvitedUser>> _invitedUsers;
+  late Future<List<String>> _authProviders;
   bool _updating = false;
   String? _error;
 
@@ -710,11 +713,13 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
     _expiry = widget.user.proExpiryDate;
     _plan = widget.user.subscriptionPlan;
     _invitedUsers = widget.service.loadInvitedUsers(widget.user.id);
+    _authProviders = widget.service.loadAuthProviders(widget.user.id);
   }
 
   DateTime? _expiryFor(_ProGrantPeriod period) {
     final now = DateTime.now();
     return switch (period) {
+      _ProGrantPeriod.day1 => now.add(const Duration(hours: 24)),
       _ProGrantPeriod.days7 => now.add(const Duration(days: 7)),
       _ProGrantPeriod.days14 => now.add(const Duration(days: 14)),
       _ProGrantPeriod.month => _addMonths(now, 1),
@@ -833,6 +838,111 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
     }
   }
 
+  Future<void> _sendPasswordReset() async {
+    final l10n = AppLocalizations.of(context)!;
+    if (widget.user.email.trim().isEmpty) {
+      setState(() => _error = l10n.adminEmailUnavailable);
+      return;
+    }
+    setState(() {
+      _updating = true;
+      _error = null;
+    });
+    try {
+      final providers = await _authProviders;
+      if (!providers.contains('password')) {
+        throw AdminServiceException(l10n.adminPasswordResetGoogleOnly);
+      }
+      await widget.service.sendPasswordReset(widget.user.email);
+      if (mounted) {
+        context.showAppSnackBar(
+          SnackBar(content: Text(l10n.adminPasswordResetSent)),
+        );
+      }
+    } on AdminServiceException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } on Object catch (error) {
+      if (mounted) {
+        setState(() => _error = l10n.adminLoadError(error.toString()));
+      }
+    } finally {
+      if (mounted) setState(() => _updating = false);
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    final l10n = AppLocalizations.of(context)!;
+    final firstConfirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(
+          Icons.warning_amber_rounded,
+          color: Theme.of(dialogContext).colorScheme.error,
+        ),
+        title: Text(l10n.adminDeleteAccountTitle),
+        content: Text(l10n.adminDeleteAccountBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.adminCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.adminDeleteAccount),
+          ),
+        ],
+      ),
+    );
+    if (firstConfirmed != true || !mounted) return;
+    final secondConfirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.adminDeleteAccountSecondTitle),
+        content: Text(
+          l10n.adminDeleteAccountSecondBody(
+            widget.user.email.isEmpty ? widget.user.id : widget.user.email,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.adminCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.adminConfirm),
+          ),
+        ],
+      ),
+    );
+    if (secondConfirmed != true || !mounted) return;
+
+    setState(() {
+      _updating = true;
+      _error = null;
+    });
+    try {
+      await widget.service.deleteUserAccount(widget.user.id);
+      if (!mounted) return;
+      context.showAppSnackBar(
+        SnackBar(content: Text(l10n.adminDeleteAccountSuccess)),
+      );
+      Navigator.pop(context);
+    } on Object catch (error) {
+      if (mounted) {
+        setState(() => _error = l10n.adminLoadError(error.toString()));
+      }
+    } finally {
+      if (mounted) setState(() => _updating = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -859,6 +969,24 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                     label: l10n.adminUserEmail,
                     value: widget.user.email,
                     icon: Icons.alternate_email,
+                  ),
+                  _InfoLine(
+                    label: l10n.adminRegisteredAt,
+                    value: _optionalDateLabel(
+                      context,
+                      widget.user.createdAt,
+                      l10n.adminNoData,
+                    ),
+                    icon: Icons.person_add_alt_1_outlined,
+                  ),
+                  _InfoLine(
+                    label: l10n.adminLastActiveAt,
+                    value: _optionalDateLabel(
+                      context,
+                      widget.user.lastActiveAt,
+                      l10n.adminNoData,
+                    ),
+                    icon: Icons.schedule_outlined,
                   ),
                   _InfoLine(
                     label: l10n.adminSubscriptionPlan,
@@ -900,8 +1028,41 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                             icon: const Icon(Icons.remove_circle_outline),
                             label: Text(l10n.adminRevokePro),
                           ),
+                        OutlinedButton.icon(
+                          onPressed: _sendPasswordReset,
+                          icon: const Icon(Icons.lock_reset_outlined),
+                          label: Text(l10n.adminSendPasswordReset),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: _deleteAccount,
+                          icon: Icon(
+                            Icons.delete_forever_outlined,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          label: Text(
+                            l10n.adminDeleteAccount,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
+                  FutureBuilder<List<String>>(
+                    future: _authProviders,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting ||
+                          !snapshot.hasError) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: _InlineError(
+                          message: l10n.adminAccountProvidersLoadError,
+                        ),
+                      );
+                    },
+                  ),
                   if (_error != null) ...[
                     const SizedBox(height: 12),
                     _InlineError(message: l10n.adminLoadError(_error!)),
@@ -967,10 +1128,11 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
   }
 }
 
-enum _ProGrantPeriod { days7, days14, month, year, indefinite }
+enum _ProGrantPeriod { day1, days7, days14, month, year, indefinite }
 
 String _periodLabel(AppLocalizations l10n, _ProGrantPeriod period) =>
     switch (period) {
+      _ProGrantPeriod.day1 => l10n.adminDuration1Day,
       _ProGrantPeriod.days7 => l10n.adminDuration7Days,
       _ProGrantPeriod.days14 => l10n.adminDuration14Days,
       _ProGrantPeriod.month => l10n.adminDuration1Month,
@@ -1209,3 +1371,9 @@ String _dateLabel(BuildContext context, DateTime date) =>
     DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag())
         .add_jm()
         .format(date.toLocal());
+
+String _optionalDateLabel(
+  BuildContext context,
+  DateTime? date,
+  String fallback,
+) => date == null ? fallback : _dateLabel(context, date);

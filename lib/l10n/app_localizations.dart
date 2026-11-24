@@ -4051,6 +4051,12 @@ abstract class AppLocalizations {
   /// **'7 dni'**
   String get adminDuration7Days;
 
+  /// No description provided for @adminDuration1Day.
+  ///
+  /// In pl, this message translates to:
+  /// **'1 dzień (24 godziny)'**
+  String get adminDuration1Day;
+
   /// No description provided for @adminDuration14Days.
   ///
   /// In pl, this message translates to:
@@ -4140,6 +4146,90 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Anuluj'**
   String get adminCancel;
+
+  /// No description provided for @adminRegisteredAt.
+  ///
+  /// In pl, this message translates to:
+  /// **'Data rejestracji'**
+  String get adminRegisteredAt;
+
+  /// No description provided for @adminLastActiveAt.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnia aktywność'**
+  String get adminLastActiveAt;
+
+  /// No description provided for @adminNoData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak danych'**
+  String get adminNoData;
+
+  /// No description provided for @adminSendPasswordReset.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyślij link do resetu hasła'**
+  String get adminSendPasswordReset;
+
+  /// No description provided for @adminPasswordResetSent.
+  ///
+  /// In pl, this message translates to:
+  /// **'Link do resetu hasła został wysłany.'**
+  String get adminPasswordResetSent;
+
+  /// No description provided for @adminPasswordResetGoogleOnly.
+  ///
+  /// In pl, this message translates to:
+  /// **'To konto korzysta z logowania Google i nie ma hasła do zresetowania.'**
+  String get adminPasswordResetGoogleOnly;
+
+  /// No description provided for @adminDeleteAccount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń konto'**
+  String get adminDeleteAccount;
+
+  /// No description provided for @adminDeleteAccountTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nieodwracalne usunięcie konta'**
+  String get adminDeleteAccountTitle;
+
+  /// No description provided for @adminDeleteAccountBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunięcie obejmie konto logowania, dane użytkownika, pliki i powiązane dokumenty. Tej operacji nie można cofnąć.'**
+  String get adminDeleteAccountBody;
+
+  /// No description provided for @adminDeleteAccountSecondTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć użytkownika?'**
+  String get adminDeleteAccountSecondTitle;
+
+  /// No description provided for @adminDeleteAccountSecondBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdź ponownie usunięcie konta {email}.'**
+  String adminDeleteAccountSecondBody(String email);
+
+  /// No description provided for @adminDeleteAccountSuccess.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konto użytkownika zostało usunięte.'**
+  String get adminDeleteAccountSuccess;
+
+  /// No description provided for @adminEmailUnavailable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak adresu e-mail dla tego konta.'**
+  String get adminEmailUnavailable;
+
+  /// No description provided for @adminAccountProvidersLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się sprawdzić metody logowania użytkownika.'**
+  String get adminAccountProvidersLoadError;
 
   /// No description provided for @ticketBugCategory.
   ///

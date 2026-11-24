@@ -1,6 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { auth } from 'firebase-functions/v1';
 
@@ -9,10 +11,37 @@ const db = getFirestore();
 const MAX_REFERRALS_PER_REWARD = 3;
 const CODE_LENGTH = 8;
 const REFERRAL_CODE_PATTERN = /^[A-Z0-9-]{6,20}$/;
+const storage = getStorage();
 
 function requireAuth(request: Parameters<typeof onCall>[0] extends never ? never : any) {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Authentication required.');
   return request.auth.uid;
+}
+
+async function requireAdmin(request: Parameters<typeof onCall>[0] extends never ? never : any) {
+  const adminId = requireAuth(request);
+  const admin = await db.collection('users').doc(adminId).get();
+  if (admin.get('isAdmin') !== true && admin.get('role') !== 'admin') {
+    throw new HttpsError('permission-denied', 'Administrator access required.');
+  }
+  return adminId;
+}
+
+function requiredUserId(value: unknown): string {
+  if (typeof value !== 'string' || value.trim().length === 0 || value.length > 256) {
+    throw new HttpsError('invalid-argument', 'A valid userId is required.');
+  }
+  return value.trim();
+}
+
+async function deleteMatchingDocuments(
+  collection: string,
+  field: string,
+  userId: string,
+): Promise<number> {
+  const snapshot = await db.collection(collection).where(field, '==', userId).get();
+  await Promise.all(snapshot.docs.map((document) => document.ref.delete()));
+  return snapshot.size;
 }
 
 function normalizeCode(value: unknown): string {
@@ -45,21 +74,102 @@ export const onAuthUserCreated = auth.user().onCreate(async (user) => {
   const code = await createUniqueCode();
   await db.runTransaction(async (transaction) => {
     const freshUser = await transaction.get(userRef);
-    if (freshUser.exists && freshUser.get('referralCode')) return;
+    const freshUserData = freshUser.data();
+    if (freshUserData?.referralCode) return;
     transaction.set(userRef, {
       uid,
       email: user.email ?? null,
       referralCode: code,
       successfulReferralsCount: 0,
-      isPro: freshUser.get('isPro') === true,
-      subscriptionStatus: freshUser.get('subscriptionStatus') ?? 'free',
-      createdAt: freshUser.get('createdAt') ?? FieldValue.serverTimestamp(),
+      authProviders: user.providerData.map((provider) => provider.providerId),
+      isPro: freshUserData?.isPro === true,
+      subscriptionStatus: freshUserData?.subscriptionStatus ?? 'free',
+      createdAt: freshUserData?.createdAt ?? FieldValue.serverTimestamp(),
+      lastActiveAt: freshUserData?.lastActiveAt ?? FieldValue.serverTimestamp(),
     }, { merge: true });
     transaction.create(db.collection('referral_codes').doc(code), {
       ownerId: uid,
       createdAt: FieldValue.serverTimestamp(),
     });
   });
+});
+
+export const adminGetUserAuthProviders = onCall(async (request) => {
+  await requireAdmin(request);
+  const userId = requiredUserId(request.data?.userId);
+  try {
+    const user = await getAuth().getUser(userId);
+    return {
+      providers: user.providerData
+        .map((provider) => provider.providerId)
+        .filter((providerId) => providerId.length > 0),
+    };
+  } catch (error) {
+    throw new HttpsError(
+      'not-found',
+      'The selected Firebase Authentication account was not found.',
+      error,
+    );
+  }
+});
+
+export const adminDeleteUser = onCall(async (request) => {
+  const adminId = await requireAdmin(request);
+  const userId = requiredUserId(request.data?.userId);
+  if (userId === adminId) {
+    throw new HttpsError(
+      'failed-precondition',
+      'Administrators cannot delete their own account here.',
+    );
+  }
+
+  const userReference = db.collection('users').doc(userId);
+  const target = await userReference.get();
+  const targetData = target.data();
+  if (targetData?.isAdmin === true || targetData?.role === 'admin') {
+    throw new HttpsError(
+      'failed-precondition',
+      'Administrator accounts cannot be deleted with this operation.',
+    );
+  }
+
+  try {
+    await getAuth().getUser(userId);
+  } catch (error) {
+    throw new HttpsError(
+      'not-found',
+      'The selected Firebase Authentication account was not found.',
+      error,
+    );
+  }
+
+  const deletedTopLevelCounts = await Promise.all([
+    deleteMatchingDocuments('tickets', 'userId', userId),
+    deleteMatchingDocuments('referrals', 'referrerId', userId),
+    deleteMatchingDocuments('referrals', 'referredUserId', userId),
+    deleteMatchingDocuments('referral_codes', 'ownerId', userId),
+    deleteMatchingDocuments('used_devices', 'userId', userId),
+    deleteMatchingDocuments('trial_registrations', 'uid', userId),
+  ]);
+  const [userStorageFiles] = await storage.bucket().getFiles({
+    prefix: `users/${userId}/`,
+  });
+  const [ticketStorageFiles] = await storage.bucket().getFiles({
+    prefix: `tickets/${userId}/`,
+  });
+  const storageFiles = [...userStorageFiles, ...ticketStorageFiles];
+  await Promise.all(storageFiles.map((file) => file.delete()));
+  await db.recursiveDelete(userReference);
+  await getAuth().deleteUser(userId);
+
+  return {
+    deleted: true,
+    deletedFiles: storageFiles.length,
+    deletedTopLevelDocuments: deletedTopLevelCounts.reduce(
+      (total, count) => total + count,
+      0,
+    ),
+  };
 });
 
 export const ensureReferralCode = onCall(async (request) => {

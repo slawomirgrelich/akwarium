@@ -1,16 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 
 import '../models/ticket_models.dart';
 
 class AdminService {
-  AdminService({FirebaseAuth? auth, FirebaseFirestore? firestore})
-    : _auth = auth ?? FirebaseAuth.instance,
-      _firestore = firestore ?? FirebaseFirestore.instance;
+  AdminService({
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+    FirebaseFunctions? functions,
+  }) : _auth = auth ?? FirebaseAuth.instance,
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _functions = functions ?? FirebaseFunctions.instance;
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
   Stream<bool> watchAdminAccess(String userId) => _firestore
       .collection('users')
@@ -183,6 +189,51 @@ class AdminService {
     }, SetOptions(merge: true));
   }
 
+  Future<List<String>> loadAuthProviders(String userId) async {
+    await _requireAdmin();
+    try {
+      final result = await _functions
+          .httpsCallable('adminGetUserAuthProviders')
+          .call({'userId': userId});
+      final raw = result.data;
+      if (raw is! Map || raw['providers'] is! List) {
+        throw const AdminServiceException('Nieprawidłowa odpowiedź serwera.');
+      }
+      return (raw['providers'] as List).whereType<String>().toList(
+        growable: false,
+      );
+    } on FirebaseFunctionsException catch (error) {
+      throw AdminServiceException(_functionMessage(error));
+    }
+  }
+
+  Future<void> sendPasswordReset(String email) async {
+    await _requireAdmin();
+    if (email.trim().isEmpty) {
+      throw ArgumentError('Adres e-mail użytkownika jest niedostępny.');
+    }
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (error) {
+      throw AdminServiceException(
+        error.code == 'user-not-found'
+            ? 'Nie znaleziono konta logowania dla tego adresu e-mail.'
+            : 'Nie udało się wysłać linku do resetu hasła.',
+      );
+    }
+  }
+
+  Future<void> deleteUserAccount(String userId) async {
+    await _requireAdmin();
+    try {
+      await _functions.httpsCallable('adminDeleteUser').call({
+        'userId': userId,
+      });
+    } on FirebaseFunctionsException catch (error) {
+      throw AdminServiceException(_functionMessage(error));
+    }
+  }
+
   Future<String> _requireAdmin() async {
     final userId = _auth.currentUser?.uid;
     if (userId == null) throw const AdminAccessException();
@@ -193,10 +244,29 @@ class AdminService {
 
   bool _isAdmin(Map<String, dynamic>? data) =>
       data?['isAdmin'] == true || data?['role'] == 'admin';
+
+  String _functionMessage(FirebaseFunctionsException error) =>
+      switch (error.code) {
+        'permission-denied' => 'Brak uprawnień administratora.',
+        'failed-precondition' =>
+          'Nie można usunąć wybranego konta w jego obecnym stanie.',
+        'not-found' => 'Wybrane konto logowania już nie istnieje.',
+        'invalid-argument' => 'Nieprawidłowy identyfikator użytkownika.',
+        _ => 'Nie udało się wykonać operacji administracyjnej.',
+      };
 }
 
 class AdminAccessException implements Exception {
   const AdminAccessException();
+}
+
+class AdminServiceException implements Exception {
+  const AdminServiceException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 class AdminOverview {
@@ -231,6 +301,9 @@ class AdminUserRecord {
     required this.proExpiryDate,
     required this.successfulReferralsCount,
     required this.adminGrantedPro,
+    required this.createdAt,
+    required this.lastActiveAt,
+    required this.authProviders,
   });
 
   final String id;
@@ -241,6 +314,9 @@ class AdminUserRecord {
   final DateTime? proExpiryDate;
   final int successfulReferralsCount;
   final bool adminGrantedPro;
+  final DateTime? createdAt;
+  final DateTime? lastActiveAt;
+  final List<String> authProviders;
 
   bool get isManualGrant =>
       subscriptionPlan.toLowerCase() == 'manual' ||
@@ -265,6 +341,11 @@ class AdminUserRecord {
       successfulReferralsCount:
           (data['successfulReferralsCount'] as num?)?.toInt() ?? 0,
       adminGrantedPro: data['adminGrantedPro'] == true,
+      createdAt: _dateFromValue(data['createdAt']),
+      lastActiveAt: _dateFromValue(data['lastActiveAt']),
+      authProviders: (data['authProviders'] as List? ?? const [])
+          .whereType<String>()
+          .toList(growable: false),
     );
   }
 }
@@ -286,5 +367,6 @@ class AdminInvitedUser {
 DateTime? _dateFromValue(Object? value) {
   if (value is Timestamp) return value.toDate();
   if (value is DateTime) return value;
+  if (value is String) return DateTime.tryParse(value);
   return null;
 }

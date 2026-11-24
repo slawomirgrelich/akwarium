@@ -10,6 +10,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_android/image_picker_android.dart';
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +52,7 @@ import 'services/referral_service.dart';
 import 'services/theme_controller.dart';
 import 'services/locale_controller.dart';
 import 'services/ticket_service.dart';
+import 'services/user_activity_service.dart';
 import 'theme/app_theme.dart';
 import 'water_parameters_chart.dart';
 import 'water_test_screen.dart';
@@ -60,6 +63,12 @@ import 'package:akwarium/utils/app_snackbar.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final imagePickerImplementation = ImagePickerPlatform.instance;
+  if (!kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.android &&
+      imagePickerImplementation is ImagePickerAndroid) {
+    imagePickerImplementation.useAndroidPhotoPicker = true;
+  }
   var firebaseReady = false;
 
   try {
@@ -69,6 +78,7 @@ Future<void> main() async {
     FirebaseFirestore.instance.settings = const Settings(
       persistenceEnabled: true,
     );
+    UserActivityService.instance.initialize();
     firebaseReady = true;
   } catch (error) {
     debugPrint('Firebase initialization failed: $error');

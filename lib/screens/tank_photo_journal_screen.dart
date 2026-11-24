@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -135,13 +134,7 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
       final caption = await _captionDialog();
       if (caption == null || !mounted) return;
       final bytes = await file.readAsBytes();
-      await _database.uploadTankPhoto(
-        userId,
-        widget.tankId,
-        bytes,
-        caption,
-        localFilePath: kIsWeb ? null : file.path,
-      );
+      await _database.uploadTankPhoto(userId, widget.tankId, bytes, caption);
       if (!mounted) return;
       _showPhotoMessage(AppLocalizations.of(context)!.photoSavedMessage);
     } on Object catch (error) {
