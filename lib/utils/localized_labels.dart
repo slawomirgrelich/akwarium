@@ -77,6 +77,7 @@ String journalCategoryLabel(AppLocalizations l10n, JournalCategory category) =>
       JournalCategory.plantGrowth => l10n.journalCategoryPlantGrowth,
       JournalCategory.algae => l10n.journalCategoryAlgae,
       JournalCategory.equipment => l10n.journalCategoryEquipment,
+      JournalCategory.fertilizers => l10n.fertilizersTab,
       JournalCategory.other => l10n.categoryOther,
     };
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../services/aquarium_journal_service.dart';
 import '../services/maintenance_reminder_scheduler.dart';
+import '../utils/recurrence_interval.dart';
 
 import 'package:akwarium/utils/app_snackbar.dart';
 
@@ -23,6 +24,7 @@ class _MaintenanceScheduleSectionState
   final _service = AquariumJournalService();
   late MaintenanceReminderScheduler _notificationScheduler;
   late Stream<List<MaintenanceTaskModel>> _taskStream;
+  int _summaryMonths = 1;
 
   @override
   void initState() {
@@ -93,16 +95,23 @@ class _MaintenanceScheduleSectionState
                   );
                 }
                 return Column(
-                  children: tasks
-                      .map(
-                        (task) => _MaintenanceTaskTile(
-                          task: task,
-                          onComplete: () => _completeTask(task),
-                          onEdit: () => _openTaskForm(task),
-                          onDelete: () => _deleteTask(task),
-                        ),
-                      )
-                      .toList(growable: false),
+                  children: [
+                    _UpcomingSummary(
+                      tasks: tasks,
+                      months: _summaryMonths,
+                      onMonthsChanged: (months) =>
+                          setState(() => _summaryMonths = months),
+                    ),
+                    const SizedBox(height: 8),
+                    ...tasks.map(
+                      (task) => _MaintenanceTaskTile(
+                        task: task,
+                        onComplete: () => _completeTask(task),
+                        onEdit: () => _openTaskForm(task),
+                        onDelete: () => _deleteTask(task),
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
@@ -208,6 +217,120 @@ class _MaintenanceScheduleSectionState
   }
 }
 
+class _UpcomingSummary extends StatelessWidget {
+  const _UpcomingSummary({
+    required this.tasks,
+    required this.months,
+    required this.onMonthsChanged,
+  });
+
+  final List<MaintenanceTaskModel> tasks;
+  final int months;
+  final ValueChanged<int> onMonthsChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final from = DateTime(now.year, now.month, now.day);
+    final horizonEnd = nextRecurrenceDate(
+      from,
+      from,
+      months,
+      RecurrenceUnit.months,
+    );
+    final through = DateTime(
+      horizonEnd.year,
+      horizonEnd.month,
+      horizonEnd.day,
+      23,
+      59,
+    );
+    final occurrences = [
+      for (final task in tasks)
+        (
+          task: task,
+          count: countRecurrencesInRange(
+            firstDueDate: task.nextDueDate,
+            from: from,
+            through: through,
+            intervalCount: task.repeatCount,
+            unit: task.intervalUnit,
+          ),
+        ),
+    ].where((entry) => entry.count > 0).toList(growable: false);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer
+            .withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.event_available_outlined, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.upcomingSummaryTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              SegmentedButton<int>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(value: 1, label: Text(l10n.oneMonthHorizon)),
+                  ButtonSegment(value: 2, label: Text(l10n.twoMonthsHorizon)),
+                ],
+                selected: {months},
+                onSelectionChanged: (values) => onMonthsChanged(values.first),
+              ),
+            ],
+          ),
+          if (occurrences.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(l10n.noUpcomingTasksInHorizon),
+            )
+          else
+            ...occurrences.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Icon(_taskIcon(entry.task.taskType), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        entry.task.taskType == 'custom'
+                            ? entry.task.title
+                            : _maintenanceTaskLabel(l10n, entry.task.taskType),
+                      ),
+                    ),
+                    Text(
+                      l10n.occurrencesCount(entry.count),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _MaintenanceTaskTile extends StatelessWidget {
   const _MaintenanceTaskTile({
     required this.task,
@@ -244,9 +367,11 @@ class _MaintenanceTaskTile extends StatelessWidget {
         : dueToday
         ? l10n.forToday
         : l10n.taskDueInDays(daysRemaining);
-    final frequency = task.repeatFrequencyDays == 1
+    final frequency =
+        task.repeatCount == 1 && task.intervalUnit == RecurrenceUnit.days
         ? l10n.dailyRecurrence
-        : l10n.everyDays(task.repeatFrequencyDays);
+        : '${l10n.repeatEveryLabel} ${task.repeatCount} '
+              '${_intervalUnitLabel(l10n, task.intervalUnit)}';
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -316,7 +441,7 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _frequencyController;
   late String _taskType;
-  late bool _isDaily;
+  late RecurrenceUnit _intervalUnit;
   late DateTime _lastPerformedDate;
   late TimeOfDay _reminderTime;
 
@@ -325,9 +450,9 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
     super.initState();
     final existingTask = widget.existingTask;
     _taskType = existingTask?.taskType ?? 'waterChange';
-    _isDaily = existingTask?.repeatFrequencyDays == 1;
+    _intervalUnit = existingTask?.intervalUnit ?? RecurrenceUnit.weeks;
     _frequencyController = TextEditingController(
-      text: '${existingTask?.repeatFrequencyDays ?? 7}',
+      text: '${existingTask?.repeatCount ?? 1}',
     );
     _lastPerformedDate = existingTask?.lastPerformedDate ?? DateTime.now();
     _reminderTime = TimeOfDay.fromDateTime(_lastPerformedDate);
@@ -378,35 +503,52 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
                     }
                   },
                 ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.dailyRecurrence),
-                  value: _isDaily,
-                  onChanged: (value) {
-                    setState(() {
-                      _isDaily = value;
-                      if (value) _frequencyController.text = '1';
-                    });
-                  },
-                ),
-                if (!_isDaily) ...[
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: _frequencyController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: l10n.repeatEveryDays,
-                      suffixText: l10n.daysUnit,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        controller: _frequencyController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: l10n.repeatEveryLabel,
+                        ),
+                        validator: (value) {
+                          final count = int.tryParse(value?.trim() ?? '');
+                          if (count == null || count < 1) {
+                            return l10n.enterPositiveDays;
+                          }
+                          return null;
+                        },
+                      ),
                     ),
-                    validator: (value) {
-                      final days = int.tryParse(value?.trim() ?? '');
-                      if (days == null || days < 1) {
-                        return l10n.enterPositiveDays;
-                      }
-                      return null;
-                    },
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 3,
+                      child: DropdownButtonFormField<RecurrenceUnit>(
+                        initialValue: _intervalUnit,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: l10n.intervalUnitLabel,
+                        ),
+                        items: RecurrenceUnit.values
+                            .map(
+                              (unit) => DropdownMenuItem(
+                                value: unit,
+                                child: Text(_intervalUnitLabel(l10n, unit)),
+                              ),
+                            )
+                            .toList(growable: false),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _intervalUnit = value);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(l10n.maintenanceLastPerformed),
@@ -434,9 +576,11 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
         FilledButton(
           onPressed: () {
             if (!(_formKey.currentState?.validate() ?? false)) return;
-            final frequencyDays = _isDaily
-                ? 1
-                : int.parse(_frequencyController.text.trim());
+            final intervalCount = int.parse(_frequencyController.text.trim());
+            final frequencyDays = recurrenceIntervalDays(
+              intervalCount,
+              _intervalUnit,
+            );
             final lastPerformed = DateTime(
               _lastPerformedDate.year,
               _lastPerformedDate.month,
@@ -453,6 +597,8 @@ class _MaintenanceTaskDialogState extends State<_MaintenanceTaskDialog> {
                 taskType: _taskType,
                 title: title,
                 repeatFrequencyDays: frequencyDays,
+                intervalCount: intervalCount,
+                intervalUnit: _intervalUnit,
                 lastPerformedDate: lastPerformed,
                 nextDueDate: lastPerformed.add(Duration(days: frequencyDays)),
               ),
@@ -492,6 +638,13 @@ String _maintenanceTaskLabel(AppLocalizations l10n, String taskType) =>
       'fertilizing' => l10n.maintenanceTaskFertilizing,
       'quickCheck' => l10n.maintenanceTaskQuickCheck,
       _ => l10n.maintenanceTaskCustom,
+    };
+
+String _intervalUnitLabel(AppLocalizations l10n, RecurrenceUnit unit) =>
+    switch (unit) {
+      RecurrenceUnit.days => l10n.daysUnitShort,
+      RecurrenceUnit.weeks => l10n.weeksUnit,
+      RecurrenceUnit.months => l10n.monthsUnit,
     };
 
 IconData _taskIcon(String taskType) => switch (taskType) {

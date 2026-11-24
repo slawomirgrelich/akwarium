@@ -1,6 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum ReminderTaskType { waterChange, filterClean, waterTest, fertilizer, custom }
+import '../utils/recurrence_interval.dart';
+
+enum ReminderTaskType {
+  waterChange,
+  filterClean,
+  waterTest,
+  fertilizer,
+  custom,
+}
 
 class AquariumReminder {
   const AquariumReminder({
@@ -13,6 +21,8 @@ class AquariumReminder {
     this.isCompleted = false,
     this.lastCompletedAt,
     this.isEnabled = true,
+    this.intervalCount,
+    this.intervalUnit = RecurrenceUnit.days,
   });
 
   final String id;
@@ -24,6 +34,11 @@ class AquariumReminder {
   final bool isCompleted;
   final DateTime? lastCompletedAt;
   final bool isEnabled;
+  final int? intervalCount;
+  final RecurrenceUnit intervalUnit;
+
+  int? get repeatCount =>
+      repeatIntervalDays == null ? null : intervalCount ?? repeatIntervalDays;
 
   bool get isOverdue => !isCompleted && dueDate.isBefore(DateTime.now());
 
@@ -37,6 +52,8 @@ class AquariumReminder {
     bool? isCompleted,
     DateTime? lastCompletedAt,
     bool? isEnabled,
+    int? intervalCount,
+    RecurrenceUnit? intervalUnit,
   }) {
     return AquariumReminder(
       id: id ?? this.id,
@@ -48,27 +65,33 @@ class AquariumReminder {
       isCompleted: isCompleted ?? this.isCompleted,
       lastCompletedAt: lastCompletedAt ?? this.lastCompletedAt,
       isEnabled: isEnabled ?? this.isEnabled,
+      intervalCount: intervalCount ?? this.intervalCount,
+      intervalUnit: intervalUnit ?? this.intervalUnit,
     );
   }
 
   Map<String, dynamic> toFirestore() => {
-        'id': id,
-        'tankId': tankId,
-        'title': title,
-        'taskType': taskType.name,
-        'dueDate': Timestamp.fromDate(dueDate),
-        'repeatIntervalDays': repeatIntervalDays,
-        'isCompleted': isCompleted,
-        'lastCompletedAt': lastCompletedAt == null
-            ? null
-            : Timestamp.fromDate(lastCompletedAt!),
-        'isEnabled': isEnabled,
-      };
+    'id': id,
+    'tankId': tankId,
+    'title': title,
+    'taskType': taskType.name,
+    'dueDate': Timestamp.fromDate(dueDate),
+    'repeatIntervalDays': repeatIntervalDays,
+    'intervalCount': repeatCount,
+    'intervalUnit': intervalUnit.name,
+    'isCompleted': isCompleted,
+    'lastCompletedAt': lastCompletedAt == null
+        ? null
+        : Timestamp.fromDate(lastCompletedAt!),
+    'isEnabled': isEnabled,
+  };
 
   factory AquariumReminder.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
     final data = snapshot.data() ?? const <String, dynamic>{};
+    final repeatDays = (data['repeatIntervalDays'] as num?)?.toInt();
+    final legacyInterval = recurrenceFromLegacyDays(repeatDays ?? 1);
     return AquariumReminder(
       id: _string(data['id'], snapshot.id),
       tankId: _string(data['tankId']),
@@ -78,7 +101,13 @@ class AquariumReminder {
         orElse: () => ReminderTaskType.custom,
       ),
       dueDate: _date(data['dueDate']) ?? DateTime.now(),
-      repeatIntervalDays: (data['repeatIntervalDays'] as num?)?.toInt(),
+      repeatIntervalDays: repeatDays,
+      intervalCount: repeatDays == null
+          ? null
+          : (data['intervalCount'] as num?)?.toInt() ?? legacyInterval.count,
+      intervalUnit: data['intervalUnit'] == null
+          ? legacyInterval.unit
+          : recurrenceUnitFromName(data['intervalUnit']),
       isCompleted: data['isCompleted'] as bool? ?? false,
       lastCompletedAt: _date(data['lastCompletedAt']),
       isEnabled: data['isEnabled'] as bool? ?? true,

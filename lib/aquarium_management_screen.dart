@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models/aquarium_model.dart';
 import 'models/species_models.dart';
@@ -952,49 +953,43 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
-            TextField(
-              controller: _length,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.tankLength,
-                suffixText: 'cm',
+          ],
+          TextField(
+            controller: _length,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: l10n.tankLength,
+              suffixText: 'cm',
+            ),
+          ),
+          TextField(
+            controller: _width,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: l10n.tankWidth,
+              suffixText: 'cm',
+            ),
+          ),
+          TextField(
+            controller: _height,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: l10n.tankHeight,
+              suffixText: 'cm',
+            ),
+          ),
+          if (_calculatedGrossVolume case final volume?) ...[
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                l10n.beginnerCalculatedCapacity(volume.toStringAsFixed(1)),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
-            TextField(
-              controller: _width,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.tankWidth,
-                suffixText: 'cm',
-              ),
-            ),
-            TextField(
-              controller: _height,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                labelText: l10n.tankHeight,
-                suffixText: 'cm',
-              ),
-            ),
-            if (_calculatedGrossVolume case final volume?) ...[
-              const SizedBox(height: 4),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  l10n.beginnerCalculatedCapacity(volume.toStringAsFixed(1)),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-            ],
           ],
           TextField(
             controller: _net,
@@ -1003,6 +998,25 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
               labelText: l10n.netVolume,
               suffixText: 'l',
             ),
+          ),
+          FutureBuilder<double?>(
+            future: _savedCalculatorCapacity(),
+            builder: (context, snapshot) {
+              final saved = snapshot.data;
+              if (saved == null) return const SizedBox.shrink();
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () =>
+                      setState(() => _net.text = saved.toStringAsFixed(1)),
+                  icon: const Icon(Icons.calculate_outlined),
+                  label: Text(
+                    '${l10n.applyCalculatorVolume}: '
+                    '${saved.toStringAsFixed(1)} l',
+                  ),
+                ),
+              );
+            },
           ),
           if (isBeginner)
             Padding(
@@ -1070,9 +1084,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.endDateLabel),
-              subtitle: Text(
-                _formatSetupDate(_endDate ?? DateTime.now()),
-              ),
+              subtitle: Text(_formatSetupDate(_endDate ?? DateTime.now())),
               trailing: const Icon(Icons.calendar_today_outlined),
               onTap: _pickEndDate,
             ),
@@ -1083,7 +1095,10 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
           onPressed: () => Navigator.pop(context),
           child: Text(l10n.cancel),
         ),
-        FilledButton(onPressed: _save, child: Text(l10n.add)),
+        FilledButton(
+          onPressed: _save,
+          child: Text(widget.initial == null ? l10n.add : l10n.save),
+        ),
       ],
     );
   }
@@ -1098,7 +1113,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
       );
       return;
     }
-    if (isBeginner && _hasInvalidDimensions) {
+    if (_hasInvalidDimensions) {
       context.showAppSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.invalidTankDimensions),
@@ -1125,13 +1140,9 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
           : double.tryParse(_gross.text.replaceAll(',', '.')),
       setupDate: _setupDate,
       type: _type,
-      lengthCm: isBeginner
-          ? _optionalNumber(_length)
-          : widget.initial?.lengthCm,
-      widthCm: isBeginner ? _optionalNumber(_width) : widget.initial?.widthCm,
-      heightCm: isBeginner
-          ? _optionalNumber(_height)
-          : widget.initial?.heightCm,
+      lengthCm: _optionalNumber(_length),
+      widthCm: _optionalNumber(_width),
+      heightCm: _optionalNumber(_height),
       substrate: widget.initial?.substrate,
       lighting: _lighting.text.trim().isEmpty ? null : _lighting.text.trim(),
       filtration: widget.initial?.filtration,
@@ -1182,6 +1193,11 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
     return value.isEmpty ? null : double.tryParse(value);
   }
 
+  Future<double?> _savedCalculatorCapacity() async {
+    final preferences = await SharedPreferences.getInstance();
+    return preferences.getDouble('aquarium.default_net_liters');
+  }
+
   Future<void> _pickSetupDate() async {
     final selected = await showDatePicker(
       context: context,
@@ -1198,9 +1214,7 @@ class _AddAquariumModalState extends State<AddAquariumModal> {
     final now = DateTime.now();
     final selected = await showDatePicker(
       context: context,
-      initialDate: _endDate == null || _endDate!.isAfter(now)
-          ? now
-          : _endDate!,
+      initialDate: _endDate == null || _endDate!.isAfter(now) ? now : _endDate!,
       firstDate: DateTime(2000),
       lastDate: now,
     );

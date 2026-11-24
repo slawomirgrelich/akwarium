@@ -5377,6 +5377,90 @@ abstract class AppLocalizations {
   /// **'łagodna, stadna'**
   String get temperamentShoalingPeacefulFeminine;
 
+  /// No description provided for @daysUnitShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'dni'**
+  String get daysUnitShort;
+
+  /// No description provided for @weeksUnit.
+  ///
+  /// In pl, this message translates to:
+  /// **'tygodnie'**
+  String get weeksUnit;
+
+  /// No description provided for @monthsUnit.
+  ///
+  /// In pl, this message translates to:
+  /// **'miesiące'**
+  String get monthsUnit;
+
+  /// No description provided for @intervalUnitLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jednostka'**
+  String get intervalUnitLabel;
+
+  /// No description provided for @savedNetCapacityLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisana pojemność netto'**
+  String get savedNetCapacityLabel;
+
+  /// No description provided for @useSavedNetCapacity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Użyj zapisanej pojemności'**
+  String get useSavedNetCapacity;
+
+  /// No description provided for @loadSavedNetCapacity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wczytaj do kalkulatora'**
+  String get loadSavedNetCapacity;
+
+  /// No description provided for @applyCalculatorVolume.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zastosuj w akwarium'**
+  String get applyCalculatorVolume;
+
+  /// No description provided for @upcomingSummaryTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plan na najbliższy okres'**
+  String get upcomingSummaryTitle;
+
+  /// No description provided for @oneMonthHorizon.
+  ///
+  /// In pl, this message translates to:
+  /// **'1 miesiąc'**
+  String get oneMonthHorizon;
+
+  /// No description provided for @twoMonthsHorizon.
+  ///
+  /// In pl, this message translates to:
+  /// **'2 miesiące'**
+  String get twoMonthsHorizon;
+
+  /// No description provided for @occurrencesCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Terminów w okresie: {count}'**
+  String occurrencesCount(int count);
+
+  /// No description provided for @noUpcomingTasksInHorizon.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak terminów w wybranym okresie.'**
+  String get noUpcomingTasksInHorizon;
+
+  /// No description provided for @editTankDetails.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uzupełnij dane akwarium'**
+  String get editTankDetails;
+
   /// No description provided for @temperamentActivePeaceful.
   ///
   /// In pl, this message translates to:

@@ -2938,6 +2938,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get temperamentShoalingPeacefulFeminine => 'peaceful, shoaling';
 
   @override
+  String get daysUnitShort => 'days';
+
+  @override
+  String get weeksUnit => 'weeks';
+
+  @override
+  String get monthsUnit => 'months';
+
+  @override
+  String get intervalUnitLabel => 'Unit';
+
+  @override
+  String get savedNetCapacityLabel => 'Saved net capacity';
+
+  @override
+  String get useSavedNetCapacity => 'Use saved capacity';
+
+  @override
+  String get loadSavedNetCapacity => 'Load into calculator';
+
+  @override
+  String get applyCalculatorVolume => 'Apply to aquarium';
+
+  @override
+  String get upcomingSummaryTitle => 'Plan for the next period';
+
+  @override
+  String get oneMonthHorizon => '1 month';
+
+  @override
+  String get twoMonthsHorizon => '2 months';
+
+  @override
+  String occurrencesCount(int count) {
+    return 'Occurrences in period: $count';
+  }
+
+  @override
+  String get noUpcomingTasksInHorizon =>
+      'No occurrences in the selected period.';
+
+  @override
+  String get editTankDetails => 'Complete aquarium details';
+
+  @override
   String get temperamentActivePeaceful => 'peaceful, active';
 
   @override

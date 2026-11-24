@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/recurrence_date.dart';
+import '../utils/recurrence_interval.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -449,6 +450,7 @@ enum JournalCategory {
   plantGrowth,
   algae,
   equipment,
+  fertilizers,
   other,
 }
 
@@ -465,6 +467,8 @@ extension JournalCategoryLabel on JournalCategory {
         return 'Glony';
       case JournalCategory.equipment:
         return 'Sprzęt / inwestycje';
+      case JournalCategory.fertilizers:
+        return 'Nawozy';
       case JournalCategory.other:
         return 'Inne';
     }
@@ -555,6 +559,8 @@ class AquariumTask {
     this.categoryColorHex = '#00E5FF',
     this.reminderMinutes,
     this.aquariumId = '',
+    this.intervalCount,
+    this.intervalUnit = RecurrenceUnit.days,
   });
 
   final String id;
@@ -568,6 +574,10 @@ class AquariumTask {
   final String categoryColorHex;
   final int? reminderMinutes;
   final String aquariumId;
+  final int? intervalCount;
+  final RecurrenceUnit intervalUnit;
+
+  int get repeatCount => intervalCount ?? intervalDays;
 
   bool get isCompletedForCurrentDay {
     final completedAt = lastCompletedDate;
@@ -585,6 +595,8 @@ class AquariumTask {
     'description': description,
     'recurrence': recurrence.name,
     'intervalDays': intervalDays,
+    'intervalCount': repeatCount,
+    'intervalUnit': intervalUnit.name,
     'nextDueDate': nextDueDate.toIso8601String(),
     'lastCompletedDate': lastCompletedDate?.toIso8601String(),
     'isCompletedToday': isCompletedForCurrentDay,
@@ -601,21 +613,29 @@ class AquariumTask {
         : Timestamp.fromDate(lastCompletedDate!),
   };
 
-  factory AquariumTask.fromJson(Map<String, dynamic> json) => AquariumTask(
-    id: json['id'] as String,
-    title: json['title'] as String,
-    description: json['description'] as String? ?? '',
-    recurrence: TaskRecurrence.values.byName(json['recurrence'] as String),
-    intervalDays: json['intervalDays'] as int? ?? 1,
-    nextDueDate: _readDate(json['nextDueDate']),
-    lastCompletedDate: json['lastCompletedDate'] == null
-        ? null
-        : _readDate(json['lastCompletedDate']),
-    isCompletedToday: json['isCompletedToday'] as bool? ?? false,
-    categoryColorHex: json['categoryColorHex'] as String? ?? '#00E5FF',
-    reminderMinutes: json['reminderMinutes'] as int?,
-    aquariumId: json['aquariumId'] as String? ?? '',
-  );
+  factory AquariumTask.fromJson(Map<String, dynamic> json) {
+    final legacyDays = json['intervalDays'] as int? ?? 1;
+    final legacyInterval = recurrenceFromLegacyDays(legacyDays);
+    return AquariumTask(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String? ?? '',
+      recurrence: TaskRecurrence.values.byName(json['recurrence'] as String),
+      intervalDays: legacyDays,
+      intervalCount: json['intervalCount'] as int? ?? legacyInterval.count,
+      intervalUnit: json['intervalUnit'] == null
+          ? legacyInterval.unit
+          : recurrenceUnitFromName(json['intervalUnit']),
+      nextDueDate: _readDate(json['nextDueDate']),
+      lastCompletedDate: json['lastCompletedDate'] == null
+          ? null
+          : _readDate(json['lastCompletedDate']),
+      isCompletedToday: json['isCompletedToday'] as bool? ?? false,
+      categoryColorHex: json['categoryColorHex'] as String? ?? '#00E5FF',
+      reminderMinutes: json['reminderMinutes'] as int?,
+      aquariumId: json['aquariumId'] as String? ?? '',
+    );
+  }
 
   factory AquariumTask.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
@@ -629,10 +649,11 @@ class AquariumTask {
         nextDueDate,
         1,
       ),
-      TaskRecurrence.everyXDays => nextRecurrenceDateAfter(
+      TaskRecurrence.everyXDays => nextRecurrenceDate(
         completedAt,
         nextDueDate,
-        intervalDays,
+        repeatCount,
+        intervalUnit,
       ),
       TaskRecurrence.weekly => nextRecurrenceDateAfter(
         completedAt,
@@ -653,6 +674,8 @@ class AquariumTask {
       categoryColorHex: categoryColorHex,
       reminderMinutes: reminderMinutes,
       aquariumId: aquariumId,
+      intervalCount: repeatCount,
+      intervalUnit: intervalUnit,
     );
   }
 
@@ -667,6 +690,8 @@ class AquariumTask {
     categoryColorHex: categoryColorHex,
     reminderMinutes: reminderMinutes,
     aquariumId: aquariumId,
+    intervalCount: repeatCount,
+    intervalUnit: intervalUnit,
   );
 }
 
@@ -1021,9 +1046,8 @@ class AquariumProvider extends ChangeNotifier {
         )
         .toList(growable: false);
     mapped.sort((first, second) => second.setupDate.compareTo(first.setupDate));
-    final nextActiveAquariumId = mapped.any(
-      (aquarium) => aquarium.id == _activeAquariumId,
-    )
+    final nextActiveAquariumId =
+        mapped.any((aquarium) => aquarium.id == _activeAquariumId)
         ? _activeAquariumId
         : mapped.where((item) => !item.isArchived).firstOrNull?.id ??
               mapped.firstOrNull?.id ??

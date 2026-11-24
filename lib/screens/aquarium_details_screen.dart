@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 
+import '../aquarium_management_screen.dart';
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_firestore_model.dart';
 import '../models/aquarium_model.dart' as local_models;
@@ -67,6 +68,11 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
         actions: [
           _ReportIconButton(
             onPressed: () => _requestReport(context, aquarium: aquarium),
+          ),
+          IconButton(
+            tooltip: l10n.editTankDetails,
+            onPressed: () => _editTankDetails(context, aquarium),
+            icon: const Icon(Icons.edit_note_outlined),
           ),
         ],
       ),
@@ -143,6 +149,58 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
     }
   }
 
+  Future<void> _editTankDetails(
+    BuildContext context,
+    AquariumModel aquarium,
+  ) async {
+    final provider = context.read<local_models.AquariumProvider>();
+    final existing = provider.aquariums
+        .where((profile) => profile.id == aquarium.id)
+        .firstOrNull;
+    final profile =
+        existing ??
+        local_models.AquariumProfile(
+          id: aquarium.id,
+          name: aquarium.name,
+          volumeNetLiters: aquarium.capacityLiters,
+          setupDate: aquarium.setupDate,
+          type: switch (aquariumTypeKey(aquarium.type)) {
+            'marine' => local_models.TankType.marine,
+            'planted' => local_models.TankType.planted,
+            'biotope' => local_models.TankType.biotope,
+            'shrimp' => local_models.TankType.shrimp,
+            _ => local_models.TankType.freshwater,
+          },
+          lengthCm: aquarium.lengthCm,
+          widthCm: aquarium.widthCm,
+          heightCm: aquarium.heightCm,
+          isArchived: aquarium.isArchived,
+          endDate: aquarium.endDate,
+        );
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AddAquariumModal(initial: profile),
+    );
+    if (!context.mounted) return;
+
+    final updated = provider.aquariums
+        .where((item) => item.id == aquarium.id)
+        .firstOrNull;
+    if (updated == null) return;
+    setState(() {
+      _aquarium = aquarium.copyWith(
+        name: updated.name,
+        capacityLiters: updated.volumeNetLiters,
+        setupDate: updated.setupDate,
+        type: _tankTypeValue(updated.type),
+        lengthCm: updated.lengthCm,
+        widthCm: updated.widthCm,
+        heightCm: updated.heightCm,
+      );
+    });
+  }
+
   Future<void> _requestReport(
     BuildContext context, {
     required AquariumModel aquarium,
@@ -189,6 +247,14 @@ class _AquariumDetailsScreenState extends State<AquariumDetailsScreen> {
     return AppLocalizations.of(context)!.aquariumDetailsLoadError;
   }
 }
+
+String _tankTypeValue(local_models.TankType type) => switch (type) {
+  local_models.TankType.freshwater => 'freshwater',
+  local_models.TankType.marine => 'marine',
+  local_models.TankType.planted => 'planted',
+  local_models.TankType.biotope => 'biotope',
+  local_models.TankType.shrimp => 'shrimp',
+};
 
 class _DetailsContent extends StatelessWidget {
   const _DetailsContent({

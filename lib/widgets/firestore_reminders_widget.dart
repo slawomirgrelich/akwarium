@@ -6,6 +6,7 @@ import '../local_reminder_service.dart';
 import '../l10n/app_localizations.dart';
 import '../models/aquarium_model.dart';
 import '../models/aquarium_reminder.dart';
+import '../utils/recurrence_interval.dart';
 import '../services/database_service.dart';
 import '../utils/app_snackbar.dart';
 
@@ -97,8 +98,7 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                       onComplete: (item) => _complete(userId, tankId, item),
                       onSnooze: (item) =>
                           _snooze(context, userId, tankId, item),
-                      onEdit: (item) =>
-                          _edit(context, userId, tankId, item),
+                      onEdit: (item) => _edit(context, userId, tankId, item),
                     ),
                   if (visibleUpcoming.isNotEmpty)
                     _ReminderGroup(
@@ -108,8 +108,7 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                       onComplete: (item) => _complete(userId, tankId, item),
                       onSnooze: (item) =>
                           _snooze(context, userId, tankId, item),
-                      onEdit: (item) =>
-                          _edit(context, userId, tankId, item),
+                      onEdit: (item) => _edit(context, userId, tankId, item),
                     ),
                   if (visibleCompleted.isNotEmpty)
                     _ReminderGroup(
@@ -119,8 +118,7 @@ class _FirestoreRemindersWidgetState extends State<FirestoreRemindersWidget> {
                       onComplete: (item) => _complete(userId, tankId, item),
                       onSnooze: (item) =>
                           _snooze(context, userId, tankId, item),
-                      onEdit: (item) =>
-                          _edit(context, userId, tankId, item),
+                      onEdit: (item) => _edit(context, userId, tankId, item),
                     ),
                   if (widget.compact && pending.length > 3)
                     Align(
@@ -319,10 +317,14 @@ class _ReminderGroup extends StatelessWidget {
               item.title.trim().isEmpty ? l10n.unnamedReminder : item.title,
             ),
             subtitle: Text(
-              item.repeatIntervalDays == null
+              item.repeatCount == null
                   ? '${_formatDate(item.dueDate)} · ${_formatTime(item.dueDate)}'
                   : '${_formatDate(item.dueDate)} · ${_formatTime(item.dueDate)} · '
-                        '${item.repeatIntervalDays == 1 ? l10n.dailyRecurrence : l10n.everyDays(item.repeatIntervalDays!)}',
+                        '${item.repeatCount == 1 && item.intervalUnit == RecurrenceUnit.days ? l10n.dailyRecurrence : '${l10n.repeatEveryLabel} ${item.repeatCount} ${switch (item.intervalUnit) {
+                                RecurrenceUnit.days => l10n.daysUnitShort,
+                                RecurrenceUnit.weeks => l10n.weeksUnit,
+                                RecurrenceUnit.months => l10n.monthsUnit,
+                              }}'}',
             ),
             trailing: Wrap(
               spacing: 0,
@@ -384,8 +386,10 @@ class AquariumReminderDialog extends StatefulWidget {
 
 class _AquariumReminderDialogState extends State<AquariumReminderDialog> {
   final _title = TextEditingController();
+  final _interval = TextEditingController(text: '1');
   ReminderTaskType _type = ReminderTaskType.custom;
-  int? _repeatDays;
+  bool _recurring = false;
+  RecurrenceUnit _intervalUnit = RecurrenceUnit.weeks;
   DateTime _dueDate = DateTime.now().add(const Duration(hours: 1));
 
   @override
@@ -395,7 +399,9 @@ class _AquariumReminderDialogState extends State<AquariumReminderDialog> {
     if (initial != null) {
       _title.text = initial.title;
       _type = initial.taskType;
-      _repeatDays = initial.repeatIntervalDays;
+      _recurring = initial.repeatCount != null;
+      _interval.text = '${initial.repeatCount ?? 1}';
+      _intervalUnit = initial.intervalUnit;
       _dueDate = initial.dueDate;
     }
   }
@@ -403,6 +409,7 @@ class _AquariumReminderDialogState extends State<AquariumReminderDialog> {
   @override
   void dispose() {
     _title.dispose();
+    _interval.dispose();
     super.dispose();
   }
 
@@ -438,18 +445,57 @@ class _AquariumReminderDialogState extends State<AquariumReminderDialog> {
               onChanged: (value) => setState(() => _type = value!),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<int?>(
-              initialValue: _repeatDays,
-              decoration: InputDecoration(labelText: l10n.repeatLabel),
-              items: [
-                DropdownMenuItem(value: null, child: Text(l10n.oneTime)),
-                DropdownMenuItem(value: 1, child: Text(l10n.dailyRecurrence)),
-                DropdownMenuItem(value: 7, child: Text(l10n.everyDays(7))),
-                DropdownMenuItem(value: 14, child: Text(l10n.everyDays(14))),
-                DropdownMenuItem(value: 30, child: Text(l10n.everyDays(30))),
-              ],
-              onChanged: (value) => setState(() => _repeatDays = value),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.repeatCyclically),
+              subtitle: Text(l10n.autoScheduleNextDate),
+              value: _recurring,
+              onChanged: (value) => setState(() => _recurring = value),
             ),
+            if (_recurring)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: _interval,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: l10n.repeatEveryLabel,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 3,
+                    child: DropdownButtonFormField<RecurrenceUnit>(
+                      initialValue: _intervalUnit,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.intervalUnitLabel,
+                      ),
+                      items: RecurrenceUnit.values
+                          .map(
+                            (unit) => DropdownMenuItem(
+                              value: unit,
+                              child: Text(switch (unit) {
+                                RecurrenceUnit.days => l10n.daysUnitShort,
+                                RecurrenceUnit.weeks => l10n.weeksUnit,
+                                RecurrenceUnit.months => l10n.monthsUnit,
+                              }),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _intervalUnit = value);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.dueDate),
@@ -465,7 +511,8 @@ class _AquariumReminderDialogState extends State<AquariumReminderDialog> {
                     onPressed: _pickDate,
                   ),
                   IconButton(
-                    tooltip: MaterialLocalizations.of(context).timePickerDialHelpText,
+                    tooltip: MaterialLocalizations.of(context)
+                        .timePickerDialHelpText,
                     icon: const Icon(Icons.schedule_outlined),
                     onPressed: _pickTime,
                   ),
@@ -484,6 +531,10 @@ class _AquariumReminderDialogState extends State<AquariumReminderDialog> {
         FilledButton(
           onPressed: () {
             if (_title.text.trim().isEmpty) return;
+            final intervalCount = int.tryParse(_interval.text.trim());
+            if (_recurring && (intervalCount == null || intervalCount < 1)) {
+              return;
+            }
             final initial = widget.initial;
             Navigator.pop(
               context,
@@ -493,7 +544,11 @@ class _AquariumReminderDialogState extends State<AquariumReminderDialog> {
                 title: _title.text.trim(),
                 taskType: _type,
                 dueDate: _dueDate,
-                repeatIntervalDays: _repeatDays,
+                repeatIntervalDays: _recurring
+                    ? recurrenceIntervalDays(intervalCount!, _intervalUnit)
+                    : null,
+                intervalCount: _recurring ? intervalCount : null,
+                intervalUnit: _intervalUnit,
                 isCompleted: initial?.isCompleted ?? false,
                 lastCompletedAt: initial?.lastCompletedAt,
                 isEnabled: initial?.isEnabled ?? true,

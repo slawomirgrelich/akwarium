@@ -1,26 +1,31 @@
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 import '../models/aquarium_model.dart' show waterChangeForReminder;
 import '../models/tank_firestore_models.dart';
 import '../models/aquarium_reminder.dart';
 import '../models/species_models.dart';
 import '../models/tank_photo.dart';
-import '../utils/recurrence_date.dart';
+import '../utils/recurrence_interval.dart';
 import 'firestore_sync_status.dart';
 import 'tank_photo_upload_io.dart'
     if (dart.library.html) 'tank_photo_upload_web.dart'
     as photo_uploader;
 
 class DatabaseService {
-  DatabaseService({FirebaseFirestore? firestore, FirebaseStorage? storage})
-    : _firestore = firestore ?? FirebaseFirestore.instance,
-      _storage = storage ?? FirebaseStorage.instance;
+  DatabaseService({
+    FirebaseFirestore? firestore,
+    FirebaseStorage? storage,
+    FirebaseAuth? auth,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _storage = storage ?? FirebaseStorage.instance,
+       _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseStorage _storage;
+  final FirebaseAuth _auth;
 
   CollectionReference<Map<String, dynamic>> _tanks(String userId) {
     _requirePathId(userId, 'userId');
@@ -208,17 +213,18 @@ class DatabaseService {
   }) async {
     _requirePathId(reminder.id, 'reminderId');
     final performedAt = completedAt ?? DateTime.now();
-    final nextDueDate = reminder.repeatIntervalDays == null
+    final nextDueDate = reminder.repeatCount == null
         ? reminder.dueDate
-        : nextRecurrenceDateAfter(
+        : nextRecurrenceDate(
             performedAt,
             reminder.dueDate,
-            reminder.repeatIntervalDays!,
+            reminder.repeatCount!,
+            reminder.intervalUnit,
           );
     final updated = reminder.copyWith(
       tankId: tankId,
       dueDate: nextDueDate,
-      isCompleted: reminder.repeatIntervalDays == null,
+      isCompleted: reminder.repeatCount == null,
       lastCompletedAt: performedAt,
     );
     final batch = _firestore.batch();
@@ -312,24 +318,40 @@ class DatabaseService {
     String caption, {
     String? localFilePath,
   }) async {
+    await _ensurePhotoOwnerAccess(userId, tankId);
     final document = _photos(userId, tankId).doc();
     final storagePath = 'users/$userId/tanks/$tankId/photos/${document.id}.jpg';
     final storageReference = _storage.ref(storagePath);
-    await photo_uploader.uploadTankPhotoBytes(
-      reference: storageReference,
-      bytes: imageBytes,
-      filePath: localFilePath,
-      metadata: SettableMetadata(contentType: 'image/jpeg'),
-    );
-    final photo = TankPhoto(
-      id: document.id,
-      tankId: tankId,
-      photoUrl: await storageReference.getDownloadURL(),
-      storagePath: storagePath,
-      caption: caption,
-      createdAt: DateTime.now(),
-    );
-    await document.set(photo.toFirestore());
+    late TankPhoto photo;
+    try {
+      await photo_uploader.uploadTankPhotoBytes(
+        reference: storageReference,
+        bytes: imageBytes,
+        filePath: localFilePath,
+        metadata: SettableMetadata(contentType: 'image/jpeg'),
+      );
+      photo = TankPhoto(
+        id: document.id,
+        tankId: tankId,
+        photoUrl: await storageReference.getDownloadURL(),
+        storagePath: storagePath,
+        caption: caption,
+        createdAt: DateTime.now(),
+      );
+      await document.set(photo.toFirestore());
+    } on Object catch (error, stackTrace) {
+      try {
+        await storageReference.delete();
+      } on FirebaseException catch (cleanupError) {
+        if (cleanupError.code != 'object-not-found') {
+          debugPrint(
+            'Nie udało się usunąć niedokończonego uploadu zdjęcia: '
+            '$cleanupError\n$stackTrace',
+          );
+        }
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    }
     await FirestoreSyncStatus.recordSuccessfulSync();
     return photo;
   }
@@ -347,6 +369,7 @@ class DatabaseService {
     String tankId,
     TankPhoto photo,
   ) async {
+    await _ensurePhotoOwnerAccess(userId, tankId);
     _requirePathId(photo.id, 'photoId');
     await _photos(userId, tankId).doc(photo.id).delete();
     await FirestoreSyncStatus.recordSuccessfulSync();
@@ -360,6 +383,7 @@ class DatabaseService {
     String tankId,
     TankPhoto photo,
   ) async {
+    await _ensurePhotoOwnerAccess(userId, tankId);
     final snapshot = await _photos(userId, tankId).get();
     final batch = _firestore.batch();
     for (final document in snapshot.docs) {
@@ -376,12 +400,46 @@ class DatabaseService {
     await FirestoreSyncStatus.recordSuccessfulSync();
   }
 
+  Future<void> _ensurePhotoOwnerAccess(String userId, String tankId) async {
+    _requirePathId(userId, 'userId');
+    _requirePathId(tankId, 'tankId');
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw const PhotoUploadAccessException(
+        'Zaloguj się ponownie, aby dodać zdjęcie.',
+      );
+    }
+    if (user.uid != userId) {
+      throw const PhotoUploadAccessException(
+        'Sesja użytkownika nie odpowiada wybranemu akwarium. Zaloguj się ponownie.',
+      );
+    }
+    try {
+      await user.getIdToken(true);
+    } on FirebaseAuthException catch (error) {
+      throw PhotoUploadAccessException(
+        error.code == 'network-request-failed'
+            ? 'Nie można odświeżyć sesji. Sprawdź połączenie z internetem.'
+            : 'Sesja wygasła. Zaloguj się ponownie i spróbuj jeszcze raz.',
+      );
+    }
+  }
+
   String _requirePathId(String value, String name) {
     if (value.trim().isEmpty) {
       throw ArgumentError('$name cannot be empty.');
     }
     return value;
   }
+}
+
+class PhotoUploadAccessException implements Exception {
+  const PhotoUploadAccessException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 extension on Tank {

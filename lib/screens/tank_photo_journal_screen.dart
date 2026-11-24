@@ -97,7 +97,20 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
   }
 
   Future<void> _addPhoto(String? userId) async {
-    if (userId == null) return;
+    if (userId == null) {
+      _showPhotoMessage(
+        'Zaloguj się ponownie, aby dodać zdjęcie.',
+        isError: true,
+      );
+      return;
+    }
+    if (widget.tankId.trim().isEmpty) {
+      _showPhotoMessage(
+        'Nie wybrano poprawnego akwarium. Wybierz akwarium i spróbuj ponownie.',
+        isError: true,
+      );
+      return;
+    }
     try {
       final isProUser = context.read<ProAccessService>().isProUser;
       if (!isProUser) {
@@ -150,10 +163,18 @@ class _TankPhotoJournalScreenState extends State<TankPhotoJournalScreen> {
   }
 
   String _photoErrorMessage(Object error) {
+    if (error is PhotoUploadAccessException) return error.message;
     if (error is FirebaseException) {
-      return 'FirebaseException (${error.code}): ${error.message ?? error.toString()}';
+      return switch (error.code) {
+        'unauthorized' || 'permission-denied' => 'Brak uprawnień do zapisu zdjęcia. Sprawdź, czy jesteś zalogowany na konto właściciela akwarium, a reguły Firebase są wdrożone.',
+        'unauthenticated' => 'Sesja logowania wygasła. Zaloguj się ponownie i spróbuj jeszcze raz.',
+        'canceled' => 'Wysyłanie zdjęcia zostało przerwane.',
+        'retry-limit-exceeded' || 'network-request-failed' =>
+          'Nie udało się wysłać zdjęcia. Sprawdź połączenie z internetem.',
+        _ => 'Nie udało się zapisać zdjęcia. Spróbuj ponownie.',
+      };
     }
-    return error.toString();
+    return 'Nie udało się dodać zdjęcia. Spróbuj ponownie.';
   }
 
   Future<String?> _captionDialog() async {

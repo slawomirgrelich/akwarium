@@ -8,6 +8,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'models/aquarium_model.dart';
 import 'l10n/app_localizations.dart';
 import 'utils/localized_labels.dart';
+import 'utils/recurrence_interval.dart';
 
 import 'package:akwarium/utils/app_snackbar.dart';
 
@@ -523,7 +524,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
   final _title = TextEditingController();
   final _description = TextEditingController();
   TaskRecurrence _recurrence = TaskRecurrence.weekly;
-  int _interval = 7;
+  int _interval = 1;
+  RecurrenceUnit _intervalUnit = RecurrenceUnit.weeks;
   TimeOfDay _reminder = const TimeOfDay(hour: 9, minute: 0);
 
   @override
@@ -580,17 +582,56 @@ class _AddTaskModalState extends State<AddTaskModal> {
                 onChanged: (value) => setState(() => _recurrence = value!),
               ),
               if (_recurrence == TaskRecurrence.everyXDays)
-                TextFormField(
-                  initialValue: '$_interval',
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: l10n.repeatEveryDays),
-                  onChanged: (value) => _interval = int.tryParse(value) ?? 0,
-                  validator: (value) {
-                    final days = int.tryParse(value?.trim() ?? '');
-                    return days == null || days < 1
-                        ? l10n.enterPositiveDays
-                        : null;
-                  },
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        initialValue: '$_interval',
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: l10n.repeatEveryLabel,
+                        ),
+                        onChanged: (value) =>
+                            _interval = int.tryParse(value) ?? 0,
+                        validator: (value) {
+                          final count = int.tryParse(value?.trim() ?? '');
+                          return count == null || count < 1
+                              ? l10n.enterPositiveDays
+                              : null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 3,
+                      child: DropdownButtonFormField<RecurrenceUnit>(
+                        initialValue: _intervalUnit,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          labelText: l10n.intervalUnitLabel,
+                        ),
+                        items: RecurrenceUnit.values
+                            .map(
+                              (unit) => DropdownMenuItem(
+                                value: unit,
+                                child: Text(switch (unit) {
+                                  RecurrenceUnit.days => l10n.daysUnitShort,
+                                  RecurrenceUnit.weeks => l10n.weeksUnit,
+                                  RecurrenceUnit.months => l10n.monthsUnit,
+                                }),
+                              ),
+                            )
+                            .toList(growable: false),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _intervalUnit = value);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -649,7 +690,11 @@ class _AddTaskModalState extends State<AddTaskModal> {
       title: _title.text.trim(),
       description: _description.text.trim(),
       recurrence: _recurrence,
-      intervalDays: _recurrence == TaskRecurrence.everyXDays ? _interval : 1,
+      intervalDays: _recurrence == TaskRecurrence.everyXDays
+          ? recurrenceIntervalDays(_interval, _intervalUnit)
+          : 1,
+      intervalCount: _recurrence == TaskRecurrence.everyXDays ? _interval : 1,
+      intervalUnit: _intervalUnit,
       nextDueDate: firstDue,
       reminderMinutes: _reminder.hour * 60 + _reminder.minute,
     );

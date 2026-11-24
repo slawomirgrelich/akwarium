@@ -1,6 +1,7 @@
 import 'package:akwarium/services/aquarium_journal_service.dart';
 import 'package:akwarium/services/maintenance_reminder_scheduler.dart';
 import 'package:akwarium/local_reminder_service.dart';
+import 'package:akwarium/utils/recurrence_interval.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -55,6 +56,30 @@ void main() {
         final restored = MaintenanceTaskModel.fromMap(completed.toMap());
         expect(restored.lastPerformedDate, performedAt);
         expect(restored.nextDueDate, completed.nextDueDate);
+      },
+    );
+
+    test(
+      'custom monthly recurrence round-trips and advances by calendar month',
+      () {
+        final task = MaintenanceTaskModel(
+          id: 'carbon',
+          aquariumId: 'planted-tank',
+          taskType: 'filterCleaning',
+          title: 'Replace carbon',
+          repeatFrequencyDays: 30,
+          intervalCount: 1,
+          intervalUnit: RecurrenceUnit.months,
+          lastPerformedDate: DateTime(2026, 1, 31, 9, 30),
+          nextDueDate: DateTime(2026, 1, 31, 9, 30),
+        );
+
+        final restored = MaintenanceTaskModel.fromMap(task.toMap());
+        final completed = restored.completed(DateTime(2026, 2, 1, 17, 45));
+
+        expect(restored.repeatCount, 1);
+        expect(restored.intervalUnit, RecurrenceUnit.months);
+        expect(completed.nextDueDate, DateTime(2026, 3, 1, 9, 30));
       },
     );
 

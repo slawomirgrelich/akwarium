@@ -59,7 +59,7 @@ void main() {
     await modeController.setMode(ExperienceMode.advanced);
     await tester.pumpAndSettle();
 
-    expect(find.byType(TextField), findsNWidgets(4));
+    expect(find.byType(TextField), findsNWidgets(7));
     expect(tester.takeException(), isNull);
   });
 

@@ -2956,6 +2956,50 @@ class AppLocalizationsPl extends AppLocalizations {
   String get temperamentShoalingPeacefulFeminine => 'łagodna, stadna';
 
   @override
+  String get daysUnitShort => 'dni';
+
+  @override
+  String get weeksUnit => 'tygodnie';
+
+  @override
+  String get monthsUnit => 'miesiące';
+
+  @override
+  String get intervalUnitLabel => 'Jednostka';
+
+  @override
+  String get savedNetCapacityLabel => 'Zapisana pojemność netto';
+
+  @override
+  String get useSavedNetCapacity => 'Użyj zapisanej pojemności';
+
+  @override
+  String get loadSavedNetCapacity => 'Wczytaj do kalkulatora';
+
+  @override
+  String get applyCalculatorVolume => 'Zastosuj w akwarium';
+
+  @override
+  String get upcomingSummaryTitle => 'Plan na najbliższy okres';
+
+  @override
+  String get oneMonthHorizon => '1 miesiąc';
+
+  @override
+  String get twoMonthsHorizon => '2 miesiące';
+
+  @override
+  String occurrencesCount(int count) {
+    return 'Terminów w okresie: $count';
+  }
+
+  @override
+  String get noUpcomingTasksInHorizon => 'Brak terminów w wybranym okresie.';
+
+  @override
+  String get editTankDetails => 'Uzupełnij dane akwarium';
+
+  @override
   String get temperamentActivePeaceful => 'łagodny, aktywny';
 
   @override

@@ -13,6 +13,7 @@ import '../services/aquarium_journal_service.dart';
 import '../services/database_service.dart';
 import '../services/firestore_service.dart';
 import '../services/pro_access_service.dart';
+import '../utils/recurrence_interval.dart';
 import '../widgets/firestore_reminders_widget.dart' show AquariumReminderDialog;
 import '../widgets/pro_paywall_dialog.dart';
 
@@ -25,6 +26,7 @@ String _journalTypeLabel(AppLocalizations l10n, JournalEntryType type) =>
       JournalEntryType.trimming => l10n.filterTrimming,
       JournalEntryType.medication => l10n.filterMeds,
       JournalEntryType.cleaning => l10n.filterCleaning,
+      JournalEntryType.fertilizing => l10n.fertilizersTab,
       JournalEntryType.waterTest => l10n.waterTestTitle,
     };
 
@@ -263,6 +265,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
           'filter' => JournalEntryType.filter,
           'trimming' => JournalEntryType.trimming,
           'medication' => JournalEntryType.medication,
+          'fertilizing' => JournalEntryType.fertilizing,
           'waterTest' => JournalEntryType.waterTest,
           _ => JournalEntryType.cleaning,
         },
@@ -707,9 +710,11 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
         id: _notificationId(reminder.id),
         title: reminder.title,
         body: reminder.isRecurring
-            ? reminder.intervalDays == 1
+            ? reminder.repeatCount == 1 &&
+                      reminder.intervalUnit == RecurrenceUnit.days
                   ? l10n.dailyRecurrence
-                  : l10n.everyDays(reminder.intervalDays)
+                  : '${l10n.repeatEveryLabel} ${reminder.repeatCount} '
+                        '${_intervalUnitLabel(l10n, reminder.intervalUnit)}'
             : l10n.scheduledAquariumTaskNotification,
         date: reminder.nextDueDate,
       ),
@@ -1084,7 +1089,7 @@ class _ReminderTile extends StatelessWidget {
         ),
         title: Text(reminder.title),
         subtitle: Text(
-          '${_formatDate(reminder.nextDueDate)}${reminder.isRecurring ? ' · ${l10n.everyDays(reminder.intervalDays)}' : ''}',
+          '${_formatDate(reminder.nextDueDate)}${reminder.isRecurring ? ' · ${l10n.repeatEveryLabel} ${reminder.repeatCount} ${_intervalUnitLabel(l10n, reminder.intervalUnit)}' : ''}',
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1133,7 +1138,7 @@ class _DashboardReminderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final repeatDays = reminder.repeatIntervalDays;
+    final repeatCount = reminder.repeatCount;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -1144,11 +1149,11 @@ class _DashboardReminderTile extends StatelessWidget {
         title: Text(reminder.title),
         subtitle: Text(
           '${_formatDate(reminder.dueDate)} · '
-          '${repeatDays == null
+          '${repeatCount == null
               ? l10n.oneTime
-              : repeatDays == 1
+              : repeatCount == 1 && reminder.intervalUnit == RecurrenceUnit.days
               ? l10n.dailyRecurrence
-              : l10n.everyDays(repeatDays)}',
+              : '${l10n.repeatEveryLabel} $repeatCount ${_intervalUnitLabel(l10n, reminder.intervalUnit)}'}',
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1327,6 +1332,7 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
   final _interval = TextEditingController(text: '7');
   DateTime _nextDueDate = DateTime.now().add(const Duration(days: 1));
   bool _recurring = false;
+  RecurrenceUnit _intervalUnit = RecurrenceUnit.weeks;
   _ReminderTaskPreset _preset = _ReminderTaskPreset.waterChange;
   String? _customTitleError;
   String? _intervalError;
@@ -1337,7 +1343,8 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
     final initial = widget.initial;
     if (initial != null) {
       _customTitle.text = initial.title;
-      _interval.text = initial.intervalDays.toString();
+      _interval.text = initial.repeatCount.toString();
+      _intervalUnit = initial.intervalUnit;
       _nextDueDate = initial.nextDueDate;
       _recurring = initial.isRecurring;
       _preset = _ReminderTaskPreset.custom;
@@ -1433,28 +1440,50 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
               value: _recurring,
               onChanged: (value) => setState(() => _recurring = value),
             ),
-            if (_recurring)
+            if (_recurring) ...[
+              const SizedBox(height: 4),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
+                    flex: 2,
                     child: TextField(
                       controller: _interval,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         labelText: l10n.repeatEveryLabel,
-                        suffixText: l10n.daysProFeature,
                         errorText: _intervalError,
                       ),
                       onChanged: (_) => setState(() => _intervalError = null),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  OutlinedButton(
-                    onPressed: () => _interval.text = '1',
-                    child: Text(l10n.dailyRecurrence),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 3,
+                    child: DropdownButtonFormField<RecurrenceUnit>(
+                      initialValue: _intervalUnit,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.intervalUnitLabel,
+                      ),
+                      items: RecurrenceUnit.values
+                          .map(
+                            (unit) => DropdownMenuItem(
+                              value: unit,
+                              child: Text(_intervalUnitLabel(l10n, unit)),
+                            ),
+                          )
+                          .toList(growable: false),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _intervalUnit = value);
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
+            ],
           ],
         ),
       ),
@@ -1541,7 +1570,11 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
                 _ReminderTaskPreset.fertilizer => l10n.reminderTaskFertilizer,
                 _ReminderTaskPreset.custom => _customTitle.text.trim(),
               },
-        intervalDays: _recurring ? interval : 1,
+        intervalDays: _recurring
+            ? recurrenceIntervalDays(interval, _intervalUnit)
+            : 1,
+        intervalCount: _recurring ? interval : 1,
+        intervalUnit: _intervalUnit,
         nextDueDate: _nextDueDate,
         isRecurring: _recurring,
         isCompleted: widget.initial?.isCompleted ?? false,
@@ -1552,6 +1585,13 @@ class _ReminderFormDialogState extends State<_ReminderFormDialog> {
 }
 
 enum _ReminderTaskPreset { waterChange, filter, waterTest, fertilizer, custom }
+
+String _intervalUnitLabel(AppLocalizations l10n, RecurrenceUnit unit) =>
+    switch (unit) {
+      RecurrenceUnit.days => l10n.daysUnitShort,
+      RecurrenceUnit.weeks => l10n.weeksUnit,
+      RecurrenceUnit.months => l10n.monthsUnit,
+    };
 
 class _JournalEmpty extends StatelessWidget {
   const _JournalEmpty({required this.icon, required this.text});
@@ -1602,6 +1642,8 @@ IconData _iconFor(JournalEntryType type) {
       return Icons.medication_outlined;
     case JournalEntryType.cleaning:
       return Icons.cleaning_services_outlined;
+    case JournalEntryType.fertilizing:
+      return Icons.eco_outlined;
     case JournalEntryType.waterTest:
       return Icons.science_outlined;
   }

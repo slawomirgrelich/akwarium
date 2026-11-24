@@ -10,6 +10,7 @@ import 'widgets/pro_paywall_dialog.dart';
 import 'package:akwarium/utils/app_snackbar.dart';
 
 const _calculatorAccent = Color(0xFF10B981);
+final _savedNetLitersNotifier = ValueNotifier<double?>(null);
 
 class AquariumCalculatorsScreen extends StatefulWidget {
   const AquariumCalculatorsScreen({super.key});
@@ -114,6 +115,13 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
   final _substrate = TextEditingController(text: '5');
   final _glass = TextEditingController(text: '6');
   double _decorations = 10;
+  double? _savedNetLiters;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCapacity();
+  }
 
   @override
   void dispose() {
@@ -232,6 +240,32 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
         else
           _GlassCard(child: Text(l10n.calculatorInvalidValues)),
         const SizedBox(height: 24),
+        if (_savedNetLiters case final saved?) ...[
+          _GlassCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.savedNetCapacityLabel,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${saved.toStringAsFixed(1)} l',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.loadSavedNetCapacity,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
         FilledButton.icon(
           onPressed: result == null
               ? null
@@ -251,6 +285,8 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
   Future<void> _saveCapacity(BuildContext context, double liters) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setDouble('aquarium.default_net_liters', liters);
+    _savedNetLitersNotifier.value = liters;
+    if (mounted) setState(() => _savedNetLiters = liters);
     if (!context.mounted) return;
     context.showAppSnackBar(
       SnackBar(
@@ -260,6 +296,14 @@ class _VolumeCalculatorState extends State<_VolumeCalculator> {
         ),
       ),
     );
+  }
+
+  Future<void> _loadSavedCapacity() async {
+    final preferences = await SharedPreferences.getInstance();
+    final saved = preferences.getDouble('aquarium.default_net_liters');
+    if (saved == null || !mounted) return;
+    _savedNetLitersNotifier.value = saved;
+    setState(() => _savedNetLiters = saved);
   }
 }
 
@@ -381,6 +425,12 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
   SaltRecipe _recipe = saltRecipes.first;
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedCapacity();
+  }
+
+  @override
   void dispose() {
     for (final controller in [_volume, _solution, _salt, _target]) {
       controller.dispose();
@@ -422,6 +472,25 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
         _GlassCard(
           child: Column(
             children: [
+              ValueListenableBuilder<double?>(
+                valueListenable: _savedNetLitersNotifier,
+                builder: (context, saved, child) {
+                  if (saved == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: OutlinedButton.icon(
+                      onPressed: () => setState(
+                        () => _volume.text = saved.toStringAsFixed(1),
+                      ),
+                      icon: const Icon(Icons.download_outlined),
+                      label: Text(
+                        '${l10n.loadSavedNetCapacity}: '
+                        '${saved.toStringAsFixed(1)} l',
+                      ),
+                    ),
+                  );
+                },
+              ),
               _NumberField(
                 label: l10n.netCapacity,
                 unit: 'l',
@@ -540,6 +609,14 @@ class _FertilizerCalculatorState extends State<_FertilizerCalculator> {
   double? _tryNumber(TextEditingController controller) {
     final parsed = double.tryParse(controller.text.trim().replaceAll(',', '.'));
     return parsed != null && parsed.isFinite ? parsed : null;
+  }
+
+  Future<void> _loadSavedCapacity() async {
+    final preferences = await SharedPreferences.getInstance();
+    final saved = preferences.getDouble('aquarium.default_net_liters');
+    if (saved == null || !mounted) return;
+    _savedNetLitersNotifier.value = saved;
+    setState(() {});
   }
 }
 

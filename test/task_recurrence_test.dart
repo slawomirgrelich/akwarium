@@ -1,5 +1,6 @@
 import 'package:akwarium/models/aquarium_model.dart';
 import 'package:akwarium/utils/recurrence_date.dart';
+import 'package:akwarium/utils/recurrence_interval.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -87,6 +88,33 @@ void main() {
         0,
       ),
       throwsArgumentError,
+    );
+  });
+
+  test('custom weeks and calendar months advance with the scheduled time', () {
+    final completedAt = DateTime(2026, 1, 31, 17, 45);
+    final scheduledDate = DateTime(2026, 1, 30, 9, 30);
+
+    expect(
+      nextRecurrenceDate(completedAt, scheduledDate, 4, RecurrenceUnit.weeks),
+      DateTime(2026, 2, 28, 9, 30),
+    );
+    expect(
+      nextRecurrenceDate(completedAt, scheduledDate, 1, RecurrenceUnit.months),
+      DateTime(2026, 2, 28, 9, 30),
+    );
+  });
+
+  test('upcoming summary counts all occurrences in the selected horizon', () {
+    expect(
+      countRecurrencesInRange(
+        firstDueDate: DateTime(2026, 1, 2, 9),
+        from: DateTime(2026, 1, 1),
+        through: DateTime(2026, 2, 28, 23, 59),
+        intervalCount: 1,
+        unit: RecurrenceUnit.weeks,
+      ),
+      9,
     );
   });
 

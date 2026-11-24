@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../utils/recurrence_date.dart';
+import '../utils/recurrence_interval.dart';
 import 'firestore_sync_status.dart';
 
 enum JournalEntryType {
@@ -10,6 +10,7 @@ enum JournalEntryType {
   trimming,
   medication,
   cleaning,
+  fertilizing,
   waterTest,
 }
 
@@ -26,6 +27,8 @@ extension JournalEntryTypeLabel on JournalEntryType {
         return 'Leki';
       case JournalEntryType.cleaning:
         return 'Czyszczenie';
+      case JournalEntryType.fertilizing:
+        return 'Nawozy';
       case JournalEntryType.waterTest:
         return 'Test wody';
     }
@@ -87,6 +90,8 @@ class ReminderModel {
     required this.isRecurring,
     required this.isCompleted,
     required this.isProFeature,
+    this.intervalCount,
+    this.intervalUnit = RecurrenceUnit.days,
   });
 
   final String id;
@@ -97,6 +102,10 @@ class ReminderModel {
   final bool isRecurring;
   final bool isCompleted;
   final bool isProFeature;
+  final int? intervalCount;
+  final RecurrenceUnit intervalUnit;
+
+  int get repeatCount => intervalCount ?? intervalDays;
 
   ReminderModel copyWith({
     String? id,
@@ -107,6 +116,8 @@ class ReminderModel {
     bool? isRecurring,
     bool? isCompleted,
     bool? isProFeature,
+    int? intervalCount,
+    RecurrenceUnit? intervalUnit,
   }) {
     return ReminderModel(
       id: id ?? this.id,
@@ -117,6 +128,8 @@ class ReminderModel {
       isRecurring: isRecurring ?? this.isRecurring,
       isCompleted: isCompleted ?? this.isCompleted,
       isProFeature: isProFeature ?? this.isProFeature,
+      intervalCount: intervalCount ?? this.intervalCount,
+      intervalUnit: intervalUnit ?? this.intervalUnit,
     );
   }
 
@@ -125,6 +138,8 @@ class ReminderModel {
     'aquariumId': aquariumId,
     'title': title,
     'intervalDays': intervalDays,
+    'intervalCount': repeatCount,
+    'intervalUnit': intervalUnit.name,
     'nextDueDate': Timestamp.fromDate(nextDueDate),
     'isRecurring': isRecurring,
     'isCompleted': isCompleted,
@@ -135,11 +150,18 @@ class ReminderModel {
     DocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
     final data = snapshot.data() ?? const <String, dynamic>{};
+    final legacyDays = (data['intervalDays'] as num?)?.toInt() ?? 1;
+    final legacyInterval = recurrenceFromLegacyDays(legacyDays);
     return ReminderModel(
       id: _string(data['id'], snapshot.id),
       aquariumId: _string(data['aquariumId']),
       title: _string(data['title'], 'Przypomnienie'),
-      intervalDays: (data['intervalDays'] as num?)?.toInt() ?? 1,
+      intervalDays: legacyDays,
+      intervalCount:
+          (data['intervalCount'] as num?)?.toInt() ?? legacyInterval.count,
+      intervalUnit: data['intervalUnit'] == null
+          ? legacyInterval.unit
+          : recurrenceUnitFromName(data['intervalUnit']),
       nextDueDate: _date(data['nextDueDate']) ?? DateTime.now(),
       isRecurring: data['isRecurring'] as bool? ?? false,
       isCompleted: data['isCompleted'] as bool? ?? false,
@@ -157,6 +179,8 @@ class MaintenanceTaskModel {
     required this.repeatFrequencyDays,
     required this.lastPerformedDate,
     required this.nextDueDate,
+    this.intervalCount,
+    this.intervalUnit = RecurrenceUnit.days,
   });
 
   final String id;
@@ -166,6 +190,10 @@ class MaintenanceTaskModel {
   final int repeatFrequencyDays;
   final DateTime lastPerformedDate;
   final DateTime nextDueDate;
+  final int? intervalCount;
+  final RecurrenceUnit intervalUnit;
+
+  int get repeatCount => intervalCount ?? repeatFrequencyDays;
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -173,6 +201,8 @@ class MaintenanceTaskModel {
     'taskType': taskType,
     'title': title,
     'repeatFrequencyDays': repeatFrequencyDays,
+    'intervalCount': repeatCount,
+    'intervalUnit': intervalUnit.name,
     'lastPerformedDate': Timestamp.fromDate(lastPerformedDate),
     'nextDueDate': Timestamp.fromDate(nextDueDate),
   };
@@ -182,12 +212,19 @@ class MaintenanceTaskModel {
     String idFallback = '',
   }) {
     final lastPerformed = _date(data['lastPerformedDate']) ?? DateTime.now();
+    final legacyDays = (data['repeatFrequencyDays'] as num?)?.toInt() ?? 7;
+    final legacyInterval = recurrenceFromLegacyDays(legacyDays);
     return MaintenanceTaskModel(
       id: _string(data['id'], idFallback),
       aquariumId: _string(data['aquariumId']),
       taskType: _string(data['taskType'], 'custom'),
       title: _string(data['title'], 'Zadanie konserwacyjne'),
-      repeatFrequencyDays: (data['repeatFrequencyDays'] as num?)?.toInt() ?? 7,
+      repeatFrequencyDays: legacyDays,
+      intervalCount:
+          (data['intervalCount'] as num?)?.toInt() ?? legacyInterval.count,
+      intervalUnit: data['intervalUnit'] == null
+          ? legacyInterval.unit
+          : recurrenceUnitFromName(data['intervalUnit']),
       lastPerformedDate: lastPerformed,
       nextDueDate: _date(data['nextDueDate']) ?? lastPerformed,
     );
@@ -217,11 +254,14 @@ class MaintenanceTaskModel {
       title: title,
       repeatFrequencyDays: repeatFrequencyDays,
       lastPerformedDate: performedAt,
-      nextDueDate: nextRecurrenceDateAfter(
+      nextDueDate: nextRecurrenceDate(
         performedAt,
         nextDueDate,
-        repeatFrequencyDays,
+        repeatCount,
+        intervalUnit,
       ),
+      intervalCount: repeatCount,
+      intervalUnit: intervalUnit,
     );
   }
 }
@@ -333,6 +373,8 @@ class AquariumJournalService {
         repeatFrequencyDays: task.repeatFrequencyDays,
         lastPerformedDate: task.lastPerformedDate,
         nextDueDate: task.nextDueDate,
+        intervalCount: task.repeatCount,
+        intervalUnit: task.intervalUnit,
       );
       await reference.set(saved.toMap());
       await FirestoreSyncStatus.recordSuccessfulSync();
@@ -400,10 +442,11 @@ class AquariumJournalService {
   }) async {
     final performedAt = completedAt ?? DateTime.now();
     final nextDate = reminder.isRecurring
-        ? nextRecurrenceDateAfter(
+        ? nextRecurrenceDate(
             performedAt,
             reminder.nextDueDate,
-            reminder.intervalDays,
+            reminder.repeatCount,
+            reminder.intervalUnit,
           )
         : reminder.nextDueDate;
     final updated = reminder.copyWith(
