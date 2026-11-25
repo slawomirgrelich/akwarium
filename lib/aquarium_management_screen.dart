@@ -264,7 +264,7 @@ class _ManagementContentState extends State<_ManagementContent>
             .toList();
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 112),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -315,7 +315,14 @@ class _ManagementContentState extends State<_ManagementContent>
               const SizedBox(height: 12),
               TabBar(
                 controller: _tabs,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
                 indicatorColor: Theme.of(context).primaryColor,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
                 labelColor: Theme.of(context).primaryColor,
                 unselectedLabelColor: Theme.of(context)
                     .textTheme
@@ -323,14 +330,32 @@ class _ManagementContentState extends State<_ManagementContent>
                     ?.color,
                 tabs: [
                   Tab(
-                    icon: const Icon(Icons.phishing_outlined),
-                    text:
-                        '${AppLocalizations.of(context)!.animalsTabTitle} (${fauna.length})',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.phishing_outlined),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${AppLocalizations.of(context)!.animalsTabTitle} (${fauna.length})',
+                          maxLines: 1,
+                          softWrap: false,
+                        ),
+                      ],
+                    ),
                   ),
                   Tab(
-                    icon: const Icon(Icons.eco_outlined),
-                    text:
-                        '${AppLocalizations.of(context)!.plantsTabTitle} (${flora.length})',
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.eco_outlined),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${AppLocalizations.of(context)!.plantsTabTitle} (${flora.length})',
+                          maxLines: 1,
+                          softWrap: false,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -441,9 +466,10 @@ class _TankProfileStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
     return SizedBox(
-      height: 120,
+      height: 138,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
         itemCount: provider.aquariums.length + 1,
         separatorBuilder: (_, _) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
@@ -452,7 +478,8 @@ class _TankProfileStrip extends StatelessWidget {
               onTap: onAdd,
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                width: 176,
+                width: 184,
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
@@ -477,8 +504,8 @@ class _TankProfileStrip extends StatelessWidget {
             onTap: () => provider.selectAquarium(aquarium.id),
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              width: 176,
-              padding: const EdgeInsets.all(10),
+              width: 190,
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
@@ -516,6 +543,7 @@ class _TankProfileStrip extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -526,6 +554,11 @@ class _TankProfileStrip extends StatelessWidget {
                           size: 18,
                         ),
                       PopupMenuButton<String>(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints.tightFor(
+                          width: 32,
+                          height: 32,
+                        ),
                         icon: Icon(
                           Icons.more_vert,
                           color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -570,6 +603,8 @@ class _TankProfileStrip extends StatelessWidget {
                   const Spacer(),
                   Text(
                     '${l10n.netVolumeShort(aquarium.volumeNetLiters.round())} · ${_tankTypeLabel(l10n, aquarium.type)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color,
                       fontSize: 12,
@@ -597,6 +632,8 @@ class _TankProfileStrip extends StatelessWidget {
                                 ),
                               )
                             : '${l10n.daysCount(aquarium.ageInDays)} · ${l10n.inhabitantsCount(count)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                           fontSize: 12,
@@ -699,6 +736,9 @@ class _SummaryMetric extends StatelessWidget {
       ),
       Text(
         label,
+        maxLines: 2,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: Theme.of(context).textTheme.bodyMedium?.color,
           fontSize: 11,
@@ -725,6 +765,7 @@ class _InhabitantList extends StatelessWidget {
       );
     }
     return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 104),
       itemCount: items.length,
       itemBuilder: (context, index) => _InhabitantCard(
         item: items[index],

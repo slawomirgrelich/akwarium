@@ -40,6 +40,7 @@ import 'screens/login_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/referral_screen.dart';
+import 'screens/routine_templates_screen.dart';
 import 'screens/species_atlas_screen.dart';
 import 'services/auth_service.dart';
 import 'services/admin_service.dart';
@@ -1151,6 +1152,22 @@ class ToolsPage extends StatelessWidget {
               title: l10n.tools,
               subtitle: l10n.toolsSubtitle,
             ),
+            _ToolCard(
+              icon: Icons.auto_stories_outlined,
+              color: Colors.teal,
+              title: l10n.templatesTitle,
+              description: l10n.templatesSubtitle,
+              buttonLabel: l10n.templatesOpen,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RoutineTemplatesScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
             _ToolCard(
               icon: Icons.water_drop_outlined,
               color: Colors.cyan,

@@ -1028,6 +1028,204 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save the app experience mode.';
 
   @override
+  String get templatesTitle => 'Templates & Routines';
+
+  @override
+  String get templatesSubtitle =>
+      'Ready-made plans for starting and maintaining a stable aquarium.';
+
+  @override
+  String get templatesOpen => 'View schedule';
+
+  @override
+  String templatesStepsCount(int count) {
+    return '$count steps';
+  }
+
+  @override
+  String get routineScheduleTitle => 'Step-by-step schedule';
+
+  @override
+  String routineProgress(int done, int total) {
+    return '$done of $total completed';
+  }
+
+  @override
+  String get routineDayToday => 'Today';
+
+  @override
+  String routineDayNumber(int day) {
+    return 'Day $day';
+  }
+
+  @override
+  String get routineCompleted => 'Completed';
+
+  @override
+  String get routineAddAll => 'Add the full plan to Journal and reminders';
+
+  @override
+  String get routineAddStepReminder => 'Add reminder';
+
+  @override
+  String get routineAddStepJournal => 'Save to Journal';
+
+  @override
+  String get routineAddedAll => 'The plan was added to Journal and reminders.';
+
+  @override
+  String get routineAddedReminder => 'Reminder added.';
+
+  @override
+  String get routineAddedJournal => 'The entry was saved to Journal.';
+
+  @override
+  String get routineAddError => 'Could not add the plan. Try again.';
+
+  @override
+  String get routineProgressSaveError => 'Could not save routine progress.';
+
+  @override
+  String get routineNoAquarium =>
+      'Select or add an aquarium before assigning a plan.';
+
+  @override
+  String get routineNitrogenTitle => 'New aquarium — nitrogen cycle';
+
+  @override
+  String get routineNitrogenDescription =>
+      'A controlled plan for starting biological filtration and tracking ammonia, nitrite, and nitrate before adding sensitive livestock.';
+
+  @override
+  String get routineNitrogenDuration => '3–4 weeks';
+
+  @override
+  String get routineNitrogenStep1Title => 'Prepare tank and substrate';
+
+  @override
+  String get routineNitrogenStep1Description =>
+      'Set up the tank, rinse substrate without detergents, and install the filter and heater. Use a safe temperature for the planned livestock.';
+
+  @override
+  String get routineNitrogenStep2Title => 'Start filtration and circulation';
+
+  @override
+  String get routineNitrogenStep2Description =>
+      'Fill with conditioned water, start the filter, and check flow. Record the temperature and capacity.';
+
+  @override
+  String get routineNitrogenStep3Title =>
+      'Introduce a controlled nitrogen source';
+
+  @override
+  String get routineNitrogenStep3Description =>
+      'Follow the chosen ammonia-source or starter-product instructions. Never add fish solely to accelerate cycling.';
+
+  @override
+  String get routineNitrogenStep4Title => 'Monitor cycle peaks';
+
+  @override
+  String get routineNitrogenStep4Description =>
+      'Record ammonia, nitrite, and nitrate regularly. Avoid changing all parameters abruptly at once.';
+
+  @override
+  String get routineNitrogenStep5Title => 'Confirm biological stability';
+
+  @override
+  String get routineNitrogenStep5Description =>
+      'Add livestock only after stable, safe results and sustained filtration. Introduce species in small groups.';
+
+  @override
+  String get routineWeeklyTitle => 'Weekly routine — stable tank';
+
+  @override
+  String get routineWeeklyDescription =>
+      'A light plan for checks, water changes, and care that helps reveal changes before they become a problem.';
+
+  @override
+  String get routineWeeklyDuration => '7 days · repeatable';
+
+  @override
+  String get routineWeeklyStep1Title => 'Inspect the aquarium';
+
+  @override
+  String get routineWeeklyStep1Description =>
+      'Check livestock behavior, plants, temperature, water level, odors, and equipment operation.';
+
+  @override
+  String get routineWeeklyStep2Title => 'Record a water test';
+
+  @override
+  String get routineWeeklyStep2Description =>
+      'Measure the parameters most important to this tank and compare them with the previous week.';
+
+  @override
+  String get routineWeeklyStep3Title => 'Perform the planned water change';
+
+  @override
+  String get routineWeeklyStep3Description =>
+      'Use a moderate water change suited to the livestock and test results. Condition replacement water.';
+
+  @override
+  String get routineWeeklyStep4Title => 'Check filter and plants';
+
+  @override
+  String get routineWeeklyStep4Description =>
+      'Assess flow, carefully remove visible debris, and trim leaves that need care. Never clean all media at once.';
+
+  @override
+  String get routineWeeklyStep5Title => 'Review the week';
+
+  @override
+  String get routineWeeklyStep5Description =>
+      'Add a short journal entry describing what changed, how plants and animals reacted, and next week\'s plan.';
+
+  @override
+  String get routineRestartTitle => 'Tank restart — biological recovery';
+
+  @override
+  String get routineRestartDescription =>
+      'A safer plan after an outage, long break, or deep cleaning when biological filtration may have weakened.';
+
+  @override
+  String get routineRestartDuration => '7–14 days';
+
+  @override
+  String get routineRestartStep1Title => 'Assess the tank after the event';
+
+  @override
+  String get routineRestartStep1Description =>
+      'Measure temperature, ammonia, and nitrite. Reduce feeding if results indicate a problem, and add no new livestock.';
+
+  @override
+  String get routineRestartStep2Title => 'Protect biological media';
+
+  @override
+  String get routineRestartStep2Description =>
+      'Keep viable biological media in oxygenated aquarium water. Do not rinse it with chlorinated water or let it dry.';
+
+  @override
+  String get routineRestartStep3Title => 'Restore conditioning and flow';
+
+  @override
+  String get routineRestartStep3Description =>
+      'Start a working filter, condition replacement water, and perform controlled changes based on measurements.';
+
+  @override
+  String get routineRestartStep4Title => 'Test daily for a short period';
+
+  @override
+  String get routineRestartStep4Description =>
+      'Monitor ammonia and nitrite more often during the first days and record results to spot the trend.';
+
+  @override
+  String get routineRestartStep5Title => 'Return to the stable routine';
+
+  @override
+  String get routineRestartStep5Description =>
+      'Once results stabilize, gradually restore normal feeding and the weekly schedule while watching livestock.';
+
+  @override
   String get faqModesTitle =>
       'What is the difference between Beginner and Advanced?';
 

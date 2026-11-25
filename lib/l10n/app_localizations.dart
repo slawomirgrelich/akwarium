@@ -1988,6 +1988,348 @@ abstract class AppLocalizations {
   /// **'Nie udało się zapisać trybu korzystania.'**
   String get experienceModeSaveFailed;
 
+  /// No description provided for @templatesTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szablony i Rutyny'**
+  String get templatesTitle;
+
+  /// No description provided for @templatesSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gotowe plany, które ułatwiają rozpoczęcie pracy i utrzymanie stabilnego akwarium.'**
+  String get templatesSubtitle;
+
+  /// No description provided for @templatesOpen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zobacz harmonogram'**
+  String get templatesOpen;
+
+  /// No description provided for @templatesStepsCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} kroków'**
+  String templatesStepsCount(int count);
+
+  /// No description provided for @routineScheduleTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Harmonogram krok po kroku'**
+  String get routineScheduleTitle;
+
+  /// No description provided for @routineProgress.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ukończono {done} z {total}'**
+  String routineProgress(int done, int total);
+
+  /// No description provided for @routineDayToday.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dzisiaj'**
+  String get routineDayToday;
+
+  /// No description provided for @routineDayNumber.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dzień {day}'**
+  String routineDayNumber(int day);
+
+  /// No description provided for @routineCompleted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykonane'**
+  String get routineCompleted;
+
+  /// No description provided for @routineAddAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj cały plan do Dziennika i przypomnień'**
+  String get routineAddAll;
+
+  /// No description provided for @routineAddStepReminder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj przypomnienie'**
+  String get routineAddStepReminder;
+
+  /// No description provided for @routineAddStepJournal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz w Dzienniku'**
+  String get routineAddStepJournal;
+
+  /// No description provided for @routineAddedAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Plan dodano do Dziennika i przypomnień.'**
+  String get routineAddedAll;
+
+  /// No description provided for @routineAddedReminder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienie zostało dodane.'**
+  String get routineAddedReminder;
+
+  /// No description provided for @routineAddedJournal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpis został zapisany w Dzienniku.'**
+  String get routineAddedJournal;
+
+  /// No description provided for @routineAddError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się dodać planu. Spróbuj ponownie.'**
+  String get routineAddError;
+
+  /// No description provided for @routineProgressSaveError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zapisać postępu rutyny.'**
+  String get routineProgressSaveError;
+
+  /// No description provided for @routineNoAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najpierw wybierz lub dodaj akwarium, do którego przypiszesz plan.'**
+  String get routineNoAquarium;
+
+  /// No description provided for @routineNitrogenTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Start nowego akwarium — cykl azotowy'**
+  String get routineNitrogenTitle;
+
+  /// No description provided for @routineNitrogenDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kontrolowany plan uruchomienia filtracji biologicznej i obserwacji amoniaku, azotynów oraz azotanów przed dodaniem wrażliwej obsady.'**
+  String get routineNitrogenDescription;
+
+  /// No description provided for @routineNitrogenDuration.
+  ///
+  /// In pl, this message translates to:
+  /// **'3–4 tygodnie'**
+  String get routineNitrogenDuration;
+
+  /// No description provided for @routineNitrogenStep1Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przygotuj zbiornik i podłoże'**
+  String get routineNitrogenStep1Title;
+
+  /// No description provided for @routineNitrogenStep1Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustaw akwarium, płucz podłoże bez detergentów, zamontuj filtr i grzałkę. Zadbaj o bezpieczną temperaturę właściwą dla planowanej obsady.'**
+  String get routineNitrogenStep1Description;
+
+  /// No description provided for @routineNitrogenStep2Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uruchom filtr i cyrkulację'**
+  String get routineNitrogenStep2Title;
+
+  /// No description provided for @routineNitrogenStep2Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Napełnij zbiornik uzdatnioną wodą, uruchom filtr i sprawdź przepływ. Uzupełnij zapis o temperaturę i pojemność.'**
+  String get routineNitrogenStep2Description;
+
+  /// No description provided for @routineNitrogenStep3Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wprowadź kontrolowane źródło azotu'**
+  String get routineNitrogenStep3Title;
+
+  /// No description provided for @routineNitrogenStep3Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Postępuj zgodnie z instrukcją wybranego źródła amoniaku lub programu startowego. Nie dodawaj ryb tylko po to, aby przyspieszyć cykl.'**
+  String get routineNitrogenStep3Description;
+
+  /// No description provided for @routineNitrogenStep4Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Monitoruj szczyty cyklu'**
+  String get routineNitrogenStep4Title;
+
+  /// No description provided for @routineNitrogenStep4Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Regularnie zapisuj amoniak, azotyny i azotany. Nie wykonuj gwałtownych zmian wszystkich parametrów jednocześnie.'**
+  String get routineNitrogenStep4Description;
+
+  /// No description provided for @routineNitrogenStep5Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdź stabilność biologii'**
+  String get routineNitrogenStep5Title;
+
+  /// No description provided for @routineNitrogenStep5Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodawaj obsadę dopiero po stabilnych, bezpiecznych wynikach i utrzymującym się przepływie. Wprowadzaj gatunki małymi partiami.'**
+  String get routineNitrogenStep5Description;
+
+  /// No description provided for @routineWeeklyTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rutyna tygodniowa — stabilny zbiornik'**
+  String get routineWeeklyTitle;
+
+  /// No description provided for @routineWeeklyDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Lekki plan kontroli, podmiany i pielęgnacji, który pomaga wykrywać zmiany zanim staną się problemem.'**
+  String get routineWeeklyDescription;
+
+  /// No description provided for @routineWeeklyDuration.
+  ///
+  /// In pl, this message translates to:
+  /// **'7 dni · plan powtarzalny'**
+  String get routineWeeklyDuration;
+
+  /// No description provided for @routineWeeklyStep1Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Obejrzyj akwarium'**
+  String get routineWeeklyStep1Title;
+
+  /// No description provided for @routineWeeklyStep1Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź zachowanie zwierząt, rośliny, temperaturę, poziom wody, zapach i pracę urządzeń.'**
+  String get routineWeeklyStep1Description;
+
+  /// No description provided for @routineWeeklyStep2Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisz pomiar wody'**
+  String get routineWeeklyStep2Title;
+
+  /// No description provided for @routineWeeklyStep2Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź co najmniej parametry najważniejsze dla zbiornika. Porównaj wynik z poprzednim tygodniem.'**
+  String get routineWeeklyStep2Description;
+
+  /// No description provided for @routineWeeklyStep3Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykonaj planowaną podmianę'**
+  String get routineWeeklyStep3Title;
+
+  /// No description provided for @routineWeeklyStep3Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykonaj umiarkowaną podmianę dopasowaną do obsady i wyników pomiarów. Uzdatnij dolewaną wodę.'**
+  String get routineWeeklyStep3Description;
+
+  /// No description provided for @routineWeeklyStep4Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sprawdź filtr i rośliny'**
+  String get routineWeeklyStep4Title;
+
+  /// No description provided for @routineWeeklyStep4Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oceń przepływ, ostrożnie usuń widoczne zabrudzenia oraz przytnij liście wymagające pielęgnacji. Nie czyść wszystkich mediów naraz.'**
+  String get routineWeeklyStep4Description;
+
+  /// No description provided for @routineWeeklyStep5Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podsumuj tydzień'**
+  String get routineWeeklyStep5Title;
+
+  /// No description provided for @routineWeeklyStep5Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj krótki wpis do dziennika: co zmieniono, jak reagowały rośliny i zwierzęta oraz co zaplanować na następny tydzień.'**
+  String get routineWeeklyStep5Description;
+
+  /// No description provided for @routineRestartTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Restart zbiornika — odbudowa biologii'**
+  String get routineRestartTitle;
+
+  /// No description provided for @routineRestartDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bezpieczniejszy plan po awarii, długiej przerwie lub dużym czyszczeniu, gdy filtracja biologiczna mogła zostać osłabiona.'**
+  String get routineRestartDescription;
+
+  /// No description provided for @routineRestartDuration.
+  ///
+  /// In pl, this message translates to:
+  /// **'7–14 dni'**
+  String get routineRestartDuration;
+
+  /// No description provided for @routineRestartStep1Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oceń stan po awarii'**
+  String get routineRestartStep1Title;
+
+  /// No description provided for @routineRestartStep1Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmierz temperaturę, amoniak i azotyny. Ogranicz karmienie, jeśli wyniki wskazują problem, i nie dodawaj nowej obsady.'**
+  String get routineRestartStep1Description;
+
+  /// No description provided for @routineRestartStep2Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zabezpiecz media biologiczne'**
+  String get routineRestartStep2Title;
+
+  /// No description provided for @routineRestartStep2Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zachowaj dostępne aktywne media w natlenionej wodzie z akwarium. Nie spłukuj ich wodą chlorowaną i nie susz.'**
+  String get routineRestartStep2Description;
+
+  /// No description provided for @routineRestartStep3Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przywróć uzdatnianie i przepływ'**
+  String get routineRestartStep3Title;
+
+  /// No description provided for @routineRestartStep3Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uruchom sprawny filtr, uzdatniaj dolaną wodę i wykonuj kontrolowane podmiany zgodnie z pomiarami.'**
+  String get routineRestartStep3Description;
+
+  /// No description provided for @routineRestartStep4Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Mierz codziennie przejściowo'**
+  String get routineRestartStep4Title;
+
+  /// No description provided for @routineRestartStep4Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przez pierwsze dni obserwuj amoniak i azotyny częściej niż zwykle. Zapisuj wyniki, aby zauważyć trend.'**
+  String get routineRestartStep4Description;
+
+  /// No description provided for @routineRestartStep5Title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wróć do stabilnej rutyny'**
+  String get routineRestartStep5Title;
+
+  /// No description provided for @routineRestartStep5Description.
+  ///
+  /// In pl, this message translates to:
+  /// **'Po ustabilizowaniu wyników przywracaj normalne karmienie i tygodniowy harmonogram stopniowo, obserwując reakcję obsady.'**
+  String get routineRestartStep5Description;
+
   /// No description provided for @faqModesTitle.
   ///
   /// In pl, this message translates to:

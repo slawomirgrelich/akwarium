@@ -1035,6 +1035,204 @@ class AppLocalizationsPl extends AppLocalizations {
       'Nie udało się zapisać trybu korzystania.';
 
   @override
+  String get templatesTitle => 'Szablony i Rutyny';
+
+  @override
+  String get templatesSubtitle =>
+      'Gotowe plany, które ułatwiają rozpoczęcie pracy i utrzymanie stabilnego akwarium.';
+
+  @override
+  String get templatesOpen => 'Zobacz harmonogram';
+
+  @override
+  String templatesStepsCount(int count) {
+    return '$count kroków';
+  }
+
+  @override
+  String get routineScheduleTitle => 'Harmonogram krok po kroku';
+
+  @override
+  String routineProgress(int done, int total) {
+    return 'Ukończono $done z $total';
+  }
+
+  @override
+  String get routineDayToday => 'Dzisiaj';
+
+  @override
+  String routineDayNumber(int day) {
+    return 'Dzień $day';
+  }
+
+  @override
+  String get routineCompleted => 'Wykonane';
+
+  @override
+  String get routineAddAll => 'Dodaj cały plan do Dziennika i przypomnień';
+
+  @override
+  String get routineAddStepReminder => 'Dodaj przypomnienie';
+
+  @override
+  String get routineAddStepJournal => 'Zapisz w Dzienniku';
+
+  @override
+  String get routineAddedAll => 'Plan dodano do Dziennika i przypomnień.';
+
+  @override
+  String get routineAddedReminder => 'Przypomnienie zostało dodane.';
+
+  @override
+  String get routineAddedJournal => 'Wpis został zapisany w Dzienniku.';
+
+  @override
+  String get routineAddError => 'Nie udało się dodać planu. Spróbuj ponownie.';
+
+  @override
+  String get routineProgressSaveError =>
+      'Nie udało się zapisać postępu rutyny.';
+
+  @override
+  String get routineNoAquarium =>
+      'Najpierw wybierz lub dodaj akwarium, do którego przypiszesz plan.';
+
+  @override
+  String get routineNitrogenTitle => 'Start nowego akwarium — cykl azotowy';
+
+  @override
+  String get routineNitrogenDescription =>
+      'Kontrolowany plan uruchomienia filtracji biologicznej i obserwacji amoniaku, azotynów oraz azotanów przed dodaniem wrażliwej obsady.';
+
+  @override
+  String get routineNitrogenDuration => '3–4 tygodnie';
+
+  @override
+  String get routineNitrogenStep1Title => 'Przygotuj zbiornik i podłoże';
+
+  @override
+  String get routineNitrogenStep1Description =>
+      'Ustaw akwarium, płucz podłoże bez detergentów, zamontuj filtr i grzałkę. Zadbaj o bezpieczną temperaturę właściwą dla planowanej obsady.';
+
+  @override
+  String get routineNitrogenStep2Title => 'Uruchom filtr i cyrkulację';
+
+  @override
+  String get routineNitrogenStep2Description =>
+      'Napełnij zbiornik uzdatnioną wodą, uruchom filtr i sprawdź przepływ. Uzupełnij zapis o temperaturę i pojemność.';
+
+  @override
+  String get routineNitrogenStep3Title => 'Wprowadź kontrolowane źródło azotu';
+
+  @override
+  String get routineNitrogenStep3Description =>
+      'Postępuj zgodnie z instrukcją wybranego źródła amoniaku lub programu startowego. Nie dodawaj ryb tylko po to, aby przyspieszyć cykl.';
+
+  @override
+  String get routineNitrogenStep4Title => 'Monitoruj szczyty cyklu';
+
+  @override
+  String get routineNitrogenStep4Description =>
+      'Regularnie zapisuj amoniak, azotyny i azotany. Nie wykonuj gwałtownych zmian wszystkich parametrów jednocześnie.';
+
+  @override
+  String get routineNitrogenStep5Title => 'Potwierdź stabilność biologii';
+
+  @override
+  String get routineNitrogenStep5Description =>
+      'Dodawaj obsadę dopiero po stabilnych, bezpiecznych wynikach i utrzymującym się przepływie. Wprowadzaj gatunki małymi partiami.';
+
+  @override
+  String get routineWeeklyTitle => 'Rutyna tygodniowa — stabilny zbiornik';
+
+  @override
+  String get routineWeeklyDescription =>
+      'Lekki plan kontroli, podmiany i pielęgnacji, który pomaga wykrywać zmiany zanim staną się problemem.';
+
+  @override
+  String get routineWeeklyDuration => '7 dni · plan powtarzalny';
+
+  @override
+  String get routineWeeklyStep1Title => 'Obejrzyj akwarium';
+
+  @override
+  String get routineWeeklyStep1Description =>
+      'Sprawdź zachowanie zwierząt, rośliny, temperaturę, poziom wody, zapach i pracę urządzeń.';
+
+  @override
+  String get routineWeeklyStep2Title => 'Zapisz pomiar wody';
+
+  @override
+  String get routineWeeklyStep2Description =>
+      'Sprawdź co najmniej parametry najważniejsze dla zbiornika. Porównaj wynik z poprzednim tygodniem.';
+
+  @override
+  String get routineWeeklyStep3Title => 'Wykonaj planowaną podmianę';
+
+  @override
+  String get routineWeeklyStep3Description =>
+      'Wykonaj umiarkowaną podmianę dopasowaną do obsady i wyników pomiarów. Uzdatnij dolewaną wodę.';
+
+  @override
+  String get routineWeeklyStep4Title => 'Sprawdź filtr i rośliny';
+
+  @override
+  String get routineWeeklyStep4Description =>
+      'Oceń przepływ, ostrożnie usuń widoczne zabrudzenia oraz przytnij liście wymagające pielęgnacji. Nie czyść wszystkich mediów naraz.';
+
+  @override
+  String get routineWeeklyStep5Title => 'Podsumuj tydzień';
+
+  @override
+  String get routineWeeklyStep5Description =>
+      'Dodaj krótki wpis do dziennika: co zmieniono, jak reagowały rośliny i zwierzęta oraz co zaplanować na następny tydzień.';
+
+  @override
+  String get routineRestartTitle => 'Restart zbiornika — odbudowa biologii';
+
+  @override
+  String get routineRestartDescription =>
+      'Bezpieczniejszy plan po awarii, długiej przerwie lub dużym czyszczeniu, gdy filtracja biologiczna mogła zostać osłabiona.';
+
+  @override
+  String get routineRestartDuration => '7–14 dni';
+
+  @override
+  String get routineRestartStep1Title => 'Oceń stan po awarii';
+
+  @override
+  String get routineRestartStep1Description =>
+      'Zmierz temperaturę, amoniak i azotyny. Ogranicz karmienie, jeśli wyniki wskazują problem, i nie dodawaj nowej obsady.';
+
+  @override
+  String get routineRestartStep2Title => 'Zabezpiecz media biologiczne';
+
+  @override
+  String get routineRestartStep2Description =>
+      'Zachowaj dostępne aktywne media w natlenionej wodzie z akwarium. Nie spłukuj ich wodą chlorowaną i nie susz.';
+
+  @override
+  String get routineRestartStep3Title => 'Przywróć uzdatnianie i przepływ';
+
+  @override
+  String get routineRestartStep3Description =>
+      'Uruchom sprawny filtr, uzdatniaj dolaną wodę i wykonuj kontrolowane podmiany zgodnie z pomiarami.';
+
+  @override
+  String get routineRestartStep4Title => 'Mierz codziennie przejściowo';
+
+  @override
+  String get routineRestartStep4Description =>
+      'Przez pierwsze dni obserwuj amoniak i azotyny częściej niż zwykle. Zapisuj wyniki, aby zauważyć trend.';
+
+  @override
+  String get routineRestartStep5Title => 'Wróć do stabilnej rutyny';
+
+  @override
+  String get routineRestartStep5Description =>
+      'Po ustabilizowaniu wyników przywracaj normalne karmienie i tygodniowy harmonogram stopniowo, obserwując reakcję obsady.';
+
+  @override
   String get faqModesTitle =>
       'Jaka jest różnica między trybem Początkujący i Zaawansowany?';
 
