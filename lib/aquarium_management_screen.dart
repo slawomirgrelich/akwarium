@@ -8,10 +8,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'models/aquarium_model.dart';
 import 'models/species_models.dart';
+import 'models/community_models.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/species_atlas_screen.dart';
 import 'screens/tank_stocking_screen.dart';
 import 'screens/tank_photo_journal_screen.dart';
+import 'screens/community_screen.dart';
 import 'services/firestore_service.dart';
 import 'services/experience_mode_controller.dart';
 import 'services/pro_access_service.dart';
@@ -590,6 +592,33 @@ class _TankProfileStrip extends StatelessWidget {
                                 );
                               }
                             }
+                          } else if (action == 'share') {
+                            final livestock = await FirestoreService()
+                                .getLivestock(aquarium.id)
+                                .first;
+                            final species = <String>{};
+                            for (final item in livestock) {
+                              species.add(
+                                '${item['namePl'] ?? item['nameLatin'] ?? item['id']}',
+                              );
+                            }
+                            if (!context.mounted) return;
+                            await Navigator.push<void>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CommunityScreen(
+                                  initialSnapshot: CommunityTankSnapshot(
+                                    litersNet: aquarium.volumeNetLiters,
+                                    waterType: _tankTypeLabel(
+                                      l10n,
+                                      aquarium.type,
+                                    ),
+                                    ageDays: aquarium.ageInDays,
+                                    speciesCount: species.length,
+                                  ),
+                                ),
+                              ),
+                            );
                           } else {
                             showDialog<void>(
                               context: context,
@@ -599,6 +628,13 @@ class _TankProfileStrip extends StatelessWidget {
                           }
                         },
                         itemBuilder: (_) => [
+                          PopupMenuItem(
+                            value: 'share',
+                            child: Text(
+                              AppLocalizations.of(context)!
+                                  .communityShareAquarium,
+                            ),
+                          ),
                           PopupMenuItem(
                             value: 'edit',
                             child: Text(

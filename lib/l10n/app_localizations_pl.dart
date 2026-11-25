@@ -1265,6 +1265,85 @@ class AppLocalizationsPl extends AppLocalizations {
   String get noUniversalRange => 'Brak uniwersalnego zakresu';
 
   @override
+  String get communityTitle => 'Galeria i porady';
+
+  @override
+  String get communityDescription =>
+      'Pokazuj akwaria, zadawaj pytania i pomagaj innym akwarystom.';
+
+  @override
+  String get communityOpen => 'Otwórz galerię';
+
+  @override
+  String get communityAll => 'Wszystkie';
+
+  @override
+  String get communityAquariums => 'Akwaria';
+
+  @override
+  String get communityTips => 'Porady';
+
+  @override
+  String get communityAquarium => 'Pokaz akwarium';
+
+  @override
+  String get communityQuestion => 'Pytanie';
+
+  @override
+  String get communityPublish => 'Opublikuj';
+
+  @override
+  String get communityPublished => 'Post został opublikowany.';
+
+  @override
+  String get communityLoadError => 'Nie udało się wczytać treści społeczności.';
+
+  @override
+  String get communityEmpty =>
+      'Brak postów. Pokaż pierwszy zbiornik lub dodaj pytanie.';
+
+  @override
+  String get communityShareAquarium => 'Udostępnij w galerii';
+
+  @override
+  String get communityAddPhoto => 'Dodaj zdjęcie';
+
+  @override
+  String get communityChangePhoto => 'Zmień zdjęcie';
+
+  @override
+  String get communityAiHint => 'Wstępna podpowiedź';
+
+  @override
+  String communityAnswersCount(int count) {
+    return 'Odpowiedzi: $count';
+  }
+
+  @override
+  String get communityWriteAnswer => 'Napisz odpowiedź';
+
+  @override
+  String get communityReportContent => 'Zgłoś treść';
+
+  @override
+  String get communityHideUser => 'Ukryj użytkownika';
+
+  @override
+  String get communityReportReason => 'Powód zgłoszenia';
+
+  @override
+  String get communityReportSpam => 'Spam lub reklama';
+
+  @override
+  String get communityReportHarmful => 'Niebezpieczna lub obraźliwa treść';
+
+  @override
+  String get communityReportOther => 'Inny powód';
+
+  @override
+  String get communityReportSent => 'Zgłoszenie zostało wysłane.';
+
+  @override
   String get viewAllWaterAlerts => 'Wszystkie parametry poza normą';
 
   @override

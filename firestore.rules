@@ -32,9 +32,14 @@ service cloud.firestore {
       allow update: if (
           ownsUser(userId)
           && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['displayName', 'photoUrl', 'locale', 'lastActiveAt'])
+            .hasOnly([
+              'displayName', 'photoUrl', 'locale', 'lastActiveAt',
+              'blockedUserIds'
+            ])
           && (!('lastActiveAt' in request.resource.data)
             || request.resource.data.lastActiveAt is timestamp)
+          && (!('blockedUserIds' in request.resource.data)
+            || request.resource.data.blockedUserIds.size() <= 500)
         ) || (
           isAdmin()
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -55,6 +60,121 @@ service cloud.firestore {
 
     match /users/{userId}/{document=**} {
       allow read, write: if ownsUser(userId);
+    }
+
+    match /community_posts/{postId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() > 0
+        && request.resource.data.authorName.size() <= 40
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 80
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 400
+        && request.resource.data.type in ['showcase', 'question']
+        && (request.resource.data.type != 'showcase'
+          || request.resource.data.imageUrl is string)
+        && (!('imageUrl' in request.resource.data)
+          || request.resource.data.imageUrl == null
+          || request.resource.data.imageUrl is string)
+        && (!('aiFirstAnswer' in request.resource.data)
+          || request.resource.data.aiFirstAnswer == null
+          || (
+            request.resource.data.aiFirstAnswer is string
+            && request.resource.data.aiFirstAnswer.size() <= 400
+          ))
+        && request.resource.data.status == 'published'
+        && request.resource.data.answersCount == 0
+        && request.resource.data.reactions.keys()
+          .hasOnly(['heart', 'plant', 'fish'])
+        && request.resource.data.reactions.heart == 0
+        && request.resource.data.reactions.plant == 0
+        && request.resource.data.reactions.fish == 0
+        && request.resource.data.reactedBy.size() == 0
+        && request.resource.data.keys().hasOnly([
+          'type', 'authorId', 'authorName', 'title', 'description',
+          'imageUrl', 'tankSnapshot', 'aiFirstAnswer', 'reactions',
+          'reactedBy', 'answersCount', 'lastAnswerId', 'status', 'createdAt'
+        ])
+        && request.resource.data.lastAnswerId == '';
+      allow update: if signedIn()
+        && (
+          (
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['reactions', 'reactedBy'])
+            && request.resource.data.reactedBy.diff(resource.data.reactedBy)
+              .affectedKeys().hasOnly([request.auth.uid])
+            && request.resource.data.reactedBy.get(request.auth.uid, '') in [
+              '', 'heart', 'plant', 'fish'
+            ]
+            && request.resource.data.reactions.keys()
+              .hasAll(['heart', 'plant', 'fish'])
+            && request.resource.data.reactions.keys()
+              .hasOnly(['heart', 'plant', 'fish'])
+            && request.resource.data.reactions.heart ==
+              resource.data.reactions.heart
+              - (resource.data.reactedBy.get(request.auth.uid, '') == 'heart' ? 1 : 0)
+              + (request.resource.data.reactedBy.get(request.auth.uid, '') == 'heart' ? 1 : 0)
+            && request.resource.data.reactions.plant ==
+              resource.data.reactions.plant
+              - (resource.data.reactedBy.get(request.auth.uid, '') == 'plant' ? 1 : 0)
+              + (request.resource.data.reactedBy.get(request.auth.uid, '') == 'plant' ? 1 : 0)
+            && request.resource.data.reactions.fish ==
+              resource.data.reactions.fish
+              - (resource.data.reactedBy.get(request.auth.uid, '') == 'fish' ? 1 : 0)
+              + (request.resource.data.reactedBy.get(request.auth.uid, '') == 'fish' ? 1 : 0)
+          ) || (
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['answersCount', 'lastAnswerId'])
+            && request.resource.data.answersCount ==
+              resource.data.answersCount + 1
+            && request.resource.data.lastAnswerId !=
+              resource.data.lastAnswerId
+            && getAfter(/databases/$(database)/documents/community_posts/$(postId)/answers/$(request.resource.data.lastAnswerId))
+              .data.authorId == request.auth.uid
+          )
+        );
+      allow delete: if ownsUser(resource.data.authorId);
+
+      match /answers/{answerId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.authorName is string
+          && request.resource.data.authorName.size() > 0
+          && request.resource.data.authorName.size() <= 40
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 300
+          && request.resource.data.isAi == false
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.keys().hasOnly([
+            'authorId', 'authorName', 'text', 'isAi', 'createdAt'
+          ]);
+        allow update, delete: if false;
+      }
+    }
+
+    match /reports/{reportId} {
+      allow read: if false;
+      allow create: if signedIn()
+        && request.resource.data.reportedBy == request.auth.uid
+        && request.resource.data.targetType in ['post', 'answer']
+        && request.resource.data.targetId is string
+        && request.resource.data.postId is string
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 120
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.keys().hasOnly([
+          'targetType', 'targetId', 'postId', 'reportedBy', 'reason',
+          'createdAt'
+        ]);
+      allow update, delete: if false;
     }
 
     match /tickets/{ticketId} {

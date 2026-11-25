@@ -2390,6 +2390,156 @@ abstract class AppLocalizations {
   /// **'Brak uniwersalnego zakresu'**
   String get noUniversalRange;
 
+  /// No description provided for @communityTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Galeria i porady'**
+  String get communityTitle;
+
+  /// No description provided for @communityDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokazuj akwaria, zadawaj pytania i pomagaj innym akwarystom.'**
+  String get communityDescription;
+
+  /// No description provided for @communityOpen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwórz galerię'**
+  String get communityOpen;
+
+  /// No description provided for @communityAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie'**
+  String get communityAll;
+
+  /// No description provided for @communityAquariums.
+  ///
+  /// In pl, this message translates to:
+  /// **'Akwaria'**
+  String get communityAquariums;
+
+  /// No description provided for @communityTips.
+  ///
+  /// In pl, this message translates to:
+  /// **'Porady'**
+  String get communityTips;
+
+  /// No description provided for @communityAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokaz akwarium'**
+  String get communityAquarium;
+
+  /// No description provided for @communityQuestion.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pytanie'**
+  String get communityQuestion;
+
+  /// No description provided for @communityPublish.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opublikuj'**
+  String get communityPublish;
+
+  /// No description provided for @communityPublished.
+  ///
+  /// In pl, this message translates to:
+  /// **'Post został opublikowany.'**
+  String get communityPublished;
+
+  /// No description provided for @communityLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać treści społeczności.'**
+  String get communityLoadError;
+
+  /// No description provided for @communityEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak postów. Pokaż pierwszy zbiornik lub dodaj pytanie.'**
+  String get communityEmpty;
+
+  /// No description provided for @communityShareAquarium.
+  ///
+  /// In pl, this message translates to:
+  /// **'Udostępnij w galerii'**
+  String get communityShareAquarium;
+
+  /// No description provided for @communityAddPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zdjęcie'**
+  String get communityAddPhoto;
+
+  /// No description provided for @communityChangePhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmień zdjęcie'**
+  String get communityChangePhoto;
+
+  /// No description provided for @communityAiHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wstępna podpowiedź'**
+  String get communityAiHint;
+
+  /// No description provided for @communityAnswersCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odpowiedzi: {count}'**
+  String communityAnswersCount(int count);
+
+  /// No description provided for @communityWriteAnswer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Napisz odpowiedź'**
+  String get communityWriteAnswer;
+
+  /// No description provided for @communityReportContent.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoś treść'**
+  String get communityReportContent;
+
+  /// No description provided for @communityHideUser.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ukryj użytkownika'**
+  String get communityHideUser;
+
+  /// No description provided for @communityReportReason.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powód zgłoszenia'**
+  String get communityReportReason;
+
+  /// No description provided for @communityReportSpam.
+  ///
+  /// In pl, this message translates to:
+  /// **'Spam lub reklama'**
+  String get communityReportSpam;
+
+  /// No description provided for @communityReportHarmful.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niebezpieczna lub obraźliwa treść'**
+  String get communityReportHarmful;
+
+  /// No description provided for @communityReportOther.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inny powód'**
+  String get communityReportOther;
+
+  /// No description provided for @communityReportSent.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoszenie zostało wysłane.'**
+  String get communityReportSent;
+
   /// No description provided for @viewAllWaterAlerts.
   ///
   /// In pl, this message translates to:

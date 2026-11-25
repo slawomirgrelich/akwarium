@@ -41,6 +41,7 @@ import 'screens/notification_settings_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/referral_screen.dart';
 import 'screens/routine_templates_screen.dart';
+import 'screens/community_screen.dart';
 import 'screens/species_atlas_screen.dart';
 import 'services/auth_service.dart';
 import 'services/admin_service.dart';
@@ -1161,6 +1162,18 @@ class ToolsPage extends StatelessWidget {
               title: l10n.tools,
               subtitle: l10n.toolsSubtitle,
             ),
+            _ToolCard(
+              icon: Icons.forum_outlined,
+              color: Colors.cyan.shade700,
+              title: l10n.communityTitle,
+              description: l10n.communityDescription,
+              buttonLabel: l10n.communityOpen,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CommunityScreen()),
+              ),
+            ),
+            const SizedBox(height: 12),
             _ToolCard(
               icon: Icons.auto_stories_outlined,
               color: Colors.teal,

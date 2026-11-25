@@ -1258,6 +1258,85 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noUniversalRange => 'No universal target range';
 
   @override
+  String get communityTitle => 'Gallery & Tips';
+
+  @override
+  String get communityDescription =>
+      'Share tanks, ask questions, and help other aquarists.';
+
+  @override
+  String get communityOpen => 'Open gallery';
+
+  @override
+  String get communityAll => 'All';
+
+  @override
+  String get communityAquariums => 'Aquariums';
+
+  @override
+  String get communityTips => 'Tips';
+
+  @override
+  String get communityAquarium => 'Aquarium showcase';
+
+  @override
+  String get communityQuestion => 'Question';
+
+  @override
+  String get communityPublish => 'Publish';
+
+  @override
+  String get communityPublished => 'Post published.';
+
+  @override
+  String get communityLoadError => 'Could not load community content.';
+
+  @override
+  String get communityEmpty =>
+      'No posts yet. Share the first tank or ask a question.';
+
+  @override
+  String get communityShareAquarium => 'Share in gallery';
+
+  @override
+  String get communityAddPhoto => 'Add photo';
+
+  @override
+  String get communityChangePhoto => 'Change photo';
+
+  @override
+  String get communityAiHint => 'Initial tip';
+
+  @override
+  String communityAnswersCount(int count) {
+    return 'Answers: $count';
+  }
+
+  @override
+  String get communityWriteAnswer => 'Write an answer';
+
+  @override
+  String get communityReportContent => 'Report content';
+
+  @override
+  String get communityHideUser => 'Hide user';
+
+  @override
+  String get communityReportReason => 'Reason for report';
+
+  @override
+  String get communityReportSpam => 'Spam or advertising';
+
+  @override
+  String get communityReportHarmful => 'Harmful or abusive content';
+
+  @override
+  String get communityReportOther => 'Other reason';
+
+  @override
+  String get communityReportSent => 'Report submitted.';
+
+  @override
   String get viewAllWaterAlerts => 'All out-of-range parameters';
 
   @override
