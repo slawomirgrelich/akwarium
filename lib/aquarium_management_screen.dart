@@ -262,6 +262,12 @@ class _ManagementContentState extends State<_ManagementContent>
         final flora = filtered
             .where((item) => item.category == CreatureCategory.plant)
             .toList();
+        final colorScheme = Theme.of(context).colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final activeTabColor = colorScheme.primary;
+        final inactiveTabColor = isDark
+            ? colorScheme.onSurfaceVariant.withValues(alpha: 0.88)
+            : Theme.of(context).textTheme.bodyMedium?.color;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
@@ -317,17 +323,24 @@ class _ManagementContentState extends State<_ManagementContent>
                 controller: _tabs,
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
-                indicatorColor: Theme.of(context).primaryColor,
+                indicatorColor: activeTabColor,
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicatorWeight: 3,
+                dividerHeight: 0,
                 labelPadding: const EdgeInsets.symmetric(horizontal: 14),
                 labelStyle: const TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                 ),
-                labelColor: Theme.of(context).primaryColor,
-                unselectedLabelColor: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.color,
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+                labelColor: activeTabColor,
+                unselectedLabelColor: inactiveTabColor,
+                overlayColor: WidgetStatePropertyAll(
+                  activeTabColor.withValues(alpha: 0.10),
+                ),
                 tabs: [
                   Tab(
                     child: Row(
@@ -765,7 +778,7 @@ class _InhabitantList extends StatelessWidget {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 104),
+      padding: const EdgeInsets.only(bottom: 120),
       itemCount: items.length,
       itemBuilder: (context, index) => _InhabitantCard(
         item: items[index],
