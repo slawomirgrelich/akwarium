@@ -93,49 +93,12 @@ class _TemplateIllustration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
+    return SizedBox(
       height: height,
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: dark
-            ? colors.surfaceContainerHigh.withValues(alpha: 0.72)
-            : colors.surfaceContainerHighest.withValues(alpha: 0.42),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: dark ? 0.28 : 0.18),
-        ),
-      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(14),
-        child: ColorFiltered(
-          colorFilter: dark
-              ? const ColorFilter.matrix(<double>[
-                  0.76,
-                  0,
-                  0,
-                  0,
-                  8,
-                  0,
-                  0.82,
-                  0,
-                  0,
-                  12,
-                  0,
-                  0,
-                  0.86,
-                  0,
-                  14,
-                  0,
-                  0,
-                  0,
-                  1,
-                  0,
-                ])
-              : const ColorFilter.mode(Colors.transparent, BlendMode.dst),
-          child: Image.asset(template.assetPath, fit: BoxFit.contain),
-        ),
+        child: Image.asset(template.assetPath, fit: BoxFit.contain),
       ),
     );
   }
@@ -340,8 +303,6 @@ class _RoutineTemplateDetailsScreenState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final completedCount = _completed.length;
-    final colors = Theme.of(context).colorScheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(title: Text(widget.template.title)),
       body: _loading
@@ -357,58 +318,13 @@ class _RoutineTemplateDetailsScreenState
                         final imageHeight = constraints.maxWidth >= 600
                             ? 184.0
                             : 152.0;
-                        return Container(
+                        return SizedBox(
                           height: imageHeight,
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: dark
-                                ? colors.surfaceContainerHigh.withValues(
-                                    alpha: 0.72,
-                                  )
-                                : colors.surfaceContainerHighest.withValues(
-                                    alpha: 0.42,
-                                  ),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: colors.outlineVariant.withValues(
-                                alpha: dark ? 0.28 : 0.18,
-                              ),
-                            ),
-                          ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: ColorFiltered(
-                              colorFilter: dark
-                                  ? const ColorFilter.matrix(<double>[
-                                      0.76,
-                                      0,
-                                      0,
-                                      0,
-                                      8,
-                                      0,
-                                      0.82,
-                                      0,
-                                      0,
-                                      12,
-                                      0,
-                                      0,
-                                      0.86,
-                                      0,
-                                      14,
-                                      0,
-                                      0,
-                                      0,
-                                      1,
-                                      0,
-                                    ])
-                                  : const ColorFilter.mode(
-                                      Colors.transparent,
-                                      BlendMode.dst,
-                                    ),
-                              child: Image.asset(
-                                widget.template.assetPath,
-                                fit: BoxFit.contain,
-                              ),
+                            borderRadius: BorderRadius.circular(18),
+                            child: Image.asset(
+                              widget.template.assetPath,
+                              fit: BoxFit.contain,
                             ),
                           ),
                         );
