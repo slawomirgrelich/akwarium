@@ -108,7 +108,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           );
                         }
                         if (snapshot.hasError) {
-                          return Center(child: Text(l10n.communityLoadError));
+                          return Center(child: Text('${l10n.communityLoadError}\n${snapshot.error}'));
                         }
                         final filter = switch (_filter) {
                           _CommunityFilter.all => CommunityPostFilter.all,
