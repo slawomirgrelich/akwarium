@@ -308,20 +308,22 @@ double? redfieldRatio(WaterTest test) {
 }
 
 WaterAssessment? latestWaterAlert(WaterTest? test) {
-  if (test == null) return null;
+  return latestWaterAlerts(test).firstOrNull;
+}
+
+List<WaterAssessment> latestWaterAlerts(WaterTest? test) {
+  if (test == null) return const [];
   final assessments = assessWaterTest(test);
-  for (final assessment in assessments) {
-    if (assessment.status == WaterStatus.critical) return assessment;
-  }
-  for (final assessment in assessments) {
-    if (assessment.status == WaterStatus.warning) return assessment;
-  }
+  final alerts = assessments.where((assessment) => !assessment.isGood).toList()
+    ..sort((a, b) => b.status.index.compareTo(a.status.index));
   final ratio = redfieldRatio(test);
   if (ratio != null && (ratio < 10 || ratio > 16)) {
-    return const WaterAssessment(
-      status: WaterStatus.warning,
-      messageKey: WaterAssessmentMessageKey.redfieldRatio,
+    alerts.add(
+      const WaterAssessment(
+        status: WaterStatus.warning,
+        messageKey: WaterAssessmentMessageKey.redfieldRatio,
+      ),
     );
   }
-  return null;
+  return alerts;
 }

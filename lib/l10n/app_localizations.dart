@@ -2330,6 +2330,72 @@ abstract class AppLocalizations {
   /// **'Po ustabilizowaniu wyników przywracaj normalne karmienie i tygodniowy harmonogram stopniowo, obserwując reakcję obsady.'**
   String get routineRestartStep5Description;
 
+  /// No description provided for @additionalWaterAlerts.
+  ///
+  /// In pl, this message translates to:
+  /// **'+ {count} inne parametry poza normą'**
+  String additionalWaterAlerts(int count);
+
+  /// No description provided for @waterParameterDetails.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szczegóły parametru'**
+  String get waterParameterDetails;
+
+  /// No description provided for @measuredValue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmierzona wartość'**
+  String get measuredValue;
+
+  /// No description provided for @recommendedRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zalecany zakres'**
+  String get recommendedRange;
+
+  /// No description provided for @assessmentStatus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ocena'**
+  String get assessmentStatus;
+
+  /// No description provided for @parameterAdvice.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jak skorygować'**
+  String get parameterAdvice;
+
+  /// No description provided for @parameterTooLow.
+  ///
+  /// In pl, this message translates to:
+  /// **'Za niski'**
+  String get parameterTooLow;
+
+  /// No description provided for @parameterTooHigh.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podwyższony'**
+  String get parameterTooHigh;
+
+  /// No description provided for @parameterCritical.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krytycznie przekroczony'**
+  String get parameterCritical;
+
+  /// No description provided for @noUniversalRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak uniwersalnego zakresu'**
+  String get noUniversalRange;
+
+  /// No description provided for @viewAllWaterAlerts.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie parametry poza normą'**
+  String get viewAllWaterAlerts;
+
   /// No description provided for @faqModesTitle.
   ///
   /// In pl, this message translates to:

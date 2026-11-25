@@ -79,6 +79,23 @@ void main() {
     );
   });
 
+  test('zwraca wszystkie ostrzeżenia bez ukrywania kolejnych parametrów', () {
+    final test = WaterTest(
+      id: 'alerts',
+      date: DateTime(2026, 1, 1),
+      ph: 8.4,
+      no3: 55,
+      no2: 0.1,
+      po4: 0.1,
+      nh3Nh4: 0.2,
+    );
+
+    final alerts = latestWaterAlerts(test);
+    expect(alerts.where((item) => !item.isGood).length, alerts.length);
+    expect(alerts.any((item) => item.status == WaterStatus.critical), isTrue);
+    expect(alerts.length, greaterThanOrEqualTo(5));
+  });
+
   test('lokalizuje alert NO3:PO4 i jego etykietę w obu językach', () async {
     final alert = latestWaterAlert(makeTest(no3: 16, po4: 0.5))!;
     final english = await AppLocalizations.delegate.load(const Locale('en'));

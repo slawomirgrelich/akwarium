@@ -1233,6 +1233,41 @@ class AppLocalizationsPl extends AppLocalizations {
       'Po ustabilizowaniu wyników przywracaj normalne karmienie i tygodniowy harmonogram stopniowo, obserwując reakcję obsady.';
 
   @override
+  String additionalWaterAlerts(int count) {
+    return '+ $count inne parametry poza normą';
+  }
+
+  @override
+  String get waterParameterDetails => 'Szczegóły parametru';
+
+  @override
+  String get measuredValue => 'Zmierzona wartość';
+
+  @override
+  String get recommendedRange => 'Zalecany zakres';
+
+  @override
+  String get assessmentStatus => 'Ocena';
+
+  @override
+  String get parameterAdvice => 'Jak skorygować';
+
+  @override
+  String get parameterTooLow => 'Za niski';
+
+  @override
+  String get parameterTooHigh => 'Podwyższony';
+
+  @override
+  String get parameterCritical => 'Krytycznie przekroczony';
+
+  @override
+  String get noUniversalRange => 'Brak uniwersalnego zakresu';
+
+  @override
+  String get viewAllWaterAlerts => 'Wszystkie parametry poza normą';
+
+  @override
   String get faqModesTitle =>
       'Jaka jest różnica między trybem Początkujący i Zaawansowany?';
 

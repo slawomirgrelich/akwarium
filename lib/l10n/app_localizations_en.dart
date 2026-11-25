@@ -1226,6 +1226,41 @@ class AppLocalizationsEn extends AppLocalizations {
       'Once results stabilize, gradually restore normal feeding and the weekly schedule while watching livestock.';
 
   @override
+  String additionalWaterAlerts(int count) {
+    return '+ $count other parameters out of range';
+  }
+
+  @override
+  String get waterParameterDetails => 'Parameter details';
+
+  @override
+  String get measuredValue => 'Measured value';
+
+  @override
+  String get recommendedRange => 'Recommended range';
+
+  @override
+  String get assessmentStatus => 'Assessment';
+
+  @override
+  String get parameterAdvice => 'How to correct it';
+
+  @override
+  String get parameterTooLow => 'Too low';
+
+  @override
+  String get parameterTooHigh => 'High';
+
+  @override
+  String get parameterCritical => 'Critical';
+
+  @override
+  String get noUniversalRange => 'No universal target range';
+
+  @override
+  String get viewAllWaterAlerts => 'All out-of-range parameters';
+
+  @override
   String get faqModesTitle =>
       'What is the difference between Beginner and Advanced?';
 

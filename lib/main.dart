@@ -587,14 +587,15 @@ class DashboardPage extends StatelessWidget {
                 daysSinceChange: daysSinceChange,
                 isFresh: isWaterFresh,
               ),
-              if (latestWaterAlert(latestTest) case final alert?) ...[
+              if (latestWaterAlerts(latestTest) case final alerts
+                  when alerts.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _WaterAlertCard(test: latestTest!, alert: alert),
+                _WaterAlertCard(test: latestTest!, alerts: alerts),
               ],
               const SizedBox(height: 24),
               _SectionHeader(title: l10n.recentParameters),
               const SizedBox(height: 12),
-              _WaterParametersCard(test: latestTest),
+              WaterParametersCard(test: latestTest),
               if (provider.waterTestsSyncFailed) ...[
                 const SizedBox(height: 8),
                 Text(
@@ -959,7 +960,8 @@ class _BeginnerWaterSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final alert = latestWaterAlert(test);
+    final alerts = latestWaterAlerts(test);
+    final alert = alerts.firstOrNull;
     final message = test == null
         ? l10n.beginnerWaterStatusNoData
         : alert == null
@@ -968,47 +970,54 @@ class _BeginnerWaterSummary extends StatelessWidget {
     final color = alert == null
         ? Theme.of(context).colorScheme.primary
         : Theme.of(context).colorScheme.tertiary;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              alert == null ? Icons.water_drop_outlined : Icons.info_outline,
-              color: color,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.aquariumStatus,
-                    style: Theme.of(context).textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(message),
-                  if (test?.co2 case final value?) ...[
-                    const SizedBox(height: 8),
-                    Text('${l10n.co2Label}: ${value.toStringAsFixed(1)} mg/L'),
-                  ],
-                  if (syncFailed) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.waterTestsSyncFailed,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ],
+    final content = Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            alert == null ? Icons.water_drop_outlined : Icons.info_outline,
+            color: color,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.aquariumStatus,
+                  style: Theme.of(context).textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(message),
+                if (test?.co2 case final value?) ...[
+                  const SizedBox(height: 8),
+                  Text('${l10n.co2Label}: ${value.toStringAsFixed(1)} mg/L'),
                 ],
-              ),
+                if (syncFailed) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.waterTestsSyncFailed,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+    return Card(
+      clipBehavior: alerts.isEmpty ? Clip.none : Clip.antiAlias,
+      child: alerts.isEmpty
+          ? content
+          : InkWell(
+              onTap: () => _showWaterAlertsSheet(context, test!, alerts),
+              child: content,
+            ),
     );
   }
 }
@@ -2858,8 +2867,8 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(
-        color: Color(0xFF123D39),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
         fontWeight: FontWeight.bold,
         fontSize: 18,
       ),
@@ -3024,8 +3033,8 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFF123D39),
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
                 fontSize: 17,
               ),
@@ -3085,8 +3094,8 @@ class _WaterStatusCard extends StatelessWidget {
   }
 }
 
-class _WaterParametersCard extends StatelessWidget {
-  const _WaterParametersCard({required this.test});
+class WaterParametersCard extends StatelessWidget {
+  const WaterParametersCard({required this.test, super.key});
 
   final models.WaterTest? test;
 
@@ -3128,31 +3137,14 @@ class _WaterParametersCard extends StatelessWidget {
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  if (test!.ph case final value?)
-                    _ParameterChip(label: 'pH', value: '$value'),
-                  if (test!.no3 case final value?)
-                    _ParameterChip(label: 'NO3', value: '$value mg/l'),
-                  if (test!.no2 case final value?)
-                    _ParameterChip(label: 'NO2', value: '$value mg/l'),
-                  if (test!.po4 case final value?)
-                    _ParameterChip(label: 'PO4', value: '$value mg/l'),
-                  if (test!.co2 case final value?)
-                    _ParameterChip(label: l10n.co2Label, value: '$value mg/L'),
-                  if (test!.nh3Nh4 case final value?)
-                    _ParameterChip(
-                      label: l10n.ammoniaParameterLabel,
-                      value: '$value mg/L',
-                    ),
-                  if (test!.tds case final value?)
-                    _ParameterChip(label: 'TDS', value: '$value ppm'),
-                  if (test!.fe case final value?)
-                    _ParameterChip(label: 'Fe', value: '$value mg/l'),
-                  if (test!.kh case final value?)
-                    _ParameterChip(label: 'KH', value: '$value dKH'),
-                  if (test!.gh case final value?)
-                    _ParameterChip(label: 'GH', value: '$value dGH'),
-                  if (test!.temp case final value?)
-                    _ParameterChip(label: l10n.temperature, value: '$value°C'),
+                  for (final parameter in WaterParameter.values)
+                    if (waterValue(test!, parameter) case final value?)
+                      _ParameterChip(
+                        parameter: parameter,
+                        value: value,
+                        assessment: assessWaterValue(parameter, value),
+                        test: test!,
+                      ),
                 ],
               ),
       ),
@@ -3161,14 +3153,15 @@ class _WaterParametersCard extends StatelessWidget {
 }
 
 class _WaterAlertCard extends StatelessWidget {
-  const _WaterAlertCard({required this.test, required this.alert});
+  const _WaterAlertCard({required this.test, required this.alerts});
 
   final models.WaterTest test;
-  final WaterAssessment alert;
+  final List<WaterAssessment> alerts;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final alert = alerts.first;
     final isCritical = alert.status == WaterStatus.critical;
     final color = isCritical ? Colors.red.shade700 : Colors.orange.shade800;
     final parameter = alert.parameter;
@@ -3184,70 +3177,335 @@ class _WaterAlertCard extends StatelessWidget {
         ? ''
         : ' (${value.toStringAsFixed(valuePrecision)}${unit.isEmpty ? '' : ' $unit'})';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withAlpha(18),
+    return Material(
+      color: color.withValues(alpha: 0.10),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withAlpha(80)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.warning_amber_rounded, color: color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '${waterAssessmentLabel(l10n, alert)}: '
-              '${waterAssessmentMessage(l10n, alert)}$valueDescription',
-              style: TextStyle(color: color, fontWeight: FontWeight.w700),
-            ),
+        onTap: () => _showWaterAlertsSheet(context, test, alerts),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withValues(alpha: 0.55)),
           ),
-        ],
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.warning_amber_rounded, color: color),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${waterAssessmentLabel(l10n, alert)}: '
+                      '${waterAssessmentMessage(l10n, alert)}$valueDescription',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (alerts.length > 1) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        l10n.additionalWaterAlerts(alerts.length - 1),
+                        style: TextStyle(color: color),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
 class _ParameterChip extends StatelessWidget {
-  const _ParameterChip({required this.label, required this.value});
+  const _ParameterChip({
+    required this.parameter,
+    required this.value,
+    required this.assessment,
+    required this.test,
+  });
+
+  final WaterParameter parameter;
+  final double value;
+  final WaterAssessment assessment;
+  final models.WaterTest test;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colors = Theme.of(context).colorScheme;
+    final standard = waterStandards[parameter]!;
+    final isCritical = assessment.status == WaterStatus.critical;
+    final isWarning =
+        assessment.status == WaterStatus.warning &&
+        parameter != WaterParameter.tds;
+    final accent = isCritical
+        ? colors.error
+        : isWarning
+        ? Colors.amber.shade700
+        : colors.primary;
+    final background = isCritical
+        ? colors.errorContainer.withValues(alpha: 0.52)
+        : isWarning
+        ? Colors.amber.withValues(alpha: 0.16)
+        : colors.primaryContainer.withValues(alpha: 0.45);
+    final label = parameter == WaterParameter.temp
+        ? l10n.temperature
+        : parameter == WaterParameter.nh3Nh4
+        ? l10n.ammoniaParameterLabel
+        : parameter == WaterParameter.co2
+        ? l10n.co2Label
+        : standard.label;
+    final unit = standard.unit;
+
+    return Material(
+      color: background,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _showWaterParameterSheet(
+          context,
+          test: test,
+          parameter: parameter,
+          value: value,
+          assessment: assessment,
+        ),
+        child: Container(
+          constraints: const BoxConstraints(minWidth: 108),
+          padding: const EdgeInsets.fromLTRB(11, 9, 8, 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: accent.withValues(
+                alpha: isWarning || isCritical ? 0.85 : 0.30,
+              ),
+              width: isWarning || isCritical ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isWarning || isCritical) ...[
+                        Icon(
+                          isCritical
+                              ? Icons.error_outline
+                              : Icons.warning_amber_rounded,
+                          size: 15,
+                          color: accent,
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${value.toStringAsFixed(parameter == WaterParameter.tds ? 0 : 1)}${unit.isEmpty ? '' : ' $unit'}',
+                    style: TextStyle(
+                      color: colors.onSurface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: colors.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void _showWaterParameterSheet(
+  BuildContext context, {
+  required models.WaterTest test,
+  required WaterParameter parameter,
+  required double value,
+  required WaterAssessment assessment,
+}) {
+  final l10n = AppLocalizations.of(context)!;
+  final standard = waterStandards[parameter]!;
+  final isCritical = assessment.status == WaterStatus.critical;
+  final isGood = assessment.isGood;
+  final range = standard.hasUniversalOptimalRange
+      ? '${standard.optimalMin.toStringAsFixed(standard.optimalMin % 1 == 0 ? 0 : 2)}–'
+            '${standard.optimalMax.toStringAsFixed(standard.optimalMax % 1 == 0 ? 0 : 2)}'
+            '${standard.unit.isEmpty ? '' : ' ${standard.unit}'}'
+      : l10n.noUniversalRange;
+  final status = isCritical
+      ? l10n.parameterCritical
+      : isGood
+      ? l10n.waterAssessmentNormal
+      : value < standard.optimalMin
+      ? l10n.parameterTooLow
+      : l10n.parameterTooHigh;
+  final label = parameter == WaterParameter.temp
+      ? l10n.temperature
+      : parameter == WaterParameter.co2
+      ? l10n.co2Label
+      : parameter == WaterParameter.nh3Nh4
+      ? l10n.ammoniaParameterLabel
+      : standard.label;
+  final unit = standard.unit.isEmpty ? '' : ' ${standard.unit}';
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) => SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(sheetContext).colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Text(label, style: Theme.of(sheetContext).textTheme.headlineSmall),
+            const SizedBox(height: 16),
+            _WaterDetailLine(label: l10n.measuredValue, value: '$value$unit'),
+            _WaterDetailLine(label: l10n.recommendedRange, value: range),
+            _WaterDetailLine(label: l10n.assessmentStatus, value: status),
+            const SizedBox(height: 16),
+            Text(
+              l10n.parameterAdvice,
+              style: Theme.of(sheetContext).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 6),
+            Text(waterAssessmentMessage(l10n, assessment)),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+void _showWaterAlertsSheet(
+  BuildContext context,
+  models.WaterTest test,
+  List<WaterAssessment> alerts,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (sheetContext) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        children: [
+          Text(
+            l10n.viewAllWaterAlerts,
+            style: Theme.of(sheetContext).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 12),
+          for (final alert in alerts)
+            Card(
+              child: ListTile(
+                leading: Icon(
+                  alert.status == WaterStatus.critical
+                      ? Icons.error_outline
+                      : Icons.warning_amber_rounded,
+                  color: alert.status == WaterStatus.critical
+                      ? Theme.of(sheetContext).colorScheme.error
+                      : Colors.amber.shade700,
+                ),
+                title: Text(
+                  alert.parameter == null
+                      ? waterAssessmentLabel(l10n, alert)
+                      : waterStandards[alert.parameter]!.label,
+                ),
+                subtitle: Text(waterAssessmentMessage(l10n, alert)),
+                trailing: alert.parameter == null
+                    ? null
+                    : const Icon(Icons.chevron_right),
+                onTap: alert.parameter == null
+                    ? null
+                    : () {
+                        final value = waterValue(test, alert.parameter!);
+                        if (value == null) return;
+                        Navigator.pop(sheetContext);
+                        _showWaterParameterSheet(
+                          context,
+                          test: test,
+                          parameter: alert.parameter!,
+                          value: value,
+                          assessment: alert,
+                        );
+                      },
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _WaterDetailLine extends StatelessWidget {
+  const _WaterDetailLine({required this.label, required this.value});
 
   final String label;
   final String value;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8F3F1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: RichText(
-        text: TextSpan(
-          style: DefaultTextStyle.of(context).style,
-          children: [
-            TextSpan(
-              text: '$label\n',
-              style: const TextStyle(
-                color: Color(0xFF00796B),
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            TextSpan(
-              text: value,
-              style: const TextStyle(
-                color: Color(0xFF123D39),
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-          ],
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: Text(label)),
+        const SizedBox(width: 16),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
 }
 
 class _ActionTile extends StatelessWidget {
