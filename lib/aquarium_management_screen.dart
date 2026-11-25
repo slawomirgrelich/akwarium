@@ -478,6 +478,7 @@ class _TankProfileStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AquariumProvider>();
+    final iconColor = aquariumManagementIconColor(context);
     return SizedBox(
       height: 138,
       child: ListView.separated(
@@ -502,9 +503,14 @@ class _TankProfileStrip extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.add),
+                    Icon(Icons.add, color: iconColor),
                     SizedBox(height: 6),
-                    Text(AppLocalizations.of(context)!.addTank),
+                    Text(
+                      AppLocalizations.of(context)!.addTank,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -545,7 +551,7 @@ class _TankProfileStrip extends StatelessWidget {
                         aquarium.isArchived
                             ? Icons.inventory_2_outlined
                             : Icons.water,
-                        color: Theme.of(context).primaryColor,
+                        color: iconColor,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -561,11 +567,7 @@ class _TankProfileStrip extends StatelessWidget {
                         ),
                       ),
                       if (active)
-                        Icon(
-                          Icons.check_circle,
-                          color: Theme.of(context).colorScheme.secondary,
-                          size: 18,
-                        ),
+                        Icon(Icons.check_circle, color: iconColor, size: 18),
                       PopupMenuButton<String>(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints.tightFor(
@@ -574,7 +576,7 @@ class _TankProfileStrip extends StatelessWidget {
                         ),
                         icon: Icon(
                           Icons.more_vert,
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           size: 18,
                         ),
                         onSelected: (action) async {
@@ -737,7 +739,19 @@ class _SummaryMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      Icon(icon, color: Theme.of(context).primaryColor),
+      Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: aquariumManagementIconSurface(context),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          icon,
+          color: aquariumManagementIconColor(context),
+          size: 20,
+        ),
+      ),
       const SizedBox(height: 5),
       Text(
         value,
@@ -806,13 +820,15 @@ class _InhabitantCard extends StatelessWidget {
       CreatureCategory.fish => Icons.pets,
       CreatureCategory.other => Icons.category_outlined,
     };
+    final iconColor = aquariumManagementIconColor(context);
+    final iconSurface = aquariumManagementIconSurface(context);
     return Card(
       color: Theme.of(context).cardColor,
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
-          backgroundColor: Theme.of(context).primaryColor.withAlpha(25),
-          child: Icon(icon, color: Theme.of(context).primaryColor),
+          backgroundColor: iconSurface,
+          child: Icon(icon, color: iconColor),
         ),
         title: Text(
           item.name,
@@ -838,7 +854,7 @@ class _InhabitantCard extends StatelessWidget {
         trailing: IconButton(
           icon: Icon(
             Icons.delete_outline,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           onPressed: () async {
             if (!await confirmLivestockRemoval(context, item.name) ||
@@ -862,6 +878,16 @@ class _InhabitantCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Color aquariumManagementIconColor(BuildContext context) =>
+    Theme.of(context).colorScheme.primary;
+
+Color aquariumManagementIconSurface(BuildContext context) {
+  final colors = Theme.of(context).colorScheme;
+  return Theme.of(context).brightness == Brightness.dark
+      ? colors.primaryContainer.withValues(alpha: 0.48)
+      : colors.primaryContainer.withValues(alpha: 0.75);
 }
 
 Future<void> _showInhabitantDetails(

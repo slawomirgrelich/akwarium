@@ -118,6 +118,49 @@ void main() {
     );
   });
 
+  test('calendar finds weekly and multi-week recurring occurrences', () {
+    final start = DateTime(2026, 11, 29, 9);
+    expect(
+      recurrenceOccurrenceOnDay(
+        firstDueDate: start,
+        day: DateTime(2026, 12, 6),
+        intervalCount: 1,
+        unit: RecurrenceUnit.weeks,
+      ),
+      DateTime(2026, 12, 6, 9),
+    );
+    expect(
+      recurrenceOccurrenceOnDay(
+        firstDueDate: start,
+        day: DateTime(2026, 12, 27),
+        intervalCount: 4,
+        unit: RecurrenceUnit.weeks,
+      ),
+      DateTime(2026, 12, 27, 9),
+    );
+    expect(
+      recurrenceOccurrenceOnDay(
+        firstDueDate: start,
+        day: DateTime(2027, 2, 28),
+        intervalCount: 13,
+        unit: RecurrenceUnit.weeks,
+      ),
+      DateTime(2027, 2, 28, 9),
+    );
+  });
+
+  test('completion advances a recurring series beyond the completed date', () {
+    expect(
+      nextRecurrenceAfterCompletion(
+        DateTime(2026, 12, 6, 8),
+        DateTime(2026, 11, 29, 9),
+        1,
+        RecurrenceUnit.weeks,
+      ),
+      DateTime(2026, 12, 13, 9),
+    );
+  });
+
   test('recurring tasks round-trip through Firestore timestamp fields', () {
     final dueDate = DateTime(2026, 10, 9, 9, 30);
     final completedDate = DateTime(2026, 10, 2, 9, 30);

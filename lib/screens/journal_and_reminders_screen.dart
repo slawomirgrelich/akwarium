@@ -189,13 +189,10 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                               _TimelineTab(
                                 entries: journal,
                                 filter: _entryFilter,
-                                waterTestIds: provider.waterTests
-                                    .map((test) => test.id)
-                                    .toSet(),
                                 onFilterChanged: (value) =>
                                     setState(() => _entryFilter = value),
-                                onDeleteWaterTest: (entry) =>
-                                    _deleteWaterTest(context, entry),
+                                onDelete: (entry) =>
+                                    _deleteJournalEntry(context, entry),
                                 onOpen: (entry) =>
                                     _openJournalEntryDetails(context, entry),
                               ),
@@ -235,11 +232,20 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                                       aquariumId,
                                       reminder,
                                     ),
+                                onDeleteDashboardReminder: (reminder) =>
+                                    _deleteDashboardReminder(
+                                      context,
+                                      dashboardUserId,
+                                      aquariumId,
+                                      reminder,
+                                    ),
                                 isProUser: context
                                     .watch<ProAccessService>()
                                     .isProUser,
                                 onOpenEntry: (entry) =>
                                     _openJournalEntryDetails(context, entry),
+                                onDeleteEntry: (entry) =>
+                                    _deleteJournalEntry(context, entry),
                               ),
                             ],
                           ),
@@ -802,6 +808,25 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
     BuildContext context,
     ReminderModel reminder,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.journalDeleteEntryTitle),
+        content: Text(l10n.journalDeleteEntryBody(reminder.title)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.deleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
     final aquariumId = context.read<AquariumProvider>().resolveAquariumId(
       reminder.aquariumId,
     );
@@ -821,6 +846,47 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
       await LocalReminderService.instance.cancel(_notificationId(reminder.id));
     } on AquariumJournalServiceException catch (error) {
       if (context.mounted) _showMessage(context, error.message, error: true);
+    }
+  }
+
+  Future<void> _deleteDashboardReminder(
+    BuildContext context,
+    String? userId,
+    String aquariumId,
+    AquariumReminder reminder,
+  ) async {
+    if (userId == null || userId.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.journalDeleteEntryTitle),
+        content: Text(l10n.journalDeleteEntryBody(reminder.title)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.deleteAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await (_database ??= DatabaseService()).deleteReminder(
+        userId,
+        aquariumId,
+        reminder.id,
+      );
+      await LocalReminderService.instance.cancel(reminder.id.hashCode.abs());
+    } on Object catch (error) {
+      debugPrint('Dashboard reminder deletion failed: $error');
+      if (context.mounted) {
+        _showMessage(context, l10n.aquariumTaskUpdateFailed, error: true);
+      }
     }
   }
 
@@ -944,17 +1010,15 @@ class _TimelineTab extends StatelessWidget {
   const _TimelineTab({
     required this.entries,
     required this.filter,
-    required this.waterTestIds,
     required this.onFilterChanged,
-    required this.onDeleteWaterTest,
+    required this.onDelete,
     required this.onOpen,
   });
 
   final List<JournalEntryModel> entries;
   final JournalEntryType? filter;
-  final Set<String> waterTestIds;
   final ValueChanged<JournalEntryType?> onFilterChanged;
-  final ValueChanged<JournalEntryModel> onDeleteWaterTest;
+  final ValueChanged<JournalEntryModel> onDelete;
   final ValueChanged<JournalEntryModel> onOpen;
 
   @override
@@ -993,14 +1057,10 @@ class _TimelineTab extends StatelessWidget {
           _JournalEmpty(icon: Icons.timeline, text: l10n.noEntriesForFilter)
         else
           ...filtered.map(
-            (entry) => _JournalTimelineCard(
+            (entry) => JournalTimelineCard(
               entry: entry,
               onOpen: () => onOpen(entry),
-              onDeleteWaterTest:
-                  entry.entryType == JournalEntryType.waterTest &&
-                      waterTestIds.contains(entry.id)
-                  ? () => onDeleteWaterTest(entry)
-                  : null,
+              onDelete: () => onDelete(entry),
             ),
           ),
       ],
@@ -1008,15 +1068,16 @@ class _TimelineTab extends StatelessWidget {
   }
 }
 
-class _JournalTimelineCard extends StatelessWidget {
-  const _JournalTimelineCard({
+class JournalTimelineCard extends StatelessWidget {
+  const JournalTimelineCard({
     required this.entry,
-    required this.onDeleteWaterTest,
+    required this.onDelete,
     required this.onOpen,
+    super.key,
   });
 
   final JournalEntryModel entry;
-  final VoidCallback? onDeleteWaterTest;
+  final VoidCallback onDelete;
   final VoidCallback onOpen;
 
   @override
@@ -1043,15 +1104,21 @@ class _JournalTimelineCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         isThreeLine: true,
-        trailing: onDeleteWaterTest != null
-            ? IconButton(
-                tooltip: l10n.deleteAction,
-                onPressed: onDeleteWaterTest,
-                icon: const Icon(Icons.delete_outline),
-              )
-            : entry.percentageWaterChanged == null
-            ? null
-            : Text('${entry.percentageWaterChanged!.toStringAsFixed(0)}%'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (entry.percentageWaterChanged case final percentage?)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Text('${percentage.toStringAsFixed(0)}%'),
+              ),
+            IconButton(
+              tooltip: l10n.deleteAction,
+              onPressed: onDelete,
+              icon: const Icon(Icons.delete_outline),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1186,8 +1253,10 @@ class _CalendarTab extends StatelessWidget {
     required this.onEdit,
     required this.onCompleteDashboardReminder,
     required this.onEditDashboardReminder,
+    required this.onDeleteDashboardReminder,
     required this.isProUser,
     required this.onOpenEntry,
+    required this.onDeleteEntry,
   });
 
   final List<JournalEntryModel> entries;
@@ -1202,8 +1271,10 @@ class _CalendarTab extends StatelessWidget {
   final ValueChanged<ReminderModel> onEdit;
   final ValueChanged<AquariumReminder> onCompleteDashboardReminder;
   final ValueChanged<AquariumReminder> onEditDashboardReminder;
+  final ValueChanged<AquariumReminder> onDeleteDashboardReminder;
   final bool isProUser;
   final ValueChanged<JournalEntryModel> onOpenEntry;
+  final ValueChanged<JournalEntryModel> onDeleteEntry;
 
   @override
   Widget build(BuildContext context) {
@@ -1212,9 +1283,11 @@ class _CalendarTab extends StatelessWidget {
       ...reminders.map(_CalendarReminderItem.fromJournalReminder),
       ...dashboardReminders.map(_CalendarReminderItem.fromDashboardReminder),
     ]..sort((first, second) => first.dueDate.compareTo(second.dueDate));
-    final selected = calendarReminders
-        .where((reminder) => isSameDay(reminder.dueDate, selectedDay))
-        .toList();
+    final selected = _calendarRemindersOnDay(
+      reminders,
+      dashboardReminders,
+      selectedDay,
+    );
     final selectedEntries = entries
         .where((entry) => isSameDay(entry.timestamp, selectedDay))
         .toList(growable: false);
@@ -1224,18 +1297,21 @@ class _CalendarTab extends StatelessWidget {
 
     Widget reminderTile(_CalendarReminderItem item) {
       if (item.journalReminder case final reminder?) {
+        final occurrence = reminder.copyWith(nextDueDate: item.dueDate);
         return _ReminderTile(
-          reminder: reminder,
-          onComplete: () => onComplete(reminder),
-          onDelete: () => onDelete(reminder),
+          reminder: occurrence,
+          onComplete: () => onComplete(occurrence),
+          onDelete: () => onDelete(occurrence),
           onEdit: () => onEdit(reminder),
         );
       }
-      final reminder = item.dashboardReminder!;
+      final original = item.dashboardReminder!;
+      final reminder = original.copyWith(dueDate: item.dueDate);
       return _DashboardReminderTile(
         reminder: reminder,
         onComplete: () => onCompleteDashboardReminder(reminder),
-        onEdit: () => onEditDashboardReminder(reminder),
+        onEdit: () => onEditDashboardReminder(original),
+        onDelete: () => onDeleteDashboardReminder(original),
       );
     }
 
@@ -1274,8 +1350,10 @@ class _CalendarTab extends StatelessWidget {
                     selectedDayPredicate: (day) => isSameDay(day, selectedDay),
                     onDaySelected: onDaySelected,
                     eventLoader: (day) => [
-                      ...calendarReminders.where(
-                        (reminder) => isSameDay(reminder.dueDate, day),
+                      ..._calendarRemindersOnDay(
+                        reminders,
+                        dashboardReminders,
+                        day,
                       ),
                       ...entries.where(
                         (entry) => isSameDay(entry.timestamp, day),
@@ -1308,9 +1386,9 @@ class _CalendarTab extends StatelessWidget {
           _JournalEmpty(icon: Icons.event_available, text: l10n.noTasksForDay)
         else ...[
           ...selectedEntries.map(
-            (entry) => _JournalTimelineCard(
+            (entry) => JournalTimelineCard(
               entry: entry,
-              onDeleteWaterTest: null,
+              onDelete: () => onDeleteEntry(entry),
               onOpen: () => onOpenEntry(entry),
             ),
           ),
@@ -1332,19 +1410,84 @@ class _CalendarTab extends StatelessWidget {
 
 class _CalendarReminderItem {
   const _CalendarReminderItem.fromJournalReminder(this.journalReminder)
-    : dashboardReminder = null;
+    : dashboardReminder = null,
+      occurrenceDate = null;
 
   const _CalendarReminderItem.fromDashboardReminder(this.dashboardReminder)
-    : journalReminder = null;
+    : journalReminder = null,
+      occurrenceDate = null;
+
+  const _CalendarReminderItem.fromJournalReminderOccurrence(
+    this.journalReminder,
+    this.occurrenceDate,
+  ) : dashboardReminder = null;
+
+  const _CalendarReminderItem.fromDashboardReminderOccurrence(
+    this.dashboardReminder,
+    this.occurrenceDate,
+  ) : journalReminder = null;
 
   final ReminderModel? journalReminder;
   final AquariumReminder? dashboardReminder;
+  final DateTime? occurrenceDate;
 
   DateTime get dueDate =>
-      journalReminder?.nextDueDate ?? dashboardReminder!.dueDate;
+      occurrenceDate ??
+      journalReminder?.nextDueDate ??
+      dashboardReminder!.dueDate;
 
   bool get isCompleted =>
       journalReminder?.isCompleted ?? dashboardReminder!.isCompleted;
+}
+
+List<_CalendarReminderItem> _calendarRemindersOnDay(
+  List<ReminderModel> reminders,
+  List<AquariumReminder> dashboardReminders,
+  DateTime day,
+) {
+  final items = <_CalendarReminderItem>[];
+  for (final reminder in reminders) {
+    final occurrence = reminder.isRecurring
+        ? recurrenceOccurrenceOnDay(
+            firstDueDate: reminder.nextDueDate,
+            day: day,
+            intervalCount: reminder.repeatCount,
+            unit: reminder.intervalUnit,
+          )
+        : isSameDay(reminder.nextDueDate, day)
+        ? reminder.nextDueDate
+        : null;
+    if (occurrence != null) {
+      items.add(
+        _CalendarReminderItem.fromJournalReminderOccurrence(
+          reminder,
+          occurrence,
+        ),
+      );
+    }
+  }
+  for (final reminder in dashboardReminders) {
+    final repeatCount = reminder.repeatCount;
+    final occurrence = repeatCount != null
+        ? recurrenceOccurrenceOnDay(
+            firstDueDate: reminder.dueDate,
+            day: day,
+            intervalCount: repeatCount,
+            unit: reminder.intervalUnit,
+          )
+        : isSameDay(reminder.dueDate, day)
+        ? reminder.dueDate
+        : null;
+    if (occurrence != null) {
+      items.add(
+        _CalendarReminderItem.fromDashboardReminderOccurrence(
+          reminder,
+          occurrence,
+        ),
+      );
+    }
+  }
+  return items..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 }
 
 class _CalendarFallback extends StatelessWidget {
@@ -1440,11 +1583,13 @@ class _DashboardReminderTile extends StatelessWidget {
     required this.reminder,
     required this.onComplete,
     required this.onEdit,
+    required this.onDelete,
   });
 
   final AquariumReminder reminder;
   final VoidCallback onComplete;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -1482,6 +1627,11 @@ class _DashboardReminderTile extends StatelessWidget {
               icon: Icon(
                 reminder.isCompleted ? Icons.check_circle : Icons.check,
               ),
+            ),
+            IconButton(
+              tooltip: l10n.deleteAction,
+              onPressed: onDelete,
+              icon: const Icon(Icons.delete_outline),
             ),
           ],
         ),

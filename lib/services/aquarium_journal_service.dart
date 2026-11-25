@@ -509,7 +509,7 @@ class AquariumJournalService {
   }) async {
     final performedAt = completedAt ?? DateTime.now();
     final nextDate = reminder.isRecurring
-        ? nextRecurrenceDate(
+        ? nextRecurrenceAfterCompletion(
             performedAt,
             reminder.nextDueDate,
             reminder.repeatCount,

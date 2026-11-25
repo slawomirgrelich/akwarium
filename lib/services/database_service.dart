@@ -215,7 +215,7 @@ class DatabaseService {
     final performedAt = completedAt ?? DateTime.now();
     final nextDueDate = reminder.repeatCount == null
         ? reminder.dueDate
-        : nextRecurrenceDate(
+        : nextRecurrenceAfterCompletion(
             performedAt,
             reminder.dueDate,
             reminder.repeatCount!,

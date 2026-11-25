@@ -106,6 +106,76 @@ int countRecurrencesInRange({
   return count;
 }
 
+DateTime? recurrenceOccurrenceOnDay({
+  required DateTime firstDueDate,
+  required DateTime day,
+  required int intervalCount,
+  required RecurrenceUnit unit,
+}) {
+  if (day.isBefore(
+    DateTime(firstDueDate.year, firstDueDate.month, firstDueDate.day),
+  )) {
+    return null;
+  }
+  var occurrence = firstDueDate;
+  var guard = 0;
+  while (guard < 10000) {
+    if (occurrence.year == day.year &&
+        occurrence.month == day.month &&
+        occurrence.day == day.day) {
+      return occurrence;
+    }
+    if (occurrence.isAfter(
+      DateTime(day.year, day.month, day.day, 23, 59, 59, 999999),
+    )) {
+      return null;
+    }
+    occurrence = nextRecurrenceDate(
+      occurrence,
+      firstDueDate,
+      intervalCount,
+      unit,
+    );
+    guard++;
+  }
+  return null;
+}
+
+DateTime nextRecurrenceAfterCompletion(
+  DateTime completedAt,
+  DateTime firstDueDate,
+  int intervalCount,
+  RecurrenceUnit unit,
+) {
+  var occurrence = nextRecurrenceDate(
+    firstDueDate,
+    firstDueDate,
+    intervalCount,
+    unit,
+  );
+  var guard = 0;
+  final completedDay = DateTime(
+    completedAt.year,
+    completedAt.month,
+    completedAt.day,
+  );
+  while (!DateTime(
+        occurrence.year,
+        occurrence.month,
+        occurrence.day,
+      ).isAfter(completedDay) &&
+      guard < 10000) {
+    occurrence = nextRecurrenceDate(
+      occurrence,
+      firstDueDate,
+      intervalCount,
+      unit,
+    );
+    guard++;
+  }
+  return occurrence;
+}
+
 RecurrenceUnit recurrenceUnitFromName(Object? value) {
   if (value is String) {
     for (final unit in RecurrenceUnit.values) {
