@@ -18,21 +18,26 @@ class RoutineTemplatesScreen extends StatelessWidget {
     final templates = aquariumRoutineTemplates(l10n);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.templatesTitle)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [
-          Text(
-            l10n.templatesSubtitle,
-            style: Theme.of(context).textTheme.bodyLarge,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+            children: [
+              Text(
+                l10n.templatesSubtitle,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+              ...templates.map(
+                (template) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _TemplateCard(template: template),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          ...templates.map(
-            (template) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _TemplateCard(template: template),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -45,60 +50,103 @@ class _TemplateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Image.asset(template.assetPath, fit: BoxFit.cover),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final horizontal = constraints.maxWidth >= 600;
+        final details = _TemplateCardDetails(
+          template: template,
+          onOpen: () => Navigator.push<void>(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RoutineTemplateDetailsScreen(template: template),
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  template.title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 6),
-                Text(template.description),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+        );
+        final illustration = _TemplateIllustration(
+          template: template,
+          height: horizontal ? 190 : 156,
+        );
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          child: horizontal
+              ? Row(
                   children: [
-                    Chip(
-                      avatar: const Icon(Icons.schedule_outlined, size: 18),
-                      label: Text(template.duration),
-                    ),
-                    Chip(
-                      avatar: const Icon(Icons.checklist_outlined, size: 18),
-                      label: Text(
-                        l10n.templatesStepsCount(template.steps.length),
-                      ),
-                    ),
+                    SizedBox(width: 220, height: 190, child: illustration),
+                    Expanded(child: details),
                   ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [illustration, details],
                 ),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () => Navigator.push<void>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            RoutineTemplateDetailsScreen(template: template),
-                      ),
-                    ),
-                    icon: const Icon(Icons.route_outlined),
-                    label: Text(l10n.templatesOpen),
-                  ),
-                ),
-              ],
+        );
+      },
+    );
+  }
+}
+
+class _TemplateIllustration extends StatelessWidget {
+  const _TemplateIllustration({required this.template, required this.height});
+
+  final AquariumRoutineTemplate template;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      height: height,
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      color: colors.surfaceContainerHighest.withValues(alpha: 0.42),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Image.asset(template.assetPath, fit: BoxFit.contain),
+      ),
+    );
+  }
+}
+
+class _TemplateCardDetails extends StatelessWidget {
+  const _TemplateCardDetails({required this.template, required this.onOpen});
+
+  final AquariumRoutineTemplate template;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(template.title, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 6),
+          Text(template.description),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              Chip(
+                avatar: const Icon(Icons.schedule_outlined, size: 18),
+                label: Text(template.duration),
+              ),
+              Chip(
+                avatar: const Icon(Icons.checklist_outlined, size: 18),
+                label: Text(l10n.templatesStepsCount(template.steps.length)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onOpen,
+              icon: const Icon(Icons.route_outlined),
+              label: Text(l10n.templatesOpen),
             ),
           ),
         ],
@@ -262,65 +310,78 @@ class _RoutineTemplateDetailsScreenState
       appBar: AppBar(title: Text(widget.template.title)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Image.asset(
-                      widget.template.assetPath,
-                      fit: BoxFit.cover,
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                  children: [
+                    Container(
+                      height: 184,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.42),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Image.asset(
+                          widget.template.assetPath,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 14),
+                    Text(
+                      widget.template.description,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    LinearProgressIndicator(
+                      value: widget.template.steps.isEmpty
+                          ? 0
+                          : completedCount / widget.template.steps.length,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.routineProgress(
+                        completedCount,
+                        widget.template.steps.length,
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: _saving ? null : _addAll,
+                      icon: _saving
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.playlist_add_check_outlined),
+                      label: Text(l10n.routineAddAll),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      l10n.routineScheduleTitle,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    ...widget.template.steps.map(
+                      (step) => _RoutineStepCard(
+                        step: step,
+                        completed: _completed.contains(step.id),
+                        onToggle: () => _toggleStep(step),
+                        onReminder: () => _addStepReminder(step),
+                        onJournal: () => _addStepJournal(step),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  widget.template.description,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: widget.template.steps.isEmpty
-                      ? 0
-                      : completedCount / widget.template.steps.length,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.routineProgress(
-                    completedCount,
-                    widget.template.steps.length,
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: _saving ? null : _addAll,
-                  icon: _saving
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.playlist_add_check_outlined),
-                  label: Text(l10n.routineAddAll),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  l10n.routineScheduleTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 10),
-                ...widget.template.steps.map(
-                  (step) => _RoutineStepCard(
-                    step: step,
-                    completed: _completed.contains(step.id),
-                    onToggle: () => _toggleStep(step),
-                    onReminder: () => _addStepReminder(step),
-                    onJournal: () => _addStepJournal(step),
-                  ),
-                ),
-              ],
+              ),
             ),
     );
   }

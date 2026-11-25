@@ -75,4 +75,87 @@ void main() {
     expect(find.byType(Checkbox), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  for (final width in [320.0, 412.0, 1280.0]) {
+    testWidgets('routine templates are constrained at ${width.toInt()} px', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(Size(width, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      for (final brightness in [Brightness.light, Brightness.dark]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: const Locale('pl'),
+            theme: ThemeData(useMaterial3: true, brightness: brightness),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const RoutineTemplatesScreen(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(RoutineTemplatesScreen), findsOneWidget);
+        expect(find.byType(Image), findsWidgets);
+        final imageBox = tester.getSize(find.byType(Image).first);
+        expect(imageBox.height, lessThanOrEqualTo(214));
+        expect(tester.takeException(), isNull);
+      }
+    });
+
+    testWidgets('routine details are compact at ${width.toInt()} px', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(Size(width, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final provider = AquariumProvider(
+        aquariums: [
+          AquariumProfile(
+            id: 'tank-1',
+            name: 'Test',
+            volumeNetLiters: 100,
+            setupDate: DateTime(2026, 1, 1),
+            type: TankType.freshwater,
+          ),
+        ],
+        activeAquariumId: 'tank-1',
+      );
+      addTearDown(provider.dispose);
+      final template = AquariumRoutineTemplate(
+        id: 'details-$width',
+        title: 'Rutyna testowa',
+        description: 'Krótki opis szablonu.',
+        duration: '7 dni',
+        assetPath: 'assets/templates/weekly_routine.webp',
+        steps: const [
+          AquariumRoutineStep(
+            id: 'step',
+            dayOffset: 0,
+            title: 'Pierwszy krok',
+            description: 'Pełny opis pierwszego kroku.',
+            entryType: JournalEntryType.cleaning,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AquariumProvider>.value(
+          value: provider,
+          child: MaterialApp(
+            locale: const Locale('pl'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: RoutineTemplateDetailsScreen(template: template),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final imageBox = tester.getSize(find.byType(Image).first);
+      expect(imageBox.height, lessThanOrEqualTo(184));
+      expect(find.text('Pierwszy krok'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
