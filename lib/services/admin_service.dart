@@ -142,19 +142,13 @@ class AdminService {
     });
   }
 
-  Future<List<AdminUserRecord>> loadUsers() async {
+  Future<List<AdminUserRecord>> loadUsers({
+    AdminUserSort sort = AdminUserSort.lastActive,
+  }) async {
     await _requireAdmin();
     final snapshot = await _firestore.collection('users').get();
     final users = snapshot.docs.map(AdminUserRecord.fromDocument).toList();
-    users.sort((first, second) {
-      final nameOrder = first.displayName.toLowerCase().compareTo(
-        second.displayName.toLowerCase(),
-      );
-      return nameOrder == 0
-          ? first.email.toLowerCase().compareTo(second.email.toLowerCase())
-          : nameOrder;
-    });
-    return users;
+    return sortAdminUsers(users, sort);
   }
 
   Future<List<AdminInvitedUser>> loadInvitedUsers(String referrerId) async {
@@ -324,6 +318,48 @@ class AdminOverview {
   final int totalTickets;
   final int openTickets;
   final int successfulReferrals;
+}
+
+enum AdminUserSort { lastActive, newest, alphabetical }
+
+List<AdminUserRecord> sortAdminUsers(
+  Iterable<AdminUserRecord> users,
+  AdminUserSort sort,
+) {
+  final result = users.toList();
+  int compareText(AdminUserRecord first, AdminUserRecord second) {
+    String sortName(AdminUserRecord user) =>
+        (user.displayName.trim().isEmpty ? user.email : user.displayName)
+            .trim()
+            .toLowerCase();
+    final nameOrder = sortName(first).compareTo(sortName(second));
+    return nameOrder == 0
+        ? first.email.trim().toLowerCase().compareTo(
+            second.email.trim().toLowerCase(),
+          )
+        : nameOrder;
+  }
+
+  int compareNullableDates(
+    DateTime? first,
+    DateTime? second,
+  ) {
+    if (first == null) return second == null ? 0 : 1;
+    if (second == null) return -1;
+    return second.compareTo(first);
+  }
+
+  result.sort((first, second) {
+    final primary = switch (sort) {
+      AdminUserSort.lastActive =>
+        compareNullableDates(first.lastActiveAt, second.lastActiveAt),
+      AdminUserSort.newest =>
+        compareNullableDates(first.createdAt, second.createdAt),
+      AdminUserSort.alphabetical => compareText(first, second),
+    };
+    return primary == 0 ? compareText(first, second) : primary;
+  });
+  return result;
 }
 
 class AdminUserRecord {

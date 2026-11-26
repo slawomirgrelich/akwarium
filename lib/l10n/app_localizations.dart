@@ -4411,6 +4411,30 @@ abstract class AppLocalizations {
   /// **'Partnerzy'**
   String get adminPartnersTab;
 
+  /// No description provided for @adminSortUsers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sortuj użytkowników'**
+  String get adminSortUsers;
+
+  /// No description provided for @adminSortLastActive.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnio aktywni'**
+  String get adminSortLastActive;
+
+  /// No description provided for @adminSortNewest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatnio zarejestrowani'**
+  String get adminSortNewest;
+
+  /// No description provided for @adminSortAlphabetical.
+  ///
+  /// In pl, this message translates to:
+  /// **'Alfabetycznie (A–Z)'**
+  String get adminSortAlphabetical;
+
   /// No description provided for @adminAccessDenied.
   ///
   /// In pl, this message translates to:
@@ -7143,6 +7167,30 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nie udało się otworzyć linku partnera.'**
   String get partnersInvalidLink;
+
+  /// No description provided for @moduleVisibilityTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dostosuj widok'**
+  String get moduleVisibilityTitle;
+
+  /// No description provided for @moduleVisibilitySubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz moduły widoczne na Pulpicie, w Dzienniku i Narzędziach.'**
+  String get moduleVisibilitySubtitle;
+
+  /// No description provided for @moduleVisibilityDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyłącz moduły, których nie używasz. Ich dane pozostaną zapisane i możesz przywrócić widok w dowolnym momencie.'**
+  String get moduleVisibilityDescription;
+
+  /// No description provided for @moduleVisibilityShowAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przywróć wszystkie'**
+  String get moduleVisibilityShowAll;
 }
 
 class _AppLocalizationsDelegate

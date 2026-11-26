@@ -12,6 +12,7 @@ import '../models/aquarium_reminder.dart';
 import '../services/aquarium_journal_service.dart';
 import '../services/database_service.dart';
 import '../services/firestore_service.dart';
+import '../services/module_visibility_controller.dart';
 import '../services/pro_access_service.dart';
 import '../utils/recurrence_interval.dart';
 import '../widgets/firestore_reminders_widget.dart' show AquariumReminderDialog;
@@ -80,6 +81,9 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AquariumProvider>();
+    final showWaterTests = context
+        .watch<ModuleVisibilityController>()
+        .isVisible(AppModule.waterTests);
     final aquariumId = provider.resolveAquariumId();
     if (aquariumId.isEmpty) {
       return _JournalScaffold(
@@ -140,6 +144,14 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                   journalSnapshot.data ?? const <JournalEntryModel>[],
                   provider.journalEntries,
                 );
+                final visibleJournal = showWaterTests
+                    ? journal
+                    : journal
+                          .where(
+                            (entry) =>
+                                entry.entryType != JournalEntryType.waterTest,
+                          )
+                          .toList(growable: false);
                 _migrateJournalWaterChanges(
                   provider,
                   aquariumId,
@@ -155,7 +167,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                     reminderSnapshot.error ??
                     dashboardReminderSnapshot.error;
                 if (error != null &&
-                    journal.isEmpty &&
+                    visibleJournal.isEmpty &&
                     reminders.isEmpty &&
                     dashboardReminders.isEmpty) {
                   return _JournalScaffold(
@@ -187,8 +199,9 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                           child: TabBarView(
                             children: [
                               _TimelineTab(
-                                entries: journal,
+                                entries: visibleJournal,
                                 filter: _entryFilter,
+                                showWaterTests: showWaterTests,
                                 onFilterChanged: (value) =>
                                     setState(() => _entryFilter = value),
                                 onDelete: (entry) =>
@@ -197,7 +210,7 @@ class _JournalAndRemindersScreenState extends State<JournalAndRemindersScreen> {
                                     _openJournalEntryDetails(context, entry),
                               ),
                               _CalendarTab(
-                                entries: journal,
+                                entries: visibleJournal,
                                 reminders: reminders,
                                 dashboardReminders: dashboardReminders,
                                 selectedDay: _selectedDay,
@@ -1010,6 +1023,7 @@ class _TimelineTab extends StatelessWidget {
   const _TimelineTab({
     required this.entries,
     required this.filter,
+    required this.showWaterTests,
     required this.onFilterChanged,
     required this.onDelete,
     required this.onOpen,
@@ -1017,6 +1031,7 @@ class _TimelineTab extends StatelessWidget {
 
   final List<JournalEntryModel> entries;
   final JournalEntryType? filter;
+  final bool showWaterTests;
   final ValueChanged<JournalEntryType?> onFilterChanged;
   final ValueChanged<JournalEntryModel> onDelete;
   final ValueChanged<JournalEntryModel> onOpen;
@@ -1039,7 +1054,12 @@ class _TimelineTab extends StatelessWidget {
                 selected: filter == null,
                 onSelected: (_) => onFilterChanged(null),
               ),
-              ...JournalEntryType.values.map(
+              ...JournalEntryType.values
+                  .where(
+                    (type) =>
+                        showWaterTests || type != JournalEntryType.waterTest,
+                  )
+                  .map(
                 (type) => Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: ChoiceChip(

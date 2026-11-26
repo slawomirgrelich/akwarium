@@ -24,11 +24,14 @@ service cloud.firestore {
       allow create: if ownsUser(userId)
         && request.resource.data.keys().hasOnly([
           'uid', 'email', 'isPro', 'successfulReferralsCount',
-          'subscriptionStatus', 'hasUsedTrial', 'has_used_trial_v1', 'createdAt'
+          'subscriptionStatus', 'hasUsedTrial', 'has_used_trial_v1',
+          'createdAt', 'lastActiveAt'
         ])
         && request.resource.data.uid == userId
         && request.resource.data.isPro == false
-        && request.resource.data.successfulReferralsCount == 0;
+        && request.resource.data.successfulReferralsCount == 0
+        && (!('lastActiveAt' in request.resource.data)
+          || request.resource.data.lastActiveAt is timestamp);
       allow update: if (
           ownsUser(userId)
           && request.resource.data.diff(resource.data).affectedKeys()

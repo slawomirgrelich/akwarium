@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:akwarium/services/aquarium_journal_service.dart';
+import 'package:akwarium/services/module_visibility_controller.dart';
 
 void main() {
   testWidgets('journal does not query Firestore without an active aquarium', (
@@ -14,8 +15,11 @@ void main() {
     addTearDown(provider.dispose);
 
     await tester.pumpWidget(
-      ChangeNotifierProvider.value(
-        value: provider,
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: provider),
+          ChangeNotifierProvider(create: (_) => ModuleVisibilityController()),
+        ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

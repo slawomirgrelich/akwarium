@@ -1000,11 +1000,12 @@ class _AdminUsersTab extends StatefulWidget {
 class _AdminUsersTabState extends State<_AdminUsersTab> {
   final _searchController = TextEditingController();
   late Future<List<AdminUserRecord>> _users;
+  AdminUserSort _sort = AdminUserSort.lastActive;
 
   @override
   void initState() {
     super.initState();
-    _users = widget.service.loadUsers();
+    _users = widget.service.loadUsers(sort: _sort);
     _searchController.addListener(() => setState(() {}));
   }
 
@@ -1021,20 +1022,57 @@ class _AdminUsersTabState extends State<_AdminUsersTab> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search),
-              labelText: l10n.adminSearchUsers,
-              suffixIcon: _searchController.text.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: MaterialLocalizations.of(context)
-                          .deleteButtonTooltip,
-                      onPressed: _searchController.clear,
-                      icon: const Icon(Icons.clear),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search),
+                    labelText: l10n.adminSearchUsers,
+                    suffixIcon: _searchController.text.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: MaterialLocalizations.of(context)
+                                .deleteButtonTooltip,
+                            onPressed: _searchController.clear,
+                            icon: const Icon(Icons.clear),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 190,
+                child: DropdownButtonFormField<AdminUserSort>(
+                  initialValue: _sort,
+                  isExpanded: true,
+                  decoration: InputDecoration(labelText: l10n.adminSortUsers),
+                  items: [
+                    DropdownMenuItem(
+                      value: AdminUserSort.lastActive,
+                      child: Text(l10n.adminSortLastActive),
                     ),
-            ),
+                    DropdownMenuItem(
+                      value: AdminUserSort.newest,
+                      child: Text(l10n.adminSortNewest),
+                    ),
+                    DropdownMenuItem(
+                      value: AdminUserSort.alphabetical,
+                      child: Text(l10n.adminSortAlphabetical),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value == null || value == _sort) return;
+                    setState(() {
+                      _sort = value;
+                      _users = widget.service.loadUsers(sort: value);
+                    });
+                  },
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -1048,7 +1086,10 @@ class _AdminUsersTabState extends State<_AdminUsersTab> {
                 return _AdminErrorState(
                   message: l10n.adminLoadError(snapshot.error.toString()),
                   onRetry: () =>
-                      setState(() => _users = widget.service.loadUsers()),
+                      setState(
+                        () =>
+                            _users = widget.service.loadUsers(sort: _sort),
+                      ),
                 );
               }
               final query = _searchController.text.trim().toLowerCase();
@@ -1080,7 +1121,10 @@ class _AdminUsersTabState extends State<_AdminUsersTab> {
                         ),
                       );
                       if (mounted) {
-                        setState(() => _users = widget.service.loadUsers());
+                        setState(
+                          () =>
+                              _users = widget.service.loadUsers(sort: _sort),
+                        );
                       }
                     },
                   );

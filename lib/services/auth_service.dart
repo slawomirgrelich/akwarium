@@ -4,15 +4,23 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firestore_sync_status.dart';
 
 class AuthException implements Exception {
-  const AuthException(this.message, {this.code});
+  const AuthException(
+    this.message, {
+    this.code,
+    this.diagnosticCode,
+    this.diagnosticMessage,
+  });
 
   final String message;
   final String? code;
+  final String? diagnosticCode;
+  final String? diagnosticMessage;
 
   @override
   String toString() => message;
@@ -30,11 +38,8 @@ class AuthService {
   final FirebaseFirestore _firestore;
   final SharedPreferences? _preferences;
   static Future<void>? _googleSignInInitialization;
-  static const _googleServerClientId = String.fromEnvironment(
-    'GOOGLE_SERVER_CLIENT_ID',
-    defaultValue:
-        '760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com',
-  );
+  static const _googleServerClientId =
+      '760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com';
   static const _googleIosClientId = String.fromEnvironment(
     'GOOGLE_IOS_CLIENT_ID',
   );
@@ -73,16 +78,20 @@ class AuthService {
 
       final user = credential.user;
       if (user != null) {
-        if (credential.additionalUserInfo?.isNewUser ?? false) {
+        final isNewUser = credential.additionalUserInfo?.isNewUser ?? false;
+        if (isNewUser) {
           unawaited(_createUserProfile(user));
         } else {
           unawaited(_updateGoogleUserIdentity(user));
+          unawaited(_recordLoginActivity(user));
         }
       }
       return credential;
     } on GoogleSignInException catch (error) {
       if (error.code == GoogleSignInExceptionCode.canceled) return null;
-      debugPrint('Google Sign-In failed: $error');
+      debugPrint(
+        'Google Sign-In failed: code=${error.code.name}, message=$error',
+      );
       final code = switch (error.code) {
         GoogleSignInExceptionCode.clientConfigurationError ||
         GoogleSignInExceptionCode.providerConfigurationError =>
@@ -90,7 +99,23 @@ class AuthService {
         GoogleSignInExceptionCode.uiUnavailable => 'google-sign-in-unsupported',
         _ => 'google-sign-in-failed',
       };
-      throw AuthException('Google sign-in failed.', code: code);
+      throw AuthException(
+        'Google sign-in failed.',
+        code: code,
+        diagnosticCode: error.code.name,
+        diagnosticMessage: error.toString(),
+      );
+    } on PlatformException catch (error) {
+      debugPrint(
+        'Google Sign-In platform error: code=${error.code}, '
+        'message=${error.message}, details=${error.details}',
+      );
+      throw AuthException(
+        'Google sign-in failed.',
+        code: 'google-sign-in-failed',
+        diagnosticCode: error.code,
+        diagnosticMessage: error.message ?? error.toString(),
+      );
     } on FirebaseAuthException catch (error) {
       if (error.code == 'popup-closed-by-user') return null;
       debugPrint(
@@ -98,25 +123,40 @@ class AuthService {
         'code=${error.code}, message=${error.message}',
       );
       if (error.code == 'operation-not-allowed') {
-        throw const AuthException(
+        throw AuthException(
           'Google Sign-In is not configured for this app.',
           code: 'google-sign-in-configuration',
+          diagnosticCode: error.code,
+          diagnosticMessage: error.message,
         );
       }
-      throw AuthException(_messageForCode(error.code), code: error.code);
-    } on AuthException {
+      throw AuthException(
+        _messageForCode(error.code),
+        code: error.code,
+        diagnosticCode: error.code,
+        diagnosticMessage: error.message,
+      );
+    } on AuthException catch (error, stackTrace) {
+      debugPrint(
+        'Google Sign-In configuration/auth error: code=${error.code}, '
+        'message=${error.diagnosticMessage ?? error.message}\n$stackTrace',
+      );
       rethrow;
     } on UnsupportedError catch (error) {
       debugPrint('Google Sign-In unavailable on this platform: $error');
-      throw const AuthException(
+      throw AuthException(
         'Google Sign-In is not supported on this platform.',
         code: 'google-sign-in-unsupported',
+        diagnosticCode: 'UnsupportedError',
+        diagnosticMessage: error.toString(),
       );
     } on Object catch (error, stackTrace) {
       debugPrint('Google Sign-In failed unexpectedly: $error\n$stackTrace');
-      throw const AuthException(
+      throw AuthException(
         'Google Sign-In failed.',
         code: 'google-sign-in-failed',
+        diagnosticCode: error.runtimeType.toString(),
+        diagnosticMessage: error.toString(),
       );
     }
   }
@@ -133,7 +173,9 @@ class AuthService {
                 iosClientId.isNotEmpty
             ? iosClientId
             : null,
-        serverClientId: serverClientId.isEmpty ? null : serverClientId,
+        serverClientId: defaultTargetPlatform == TargetPlatform.android
+            ? serverClientId
+            : null,
       );
       _googleSignInInitialization = initialization;
     }
@@ -159,6 +201,16 @@ class AuthService {
     }
   }
 
+  Future<void> _recordLoginActivity(User user) async {
+    try {
+      await _firestore.collection('users').doc(user.uid).set({
+        'lastActiveAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } on Object catch (error, stackTrace) {
+      debugPrint('Login activity update failed: $error\n$stackTrace');
+    }
+  }
+
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
@@ -168,6 +220,9 @@ class AuthService {
         email: email.trim(),
         password: password,
       );
+      if (credential.user case final user?) {
+        unawaited(_recordLoginActivity(user));
+      }
       return credential;
     } on FirebaseAuthException catch (error) {
       debugPrint(
@@ -275,6 +330,7 @@ class AuthService {
         'hasUsedTrial': false,
         'has_used_trial_v1': false,
         'createdAt': FieldValue.serverTimestamp(),
+        'lastActiveAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       await FirestoreSyncStatus.recordSuccessfulSync();
     } catch (error) {

@@ -37,6 +37,7 @@ import 'screens/calculators_screen.dart';
 import 'screens/help_center_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/module_visibility_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'screens/partners_screen.dart';
 import 'screens/reminders_screen.dart';
@@ -54,6 +55,7 @@ import 'services/pro_access_service.dart';
 import 'services/referral_service.dart';
 import 'services/theme_controller.dart';
 import 'services/locale_controller.dart';
+import 'services/module_visibility_controller.dart';
 import 'services/ticket_service.dart';
 import 'services/user_activity_service.dart';
 import 'theme/app_theme.dart';
@@ -210,26 +212,32 @@ class AkwarystaProApp extends StatelessWidget {
           child: ChangeNotifierProvider<ExperienceModeController>(
             create: (_) =>
                 ExperienceModeController(preferences: proPreferences)..init(),
-            child: firebaseReady
-                ? ChangeNotifierProvider<ReferralService>(
-                    create: (_) => ReferralService()..init(),
-                    child: ChangeNotifierProvider<TicketService>(
-                      create: (_) => TicketService(),
-                      child: ChangeNotifierProvider<models.AquariumProvider>(
-                        create: (_) => models.AquariumProvider()..initialize(),
-                        child: Builder(
-                          builder: (context) =>
-                              _buildApp(context, firebaseReady),
+            child: ChangeNotifierProvider<ModuleVisibilityController>(
+              create: (_) =>
+                  ModuleVisibilityController(preferences: proPreferences)
+                    ..init(),
+              child: firebaseReady
+                  ? ChangeNotifierProvider<ReferralService>(
+                      create: (_) => ReferralService()..init(),
+                      child: ChangeNotifierProvider<TicketService>(
+                        create: (_) => TicketService(),
+                        child: ChangeNotifierProvider<models.AquariumProvider>(
+                          create: (_) =>
+                              models.AquariumProvider()..initialize(),
+                          child: Builder(
+                            builder: (context) =>
+                                _buildApp(context, firebaseReady),
+                          ),
                         ),
                       ),
+                    )
+                  : ChangeNotifierProvider<models.AquariumProvider>(
+                      create: (_) => models.AquariumProvider()..initialize(),
+                      child: Builder(
+                        builder: (context) => _buildApp(context, firebaseReady),
+                      ),
                     ),
-                  )
-                : ChangeNotifierProvider<models.AquariumProvider>(
-                    create: (_) => models.AquariumProvider()..initialize(),
-                    child: Builder(
-                      builder: (context) => _buildApp(context, firebaseReady),
-                    ),
-                  ),
+            ),
           ),
         ),
       ),
@@ -354,6 +362,12 @@ class DashboardPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<models.AquariumProvider>();
     final experienceMode = context.watch<ExperienceModeController>();
+    final showWaterTests = context
+        .watch<ModuleVisibilityController>()
+        .isVisible(AppModule.waterTests);
+    final showSpeciesAtlas = context
+        .watch<ModuleVisibilityController>()
+        .isVisible(AppModule.speciesAtlas);
     final isBeginner = experienceMode.isBeginner;
     final showBeginnerGuide =
         experienceMode.isInitialized &&
@@ -382,6 +396,8 @@ class DashboardPage extends StatelessWidget {
               if (showBeginnerGuide) ...[
                 _BeginnerGuideCard(
                   aquariumExists: false,
+                  showWaterTests: showWaterTests,
+                  showSpeciesAtlas: showSpeciesAtlas,
                   onDimensions: () => showCreateAquariumDialog(context),
                   onWater: () => _showMessage(context, l10n.addAquariumToStart),
                   onLighting: () =>
@@ -484,6 +500,8 @@ class DashboardPage extends StatelessWidget {
               const SizedBox(height: 16),
               _BeginnerGuideCard(
                 aquariumExists: true,
+                showWaterTests: showWaterTests,
+                showSpeciesAtlas: showSpeciesAtlas,
                 onDimensions: () => showDialog<void>(
                   context: context,
                   builder: (_) => AddAquariumModal(initial: activeAquarium),
@@ -536,22 +554,24 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: _StatCard(
-                    icon: Icons.water_drop_outlined,
-                    label: l10n.lastTest,
-                    value: latestTest == null
-                        ? l10n.noData
-                        : _formatDate(latestTest.date),
-                    subtitle: latestTest == null
-                        ? l10n.addFirstTest
-                        : l10n.parametersCount(
-                            latestTest.measuredParametersCount,
-                          ),
-                    color: Colors.teal.shade700,
+                if (showWaterTests) ...[
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.water_drop_outlined,
+                      label: l10n.lastTest,
+                      value: latestTest == null
+                          ? l10n.noData
+                          : _formatDate(latestTest.date),
+                      subtitle: latestTest == null
+                          ? l10n.addFirstTest
+                          : l10n.parametersCount(
+                              latestTest.measuredParametersCount,
+                            ),
+                      color: Colors.teal.shade700,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
+                  const SizedBox(width: 12),
+                ],
                 Expanded(
                   child: _StatCard(
                     icon: Icons.sync,
@@ -573,7 +593,7 @@ class DashboardPage extends StatelessWidget {
               ),
               const SizedBox(height: 8),
             ],
-            if (isBeginner)
+            if (isBeginner && showWaterTests)
               Column(
                 children: [
                   _BeginnerWaterSummary(
@@ -584,7 +604,7 @@ class DashboardPage extends StatelessWidget {
                   const ExperienceModeBanner(),
                 ],
               )
-            else ...[
+            else if (!isBeginner && showWaterTests) ...[
               _WaterStatusCard(
                 daysSinceChange: daysSinceChange,
                 isFresh: isWaterFresh,
@@ -612,19 +632,23 @@ class DashboardPage extends StatelessWidget {
               const SizedBox(height: 24),
               _SectionHeader(title: l10n.quickActions),
               const SizedBox(height: 12),
-              _ActionTile(
-                icon: Icons.science_outlined,
-                title: l10n.enterWaterTest,
-                subtitle: l10n.saveTankParameters,
-                accent: true,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const WaterTestScreen()),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
+              if (showWaterTests) ...[
+                _ActionTile(
+                  icon: Icons.science_outlined,
+                  title: l10n.enterWaterTest,
+                  subtitle: l10n.saveTankParameters,
+                  accent: true,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const WaterTestScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
               _ActionTile(
                 icon: Icons.water_drop_outlined,
                 title: l10n.addWaterChange,
@@ -786,6 +810,8 @@ class DashboardPage extends StatelessWidget {
 class _BeginnerGuideCard extends StatefulWidget {
   const _BeginnerGuideCard({
     required this.aquariumExists,
+    this.showWaterTests = true,
+    this.showSpeciesAtlas = true,
     required this.onDimensions,
     required this.onWater,
     required this.onLighting,
@@ -793,6 +819,8 @@ class _BeginnerGuideCard extends StatefulWidget {
   });
 
   final bool aquariumExists;
+  final bool showWaterTests;
+  final bool showSpeciesAtlas;
   final VoidCallback onDimensions;
   final VoidCallback onWater;
   final VoidCallback onLighting;
@@ -818,13 +846,14 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
         Icons.straighten,
         widget.onDimensions,
       ),
-      (
-        l10n.beginnerStepWater,
-        l10n.beginnerStepWaterDescription,
-        l10n.enterWaterTest,
-        Icons.water_drop_outlined,
-        widget.onWater,
-      ),
+      if (widget.showWaterTests)
+        (
+          l10n.beginnerStepWater,
+          l10n.beginnerStepWaterDescription,
+          l10n.enterWaterTest,
+          Icons.water_drop_outlined,
+          widget.onWater,
+        ),
       (
         l10n.beginnerStepLighting,
         l10n.beginnerStepLightingDescription,
@@ -832,16 +861,18 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
         Icons.light_mode_outlined,
         widget.onLighting,
       ),
-      (
-        l10n.beginnerStepPlants,
-        l10n.beginnerStepPlantsDescription,
-        l10n.speciesAtlasTitle,
-        Icons.eco_outlined,
-        widget.onPlants,
-      ),
+      if (widget.showSpeciesAtlas)
+        (
+          l10n.beginnerStepPlants,
+          l10n.beginnerStepPlantsDescription,
+          l10n.speciesAtlasTitle,
+          Icons.eco_outlined,
+          widget.onPlants,
+        ),
     ];
-    final step = steps[_stepIndex];
-    final isLastStep = _stepIndex == steps.length - 1;
+    final stepIndex = _stepIndex.clamp(0, steps.length - 1).toInt();
+    final step = steps[stepIndex];
+    final isLastStep = stepIndex == steps.length - 1;
     final canAdvance = widget.aquariumExists && !isLastStep;
 
     return Card(
@@ -873,11 +904,11 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
               children: [
                 Expanded(
                   child: LinearProgressIndicator(
-                    value: (_stepIndex + 1) / steps.length,
+                    value: (stepIndex + 1) / steps.length,
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text('${_stepIndex + 1} / ${steps.length}'),
+                Text('${stepIndex + 1} / ${steps.length}'),
               ],
             ),
             const SizedBox(height: 16),
@@ -892,7 +923,7 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: !widget.aquariumExists && _stepIndex > 0
+                onPressed: !widget.aquariumExists && stepIndex > 0
                     ? null
                     : () async {
                         if (isLastStep) await _completeGuide();
@@ -906,16 +937,16 @@ class _BeginnerGuideCardState extends State<_BeginnerGuideCard> {
             Row(
               children: [
                 TextButton.icon(
-                  onPressed: _stepIndex == 0
+                  onPressed: stepIndex == 0
                       ? null
-                      : () => setState(() => _stepIndex--),
+                      : () => setState(() => _stepIndex = stepIndex - 1),
                   icon: const Icon(Icons.chevron_left),
                   label: Text(l10n.beginnerPreviousStep),
                 ),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: canAdvance
-                      ? () => setState(() => _stepIndex++)
+                      ? () => setState(() => _stepIndex = stepIndex + 1)
                       : isLastStep && widget.aquariumExists
                       ? _completeGuide
                       : null,
@@ -1152,6 +1183,7 @@ class ToolsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isBeginner = context.watch<ExperienceModeController>().isBeginner;
+    final visibility = context.watch<ModuleVisibilityController>();
     return _PageContainer(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -1163,46 +1195,52 @@ class ToolsPage extends StatelessWidget {
               title: l10n.tools,
               subtitle: l10n.toolsSubtitle,
             ),
-            _ToolCard(
-              icon: Icons.forum_outlined,
-              color: Colors.cyan.shade700,
-              title: l10n.communityTitle,
-              description: l10n.communityDescription,
-              buttonLabel: l10n.communityOpen,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CommunityScreen()),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _ToolCard(
-              icon: Icons.handshake_outlined,
-              color: Colors.amber.shade700,
-              title: l10n.partnersTitle,
-              description: l10n.partnersDescription,
-              buttonLabel: l10n.partnersOpen,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const PartnersScreen()),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _ToolCard(
-              icon: Icons.auto_stories_outlined,
-              color: Colors.teal,
-              title: l10n.templatesTitle,
-              description: l10n.templatesSubtitle,
-              buttonLabel: l10n.templatesOpen,
-              onTap: () {
-                Navigator.push(
+            if (visibility.isVisible(AppModule.community)) ...[
+              _ToolCard(
+                icon: Icons.forum_outlined,
+                color: Colors.cyan.shade700,
+                title: l10n.communityTitle,
+                description: l10n.communityDescription,
+                buttonLabel: l10n.communityOpen,
+                onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const RoutineTemplatesScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
+                  MaterialPageRoute(builder: (_) => const CommunityScreen()),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            if (visibility.isVisible(AppModule.partners)) ...[
+              _ToolCard(
+                icon: Icons.handshake_outlined,
+                color: Colors.amber.shade700,
+                title: l10n.partnersTitle,
+                description: l10n.partnersDescription,
+                buttonLabel: l10n.partnersOpen,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PartnersScreen()),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            if (visibility.isVisible(AppModule.templates)) ...[
+              _ToolCard(
+                icon: Icons.auto_stories_outlined,
+                color: Colors.teal,
+                title: l10n.templatesTitle,
+                description: l10n.templatesSubtitle,
+                buttonLabel: l10n.templatesOpen,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RoutineTemplatesScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
             _ToolCard(
               icon: Icons.water_drop_outlined,
               color: Colors.cyan,
@@ -1218,43 +1256,48 @@ class ToolsPage extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(height: 12),
-            _ToolCard(
-              icon: Icons.science_outlined,
-              color: Colors.teal,
-              title: l10n.waterTests,
-              description: l10n.waterTestsDescription,
-              buttonLabel: l10n.openTests,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const WaterTestScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            _ToolCard(
-              icon: Icons.menu_book_outlined,
-              color: Colors.teal.shade700,
-              title: l10n.knowledgeBaseTitle,
-              description: l10n.knowledgeBaseDesc,
-              buttonLabel: l10n.openAtlas,
-              premium: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => SpeciesAtlasScreen(
-                      tankId: context
-                          .read<models.AquariumProvider>()
-                          .resolveAquariumId(),
-                      onCreateAquarium: () => showCreateAquariumDialog(context),
+            if (visibility.isVisible(AppModule.waterTests)) ...[
+              const SizedBox(height: 12),
+              _ToolCard(
+                icon: Icons.science_outlined,
+                color: Colors.teal,
+                title: l10n.waterTests,
+                description: l10n.waterTestsDescription,
+                buttonLabel: l10n.openTests,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const WaterTestScreen()),
+                  );
+                },
+              ),
+            ],
+            if (visibility.isVisible(AppModule.speciesAtlas)) ...[
+              const SizedBox(height: 12),
+              _ToolCard(
+                icon: Icons.menu_book_outlined,
+                color: Colors.teal.shade700,
+                title: l10n.knowledgeBaseTitle,
+                description: l10n.knowledgeBaseDesc,
+                buttonLabel: l10n.openAtlas,
+                premium: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SpeciesAtlasScreen(
+                        tankId: context
+                            .read<models.AquariumProvider>()
+                            .resolveAquariumId(),
+                        onCreateAquarium: () =>
+                            showCreateAquariumDialog(context),
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            if (!isBeginner) ...[
+                  );
+                },
+              ),
+            ],
+            if (!isBeginner && visibility.isVisible(AppModule.calculators)) ...[
               const SizedBox(height: 12),
               _ToolCard(
                 icon: Icons.calculate_outlined,
@@ -1273,29 +1316,33 @@ class ToolsPage extends StatelessWidget {
                 },
               ),
             ],
-            const SizedBox(height: 12),
-            _ToolCard(
-              icon: Icons.auto_awesome,
-              color: Colors.deepPurple,
-              title: l10n.aiScannerTitle,
-              description: l10n.aiScannerDesc,
-              buttonLabel: l10n.startDiagnosis,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AiScannerPage()),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            _ToolCard(
-              icon: Icons.eco_outlined,
-              color: Colors.green.shade700,
-              title: l10n.algaeAssistantTitle,
-              description: l10n.algaeAssistantDesc,
-              buttonLabel: l10n.startDiagnosis,
-              onTap: () => _showAlgaeDialog(context),
-            ),
+            if (visibility.isVisible(AppModule.aiScanner)) ...[
+              const SizedBox(height: 12),
+              _ToolCard(
+                icon: Icons.auto_awesome,
+                color: Colors.deepPurple,
+                title: l10n.aiScannerTitle,
+                description: l10n.aiScannerDesc,
+                buttonLabel: l10n.startDiagnosis,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AiScannerPage()),
+                  );
+                },
+              ),
+            ],
+            if (visibility.isVisible(AppModule.algaeAssistant)) ...[
+              const SizedBox(height: 12),
+              _ToolCard(
+                icon: Icons.eco_outlined,
+                color: Colors.green.shade700,
+                title: l10n.algaeAssistantTitle,
+                description: l10n.algaeAssistantDesc,
+                buttonLabel: l10n.startDiagnosis,
+                onTap: () => _showAlgaeDialog(context),
+              ),
+            ],
             const SizedBox(height: 24),
           ],
         ),
@@ -2538,6 +2585,18 @@ class ProfilePage extends StatelessWidget {
             _SectionHeader(title: l10n.settings),
             const SizedBox(height: 12),
             const _ExperienceModeTile(),
+            const SizedBox(height: 10),
+            _SettingsTile(
+              icon: Icons.tune,
+              title: l10n.moduleVisibilityTitle,
+              subtitle: l10n.moduleVisibilitySubtitle,
+              onTap: () => Navigator.push<void>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ModuleVisibilityScreen(),
+                ),
+              ),
+            ),
             const SizedBox(height: 10),
             _SettingsTile(
               icon: Icons.notifications_none,

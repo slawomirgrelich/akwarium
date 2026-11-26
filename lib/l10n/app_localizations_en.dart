@@ -2428,6 +2428,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminPartnersTab => 'Partners';
 
   @override
+  String get adminSortUsers => 'Sort users';
+
+  @override
+  String get adminSortLastActive => 'Recently active';
+
+  @override
+  String get adminSortNewest => 'Recently registered';
+
+  @override
+  String get adminSortAlphabetical => 'Alphabetically (A–Z)';
+
+  @override
   String get adminAccessDenied => 'Administrator access required.';
 
   @override
@@ -3925,4 +3937,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get partnersInvalidLink => 'The partner link could not be opened.';
+
+  @override
+  String get moduleVisibilityTitle => 'Customize view';
+
+  @override
+  String get moduleVisibilitySubtitle =>
+      'Choose modules visible on Dashboard, Journal and Tools.';
+
+  @override
+  String get moduleVisibilityDescription =>
+      'Turn off modules you do not use. Their data stays saved, and you can restore every module at any time.';
+
+  @override
+  String get moduleVisibilityShowAll => 'Show all';
 }

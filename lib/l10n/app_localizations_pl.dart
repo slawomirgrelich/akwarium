@@ -2444,6 +2444,18 @@ class AppLocalizationsPl extends AppLocalizations {
   String get adminPartnersTab => 'Partnerzy';
 
   @override
+  String get adminSortUsers => 'Sortuj użytkowników';
+
+  @override
+  String get adminSortLastActive => 'Ostatnio aktywni';
+
+  @override
+  String get adminSortNewest => 'Ostatnio zarejestrowani';
+
+  @override
+  String get adminSortAlphabetical => 'Alfabetycznie (A–Z)';
+
+  @override
   String get adminAccessDenied => 'Wymagany dostęp administratora.';
 
   @override
@@ -3945,4 +3957,18 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get partnersInvalidLink => 'Nie udało się otworzyć linku partnera.';
+
+  @override
+  String get moduleVisibilityTitle => 'Dostosuj widok';
+
+  @override
+  String get moduleVisibilitySubtitle =>
+      'Wybierz moduły widoczne na Pulpicie, w Dzienniku i Narzędziach.';
+
+  @override
+  String get moduleVisibilityDescription =>
+      'Wyłącz moduły, których nie używasz. Ich dane pozostaną zapisane i możesz przywrócić widok w dowolnym momencie.';
+
+  @override
+  String get moduleVisibilityShowAll => 'Przywróć wszystkie';
 }
