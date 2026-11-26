@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 
+import '../models/partner_model.dart';
 import '../models/ticket_models.dart';
 
 class AdminService {
@@ -104,6 +105,40 @@ class AdminService {
       'adminResponse': adminResponse.trim(),
       'status': status.firestoreValue,
       'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Stream<List<Partner>> watchPartners() async* {
+    await _requireAdmin();
+    yield* _firestore
+        .collection('partners')
+        .orderBy('order')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(Partner.fromFirestore)
+              .toList(growable: false),
+        );
+  }
+
+  Future<void> savePartner({
+    String? partnerId,
+    required PartnerDraft partner,
+  }) async {
+    await _requireAdmin();
+    final reference = partnerId == null || partnerId.isEmpty
+        ? _firestore.collection('partners').doc()
+        : _firestore.collection('partners').doc(partnerId);
+    await reference.set(partner.toFirestoreMap());
+  }
+
+  Future<void> updatePartnerVisibility({
+    required String partnerId,
+    required bool isActive,
+  }) async {
+    await _requireAdmin();
+    await _firestore.collection('partners').doc(partnerId).update({
+      'isActive': isActive,
     });
   }
 

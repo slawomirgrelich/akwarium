@@ -2441,6 +2441,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get adminUsersTab => 'Użytkownicy';
 
   @override
+  String get adminPartnersTab => 'Partnerzy';
+
+  @override
   String get adminAccessDenied => 'Wymagany dostęp administratora.';
 
   @override
@@ -2631,6 +2634,68 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get adminCancel => 'Anuluj';
+
+  @override
+  String get adminAddPartner => 'Dodaj partnera';
+
+  @override
+  String get adminEditPartner => 'Edytuj partnera';
+
+  @override
+  String get adminNoPartners =>
+      'Nie ma jeszcze partnerów. Dodaj pierwszy wpis.';
+
+  @override
+  String get adminPartnerVisibility => 'Widoczny dla użytkowników';
+
+  @override
+  String get adminPartnerVisibilityHint =>
+      'Ukryci partnerzy pozostają dostępni w panelu administratora.';
+
+  @override
+  String get adminPartnerVisibilitySaved => 'Zapisano widoczność partnera.';
+
+  @override
+  String get adminPartnerName => 'Nazwa';
+
+  @override
+  String get adminPartnerCategory => 'Kategoria';
+
+  @override
+  String get adminPartnerSubtitle => 'Krótki podtytuł (opcjonalnie)';
+
+  @override
+  String get adminPartnerDescription => 'Opis';
+
+  @override
+  String get adminPartnerUrl => 'Adres URL';
+
+  @override
+  String get adminPartnerPromoCode => 'Kod rabatowy (opcjonalnie)';
+
+  @override
+  String get adminPartnerPromoText => 'Tekst promocji (opcjonalnie)';
+
+  @override
+  String get adminPartnerTip => 'Porada partnera (opcjonalnie)';
+
+  @override
+  String get adminPartnerOrderLabel => 'Kolejność';
+
+  @override
+  String adminPartnerOrder(int order) {
+    return 'Kolejność: $order';
+  }
+
+  @override
+  String get adminPartnerRequired => 'To pole jest wymagane.';
+
+  @override
+  String get adminPartnerInvalidUrl =>
+      'Wpisz poprawny adres zaczynający się od http:// lub https://.';
+
+  @override
+  String get adminPartnerOrderInvalid => 'Wpisz prawidłową liczbę całkowitą.';
 
   @override
   String get adminRegisteredAt => 'Data rejestracji';
@@ -3826,4 +3891,58 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get reminderTaskFilter => 'Czyszczenie filtra';
+
+  @override
+  String get partnersTitle => 'Partnerzy i Twórcy';
+
+  @override
+  String get partnersDescription =>
+      'Polecani twórcy akwarystyczni, sklepy i praktyczne porady.';
+
+  @override
+  String get partnersOpen => 'Zobacz partnerów';
+
+  @override
+  String get partnersAll => 'Wszystkie';
+
+  @override
+  String get partnersCreators => 'Twórcy';
+
+  @override
+  String get partnersShops => 'Sklepy';
+
+  @override
+  String get partnersEmpty =>
+      'Wkrótce pojawią się pierwsi twórcy i sklepy partnerskie.';
+
+  @override
+  String get partnersLoadError =>
+      'Nie udało się wczytać partnerów. Sprawdź połączenie i spróbuj ponownie.';
+
+  @override
+  String get partnerCreator => 'Twórca';
+
+  @override
+  String get partnerShop => 'Sklep';
+
+  @override
+  String get partnerBreeder => 'Hodowca';
+
+  @override
+  String get partnersPromo => 'Oferta partnera';
+
+  @override
+  String get copyPromoCode => 'Kopiuj kod';
+
+  @override
+  String get promoCodeCopied => 'Kod rabatowy został skopiowany.';
+
+  @override
+  String get partnersTip => 'Porada partnera';
+
+  @override
+  String get partnersOpenWebsite => 'Odwiedź stronę';
+
+  @override
+  String get partnersInvalidLink => 'Nie udało się otworzyć linku partnera.';
 }

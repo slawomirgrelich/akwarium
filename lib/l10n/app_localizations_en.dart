@@ -2425,6 +2425,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminUsersTab => 'Users';
 
   @override
+  String get adminPartnersTab => 'Partners';
+
+  @override
   String get adminAccessDenied => 'Administrator access required.';
 
   @override
@@ -2615,6 +2618,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminCancel => 'Cancel';
+
+  @override
+  String get adminAddPartner => 'Add partner';
+
+  @override
+  String get adminEditPartner => 'Edit partner';
+
+  @override
+  String get adminNoPartners =>
+      'There are no partners yet. Add the first entry.';
+
+  @override
+  String get adminPartnerVisibility => 'Visible to users';
+
+  @override
+  String get adminPartnerVisibilityHint =>
+      'Hidden partners remain available in the admin panel.';
+
+  @override
+  String get adminPartnerVisibilitySaved => 'Partner visibility saved.';
+
+  @override
+  String get adminPartnerName => 'Name';
+
+  @override
+  String get adminPartnerCategory => 'Category';
+
+  @override
+  String get adminPartnerSubtitle => 'Short subtitle (optional)';
+
+  @override
+  String get adminPartnerDescription => 'Description';
+
+  @override
+  String get adminPartnerUrl => 'URL';
+
+  @override
+  String get adminPartnerPromoCode => 'Promo code (optional)';
+
+  @override
+  String get adminPartnerPromoText => 'Promotion text (optional)';
+
+  @override
+  String get adminPartnerTip => 'Partner tip (optional)';
+
+  @override
+  String get adminPartnerOrderLabel => 'Order';
+
+  @override
+  String adminPartnerOrder(int order) {
+    return 'Order: $order';
+  }
+
+  @override
+  String get adminPartnerRequired => 'This field is required.';
+
+  @override
+  String get adminPartnerInvalidUrl =>
+      'Enter a valid URL starting with http:// or https://.';
+
+  @override
+  String get adminPartnerOrderInvalid => 'Enter a valid integer.';
 
   @override
   String get adminRegisteredAt => 'Registration date';
@@ -3806,4 +3871,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderTaskFilter => 'Clean filter';
+
+  @override
+  String get partnersTitle => 'Partners and Creators';
+
+  @override
+  String get partnersDescription =>
+      'Recommended aquarium creators, shops and practical tips.';
+
+  @override
+  String get partnersOpen => 'View partners';
+
+  @override
+  String get partnersAll => 'All';
+
+  @override
+  String get partnersCreators => 'Creators';
+
+  @override
+  String get partnersShops => 'Shops';
+
+  @override
+  String get partnersEmpty =>
+      'Our first creators and partner shops will be available soon.';
+
+  @override
+  String get partnersLoadError =>
+      'Partners could not be loaded. Check your connection and try again.';
+
+  @override
+  String get partnerCreator => 'Creator';
+
+  @override
+  String get partnerShop => 'Shop';
+
+  @override
+  String get partnerBreeder => 'Breeder';
+
+  @override
+  String get partnersPromo => 'Partner offer';
+
+  @override
+  String get copyPromoCode => 'Copy code';
+
+  @override
+  String get promoCodeCopied => 'The promo code was copied.';
+
+  @override
+  String get partnersTip => 'Partner tip';
+
+  @override
+  String get partnersOpenWebsite => 'Visit website';
+
+  @override
+  String get partnersInvalidLink => 'The partner link could not be opened.';
 }

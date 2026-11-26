@@ -38,6 +38,7 @@ import 'screens/help_center_screen.dart';
 import 'screens/journal_and_reminders_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/notification_settings_screen.dart';
+import 'screens/partners_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/referral_screen.dart';
 import 'screens/routine_templates_screen.dart';
@@ -1171,6 +1172,18 @@ class ToolsPage extends StatelessWidget {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const CommunityScreen()),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ToolCard(
+              icon: Icons.handshake_outlined,
+              color: Colors.amber.shade700,
+              title: l10n.partnersTitle,
+              description: l10n.partnersDescription,
+              buttonLabel: l10n.partnersOpen,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PartnersScreen()),
               ),
             ),
             const SizedBox(height: 12),

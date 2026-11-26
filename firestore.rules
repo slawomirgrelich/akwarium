@@ -177,6 +177,56 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /partners/{partnerId} {
+      allow read: if signedIn()
+        && (resource.data.isActive == true || isAdmin());
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          'name', 'category', 'subtitle', 'description', 'url', 'promoCode',
+          'promoText', 'tipText', 'order', 'isActive'
+        ])
+        && request.resource.data.keys().hasAll([
+          'name', 'category', 'description', 'url', 'order', 'isActive'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.category in ['creator', 'shop', 'breeder']
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() <= 400
+        && request.resource.data.url is string
+        && request.resource.data.url.size() > 0
+        && request.resource.data.url.size() <= 500
+        && request.resource.data.order is int
+        && request.resource.data.isActive is bool
+        && (!('subtitle' in request.resource.data)
+          || request.resource.data.subtitle == null
+          || (
+            request.resource.data.subtitle is string
+            && request.resource.data.subtitle.size() <= 100
+          ))
+        && (!('promoCode' in request.resource.data)
+          || request.resource.data.promoCode == null
+          || (
+            request.resource.data.promoCode is string
+            && request.resource.data.promoCode.size() <= 60
+          ))
+        && (!('promoText' in request.resource.data)
+          || request.resource.data.promoText == null
+          || (
+            request.resource.data.promoText is string
+            && request.resource.data.promoText.size() <= 160
+          ))
+        && (!('tipText' in request.resource.data)
+          || request.resource.data.tipText == null
+          || (
+            request.resource.data.tipText is string
+            && request.resource.data.tipText.size() <= 600
+          ));
+      allow delete: if isAdmin();
+    }
+
     match /tickets/{ticketId} {
       allow read: if signedIn()
         && (resource.data.userId == request.auth.uid || isAdmin());

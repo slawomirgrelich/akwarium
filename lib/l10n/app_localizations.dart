@@ -4405,6 +4405,12 @@ abstract class AppLocalizations {
   /// **'Użytkownicy'**
   String get adminUsersTab;
 
+  /// No description provided for @adminPartnersTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'Partnerzy'**
+  String get adminPartnersTab;
+
   /// No description provided for @adminAccessDenied.
   ///
   /// In pl, this message translates to:
@@ -4770,6 +4776,120 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Anuluj'**
   String get adminCancel;
+
+  /// No description provided for @adminAddPartner.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj partnera'**
+  String get adminAddPartner;
+
+  /// No description provided for @adminEditPartner.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj partnera'**
+  String get adminEditPartner;
+
+  /// No description provided for @adminNoPartners.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie ma jeszcze partnerów. Dodaj pierwszy wpis.'**
+  String get adminNoPartners;
+
+  /// No description provided for @adminPartnerVisibility.
+  ///
+  /// In pl, this message translates to:
+  /// **'Widoczny dla użytkowników'**
+  String get adminPartnerVisibility;
+
+  /// No description provided for @adminPartnerVisibilityHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ukryci partnerzy pozostają dostępni w panelu administratora.'**
+  String get adminPartnerVisibilityHint;
+
+  /// No description provided for @adminPartnerVisibilitySaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisano widoczność partnera.'**
+  String get adminPartnerVisibilitySaved;
+
+  /// No description provided for @adminPartnerName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa'**
+  String get adminPartnerName;
+
+  /// No description provided for @adminPartnerCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kategoria'**
+  String get adminPartnerCategory;
+
+  /// No description provided for @adminPartnerSubtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Krótki podtytuł (opcjonalnie)'**
+  String get adminPartnerSubtitle;
+
+  /// No description provided for @adminPartnerDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opis'**
+  String get adminPartnerDescription;
+
+  /// No description provided for @adminPartnerUrl.
+  ///
+  /// In pl, this message translates to:
+  /// **'Adres URL'**
+  String get adminPartnerUrl;
+
+  /// No description provided for @adminPartnerPromoCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod rabatowy (opcjonalnie)'**
+  String get adminPartnerPromoCode;
+
+  /// No description provided for @adminPartnerPromoText.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tekst promocji (opcjonalnie)'**
+  String get adminPartnerPromoText;
+
+  /// No description provided for @adminPartnerTip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Porada partnera (opcjonalnie)'**
+  String get adminPartnerTip;
+
+  /// No description provided for @adminPartnerOrderLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kolejność'**
+  String get adminPartnerOrderLabel;
+
+  /// No description provided for @adminPartnerOrder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kolejność: {order}'**
+  String adminPartnerOrder(int order);
+
+  /// No description provided for @adminPartnerRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'To pole jest wymagane.'**
+  String get adminPartnerRequired;
+
+  /// No description provided for @adminPartnerInvalidUrl.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz poprawny adres zaczynający się od http:// lub https://.'**
+  String get adminPartnerInvalidUrl;
+
+  /// No description provided for @adminPartnerOrderInvalid.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz prawidłową liczbę całkowitą.'**
+  String get adminPartnerOrderInvalid;
 
   /// No description provided for @adminRegisteredAt.
   ///
@@ -6921,6 +7041,108 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Czyszczenie filtra'**
   String get reminderTaskFilter;
+
+  /// No description provided for @partnersTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Partnerzy i Twórcy'**
+  String get partnersTitle;
+
+  /// No description provided for @partnersDescription.
+  ///
+  /// In pl, this message translates to:
+  /// **'Polecani twórcy akwarystyczni, sklepy i praktyczne porady.'**
+  String get partnersDescription;
+
+  /// No description provided for @partnersOpen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zobacz partnerów'**
+  String get partnersOpen;
+
+  /// No description provided for @partnersAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie'**
+  String get partnersAll;
+
+  /// No description provided for @partnersCreators.
+  ///
+  /// In pl, this message translates to:
+  /// **'Twórcy'**
+  String get partnersCreators;
+
+  /// No description provided for @partnersShops.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sklepy'**
+  String get partnersShops;
+
+  /// No description provided for @partnersEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wkrótce pojawią się pierwsi twórcy i sklepy partnerskie.'**
+  String get partnersEmpty;
+
+  /// No description provided for @partnersLoadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać partnerów. Sprawdź połączenie i spróbuj ponownie.'**
+  String get partnersLoadError;
+
+  /// No description provided for @partnerCreator.
+  ///
+  /// In pl, this message translates to:
+  /// **'Twórca'**
+  String get partnerCreator;
+
+  /// No description provided for @partnerShop.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sklep'**
+  String get partnerShop;
+
+  /// No description provided for @partnerBreeder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Hodowca'**
+  String get partnerBreeder;
+
+  /// No description provided for @partnersPromo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oferta partnera'**
+  String get partnersPromo;
+
+  /// No description provided for @copyPromoCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kopiuj kod'**
+  String get copyPromoCode;
+
+  /// No description provided for @promoCodeCopied.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod rabatowy został skopiowany.'**
+  String get promoCodeCopied;
+
+  /// No description provided for @partnersTip.
+  ///
+  /// In pl, this message translates to:
+  /// **'Porada partnera'**
+  String get partnersTip;
+
+  /// No description provided for @partnersOpenWebsite.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odwiedź stronę'**
+  String get partnersOpenWebsite;
+
+  /// No description provided for @partnersInvalidLink.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się otworzyć linku partnera.'**
+  String get partnersInvalidLink;
 }
 
 class _AppLocalizationsDelegate

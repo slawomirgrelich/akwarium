@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../l10n/app_localizations.dart';
+import '../models/partner_model.dart';
 import '../models/ticket_models.dart';
 import '../services/admin_service.dart';
 
@@ -62,7 +63,7 @@ class _AdminDashboardTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.adminDashboardTitle),
@@ -81,6 +82,10 @@ class _AdminDashboardTabs extends StatelessWidget {
                 icon: const Icon(Icons.people_outline),
                 text: l10n.adminUsersTab,
               ),
+              Tab(
+                icon: const Icon(Icons.handshake_outlined),
+                text: l10n.adminPartnersTab,
+              ),
             ],
           ),
         ),
@@ -89,6 +94,446 @@ class _AdminDashboardTabs extends StatelessWidget {
             _AdminOverviewTab(service: service),
             _AdminTicketsTab(service: service),
             _AdminUsersTab(service: service),
+            _AdminPartnersTab(service: service),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminPartnersTab extends StatefulWidget {
+  const _AdminPartnersTab({required this.service});
+
+  final AdminService service;
+
+  @override
+  State<_AdminPartnersTab> createState() => _AdminPartnersTabState();
+}
+
+class _AdminPartnersTabState extends State<_AdminPartnersTab> {
+  final Set<String> _updating = {};
+
+  Future<void> _openEditor([Partner? partner]) async {
+    await showDialog<bool>(
+      context: context,
+      builder: (_) => AdminPartnerEditorDialog(
+        partner: partner,
+        onSave: (draft) =>
+            widget.service.savePartner(partnerId: partner?.id, partner: draft),
+      ),
+    );
+  }
+
+  Future<void> _updateVisibility(Partner partner, bool isActive) async {
+    if (_updating.contains(partner.id)) return;
+    setState(() => _updating.add(partner.id));
+    try {
+      await widget.service.updatePartnerVisibility(
+        partnerId: partner.id,
+        isActive: isActive,
+      );
+      if (!mounted) return;
+      context.showAppSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.adminPartnerVisibilitySaved,
+          ),
+        ),
+      );
+    } on Object catch (error) {
+      if (!mounted) return;
+      context.showAppSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.adminLoadError(error.toString()),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _updating.remove(partner.id));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _openEditor(),
+        icon: const Icon(Icons.add),
+        label: Text(l10n.adminAddPartner),
+      ),
+      body: StreamBuilder<List<Partner>>(
+        stream: widget.service.watchPartners(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return _AdminErrorState(
+              message: l10n.adminLoadError(snapshot.error.toString()),
+              onRetry: () => setState(() {}),
+            );
+          }
+          final partners = snapshot.data ?? const <Partner>[];
+          if (partners.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(l10n.adminNoPartners, textAlign: TextAlign.center),
+              ),
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+            itemCount: partners.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final partner = partners[index];
+              final updating = _updating.contains(partner.id);
+              return Card(
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.primary
+                        .withValues(alpha: 0.14),
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                    child: Icon(_partnerIcon(partner.category)),
+                  ),
+                  title: Text(
+                    partner.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${_partnerCategoryLabel(l10n, partner.category)} · '
+                    '${l10n.adminPartnerOrder(partner.order)}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (updating)
+                        const SizedBox.square(
+                          dimension: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else
+                        Tooltip(
+                          message: l10n.adminPartnerVisibility,
+                          child: Switch(
+                            value: partner.isActive,
+                            onChanged: (value) =>
+                                _updateVisibility(partner, value),
+                          ),
+                        ),
+                      IconButton(
+                        tooltip: l10n.adminEditPartner,
+                        onPressed: updating ? null : () => _openEditor(partner),
+                        icon: const Icon(Icons.edit_outlined),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class AdminPartnerEditorDialog extends StatefulWidget {
+  const AdminPartnerEditorDialog({
+    required this.onSave,
+    this.partner,
+    super.key,
+  });
+
+  final Partner? partner;
+  final Future<void> Function(PartnerDraft draft) onSave;
+
+  @override
+  State<AdminPartnerEditorDialog> createState() =>
+      _AdminPartnerEditorDialogState();
+}
+
+class _AdminPartnerEditorDialogState extends State<AdminPartnerEditorDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameController;
+  late final TextEditingController _subtitleController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _urlController;
+  late final TextEditingController _promoCodeController;
+  late final TextEditingController _promoTextController;
+  late final TextEditingController _tipController;
+  late final TextEditingController _orderController;
+  late PartnerCategory _category;
+  late bool _isActive;
+  var _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final partner = widget.partner;
+    _nameController = TextEditingController(text: partner?.name);
+    _subtitleController = TextEditingController(text: partner?.subtitle);
+    _descriptionController = TextEditingController(text: partner?.description);
+    _urlController = TextEditingController(text: partner?.url);
+    _promoCodeController = TextEditingController(text: partner?.promoCode);
+    _promoTextController = TextEditingController(text: partner?.promoText);
+    _tipController = TextEditingController(text: partner?.tipText);
+    _orderController = TextEditingController(text: '${partner?.order ?? 10}');
+    _category = partner?.category == PartnerCategory.unknown
+        ? PartnerCategory.creator
+        : partner?.category ?? PartnerCategory.creator;
+    _isActive = partner?.isActive ?? false;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _subtitleController.dispose();
+    _descriptionController.dispose();
+    _urlController.dispose();
+    _promoCodeController.dispose();
+    _promoTextController.dispose();
+    _tipController.dispose();
+    _orderController.dispose();
+    super.dispose();
+  }
+
+  String? _required(String? value) {
+    return value == null || value.trim().isEmpty
+        ? AppLocalizations.of(context)!.adminPartnerRequired
+        : null;
+  }
+
+  String? _urlValidator(String? value) {
+    final requiredError = _required(value);
+    if (requiredError != null) return requiredError;
+    final uri = Uri.tryParse(value!.trim());
+    if (uri == null ||
+        (uri.scheme != 'http' && uri.scheme != 'https') ||
+        uri.host.isEmpty) {
+      return AppLocalizations.of(context)!.adminPartnerInvalidUrl;
+    }
+    return null;
+  }
+
+  Future<void> _save() async {
+    if (_saving || !_formKey.currentState!.validate()) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.onSave(
+        PartnerDraft(
+          name: _nameController.text,
+          category: _category,
+          subtitle: _subtitleController.text,
+          description: _descriptionController.text,
+          url: _urlController.text,
+          promoCode: _promoCodeController.text,
+          promoText: _promoTextController.text,
+          tipText: _tipController.text,
+          order: int.parse(_orderController.text.trim()),
+          isActive: _isActive,
+        ),
+      );
+      if (mounted) Navigator.pop(context, true);
+    } on Object catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final screenSize = MediaQuery.sizeOf(context);
+    return Dialog(
+      insetPadding: const EdgeInsets.all(16),
+      child: SizedBox(
+        width: math.min(620, screenSize.width - 32),
+        height: math.min(760, screenSize.height - 32),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 12, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.partner == null
+                          ? l10n.adminAddPartner
+                          : l10n.adminEditPartner,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: MaterialLocalizations.of(context)
+                        .closeButtonTooltip,
+                    onPressed: _saving ? null : () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        maxLength: 80,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerName,
+                        ),
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<PartnerCategory>(
+                        initialValue: _category,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerCategory,
+                        ),
+                        items: [
+                          for (final category in [
+                            PartnerCategory.creator,
+                            PartnerCategory.shop,
+                            PartnerCategory.breeder,
+                          ])
+                            DropdownMenuItem(
+                              value: category,
+                              child: Text(
+                                _partnerCategoryLabel(l10n, category),
+                              ),
+                            ),
+                        ],
+                        onChanged: _saving
+                            ? null
+                            : (value) => setState(
+                                () => _category =
+                                    value ?? PartnerCategory.creator,
+                              ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _subtitleController,
+                        maxLength: 100,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerSubtitle,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _descriptionController,
+                        minLines: 2,
+                        maxLines: 4,
+                        maxLength: 400,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerDescription,
+                          alignLabelWithHint: true,
+                        ),
+                        validator: _required,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _urlController,
+                        keyboardType: TextInputType.url,
+                        maxLength: 500,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerUrl,
+                        ),
+                        validator: _urlValidator,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _promoCodeController,
+                        maxLength: 60,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerPromoCode,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _promoTextController,
+                        maxLength: 160,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerPromoText,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _tipController,
+                        minLines: 2,
+                        maxLines: 5,
+                        maxLength: 600,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerTip,
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _orderController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: l10n.adminPartnerOrderLabel,
+                        ),
+                        validator: (value) =>
+                            int.tryParse(value?.trim() ?? '') == null
+                            ? l10n.adminPartnerOrderInvalid
+                            : null,
+                      ),
+                      const SizedBox(height: 8),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(l10n.adminPartnerVisibility),
+                        subtitle: Text(l10n.adminPartnerVisibilityHint),
+                        value: _isActive,
+                        onChanged: _saving
+                            ? null
+                            : (value) => setState(() => _isActive = value),
+                      ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 8),
+                        _InlineError(message: l10n.adminLoadError(_error!)),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _saving ? null : _save,
+                  icon: _saving
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save_outlined),
+                  label: Text(l10n.save),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -1349,6 +1794,21 @@ String _statusLabel(AppLocalizations l10n, TicketStatus status) =>
       TicketStatus.inProgress => l10n.adminStatusInProgress,
       TicketStatus.resolved => l10n.adminStatusResolved,
       TicketStatus.closed => l10n.adminStatusClosed,
+    };
+
+IconData _partnerIcon(PartnerCategory category) => switch (category) {
+  PartnerCategory.creator => Icons.play_circle_outline,
+  PartnerCategory.shop => Icons.storefront_outlined,
+  PartnerCategory.breeder => Icons.set_meal_outlined,
+  PartnerCategory.unknown => Icons.handshake_outlined,
+};
+
+String _partnerCategoryLabel(AppLocalizations l10n, PartnerCategory category) =>
+    switch (category) {
+      PartnerCategory.creator => l10n.partnerCreator,
+      PartnerCategory.shop => l10n.partnerShop,
+      PartnerCategory.breeder => l10n.partnerBreeder,
+      PartnerCategory.unknown => l10n.partnersTitle,
     };
 
 String _categoryLabel(AppLocalizations l10n, TicketCategory category) =>
