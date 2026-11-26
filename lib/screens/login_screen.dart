@@ -405,17 +405,17 @@ class _LoginScreenState extends State<LoginScreen> {
       final credential = await _auth.signInWithGoogle();
       if (!mounted || credential == null) return;
       await Navigator.of(context).pushReplacementNamed('/dashboard');
-    } on AuthException catch (error) {
-      if (!mounted) return;
-      final message = _authErrorMessage(error);
-      setState(() => _errorMessage = message);
-      _showMessage(message, error: true);
-    } on Object catch (error, stackTrace) {
-      debugPrint('Google sign-in screen failed: $error\n$stackTrace');
-      if (!mounted) return;
-      final message = AppLocalizations.of(context)!.googleSignInFailed;
-      setState(() => _errorMessage = message);
-      _showMessage(message, error: true);
+  } on AuthException catch (error) {
+          if (!mounted) return;
+          final message = _authErrorMessage(error);
+          setState(() => _errorMessage = message);
+          _showMessage(message, error: true);
+        } on Object catch (error, stackTrace) {
+          debugPrint('Google sign-in screen failed: $error\n$stackTrace');
+          if (!mounted) return;
+          final message = AppLocalizations.of(context)!.googleSignInFailed;
+          setState(() => _errorMessage = message);
+          _showMessage(message, error: true);
     } finally {
       if (mounted) {
         setState(() {

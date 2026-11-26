@@ -32,6 +32,8 @@ class AuthService {
   static Future<void>? _googleSignInInitialization;
   static const _googleServerClientId = String.fromEnvironment(
     'GOOGLE_SERVER_CLIENT_ID',
+    defaultValue:
+        '760131458678-o12l0h1a3huqdvrutfnrrhrgpnrhhb3n.apps.googleusercontent.com',
   );
   static const _googleIosClientId = String.fromEnvironment(
     'GOOGLE_IOS_CLIENT_ID',
